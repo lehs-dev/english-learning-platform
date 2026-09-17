@@ -76,7 +76,6 @@ Web: `http://localhost:8080`.
 ## Branch strategy
 
 - `main`: release ổn định, chỉ merge qua PR.
-- `develop`: nhánh tích hợp.
 - `feature/<issue>-<short-name>`: feature.
 - `fix/<issue>-<short-name>`: bugfix.
 
