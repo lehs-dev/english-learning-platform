@@ -1,0 +1,48 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishLearningPlatform.Domain", "src\EnglishLearningPlatform.Domain\EnglishLearningPlatform.Domain.csproj", "{78659D49-6B46-4B42-9F6E-B8D954CDA492}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishLearningPlatform.Application", "src\EnglishLearningPlatform.Application\EnglishLearningPlatform.Application.csproj", "{76D3C7F3-6CA0-4766-9E27-1E7A64F2F20C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishLearningPlatform.Infrastructure", "src\EnglishLearningPlatform.Infrastructure\EnglishLearningPlatform.Infrastructure.csproj", "{E3C1F487-C21C-41CB-BE81-4ADE253B6100}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishLearningPlatform.Web", "src\EnglishLearningPlatform.Web\EnglishLearningPlatform.Web.csproj", "{6B41AF52-F083-4B87-9538-2537F1FC26C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishLearningPlatform.UnitTests", "tests\EnglishLearningPlatform.UnitTests\EnglishLearningPlatform.UnitTests.csproj", "{06FFB71F-E35B-40D0-B1D9-8772EC8FC20F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishLearningPlatform.IntegrationTests", "tests\EnglishLearningPlatform.IntegrationTests\EnglishLearningPlatform.IntegrationTests.csproj", "{09B313A9-09CA-48FA-8227-696D67F5306D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{78659D49-6B46-4B42-9F6E-B8D954CDA492}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78659D49-6B46-4B42-9F6E-B8D954CDA492}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78659D49-6B46-4B42-9F6E-B8D954CDA492}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78659D49-6B46-4B42-9F6E-B8D954CDA492}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76D3C7F3-6CA0-4766-9E27-1E7A64F2F20C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76D3C7F3-6CA0-4766-9E27-1E7A64F2F20C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76D3C7F3-6CA0-4766-9E27-1E7A64F2F20C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76D3C7F3-6CA0-4766-9E27-1E7A64F2F20C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3C1F487-C21C-41CB-BE81-4ADE253B6100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3C1F487-C21C-41CB-BE81-4ADE253B6100}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3C1F487-C21C-41CB-BE81-4ADE253B6100}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3C1F487-C21C-41CB-BE81-4ADE253B6100}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B41AF52-F083-4B87-9538-2537F1FC26C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B41AF52-F083-4B87-9538-2537F1FC26C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B41AF52-F083-4B87-9538-2537F1FC26C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B41AF52-F083-4B87-9538-2537F1FC26C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06FFB71F-E35B-40D0-B1D9-8772EC8FC20F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06FFB71F-E35B-40D0-B1D9-8772EC8FC20F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06FFB71F-E35B-40D0-B1D9-8772EC8FC20F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06FFB71F-E35B-40D0-B1D9-8772EC8FC20F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09B313A9-09CA-48FA-8227-696D67F5306D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09B313A9-09CA-48FA-8227-696D67F5306D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09B313A9-09CA-48FA-8227-696D67F5306D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09B313A9-09CA-48FA-8227-696D67F5306D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

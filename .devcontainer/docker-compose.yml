@@ -1,0 +1,32 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/dotnet:10.0-noble
+    volumes:
+      - ..:/workspaces/english-learning-platform:cached
+    command: sleep infinity
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=EnglishLearningDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Change_this_password_123!};TrustServerCertificate=True;MultipleActiveResultSets=true"
+    depends_on:
+      - db
+    networks:
+      - devnet
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Change_this_password_123!}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-dev-data:/var/opt/mssql
+    networks:
+      - devnet
+
+volumes:
+  sqlserver-dev-data:
+
+networks:
+  devnet:

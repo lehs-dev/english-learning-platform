@@ -1,0 +1,9 @@
+:root { font-family: Inter, system-ui, sans-serif; color: #172033; background: #f7f9fc; }
+body { margin: 0; }
+.container { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+.topbar { padding: 18px 0; background: white; border-bottom: 1px solid #e5e9f2; }
+.hero { padding: 72px 0; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-weight: 700; font-size: 12px; }
+h1 { max-width: 800px; font-size: clamp(36px, 6vw, 64px); line-height: 1.04; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; margin-top: 36px; }
+article { background: white; border: 1px solid #e5e9f2; border-radius: 16px; padding: 22px; }

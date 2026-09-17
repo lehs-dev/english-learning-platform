@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\EnglishLearningPlatform.Application\EnglishLearningPlatform.Application.csproj" />
+    <ProjectReference Include="..\EnglishLearningPlatform.Domain\EnglishLearningPlatform.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"
+                      Version="10.0.12" />
+
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer"
+                      Version="10.0.12" />
+
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design"
+                      Version="10.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>
+        runtime; build; native; contentfiles; analyzers; buildtransitive
+      </IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.12" />
+  </ItemGroup>
+</Project>

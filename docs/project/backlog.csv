@@ -1,0 +1,12 @@
+Week,Priority,Module,Title,Suggested Owner,Release
+1,P0,Architecture,"Architecture, ERD and solution skeleton",Sơn,Modern MVP
+2,P0,Identity,"Identity, Authentication, RBAC",Sơn,Modern MVP
+3,P0,Learning,"Course, Lesson, Enrollment, Progress",Khánh,Modern MVP
+4,P0,Assessment,"Question Bank and Exam authoring",Hoàng,Modern MVP
+5,P0,Assessment,"Attempt, Scoring and Result",Hoàng,Modern MVP
+6,P0,DevOps,"Test, Security, Docker, CI",Sơn/Khánh/Hoàng,Modern MVP
+7,P0,Docs,"Freeze + defense rehearsal",All 4 modern-tech members,Modern MVP
+8,P1,Assessment,"Placement Test and Skill Profile",Khánh/Hoàng,.NET Final
+10,P1,Admin,"Admin and Reporting",Khang,.NET Final
+11,P1,DevOps,"Performance and Security hardening",Sơn,.NET Final
+13,P0,Release,"Final .NET release",All,.NET Final

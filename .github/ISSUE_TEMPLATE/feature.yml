@@ -1,0 +1,24 @@
+name: Feature
+about: Feature hoặc user story
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Mục tiêu
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+  - type: textarea
+    id: defense
+    attributes:
+      label: Điểm cần hiểu để vấn đáp
+      description: Nêu middleware/DI/EF/Auth/test hoặc request flow liên quan.

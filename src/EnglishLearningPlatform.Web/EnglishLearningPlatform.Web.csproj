@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\EnglishLearningPlatform.Application\EnglishLearningPlatform.Application.csproj" />
+    <ProjectReference Include="..\EnglishLearningPlatform.Infrastructure\EnglishLearningPlatform.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

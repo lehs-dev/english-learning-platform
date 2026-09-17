@@ -1,0 +1,22 @@
+## .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+TestResults/
+coverage/
+
+## Secrets/config
+.env
+appsettings.Local.json
+appsettings.*.Local.json
+
+## IDE/OS
+.idea/
+.vscode/*.log
+.DS_Store
+Thumbs.db
+
+## Docker/local data
+.sqlserver/

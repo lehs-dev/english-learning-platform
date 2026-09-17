@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dotnet: build solution",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["build", "EnglishLearningPlatform.sln"],
+      "problemMatcher": "$msCompile",
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "dotnet: test solution",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["test", "EnglishLearningPlatform.sln"],
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
+      "label": "dotnet: run web",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["run", "--project", "src/EnglishLearningPlatform.Web"],
+      "problemMatcher": "$msCompile",
+      "isBackground": true
+    }
+  ]
+}
