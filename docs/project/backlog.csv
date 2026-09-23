@@ -1,12 +1,38 @@
-Week,Priority,Module,Title,Suggested Owner,Release
-1,P0,Architecture,"Architecture, ERD and solution skeleton",Sơn,Modern MVP
-2,P0,Identity,"Identity, Authentication, RBAC",Sơn,Modern MVP
-3,P0,Learning,"Course, Lesson, Enrollment, Progress",Khánh,Modern MVP
-4,P0,Assessment,"Question Bank and Exam authoring",Hoàng,Modern MVP
-5,P0,Assessment,"Attempt, Scoring and Result",Hoàng,Modern MVP
-6,P0,DevOps,"Test, Security, Docker, CI",Sơn/Khánh/Hoàng,Modern MVP
-7,P0,Docs,"Freeze + defense rehearsal",All 4 modern-tech members,Modern MVP
-8,P1,Assessment,"Placement Test and Skill Profile",Khánh/Hoàng,.NET Final
-10,P1,Admin,"Admin and Reporting",Khang,.NET Final
-11,P1,DevOps,"Performance and Security hardening",Sơn,.NET Final
-13,P0,Release,"Final .NET release",All,.NET Final
+Week,Start,Due,Priority,Module,Title,Owner,Acceptance,Release
+1,2026-09-14,2026-09-20,P0,Architecture,"Chốt phạm vi ba môn, bốn actor, Learning/Practice/Assessment và quy tắc rủi ro",Sơn,Scope và rule được Khánh/Hoàng xác nhận,Modern demo
+1,2026-09-14,2026-09-20,P0,Architecture,"ERD đích, ranh giới bốn project, DI/middleware và constraints",Sơn + Khánh + Hoàng,ERD được review; khác biệt với skeleton được ghi rõ,Modern demo
+1,2026-09-14,2026-09-20,P0,DevOps,"Solution skeleton, README, health endpoint và CI baseline",Sơn,Build và CI có link; không nhận là đã xong luồng nghiệp vụ,Modern demo
+2,2026-09-21,2026-09-27,P0,Identity,"Đăng ký Student, login/logout, Locked/Disabled và session",Sơn,Tài khoản hợp lệ đăng nhập; tài khoản khóa/bị vô hiệu bị chặn,Modern demo
+2,2026-09-21,2026-09-27,P0,Identity,Role/resource authorization một role hoạt động và owner policy,Sơn + Dương,Test 401/403 và Teacher khác owner,Modern demo
+2,2026-09-21,2026-09-27,P0,Assessment,"Chốt EF mapping/unique key cho Question, Practice, Assessment, Attempt",Hoàng + Sơn,Một owner migration; schema khớp ERD trước InitialCreate,Modern demo
+2,2026-09-21,2026-09-27,P0,UI,UI login/profile và role navigation,Khang + Khánh,Thử Student/Teacher/Admin bằng browser,Modern demo
+3,2026-09-28,2026-10-04,P0,Learning,"Catalog, tìm/lọc và Teacher quản lý Course/Module/Lesson",Khánh,Course public và publish hợp lệ; Teacher khác owner không sửa được,Modern demo
+3,2026-09-28,2026-10-04,P0,Question Bank,Question Bank theo Teacher và MCQ single-choice,Hoàng,"Tối thiểu 2 option, một đáp án đúng, một PrimarySkill",Modern demo
+3,2026-09-28,2026-10-04,P0,UI,UI Catalog/Lesson và dữ liệu demo Reading/Vocabulary,Khang,Đi qua catalog tới chi tiết Course bằng dữ liệu thật,Modern demo
+3,2026-09-28,2026-10-04,P0,QA,Review chéo Enrollment/Progress và migration nhỏ,Dương + Hoàng,Có test hoặc PR của người không phải owner,Modern demo
+4,2026-10-05,2026-10-11,P0,Learning,"Enroll, Course lifecycle và progress Completed/Incomplete",Khánh,Chặn enroll trùng; mẫu số 0 hiện thông báo; lesson mở không tuần tự,Modern demo
+4,2026-10-05,2026-10-11,P0,Practice,"Practice gắn Lesson/Module, submit và feedback",Hoàng,Chỉ kết quả gần nhất; chấm đều; cùng owner/parent,Modern demo
+4,2026-10-05,2026-10-11,P0,Assessment,Teacher author ba loại Assessment và Preview,Hoàng,Duration/MaxAttempts/points hợp lệ; Preview không tạo Attempt,Modern demo
+4,2026-10-05,2026-10-11,P0,UI,UI Teacher tạo Course/Question/Practice/Assessment,Khang + Dương,UI phản ánh đúng rule publish và lỗi quyền,Modern demo
+5,2026-10-12,2026-10-18,P0,Learning,Continue Learning và Course-linked Practice/Assessment,Khánh,Điều hướng đúng quyền của Student đã enroll,Modern demo
+5,2026-10-12,2026-10-18,P0,Assessment,"Publish, Start/save/Resume/submit Assessment",Hoàng,"Ít nhất 5 câu, deadline server không pause, không mất đáp án",Modern demo
+5,2026-10-12,2026-10-18,P0,Architecture,Chặn hai Start và submit/finalize đồng thời,Sơn,"Giữ MaxAttempts, một active Attempt, chấm đúng một lần",Modern demo
+5,2026-10-12,2026-10-18,P0,UI,"Attempt timer, save, Resume và xác nhận submit",Khang + Dương,Timer lấy deadline server; thử refresh và mất kết nối,Modern demo
+6,2026-10-19,2026-10-25,P0,Assessment,"Scoring Overall/Skill, Result và history",Hoàng,So ngưỡng trước làm tròn; highest score và breakdown cùng Attempt,Modern demo
+6,2026-10-19,2026-10-25,P0,Learning,"Test owner, enroll, lesson visibility và progress",Khánh,Test hồi quy và CI cho các rule Learning,Modern demo
+6,2026-10-19,2026-10-25,P0,QA,"Test 401/403, timeout, duplicate và luồng bốn role",Sơn + Dương + Khang,Có log/test/PR và sửa blocker liên module,Modern demo
+7,2026-10-26,2026-11-01,P0,Release,Freeze demo môn Công nghệ hiện đại,Sơn + Khánh + Hoàng + Dương,Luồng đăng ký → học → thi → kết quả/progress chạy từ máy sạch,Modern demo
+7,2026-10-26,2026-11-01,P0,Docs,Bug drill và vấn đáp ngẫu nhiên hai module,Sơn + Khánh + Hoàng + Dương,"Mỗi người tự trace, sửa bug nhỏ, giải thích CI/DI/EF/Identity",Modern demo
+8,2026-11-02,2026-11-08,P1,Learning,Recommendation theo skill yếu và metadata,Khánh,Chỉ gợi ý nhóm đủ dữ liệu; không gán CEFR/TOEIC,.NET/QLDA
+8,2026-11-02,2026-11-08,P1,Assessment,"Stimulus passage/audio, Placement và Skill Breakdown",Hoàng + Dương,Listening có audio; breakdown chỉ khi đủ 3 câu/skill,.NET/QLDA
+8,2026-11-02,2026-11-08,P1,UI,"UI audio, kết quả và recommendation",Khang,"Hiển thị đúng dữ liệu, không gắn nhãn chứng nhận",.NET/QLDA
+9,2026-11-09,2026-11-15,P1,Learning,Course Unpublish/Archive và CompletedAt lịch sử với Final,Khánh + Sơn,Thay Lesson/Final cập nhật điều kiện; CompletedAt không bị xóa,.NET/QLDA
+9,2026-11-09,2026-11-15,P1,Assessment,Version/clone Assessment và bảo vệ Attempt cũ,Hoàng + Dương,Đề cũ không đổi; Final cùng Course/owner,.NET/QLDA
+9,2026-11-09,2026-11-15,P1,UI,UI lifecycle Course và Final,Khang,Dữ liệu lịch sử còn đọc được sau Archive,.NET/QLDA
+10,2026-11-16,2026-11-22,P1,Admin,"User/role/status, audit và chống mất Active Admin cuối",Sơn + Khang + Dương,Test quyền và request đồng thời; không lộ đáp án cho Admin,.NET/QLDA
+10,2026-11-16,2026-11-22,P1,Reporting,Báo cáo progress và kết quả thuộc quyền Teacher,Khánh + Hoàng,Lọc đúng owner; tách Student và số Attempt,.NET/QLDA
+11,2026-11-23,2026-11-29,P1,DevOps,Security/performance review và regression liên module,Sơn + Khánh + Hoàng + Dương,"Có số liệu trước/sau, test lỗi sửa và CI",.NET/QLDA
+11,2026-11-23,2026-11-29,P1,UI,Test browser/màn hình nhỏ và sửa điều hướng,Khang,Đi hết luồng bốn actor trên kích thước màn hình nhỏ,.NET/QLDA
+12,2026-11-30,2026-12-06,P1,QA,"UAT, migration, deploy thử và dữ liệu demo",Cả nhóm,"Fresh setup, backup/restore thử và blocker được đóng",.NET/QLDA
+12,2026-11-30,2026-12-06,P1,Docs,"Word, slide, user guide và bằng chứng ba môn",Sơn + Khang + Dương,"Nội dung khớp code, test và lịch sử PR thực tế",.NET/QLDA
+13,2026-12-07,2026-12-13,P0,Release,Nghiệm thu Guest → Student → Teacher → Admin và bàn giao,Cả nhóm,"Demo, source, Word, slide, test; khóa release khi đạt gate",.NET/QLDA
