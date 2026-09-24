@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using EnglishLearningPlatform.Application.Identity;
 
 namespace EnglishLearningPlatform.Infrastructure;
 
@@ -39,6 +40,7 @@ public static class DependencyInjection
         });
 
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
+        services.AddScoped<IAccountService, IdentityAccountService>();
         return services;
     }
 }
