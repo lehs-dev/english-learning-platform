@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.Identity;
 
-public sealed class IdentityAccountService(
+public sealed class IdentityRegistrationService(
     UserManager<ApplicationUser> userManager,
-    AppDbContext dbContext) : IAccountService
+    AppDbContext dbContext) : IRegistrationService
 {
     public async Task<RegisterStudentResult> RegisterStudentAsync(
         RegisterStudentRequest request)

@@ -15,6 +15,7 @@ appsettings.*.Local.json
 ## IDE/OS
 .idea/
 .vscode/*.log
+.vscode/settings.json
 .DS_Store
 Thumbs.db
 

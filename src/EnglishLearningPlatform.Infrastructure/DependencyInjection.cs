@@ -40,7 +40,8 @@ public static class DependencyInjection
         });
 
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
-        services.AddScoped<IAccountService, IdentityAccountService>();
+        services.AddScoped<IRegistrationService, IdentityRegistrationService>();
+        services.AddScoped<ILoginService, IdentityLoginService>();
         return services;
     }
 }

@@ -1,7 +1,7 @@
 
 namespace EnglishLearningPlatform.Application.Identity;
 
-public interface IAccountService
+public interface IRegistrationService
 {
     Task<RegisterStudentResult> RegisterStudentAsync(
         RegisterStudentRequest request
