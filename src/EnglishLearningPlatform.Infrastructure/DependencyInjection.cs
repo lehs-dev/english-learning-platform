@@ -37,12 +37,14 @@ public static class DependencyInjection
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
             options.SlidingExpiration = true;
+            options.EventsType = typeof(AccountStatusCookieEvents);
         });
 
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
         services.AddScoped<IRegistrationService, IdentityRegistrationService>();
         services.AddScoped<ILoginService, IdentityLoginService>();
         services.AddScoped<ILogoutService, IdentityLogoutService>();
+        services.AddScoped<AccountStatusCookieEvents>();
         return services;
     }
 }
