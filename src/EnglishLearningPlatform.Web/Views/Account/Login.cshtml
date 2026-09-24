@@ -1,0 +1,31 @@
+﻿@model EnglishLearningPlatform.Web.Models.Account.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<h1>Đăng nhập</h1>
+
+<form asp-controller="Account" asp-action="Login" method="post">
+    <input asp-for="ReturnUrl" type="hidden" />
+    <div asp-validation-summary="ModelOnly"></div>
+
+    <div>
+        <label asp-for="Email"></label>
+        <input asp-for="Email" autocomplete="username" />
+        <span asp-validation-for="Email"></span>
+    </div>
+
+    <div>
+        <label asp-for="Password">Mật khẩu</label>
+        <input asp-for="Password" autocomplete="current-password" />
+        <span asp-validation-for="Password"></span>
+    </div>
+
+    <div>
+        <input asp-for="RememberMe" />
+        <label asp-for="RememberMe"></label>
+    </div>
+
+    <button type="submit">Đăng nhập</button>
+</form>
