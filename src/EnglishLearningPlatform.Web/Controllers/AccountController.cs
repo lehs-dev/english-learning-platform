@@ -10,13 +10,16 @@ public sealed class AccountController : Controller
 {
     private readonly IRegistrationService _registrationService;
     private readonly ILoginService _loginService;
+    private readonly ILogoutService _logoutService;
 
     public AccountController(
         IRegistrationService registrationService,
-        ILoginService loginService)
+        ILoginService loginService,
+        ILogoutService logoutService)
     {
         _registrationService = registrationService;
         _loginService = loginService;
+        _logoutService = logoutService;
     }
 
     [AllowAnonymous]
@@ -90,5 +93,14 @@ public sealed class AccountController : Controller
 
         ModelState.AddModelError(string.Empty, message);
         return View(model);
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await _logoutService.LogoutAsync();
+        return RedirectToAction(nameof(Login));
     }
 }

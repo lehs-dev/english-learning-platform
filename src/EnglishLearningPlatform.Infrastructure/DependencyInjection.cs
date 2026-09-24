@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
         services.AddScoped<IRegistrationService, IdentityRegistrationService>();
         services.AddScoped<ILoginService, IdentityLoginService>();
+        services.AddScoped<ILogoutService, IdentityLogoutService>();
         return services;
     }
 }

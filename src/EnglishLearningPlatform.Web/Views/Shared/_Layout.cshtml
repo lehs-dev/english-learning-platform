@@ -1,15 +1,30 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - English Learning Platform</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
+
 <body>
-<header class="topbar">
-    <div class="container"><strong>English Learning Platform</strong></div>
-</header>
-<main class="container">@RenderBody()</main>
+    <header class="topbar">
+        <div class="container"><strong>English Learning Platform</strong></div>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit">Đăng xuất</button>
+            </form>
+        }
+        else
+        {
+            <form asp-controller="Account" asp-action="Login" method="post">
+                <button type="submit">Đăng nhập</button>
+            </form>
+        }
+    </header>
+    <main class="container">@RenderBody()</main>
 </body>
+
 </html>
