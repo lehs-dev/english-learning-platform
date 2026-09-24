@@ -10,23 +10,32 @@ public sealed class ExamScoringServiceTests
     [Fact]
     public void Score_ReturnsFullPoints_WhenSelectedOptionIsCorrect()
     {
-        var correct = new AnswerOption { Text = "B", IsCorrect = true };
-        var wrong = new AnswerOption { Text = "A", IsCorrect = false };
+        var correct = new QuestionOption { Content = "B", IsCorrect = true };
+        var wrong = new QuestionOption { Content = "A" };
+
         var question = new Question
         {
-            Prompt = "Choose B",
-            Type = QuestionType.MultipleChoice,
-            Skill = EnglishSkill.Grammar,
-            AnswerOptions = [wrong, correct]
+            Content = "Choose B",
+            PrimarySkill = EnglishSkill.Grammar,
+            Options = [wrong, correct]
         };
-        var exam = new Exam
+
+        var assessment = new Assessment
         {
             Title = "Grammar Test",
-            ExamQuestions = [new ExamQuestion { QuestionId = question.Id, Question = question, Points = 2m }]
+            Questions =
+            [
+                new AssessmentQuestion
+                {
+                    QuestionId = question.Id,
+                    Question = question,
+                    Points = 2m
+                }
+            ]
         };
 
         var result = new ExamScoringService().Score(
-            exam,
+            assessment,
             [new QuestionResponse(question.Id, correct.Id)]);
 
         Assert.Equal(2m, result.Score);

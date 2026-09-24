@@ -1,13 +1,14 @@
-using EnglishLearningPlatform.Domain.Entities;
-using EnglishLearningPlatform.Domain.Enums;
+using AssessmentEntity = EnglishLearningPlatform.Domain.Entities.Assessment;
 
 namespace EnglishLearningPlatform.Application.Assessment;
 
 public sealed class ExamScoringService : IExamScoringService
 {
-    public ScoringResult Score(Exam exam, IReadOnlyCollection<QuestionResponse> responses)
+    public ScoringResult Score(
+        AssessmentEntity assessment,
+        IReadOnlyCollection<QuestionResponse> responses)
     {
-        ArgumentNullException.ThrowIfNull(exam);
+        ArgumentNullException.ThrowIfNull(assessment);
         ArgumentNullException.ThrowIfNull(responses);
 
         var responseMap = responses
@@ -17,30 +18,26 @@ public sealed class ExamScoringService : IExamScoringService
         decimal score = 0m;
         decimal maxScore = 0m;
 
-        foreach (var examQuestion in exam.ExamQuestions)
+        foreach (var assessmentQuestion in assessment.Questions)
         {
-            maxScore += examQuestion.Points;
-            if (!responseMap.TryGetValue(examQuestion.QuestionId, out var response))
+            maxScore += assessmentQuestion.Points;
+
+            if (!responseMap.TryGetValue(assessmentQuestion.QuestionId, out var response))
                 continue;
 
-            var question = examQuestion.Question;
-            var isCorrect = question.Type switch
-            {
-                QuestionType.MultipleChoice or QuestionType.TrueFalse =>
-                    question.AnswerOptions.Any(o => o.IsCorrect && o.Id == response.SelectedAnswerOptionId),
-                QuestionType.FillInBlank =>
-                    question.AnswerOptions.Any(o =>
-                        o.IsCorrect &&
-                        !string.IsNullOrWhiteSpace(response.TextAnswer) &&
-                        string.Equals(o.Text.Trim(), response.TextAnswer.Trim(), StringComparison.OrdinalIgnoreCase)),
-                _ => false
-            };
+            var isCorrect = assessmentQuestion.Question.Options
+                .Any(option =>
+                    option.IsCorrect &&
+                    option.Id == response.SelectedAnswerOptionId);
 
             if (isCorrect)
-                score += examQuestion.Points;
+                score += assessmentQuestion.Points;
         }
 
-        var percentage = maxScore <= 0 ? 0 : Math.Round(score / maxScore * 100m, 2);
+        var percentage = maxScore <= 0m
+            ? 0m
+            : Math.Round(score / maxScore * 100m, 2);
+
         return new ScoringResult(score, maxScore, percentage);
     }
 }
