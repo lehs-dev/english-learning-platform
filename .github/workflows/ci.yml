@@ -29,8 +29,8 @@ jobs:
       - name: Build
         run: dotnet build EnglishLearningPlatform.sln -c Release --no-restore
 
-      - name: Unit tests
-        run: dotnet test tests/EnglishLearningPlatform.UnitTests/EnglishLearningPlatform.UnitTests.csproj -c Release --no-build --logger "trx;LogFileName=unit.trx" --collect:"XPlat Code Coverage"
+      - name: Tests
+        run: dotnet test EnglishLearningPlatform.sln -c Release --no-build --logger "trx;LogFileName=tests.trx" --collect:"XPlat Code Coverage"
 
       - name: Upload test results
         if: always()
