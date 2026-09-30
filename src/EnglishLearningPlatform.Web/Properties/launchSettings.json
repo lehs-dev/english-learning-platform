@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "EnglishLearningPlatform.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:7080;http://localhost:5080"
+    }
+  }
+}
