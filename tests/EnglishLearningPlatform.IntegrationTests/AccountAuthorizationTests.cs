@@ -5,11 +5,11 @@ using Xunit;
 namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class AccountAuthorizationTests
-    : IClassFixture<WebApplicationFactory<Program>>
+    : IClassFixture<IntegrationTestFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly IntegrationTestFactory _factory;
 
-    public AccountAuthorizationTests(WebApplicationFactory<Program> factory)
+    public AccountAuthorizationTests(IntegrationTestFactory factory)
     {
         _factory = factory;
     }
@@ -23,11 +23,17 @@ public sealed class AccountAuthorizationTests
                 AllowAutoRedirect = false
             });
 
-        using var response = await client.PostAsync("/Account/Logout", null);
+        using var response = await client.PostAsync(
+            "/Account/Logout",
+            null);
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+
         Assert.NotNull(response.Headers.Location);
-        Assert.Contains("/Account/Login", response.Headers.Location.ToString());
+
+        Assert.Contains(
+            "/Account/Login",
+            response.Headers.Location.ToString());
     }
 
     [Theory]
@@ -36,11 +42,15 @@ public sealed class AccountAuthorizationTests
     public async Task Guest_AccountForm_HasAntiforgeryToken(string path)
     {
         using var client = _factory.CreateClient();
+
         using var response = await client.GetAsync(path);
 
         response.EnsureSuccessStatusCode();
 
         var html = await response.Content.ReadAsStringAsync();
-        Assert.Contains("name=\"__RequestVerificationToken\"", html);
+
+        Assert.Contains(
+            "name=\"__RequestVerificationToken\"",
+            html);
     }
 }
