@@ -1,9 +1,10 @@
+using EnglishLearningPlatform.Domain.Authorization;
 using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Domain.Enums;
 
 namespace EnglishLearningPlatform.Domain.Entities;
 
-public sealed class Course : BaseEntity
+public sealed class Course : BaseEntity, IOwnedResource
 {
     public Guid OwnerTeacherUserId { get; set; }
     public Guid? FinalAssessmentId { get; set; }
@@ -19,4 +20,6 @@ public sealed class Course : BaseEntity
     public ICollection<Module> Modules { get; set; } = new List<Module>();
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
+
+    Guid IOwnedResource.OwnerUserId => OwnerTeacherUserId;
 }
