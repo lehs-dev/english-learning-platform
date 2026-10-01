@@ -1,0 +1,34 @@
+@model EnglishLearningPlatform.Web.Models.Account.ProfileViewModel
+
+@if (Model is not null)
+{
+    <button class="icon-button notification-button" type="button" aria-label="Thông báo" disabled>
+        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#bell")"></use></svg>
+    </button>
+    <details class="account-menu" data-account-menu>
+        <summary class="account-trigger" aria-label="Mở menu tài khoản của @Model.FullName">
+            <span class="avatar" aria-hidden="true">@Model.Initial</span>
+            <svg class="icon chevron" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chevron-down")"></use></svg>
+        </summary>
+        <div class="account-dropdown">
+            <div class="account-summary"><strong>@Model.FullName</strong><span>@Model.RoleLabel</span></div>
+            <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
+                Xem profile
+            </a>
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button class="dropdown-item logout-item" type="submit">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#logout")"></use></svg>
+                    Đăng xuất
+                </button>
+            </form>
+        </div>
+    </details>
+}
+else
+{
+    <div class="guest-actions">
+        <a class="login-link" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+        <a class="button button-primary button-small" asp-controller="Account" asp-action="Register">Đăng ký</a>
+    </div>
+}
