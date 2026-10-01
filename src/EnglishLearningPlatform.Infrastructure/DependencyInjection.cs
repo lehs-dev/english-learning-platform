@@ -1,3 +1,4 @@
+using EnglishLearningPlatform.Infrastructure.Authorization;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -47,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<ILoginService, IdentityLoginService>();
         services.AddScoped<ILogoutService, IdentityLogoutService>();
         services.AddScoped<AccountStatusCookieEvents>();
+        services.AddPlatformAuthorization();
         services.AddScoped<IProfileService, IdentityProfileService>();
         services.AddScoped<ILearningAccessService, LearningAccessService>();
         return services;
