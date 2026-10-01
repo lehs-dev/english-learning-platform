@@ -1,31 +1,42 @@
 ﻿@model EnglishLearningPlatform.Web.Models.Account.LoginViewModel
-
 @{
     ViewData["Title"] = "Đăng nhập";
+    ViewData["PageClass"] = "auth-page";
 }
-
-<h1>Đăng nhập</h1>
-
-<form asp-controller="Account" asp-action="Login" method="post">
-    <input asp-for="ReturnUrl" type="hidden" />
-    <div asp-validation-summary="ModelOnly"></div>
-
-    <div>
-        <label asp-for="Email"></label>
-        <input asp-for="Email" autocomplete="username" />
-        <span asp-validation-for="Email"></span>
+@section Styles {
+    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
+}
+<section class="auth-shell" aria-labelledby="auth-title">
+    <partial name="_AuthAside" />
+    <div class="auth-form-panel">
+        <div class="auth-heading">
+            <span class="section-kicker">CHÀO MỪNG TRỞ LẠI</span>
+            <h1 id="auth-title">Đăng nhập</h1>
+            <p>Tiếp tục hành trình học tiếng Anh của bạn.</p>
+        </div>
+        <form class="account-form" asp-controller="Account" asp-action="Login" method="post">
+            <input asp-for="ReturnUrl" type="hidden" />
+            <div class="validation-summary" asp-validation-summary="ModelOnly" role="alert"></div>
+            <div class="form-field">
+                <label asp-for="Email">Email</label>
+                <input asp-for="Email" type="email" autocomplete="username" placeholder="Nhập email của bạn" aria-describedby="email-error" required />
+                <span asp-validation-for="Email" id="email-error" class="field-error"></span>
+            </div>
+            <div class="form-field">
+                <label asp-for="Password">Mật khẩu</label>
+                <div class="password-field">
+                    <input asp-for="Password" autocomplete="current-password" placeholder="Nhập mật khẩu" aria-describedby="password-error" required />
+                    <button type="button" class="password-toggle" data-password-toggle="Password" aria-label="Hiện mật khẩu" aria-pressed="false">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" id="password-error" class="field-error"></span>
+            </div>
+            <label class="checkbox-label"><input asp-for="RememberMe" /> <span>Ghi nhớ đăng nhập</span></label>
+            <button class="button button-primary button-full" type="submit">Đăng nhập <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
+        </form>
+        <p class="auth-switch">Bạn chưa có tài khoản? <a asp-controller="Account" asp-action="Register">Đăng ký ngay</a></p>
+        <a class="back-home" asp-controller="Home" asp-action="Index">← Về trang chủ</a>
     </div>
-
-    <div>
-        <label asp-for="Password">Mật khẩu</label>
-        <input asp-for="Password" autocomplete="current-password" />
-        <span asp-validation-for="Password"></span>
-    </div>
-
-    <div>
-        <input asp-for="RememberMe" />
-        <label asp-for="RememberMe"></label>
-    </div>
-
-    <button type="submit">Đăng nhập</button>
-</form>
+</section>
+<p class="auth-copyright">© 2026 Estudy. Cùng bạn chinh phục tiếng Anh.</p>
