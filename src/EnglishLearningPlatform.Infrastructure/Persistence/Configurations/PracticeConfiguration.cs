@@ -9,22 +9,39 @@ public sealed class PracticeConfiguration : IEntityTypeConfiguration<Practice>
 {
     public void Configure(EntityTypeBuilder<Practice> e)
     {
-        e.ToTable("Practices", t => t.HasCheckConstraint(
+        e.ToTable("Practices", table => {
+            table.HasCheckConstraint(
             "CK_Practices_Parent",
             "([LessonId] IS NULL OR [ModuleId] IS NULL) AND " +
             "([Status] <> N'Published' OR " +
             "([LessonId] IS NOT NULL AND [ModuleId] IS NULL) OR " +
-            "([LessonId] IS NULL AND [ModuleId] IS NOT NULL))"));
+            "([LessonId] IS NULL AND [ModuleId] IS NOT NULL))");
+            table.HasCheckConstraint(
+            "CK_Practices_Status",
+            "[Status] IN (N'Draft', N'Published', N'Unpublished')");
+        });
+        e.Property(x => x.Title)
+            .HasMaxLength(200)
+            .IsRequired();
 
-        e.Property(x => x.Title).HasMaxLength(200).IsRequired();
-        e.Property(x => x.Description).HasMaxLength(4000);
-        e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+        e.Property(x => x.Description)
+            .HasMaxLength(4000);
 
-        e.HasOne<ApplicationUser>().WithMany()
-            .HasForeignKey(x => x.OwnerTeacherUserId).OnDelete(DeleteBehavior.NoAction);
+        e.Property(x => x.Status)
+            .HasConversion<string>()
+            .HasMaxLength(16)
+            .IsRequired();
+        e.HasIndex(x => new { x.OwnerTeacherUserId, x.Status });
+        e.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(x => x.OwnerTeacherUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         e.HasOne(x => x.Lesson).WithMany(x => x.Practices)
-            .HasForeignKey(x => x.LessonId).OnDelete(DeleteBehavior.NoAction);
+            .HasForeignKey(x => x.LessonId)
+            .OnDelete(DeleteBehavior.NoAction);
         e.HasOne(x => x.Module).WithMany(x => x.Practices)
-            .HasForeignKey(x => x.ModuleId).OnDelete(DeleteBehavior.NoAction);
+            .HasForeignKey(x => x.ModuleId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

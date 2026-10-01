@@ -9,9 +9,21 @@ public sealed class AttemptConfiguration : IEntityTypeConfiguration<Attempt>
 {
     public void Configure(EntityTypeBuilder<Attempt> e)
     {
-        e.ToTable("Attempts", t => t.HasCheckConstraint(
-            "CK_Attempts_OverallScore",
-            "[OverallScore] IS NULL OR [OverallScore] BETWEEN 0 AND 100"));
+        e.ToTable("Attempts", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_Attempts_OverallScore",
+                "[OverallScore] IS NULL OR [OverallScore] BETWEEN 0 AND 100");
+
+            table.HasCheckConstraint(
+                "CK_Attempts_Status",
+                "[Status] IN (N'InProgress', N'Submitted', N'AutoSubmitted', N'Graded')");
+
+            table.HasCheckConstraint(
+                "CK_Attempts_FinalizationReason",
+                "[FinalizationReason] IS NULL OR " +
+                "[FinalizationReason] IN (N'ManualSubmit', N'DeadlineElapsed')");
+        });
 
         e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
         e.Property(x => x.FinalizationReason).HasConversion<string>().HasMaxLength(24);

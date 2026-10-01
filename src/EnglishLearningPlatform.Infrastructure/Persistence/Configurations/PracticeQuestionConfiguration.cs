@@ -8,12 +8,22 @@ public sealed class PracticeQuestionConfiguration : IEntityTypeConfiguration<Pra
 {
     public void Configure(EntityTypeBuilder<PracticeQuestion> e)
     {
-        e.ToTable("PracticeQuestions");
+        e.ToTable("PracticeQuestions", table =>
+        {
+            table.HasCheckConstraint(
+            "CK_PracticeQuestions_OrderIndex",
+            "[OrderIndex] >= 0");
+        });
         e.HasIndex(x => new { x.PracticeId, x.QuestionId }).IsUnique();
         e.HasIndex(x => new { x.PracticeId, x.OrderIndex }).IsUnique();
-        e.HasOne(x => x.Practice).WithMany(x => x.Questions)
-            .HasForeignKey(x => x.PracticeId).OnDelete(DeleteBehavior.NoAction);
-        e.HasOne(x => x.Question).WithMany(x => x.PracticeQuestions)
-            .HasForeignKey(x => x.QuestionId).OnDelete(DeleteBehavior.NoAction);
+
+        e.HasOne(x => x.Practice)
+            .WithMany(x => x.Questions)
+            .HasForeignKey(x => x.PracticeId)
+            .OnDelete(DeleteBehavior.NoAction);
+        e.HasOne(x => x.Question)
+            .WithMany(x => x.PracticeQuestions)
+            .HasForeignKey(x => x.QuestionId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

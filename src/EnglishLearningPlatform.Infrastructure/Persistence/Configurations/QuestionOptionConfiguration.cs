@@ -8,16 +8,38 @@ public sealed class QuestionOptionConfiguration : IEntityTypeConfiguration<Quest
 {
     public void Configure(EntityTypeBuilder<QuestionOption> e)
     {
-        e.ToTable("QuestionOptions");
-        e.Property(x => x.Content).HasMaxLength(1000).IsRequired();
-        e.HasIndex(x => new { x.QuestionId, x.OrderIndex }).IsUnique();
+        e.ToTable("QuestionOptions", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_QuestionOptions_OrderIndex",
+                "[OrderIndex] >= 0");
+        });
 
-        // Tối đa một đáp án đúng; điều kiện có ít nhất một đáp án đúng
-        // được kiểm tra khi publish Question.
-        e.HasIndex(x => x.QuestionId, "IX_QuestionOptions_OneCorrect")
-            .IsUnique().HasFilter("[IsCorrect] = 1");
+        e.Property(x => x.Content)
+            .HasMaxLength(1000)
+            .IsRequired();
 
-        e.HasOne(x => x.Question).WithMany(x => x.Options)
-            .HasForeignKey(x => x.QuestionId).OnDelete(DeleteBehavior.NoAction);
+        e.Property(x => x.IsCorrect)
+            .IsRequired();
+
+        e.HasIndex(x => new
+        {
+            x.QuestionId,
+            x.OrderIndex
+        })
+        .IsUnique();
+
+        // Database đảm bảo tối đa một đáp án đúng.
+        // Service phải đảm bảo có ít nhất một đáp án đúng.
+        e.HasIndex(
+            x => x.QuestionId,
+            "IX_QuestionOptions_OneCorrect")
+            .IsUnique()
+            .HasFilter("[IsCorrect] = 1");
+
+        e.HasOne(x => x.Question)
+            .WithMany(x => x.Options)
+            .HasForeignKey(x => x.QuestionId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

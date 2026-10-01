@@ -11,8 +11,15 @@ public sealed class AttemptSkillResultConfiguration
     {
         e.ToTable("AttemptSkillResults", t =>
         {
-            t.HasCheckConstraint("CK_AttemptSkillResults_Score", "[Score] BETWEEN 0 AND 100");
-            t.HasCheckConstraint("CK_AttemptSkillResults_Count", "[QuestionCount] >= 0");
+            t.HasCheckConstraint(
+            "CK_AttemptSkillResults_Score",
+            "[Score] BETWEEN 0 AND 100");
+            t.HasCheckConstraint(
+            "CK_AttemptSkillResults_Count",
+            "[QuestionCount] >= 0");
+            t.HasCheckConstraint(
+            "CK_AttemptSkillResults_Skill",
+            "[Skill] IN (N'Reading', N'Listening', N'Vocabulary', N'Grammar')");
         });
 
         e.Property(x => x.Skill).HasConversion<string>().HasMaxLength(24);
