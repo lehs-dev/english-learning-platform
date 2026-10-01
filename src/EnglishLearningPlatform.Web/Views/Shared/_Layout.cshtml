@@ -1,30 +1,45 @@
+@{
+    var activeSection = ViewData["ActiveSection"] as string;
+}
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] - English Learning Platform</title>
+    <meta name="theme-color" content="#176bff" />
+    <title>@ViewData["Title"] - Estudy</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-
-<body>
-    <header class="topbar">
-        <div class="container"><strong>English Learning Platform</strong></div>
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <form asp-controller="Account" asp-action="Logout" method="post">
-                <button type="submit">Đăng xuất</button>
-            </form>
-        }
-        else
-        {
-            <form asp-controller="Account" asp-action="Login" method="post">
-                <button type="submit">Đăng nhập</button>
-            </form>
-        }
+<body class="@ViewData["PageClass"]">
+    <a class="skip-link" href="#main-content">Đến nội dung chính</a>
+    <header class="site-header">
+        <div class="header-inner container">
+            <a class="brand" asp-controller="Home" asp-action="Index" aria-label="Estudy - Trang chủ">
+                <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
+                <span>Estudy</span>
+            </a>
+            <button class="mobile-nav-toggle icon-button" type="button" data-nav-toggle aria-controls="main-nav" aria-expanded="false" aria-label="Mở thanh điều hướng">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#menu")"></use></svg>
+            </button>
+            <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
+                <a class="nav-link @(activeSection == "courses" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="courses" aria-current="@(activeSection == "courses" ? "page" : null)">Khóa học</a>
+                <a class="nav-link @(activeSection == "exams" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="exams" aria-current="@(activeSection == "exams" ? "page" : null)">Đề thi</a>
+                <a class="nav-link @(activeSection == "assessment" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="assessment" aria-current="@(activeSection == "assessment" ? "page" : null)">Đánh giá năng lực</a>
+                <a class="nav-link @(activeSection == "about" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="about" aria-current="@(activeSection == "about" ? "page" : null)">Giới thiệu</a>
+                <a class="nav-link @(activeSection == "dictionary" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="dictionary" aria-current="@(activeSection == "dictionary" ? "page" : null)">Dịch từ</a>
+            </nav>
+            <div class="header-actions">
+                <div class="header-search">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                    <input type="search" placeholder="Tìm kiếm khóa học, đề thi, từ vựng..." aria-label="Tìm kiếm khóa học, đề thi, từ vựng" disabled />
+                </div>
+                @await Component.InvokeAsync("AccountMenu")
+            </div>
+        </div>
     </header>
-    <main class="container">@RenderBody()</main>
+    <main class="container page-content" id="main-content" tabindex="-1">@RenderBody()</main>
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
-
 </html>
