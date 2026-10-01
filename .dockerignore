@@ -1,0 +1,15 @@
+.git/
+.vs/
+.idea/
+.codex/
+.agents/
+**/bin/
+**/obj/
+TestResults/
+coverage/
+.sqlserver/
+.env
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+**/*.user
+**/*.suo

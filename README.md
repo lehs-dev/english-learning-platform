@@ -40,7 +40,7 @@ Mỗi Question của MVP là trắc nghiệm chọn **một** đáp án đúng, 
 - `src/EnglishLearningPlatform.Application`: interface, DTO và service nghiệp vụ.
 - `src/EnglishLearningPlatform.Infrastructure`: EF Core, SQL Server, Identity và tích hợp hạ tầng.
 - `src/EnglishLearningPlatform.Web`: controller, middleware, view và static assets.
-- `tests/`: unit test và integration test. CI hiện chạy **unit test** trên PR/push vào `main`; trước khi mở PR hãy chạy các test liên quan tại máy của mình.
+- `tests/`: unit test và integration test. CI chạy **unit test và integration test** trên PR/push vào `main`; trước khi mở PR hãy chạy các test liên quan tại máy của mình.
 
 CD hiện chỉ build/push image lên **GitHub Container Registry**, chưa tự triển khai website lên VPS/Azure.
 
@@ -109,7 +109,19 @@ Mở **http://localhost:8080**. Khi pull migration mới, cập nhật schema b�
 
 Dừng container nhưng giữ dữ liệu bằng **docker compose down** hoặc **docker compose stop**. Volume **sqlserver-data** giữ database qua các lần dừng/chạy. Chỉ dùng **docker compose down -v** nếu chủ động muốn xóa database local.
 
-> Nếu dùng SQL Server cài trực tiếp trên máy thay vì Docker, bỏ qua bước khởi động database bằng Compose và trỏ connection string tới instance SQL Server đó. Vẫn chạy **dotnet ef database update** trước khi chạy web.
+### Cách D: SQL Server cài trực tiếp trên Windows
+
+Cần .NET 10 SDK và SQL Server local. Nếu dùng instance mặc định `localhost` với Windows Authentication, đặt connection string rồi áp dụng migration:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = 'Server=localhost;Database=EnglishLearningDb;Integrated Security=True;TrustServerCertificate=True;MultipleActiveResultSets=true'
+dotnet ef database update --project src/EnglishLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
+dotnet run --project src/EnglishLearningPlatform.Web --launch-profile LocalSqlServer
+```
+
+Mở **http://localhost:5098**. Profile `LocalSqlServer` trỏ tới database **EnglishLearningDb** trên instance mặc định; chọn profile này khi chạy Windows local. Nếu dùng named instance hoặc SQL Authentication, đặt connection string phù hợp và chạy profile `http` để giữ cấu hình bạn đã đặt.
+
+Cách A/B vẫn dùng `dotnet run --project src/EnglishLearningPlatform.Web` (profile `http`), nhận connection string và URL từ environment. Cách C chạy DLL đã publish; không dùng launch profile. Không chọn `LocalSqlServer` trong Docker/Dev Container vì profile đó dành cho Windows Authentication trên máy host.
 
 ## Một phiên làm việc của thành viên
 
@@ -177,6 +189,7 @@ Không chờ đến tuần demo mới thử phần của người khác. Sau m�
 ## Tài liệu liên quan
 
 - [Kiến trúc](docs/architecture/architecture.md) và [ERD nghiệp vụ hiện có](docs/architecture/erd.md) — đối chiếu với phạm vi ở README/issue trước khi chốt migration mới.
+- [Profile, UI và quyền Learning](docs/project/profile-ui.md) — cấu trúc code, phạm vi giao diện và cách kiểm thử.
 - [Backlog tham khảo](docs/project/backlog.csv) và [GitHub Project](docs/project/github-project.md).
 - [Kế hoạch luyện vấn đáp](docs/project/defense-readiness.md) và [thiết lập Fedora Dev Container](docs/setup/fedora-devcontainer.md).
 

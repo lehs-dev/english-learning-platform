@@ -103,4 +103,12 @@ public sealed class AccountController : Controller
         await _logoutService.LogoutAsync();
         return RedirectToAction(nameof(Login));
     }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        Response.StatusCode = StatusCodes.Status403Forbidden;
+        return View();
+    }
 }

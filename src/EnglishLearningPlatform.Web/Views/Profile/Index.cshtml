@@ -1,0 +1,47 @@
+@model EnglishLearningPlatform.Web.Models.Account.ProfileViewModel
+@{
+    ViewData["Title"] = "Profile của tôi";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
+}
+<section class="profile-page" aria-labelledby="profile-title">
+    <a class="back-home" asp-controller="Home" asp-action="Index">← Về trang chủ</a>
+    <div class="profile-heading">
+        <span class="section-kicker">TÀI KHOẢN CỦA BẠN</span>
+        <h1 id="profile-title">Profile của tôi</h1>
+        <p>Thông tin cá nhân và tài khoản Estudy.</p>
+    </div>
+    <div class="profile-grid">
+        <aside class="profile-card profile-identity">
+            <span class="avatar avatar-large" aria-hidden="true">@Model.Initial</span>
+            <h2>@Model.FullName</h2>
+            <span class="role-badge">@Model.RoleLabel</span>
+            <p>@Model.Email</p>
+            <div class="profile-status"><span class="status-dot"></span>@Model.StatusLabel</div>
+        </aside>
+        <div class="profile-card profile-details">
+            <h2>Thông tin cá nhân</h2>
+            <p class="card-description">Cập nhật họ tên để mọi người nhận ra bạn.</p>
+            @if (TempData["ProfileSuccessMessage"] is string message)
+            {
+                <div class="notice notice-success" role="status">@message</div>
+            }
+            <form class="account-form" asp-controller="Profile" asp-action="Index" method="post">
+                <div class="validation-summary" asp-validation-summary="ModelOnly" role="alert"></div>
+                <div class="form-field">
+                    <label asp-for="FullName"></label>
+                    <input asp-for="FullName" autocomplete="name" maxlength="200" aria-describedby="name-error" required />
+                    <span asp-validation-for="FullName" id="name-error" class="field-error"></span>
+                </div>
+                <div class="form-field"><label for="profile-email">Email</label><input id="profile-email" type="email" value="@Model.Email" readonly /></div>
+                <dl class="profile-facts">
+                    <div><dt>Vai trò</dt><dd>@Model.RoleLabel <span class="role-code">(@Model.Role)</span></dd></div>
+                    <div><dt>Trạng thái</dt><dd>@Model.StatusLabel</dd></div>
+                    <div><dt>Ngày tham gia</dt><dd><time datetime="@Model.CreatedAtUtc.ToString("O")" data-local-date>@Model.CreatedAtUtc.ToString("dd/MM/yyyy")</time></dd></div>
+                </dl>
+                <div class="profile-form-actions"><button class="button button-primary" type="submit">Lưu thay đổi</button></div>
+            </form>
+        </div>
+    </div>
+</section>
