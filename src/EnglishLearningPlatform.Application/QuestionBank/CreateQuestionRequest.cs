@@ -1,6 +1,6 @@
 using EnglishLearningPlatform.Domain.Enums;
 namespace EnglishLearningPlatform.Application.QuestionBank;
-public sealed record CreateaQuestionRequest
+public sealed record CreateQuestionRequest
 {
     public string Content { get; init; } = string.Empty;
     public EnglishSkill? PrimarySkill { get; init; }
