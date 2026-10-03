@@ -20,6 +20,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<LessonResource> LessonResources => Set<LessonResource>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<LessonProgress> LessonProgressEntries => Set<LessonProgress>();
     public DbSet<Stimulus> Stimuli => Set<Stimulus>();
     public DbSet<Question> Questions => Set<Question>();

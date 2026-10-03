@@ -17,5 +17,7 @@ public sealed class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollmen
             .HasForeignKey(x => x.CourseId).OnDelete(DeleteBehavior.NoAction);
         e.HasOne(x => x.LastAccessedLesson).WithMany()
             .HasForeignKey(x => x.LastAccessedLessonId).OnDelete(DeleteBehavior.NoAction);
+        e.HasOne(x => x.Payment).WithMany()
+            .HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.NoAction);
     }
 }
