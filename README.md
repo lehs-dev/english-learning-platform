@@ -4,6 +4,8 @@
 
 > **Tình trạng mã nguồn (26/09/2026):** Repo đã có migration SQL Server **InitialCreate**, migration tạo các role Identity (**Student**, **Teacher**, **Admin**) và cấu hình chạy bằng Docker Compose. Luồng sản phẩm vẫn đang phát triển; các mục dưới đây mô tả phạm vi cần xây, không có nghĩa là mọi chức năng đã xong. Xem issue/PR để biết tiến độ thực tế.
 
+**Cập nhật 03/10/2026:** Đã có catalog Course công khai, tìm/lọc/phân trang, detail chỉ metadata/cấu trúc/giá, enroll Free, đọc Lesson/resource có quyền và giao diện Teacher authoring/preview/Publish/Unpublish/Archive. Paid hiện có schema và kiểm tra Enrollment/Payment; checkout/webhook chưa triển khai. Xem [hướng dẫn Course và dữ liệu demo](docs/project/course-authoring.md).
+
 ## Sản phẩm cần xây
 
 | Người dùng | Luồng chính |
@@ -120,6 +122,10 @@ dotnet run --project src/EnglishLearningPlatform.Web --launch-profile LocalSqlSe
 ```
 
 Mở **http://localhost:5098**. Profile `LocalSqlServer` trỏ tới database **EnglishLearningDb** trên instance mặc định; chọn profile này khi chạy Windows local. Nếu dùng named instance hoặc SQL Authentication, đặt connection string phù hợp và chạy profile `http` để giữ cấu hình bạn đã đặt.
+
+`dotnet ef` không đọc `launchSettings.json` hay profile `LocalSqlServer`. Vì vậy, phải đặt biến `ConnectionStrings__DefaultConnection` trước lệnh EF trong cùng terminal, hoặc truyền trực tiếp `--connection 'Server=localhost;Database=EnglishLearningDb;Integrated Security=True;TrustServerCertificate=True;MultipleActiveResultSets=true'`. Bỏ bước này sẽ dùng cấu hình mặc định `localhost,1433` dành cho Docker và có thể gặp lỗi TCP timeout (258) trên SQL Server Windows local.
+
+Trước khi build hoặc cập nhật database trên Windows, dừng ứng dụng đang chạy bằng **Ctrl+C** trong terminal của `dotnet run` hoặc Stop Debugging trong VS Code. Nếu app đang giữ DLL, EF có thể báo `Build failed` và build báo MSB3021/MSB3027. Khi đã build thành công, có thể thêm `--no-build` cho lệnh `dotnet ef database update`; chạy web sau khi cập nhật database xong.
 
 Cách A/B vẫn dùng `dotnet run --project src/EnglishLearningPlatform.Web` (profile `http`), nhận connection string và URL từ environment. Cách C chạy DLL đã publish; không dùng launch profile. Không chọn `LocalSqlServer` trong Docker/Dev Container vì profile đó dành cho Windows Authentication trên máy host.
 

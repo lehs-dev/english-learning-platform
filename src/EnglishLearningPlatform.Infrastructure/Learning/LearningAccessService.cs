@@ -52,7 +52,10 @@ public sealed class LearningAccessService(
             return LearningAccessResult.Forbidden;
 
         var enrolled = await dbContext.Enrollments.AsNoTracking().AnyAsync(
-            enrollment => enrollment.StudentUserId == userId && enrollment.CourseId == resource.CourseId,
+            enrollment => enrollment.StudentUserId == userId && enrollment.CourseId == resource.CourseId &&
+                (!enrollment.PaymentId.HasValue || (enrollment.Payment!.Status == PaymentStatus.Succeeded &&
+                    enrollment.Payment.Order.StudentUserId == userId && enrollment.Payment.Order.CourseId == resource.CourseId &&
+                    enrollment.Payment.Amount == enrollment.Payment.Order.Amount && enrollment.Payment.Order.Currency == "VND")),
             cancellationToken);
 
         return enrolled ? LearningAccessResult.Allowed : LearningAccessResult.Forbidden;
@@ -78,6 +81,11 @@ public sealed class LearningAccessService(
                 .Select(lesson => new ResourceAccessInfo(lesson.Module.CourseId, lesson.Module.Course.OwnerTeacherUserId,
                     lesson.Module.Course.Status,
                     lesson.Status == LessonStatus.Published && lesson.Module.Visibility == ModuleVisibility.Visible))
+                .SingleOrDefaultAsync(cancellationToken),
+            LearningResourceType.Resource => await dbContext.LessonResources.AsNoTracking()
+                .Where(r => r.Id == resourceId)
+                .Select(r => new ResourceAccessInfo(r.Lesson.Module.CourseId, r.Lesson.Module.Course.OwnerTeacherUserId,
+                    r.Lesson.Module.Course.Status, r.Lesson.Status == LessonStatus.Published && r.Lesson.Module.Visibility == ModuleVisibility.Visible))
                 .SingleOrDefaultAsync(cancellationToken),
             _ => null
         };

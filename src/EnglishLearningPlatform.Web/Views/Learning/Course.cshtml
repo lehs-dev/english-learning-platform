@@ -1,0 +1,6 @@
+@model CoursePage
+@{ ViewData["Title"] = Model.Course.Title; }
+<a asp-action="Index">← Khu học tập</a><div class="page-heading"><div><h1>@Model.Course.Title</h1><span class="badge">@Model.Course.Status</span></div>
+@if (Model.IsOwner) { <a class="button" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a> }</div>
+@if (Model.Course.Status == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Bạn vẫn được đọc nội dung; không ghi progress mới.</p> }
+<p class="muted">Chọn bất kỳ bài học khả dụng nào để bắt đầu.</p><partial name="_CourseOutline" model="Model" />

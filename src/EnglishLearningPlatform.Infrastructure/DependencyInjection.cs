@@ -51,6 +51,7 @@ public static class DependencyInjection
         services.AddPlatformAuthorization();
         services.AddScoped<IProfileService, IdentityProfileService>();
         services.AddScoped<ILearningAccessService, LearningAccessService>();
+        services.AddScoped<ICourseService, CourseService>();
         return services;
     }
 }

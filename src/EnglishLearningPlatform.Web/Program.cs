@@ -9,6 +9,15 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("LearningDemo:Enabled"))
+{
+    using var scope = app.Services.CreateScope();
+    await EnglishLearningPlatform.Infrastructure.Learning.LearningDemoSeeder.SeedAsync(
+        scope.ServiceProvider.GetRequiredService<EnglishLearningPlatform.Infrastructure.Persistence.AppDbContext>(),
+        scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser>>(),
+        builder.Configuration["LearningDemo:Password"] ?? "");
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

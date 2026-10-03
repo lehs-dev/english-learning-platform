@@ -1,0 +1,22 @@
+@model CatalogPage
+@{ ViewData["Title"] = "Danh mục khóa học"; }
+<div class="page-heading"><div><p class="eyebrow">ESTUDY · LEARNING</p><h1>Khám phá khóa học</h1><p>Chọn kỹ năng, tìm khóa học và bắt đầu hành trình của bạn.</p></div>
+@if (User.IsInRole("Teacher")) { <a class="button" asp-controller="TeacherCourses" asp-action="Index">Khóa học của tôi</a> }
+else if (User.IsInRole("Student")) { <a class="button" asp-controller="Learning" asp-action="Index">Khóa đã tham gia</a> }</div>
+@if (ViewData["QueryNotice"] is string notice) { <p class="notice">@notice</p> }
+<form asp-controller="Courses" asp-action="Index" method="get" class="panel filter-grid">
+    <label>Tên khóa học<input type="search" name="Search" value="@Model.Query.Search" maxlength="200" placeholder="Tìm khóa học…" /></label>
+    <label>Cấp độ<select name="Level"><option value="">Tất cả</option>@foreach (var level in Enum.GetValues<CourseLevel>()) { <option value="@level" selected="@(Model.Query.Level == level)">@level</option> }</select></label>
+    <label>Kỹ năng<select name="Skill"><option value="">Tất cả</option>@foreach (var skill in Enum.GetValues<EnglishSkill>()) { <option value="@skill" selected="@(Model.Query.Skill == skill)">@skill</option> }</select></label>
+    <label>Chủ đề<select name="Topic"><option value="">Tất cả</option>@foreach (var topic in Model.Topics) { <option value="@topic" selected="@(Model.Query.Topic == topic)">@topic</option> }</select></label>
+    <label>Teacher<select name="Teacher"><option value="">Tất cả</option>@foreach (var teacher in Model.Teachers) { <option value="@teacher.Id" selected="@(Model.Query.Teacher == teacher.Id)">@teacher.Name</option> }</select></label>
+    <label>Loại khóa<select name="Paid"><option value="">Tất cả</option><option value="false" selected="@(Model.Query.Paid == false)">Free</option><option value="true" selected="@(Model.Query.Paid == true)">Paid</option></select></label>
+    <div class="actions"><button class="button" type="submit">Tìm / lọc</button><a asp-controller="Courses" asp-action="Index">Xóa bộ lọc</a></div>
+</form>
+<p class="muted">@Model.Total khóa học · Trang @Model.Query.Page / @Model.Pages · Sắp xếp theo tên</p>
+@if (Model.Courses.Count == 0) { <div class="panel empty">Không tìm thấy khóa học phù hợp. Hãy thử thay đổi bộ lọc.</div> }
+<div class="course-grid">@foreach (var course in Model.Courses) { <article class="panel course-card"><h2>@course.Title</h2><p class="excerpt">@course.Description</p><partial name="_CourseSummary" model="course" /><a class="button secondary" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">Xem chi tiết</a></article> }</div>
+<nav class="actions pagination" aria-label="Phân trang">
+@foreach (var pageNumber in new[] { Model.Query.Page - 1, Model.Query.Page + 1 }.Where(p => p >= 1 && p <= Model.Pages)) {
+    <a class="button secondary" asp-controller="Courses" asp-action="Index" asp-route-Page="@pageNumber" asp-route-Search="@Model.Query.Search" asp-route-Level="@Model.Query.Level" asp-route-Skill="@Model.Query.Skill" asp-route-Topic="@Model.Query.Topic" asp-route-Teacher="@Model.Query.Teacher" asp-route-Paid="@Model.Query.Paid">@(pageNumber < Model.Query.Page ? "← Trước" : "Sau →")</a>
+}</nav>

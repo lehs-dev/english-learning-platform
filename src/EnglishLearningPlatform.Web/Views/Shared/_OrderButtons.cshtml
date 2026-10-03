@@ -1,0 +1,11 @@
+@model OrderButtonsModel
+@foreach (var offset in new[] { -1, 1 }) {
+    var target = Model.Position + offset;
+    if (target < 0 || target >= Model.Ids.Length) { continue; }
+    var ids = Model.Ids.ToArray(); (ids[target], ids[Model.Position]) = (ids[Model.Position], ids[target]);
+    <form method="post" asp-controller="TeacherCourses" asp-action="Reorder" class="inline-form">
+        <input type="hidden" name="courseId" value="@Model.CourseId" /><input type="hidden" name="kind" value="@Model.Kind" /><input type="hidden" name="parentId" value="@Model.ParentId" />
+        @foreach (var id in ids) { <input type="hidden" name="ids" value="@id" /> }
+        <button class="button small secondary" aria-label="@(offset < 0 ? "Di chuyển lên" : "Di chuyển xuống")">@(offset < 0 ? "↑ Lên" : "↓ Xuống")</button>
+    </form>
+}

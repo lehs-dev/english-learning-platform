@@ -1,0 +1,2 @@
+@if (TempData["Success"] is string success) { <div class="notice" role="status">@success</div> }
+@if (TempData["Error"] is string error) { <div class="notice error preserve" role="alert">@error</div> }

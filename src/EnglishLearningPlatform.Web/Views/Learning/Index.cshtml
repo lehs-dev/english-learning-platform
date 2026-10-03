@@ -1,0 +1,5 @@
+@model IReadOnlyList<CourseSummary>
+@{ ViewData["Title"] = "Khóa đã tham gia"; }
+<div class="page-heading"><h1>Khóa đã tham gia</h1><a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a></div>
+@if (Model.Count == 0) { <p class="panel empty">Bạn chưa tham gia khóa học nào.</p> }
+<div class="course-grid">@foreach (var course in Model) { <article class="panel course-card"><h2>@course.Title</h2><span class="badge">@course.Status</span><partial name="_CourseSummary" model="course" /><a class="button" asp-action="Course" asp-route-id="@course.Id">Vào học</a></article> }</div>
