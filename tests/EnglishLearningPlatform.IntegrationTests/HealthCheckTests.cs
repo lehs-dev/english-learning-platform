@@ -1,12 +1,11 @@
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace EnglishLearningPlatform.IntegrationTests;
 
-public sealed class HealthCheckTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class HealthCheckTests : IClassFixture<IntegrationTestFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    public HealthCheckTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    private readonly IntegrationTestFactory _factory;
+    public HealthCheckTests(IntegrationTestFactory factory) => _factory = factory;
 
     [Fact]
     public async Task Home_ReturnsSuccess()

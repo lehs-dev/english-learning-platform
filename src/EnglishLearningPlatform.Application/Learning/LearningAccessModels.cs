@@ -1,6 +1,6 @@
 namespace EnglishLearningPlatform.Application.Learning;
 
-public enum LearningResourceType { Course, Module, Lesson }
+public enum LearningResourceType { Course, Module, Lesson, Resource }
 
 // ViewContent = xem nội dung đã enroll/preview của owner.
 // ManageContent = quản lý nội dung của Teacher; RecordProgress = mutation của Student.

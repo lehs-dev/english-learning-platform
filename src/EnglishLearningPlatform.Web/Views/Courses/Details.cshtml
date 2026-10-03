@@ -1,0 +1,15 @@
+@model CoursePage
+@{ ViewData["Title"] = Model.Course.Title; }
+<a asp-action="Index">← Danh mục khóa học</a>
+<section class="panel course-hero"><h1>@Model.Course.Title</h1><partial name="_CourseSummary" model="Model.Course" /><h2>Giới thiệu</h2><p class="preserve">@Model.Course.Description</p><h2>Mục tiêu</h2><p class="preserve">@Model.Course.Objectives</p>
+<div class="actions">
+@if (Model.IsOwner) { <a class="button" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a> }
+@if (Model.CanLearn) { <a class="button" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Course.Id">@(Model.IsOwner ? "Preview" : "Vào học")</a> }
+else if (User.Identity?.IsAuthenticated != true) { <a class="button" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Courses", new { id = Model.Course.Id })">Đăng nhập để tham gia</a> }
+else if (User.IsInRole("Student")) {
+    if (!Model.Course.IsPaid) { <form method="post" asp-action="EnrollFree" asp-route-id="@Model.Course.Id"><button class="button">Tham gia miễn phí</button></form> }
+    else { <p class="notice">Khóa trả phí: tích hợp thanh toán đang được chuẩn bị. Chỉ được cấp quyền sau thanh toán đã xác minh.</p> }
+}
+</div></section>
+<h2>Nội dung khóa học</h2><p class="muted">Bạn có thể xem cấu trúc trước khi tham gia. Nội dung bài học cần Enrollment hợp lệ.</p>
+<partial name="_CourseOutline" model="Model" />

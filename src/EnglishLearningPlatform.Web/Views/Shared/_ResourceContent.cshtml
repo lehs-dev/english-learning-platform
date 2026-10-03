@@ -1,0 +1,9 @@
+@model ResourceContent
+<section class="panel resource-content"><h2>@(Model.Title ?? Model.Type.ToString())</h2>
+@if (Model.Type == LessonResourceType.Text) { <div class="preserve">@Model.Text</div> }
+else if (EnglishLearningPlatform.Domain.Entities.CourseRules.ValidResource(Model.Type, Model.Text, Model.Url)) {
+    if (Model.Type == LessonResourceType.Audio) { <audio controls preload="none" src="@Model.Url">Trình duyệt không hỗ trợ audio.</audio> }
+    if (Model.Type == LessonResourceType.Video) { <video controls preload="none" src="@Model.Url">Trình duyệt không hỗ trợ video.</video> }
+    <a href="@Model.Url" target="_blank" rel="noopener noreferrer">Mở @Model.Type</a>
+} else { <p class="notice error">Resource chưa có URL hợp lệ.</p> }
+</section>

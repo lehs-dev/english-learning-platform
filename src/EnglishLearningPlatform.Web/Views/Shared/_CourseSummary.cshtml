@@ -1,0 +1,4 @@
+@model CourseSummary
+<p class="muted">@Model.Teacher · @Model.Level · @string.Join(" / ", Model.Skills) · @string.Join(", ", Model.Topics)</p>
+<span class="badge">@(Model.IsPaid ? "Paid" : "Free")</span>
+<strong>@(Model.IsPaid ? Model.Price.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " VND" : "Miễn phí")</strong>
