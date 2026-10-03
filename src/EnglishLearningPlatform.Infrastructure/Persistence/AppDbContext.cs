@@ -5,7 +5,11 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.Persistence;
-
+/*
+    AppDbContext là "cửa ngõ" duy nhất để code nói chuyện được với Database.
+    Mỗi DbSet<Course> Courses tương ứng với 1 bảng.
+    Dòng ApplyConfigurationsFromAssembly nghĩa là mọi class cấu hình trong thư mục Configurations/ sẽ tự động được áp dụng.
+*/
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
@@ -16,6 +20,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<LessonResource> LessonResources => Set<LessonResource>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<LessonProgress> LessonProgressEntries => Set<LessonProgress>();
     public DbSet<Stimulus> Stimuli => Set<Stimulus>();
     public DbSet<Question> Questions => Set<Question>();

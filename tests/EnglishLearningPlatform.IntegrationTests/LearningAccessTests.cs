@@ -121,7 +121,9 @@ public sealed class LearningAccessTests(IntegrationTestFactory factory) : IClass
     {
         var course = new Course
         {
-            OwnerTeacherUserId = ownerId, Title = "Access test", Status = status,
+            OwnerTeacherUserId = ownerId,
+            Title = "Access test",
+            Status = status,
             Modules = [new Module
             {
                 Title = "Module", Visibility = visibility,

@@ -69,10 +69,33 @@ erDiagram
         int order_index
     }
 
+    ORDERS {
+        bigint id PK
+        bigint student_id FK
+        bigint course_id FK
+        decimal amount
+        string currency
+        datetime created_at
+        datetime updated_at "nullable"
+    }
+
+    PAYMENTS {
+        bigint id PK
+        bigint order_id FK
+        decimal amount
+        string status
+        string provider
+        string provider_transaction_id UK
+        datetime paid_at "nullable"
+        datetime created_at
+        datetime updated_at "nullable"
+    }
+
     ENROLLMENTS {
         bigint id PK
         bigint student_id FK
         bigint course_id FK
+        bigint payment_id FK "nullable"
         bigint last_accessed_lesson_id FK "nullable"
         datetime enrolled_at
         datetime completed_at "nullable"
@@ -224,6 +247,11 @@ erDiagram
     USERS ||--o{ PRACTICES : owns
     USERS ||--o{ ASSESSMENTS : owns
 
+    USERS ||--o{ ORDERS : places
+    COURSES ||--o{ ORDERS : purchased_in
+    ORDERS ||--o{ PAYMENTS : has
+    PAYMENTS o|--o{ ENROLLMENTS : funds
+
     USERS ||--o{ ENROLLMENTS : enrolls
     COURSES ||--o{ ENROLLMENTS : has
     LESSONS o|--o{ ENROLLMENTS : last_accessed
@@ -268,12 +296,16 @@ erDiagram
     USERS o|--o{ AUDIT_LOGS : target
 ```
 
+`ORDERS` và `PAYMENTS` trong ERD tương ứng với bảng `Order` và `Payment` trong database. `ENROLLMENTS.payment_id` có thể null; cấu hình hiện tại không đặt unique trên cột này nên quan hệ Payment → Enrollment là một-nhiều.
+
 ## Ràng buộc toàn vẹn đi kèm ERD v1
 
 > ERD trên mô tả quan hệ và thuộc tính chính. Các ràng buộc nhiều bảng, ràng buộc trạng thái và thao tác đồng thời sau đây là một phần của thiết kế dữ liệu/nghiệp vụ; FK đơn lẻ không đủ để bảo đảm chúng.
 
 | Nhóm dữ liệu | Ràng buộc cần thực thi |
 | --- | --- |
+| `ORDERS` | `student_id` và `course_id` là FK bắt buộc; index (`student_id`, `course_id`) không unique, cho phép nhiều Order cho cùng Student/Course. |
+| `PAYMENTS` | `order_id` là FK bắt buộc; unique (`provider_transaction_id`) chống ghi nhận trùng giao dịch. `amount` của Order/Payment có precision (18, 2). |
 | `ENROLLMENTS` | Unique (`student_id`, `course_id`). User phải có quyền Student khi tạo Enrollment; role đổi sau này không xóa lịch sử. |
 | `LESSON_PROGRESS` | Unique (`enrollment_id`, `lesson_id`); Lesson phải thuộc đúng Course của Enrollment. `last_accessed_lesson_id` cũng phải thuộc Course đó. |
 | `PRACTICES` | Không đồng thời có `lesson_id` và `module_id`; `Published` bắt buộc có đúng một parent thuộc Course của Owner, ≥1 Question khác nhau; bản Draft chưa gắn parent thì không khả dụng. `Unpublished` không được Start/Submit. |

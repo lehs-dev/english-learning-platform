@@ -15,6 +15,7 @@ public sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         e.Property(x => x.Objectives).HasMaxLength(4000);
         e.Property(x => x.Level).HasConversion<string>().HasMaxLength(32);
         e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+        e.Property(x => x.Price).HasPrecision(18, 2);
 
         e.HasOne<ApplicationUser>().WithMany()
             .HasForeignKey(x => x.OwnerTeacherUserId).OnDelete(DeleteBehavior.NoAction);

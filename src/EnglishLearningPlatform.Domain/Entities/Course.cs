@@ -14,12 +14,17 @@ public sealed class Course : BaseEntity, IOwnedResource
     public string? Objectives { get; set; }
     public CourseLevel Level { get; set; } = CourseLevel.Beginner;
     public CourseStatus Status { get; set; } = CourseStatus.Draft;
+    public bool IsPaid { get; set; } //Phân biệt free/nofree
+    public decimal Price { get; set; }
 
+    // Mấy cái này gọi chung là Navigation Properties
+    // Navigation property: không phải cột trong bảng mà là cầu nối để EF Core load dữ liệu liên quan
     public ICollection<CourseSkill> Skills { get; set; } = new List<CourseSkill>();
     public ICollection<CourseTopic> Topics { get; set; } = new List<CourseTopic>();
     public ICollection<Module> Modules { get; set; } = new List<Module>();
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
 
+    // Còn đây là interface nhóm tự định nghiax để phân quyền theo chủ sở hữu.
     Guid IOwnedResource.OwnerUserId => OwnerTeacherUserId;
 }
