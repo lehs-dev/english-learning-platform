@@ -23,5 +23,6 @@ public sealed class Course : BaseEntity, IOwnedResource
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
 
+    // Còn đây là interface nhóm tự định nghiax để phân quyền theo chủ sở hữu.
     Guid IOwnedResource.OwnerUserId => OwnerTeacherUserId;
 }
