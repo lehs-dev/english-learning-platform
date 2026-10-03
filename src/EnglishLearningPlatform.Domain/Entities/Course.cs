@@ -15,6 +15,8 @@ public sealed class Course : BaseEntity, IOwnedResource
     public CourseLevel Level { get; set; } = CourseLevel.Beginner;
     public CourseStatus Status { get; set; } = CourseStatus.Draft;
 
+    // Mấy cái này gọi chung là Navigation Properties
+    // Navigation property: không phải cột trong bảng mà là cầu nối để EF Core load dữ liệu liên quan
     public ICollection<CourseSkill> Skills { get; set; } = new List<CourseSkill>();
     public ICollection<CourseTopic> Topics { get; set; } = new List<CourseTopic>();
     public ICollection<Module> Modules { get; set; } = new List<Module>();
