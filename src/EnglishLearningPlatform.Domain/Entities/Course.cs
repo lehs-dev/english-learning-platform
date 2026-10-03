@@ -14,6 +14,8 @@ public sealed class Course : BaseEntity, IOwnedResource
     public string? Objectives { get; set; }
     public CourseLevel Level { get; set; } = CourseLevel.Beginner;
     public CourseStatus Status { get; set; } = CourseStatus.Draft;
+    public bool IsPaid { get; set; } //Phân biệt free/nofree
+    public decimal Price { get; set; }
 
     // Mấy cái này gọi chung là Navigation Properties
     // Navigation property: không phải cột trong bảng mà là cầu nối để EF Core load dữ liệu liên quan
