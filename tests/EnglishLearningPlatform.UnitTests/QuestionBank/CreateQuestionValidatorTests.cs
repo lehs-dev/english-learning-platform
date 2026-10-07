@@ -267,4 +267,69 @@ public sealed class CreateQuestionValidatorTests
             error.Field == "Options[1].Content"
             && error.Code == "max_length");
     }
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Validate_OptionalMetadataNotProvided_ReturnsNoErrors(
+        string? value)
+    {
+        var request = validRequest with
+        {
+            Level = value,
+            Difficulty = value
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Empty(errors);
+    }
+    [Fact]
+    public void Validate_MetadataAtLimit_ReturnsNoErrors()
+    {
+        var request = validRequest with
+        {
+            Level = new string('a', 32),
+            Difficulty = new string('b', 32)
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Empty(errors);
+    }
+    [Fact]
+    public void Validate_LevelOverLimit_ReturnsMaxLengthError()
+    {
+        var request = validRequest with
+        {
+            Level = new string('a', 33)
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == nameof(CreateQuestionRequest.Level)
+            && error.Code == "max_length");
+    }
+    [Fact]
+    public void Validate_DifficultyOverLimit_ReturnsMaxLengthError()
+    {
+        var request = validRequest with
+        {
+            Difficulty = new string('b', 33)
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == nameof(CreateQuestionRequest.Difficulty)
+            && error.Code == "max_length");
+    }
+    [Fact]
+    public void Validate_NullRequest_ThrowsArgumentNullException()
+    {
+        var exception = Assert.Throws<ArgumentNullException>(() =>
+            _validator.Validate(null!));
+
+        Assert.Equal("request", exception.ParamName);
+    }
 }
