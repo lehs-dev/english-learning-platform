@@ -113,4 +113,158 @@ public sealed class CreateQuestionValidatorTests
 
         Assert.Empty(errors);
     }
+    [Fact]
+    public void Validate_NullOptions_ReturnsRequiredError()
+    {
+        var request = validRequest with
+        {
+            Options = null!
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == nameof(CreateQuestionRequest.Options)
+            && error.Code == "required");
+    }
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Validate_FewerThanTwoOptions_ReturnsMinCountError(
+        int optionCount)
+    {
+        var options = Enumerable.Range(0, optionCount)
+            .Select(index => new QuestionOptionRequest(
+                $"Option {index + 1}",
+                index == 0))
+            .ToArray();
+
+        var request = validRequest with
+        {
+            Options = options
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == nameof(CreateQuestionRequest.Options)
+            && error.Code == "min_count");
+    }
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public void Validate_InvalidCorrectCount_ReturnsError(
+        bool firstCorrect,
+        bool secondCorrect)
+    {
+        var request = validRequest with
+        {
+            Options =
+            [
+                new QuestionOptionRequest("Option 1", firstCorrect),
+                new QuestionOptionRequest("Option 2", secondCorrect)
+            ]
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == nameof(CreateQuestionRequest.Options)
+            && error.Code == "exactly_one_correct");
+    }
+    [Theory]
+    [InlineData(2)]
+    [InlineData(4)]
+    public void Validate_EnoughOptionsWithOneCorrect_ReturnsNoErrors(
+        int optionCount)
+    {
+        var options = Enumerable.Range(0, optionCount)
+            .Select(index => new QuestionOptionRequest(
+                $"Option {index + 1}",
+                index == optionCount - 1))
+            .ToArray();
+
+        var request = validRequest with
+        {
+            Options = options
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Empty(errors);
+    }
+    [Fact]
+    public void Validate_NullOption_ReturnsRequiredError()
+    {
+        var request = validRequest with
+        {
+            Options =
+            [
+                null!,
+                new QuestionOptionRequest("Option 2", true)
+            ]
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == "Options[0]"
+            && error.Code == "required");
+    }
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_BlankOptionContent_ReturnsRequiredError(
+        string? content)
+    {
+        var request = validRequest with
+        {
+            Options =
+            [
+                new QuestionOptionRequest(content!, false),
+                new QuestionOptionRequest("Option 2", true)
+            ]
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == "Options[0].Content"
+            && error.Code == "required");
+    }
+    [Fact]
+    public void Validate_OptionContentAtLimit_ReturnsNoErrors()
+    {
+        var request = validRequest with
+        {
+            Options =
+            [
+                new QuestionOptionRequest(new string('a', 1000), false),
+                new QuestionOptionRequest("Option 2", true)
+            ]
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Empty(errors);
+    }
+    [Fact]
+    public void Validate_OptionContentOverLimit_ReturnsMaxLengthError()
+    {
+        var request = validRequest with
+        {
+            Options =
+            [
+                new QuestionOptionRequest("Option 1", false),
+                new QuestionOptionRequest(new string('a', 1001), true)
+            ]
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == "Options[1].Content"
+            && error.Code == "max_length");
+    }
 }
