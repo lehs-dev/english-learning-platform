@@ -1,0 +1,20 @@
+@model ContentEditModel
+@{ ViewData["Title"] = (Model.Id.HasValue ? "Sửa " : "Thêm ") + Model.Kind; }
+<a asp-action="Manage" asp-route-id="@Model.CourseId">← Quản lý nội dung</a><h1>@ViewData["Title"]</h1>
+<form method="post" asp-action="Content" asp-route-courseId="@Model.CourseId" asp-route-kind="@Model.Kind" asp-route-parentId="@Model.ParentId" asp-route-id="@Model.Id" class="panel editor-form">
+<div asp-validation-summary="All" class="validation" role="alert"></div>
+<label asp-for="Input.Title">Tên @(Model.Kind == ContentKind.Resource ? "resource (tùy chọn)" : Model.Kind.ToString())</label><input asp-for="Input.Title" maxlength="200" /><span asp-validation-for="Input.Title" class="validation"></span>
+@if (Model.Kind == ContentKind.Module) {
+    <label asp-for="Input.Description">Mô tả</label><textarea asp-for="Input.Description" maxlength="4000" rows="4"></textarea><span asp-validation-for="Input.Description" class="validation"></span>
+    <label asp-for="Input.Visibility">Hiển thị</label><select asp-for="Input.Visibility" asp-items="Html.GetEnumSelectList<ModuleVisibility>()"></select><span asp-validation-for="Input.Visibility" class="validation"></span>
+} else if (Model.Kind == ContentKind.Lesson) {
+    <label asp-for="Input.Status">Trạng thái</label><select asp-for="Input.Status" asp-items="Html.GetEnumSelectList<LessonStatus>()"></select><span asp-validation-for="Input.Status" class="validation"></span>
+    <p class="muted">Tạo Lesson Draft, thêm resource, sau đó chuyển sang Published.</p>
+} else {
+    <label asp-for="Input.ResourceType">Loại resource</label><select asp-for="Input.ResourceType" asp-items="Html.GetEnumSelectList<LessonResourceType>()" data-resource-type></select><span asp-validation-for="Input.ResourceType" class="validation"></span>
+    <div data-text-fields><label asp-for="Input.ContentText">Nội dung Text</label><textarea asp-for="Input.ContentText" rows="10"></textarea><span asp-validation-for="Input.ContentText" class="validation"></span></div>
+    <div data-url-fields><label asp-for="Input.ResourceUrl">URL (http/https)</label><input asp-for="Input.ResourceUrl" type="url" maxlength="2048" /><span asp-validation-for="Input.ResourceUrl" class="validation"></span><p class="muted">Audio/Video dùng URL file media trực tiếp. Link dùng URL trang web.</p></div>
+}
+<div class="actions"><button class="button">Lưu nội dung</button><a asp-action="Manage" asp-route-id="@Model.CourseId">Hủy</a></div>
+</form>
+@section Scripts { <script src="~/js/course-editor.js" asp-append-version="true" defer></script> }

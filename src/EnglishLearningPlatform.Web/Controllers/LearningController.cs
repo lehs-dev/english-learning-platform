@@ -1,54 +1,55 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 namespace EnglishLearningPlatform.Web.Controllers;
-
-// Các trang Learning hiện chỉ có khung UI. Mọi route nội dung đã được kiểm tra
-// quyền trước khi render, để owner module thêm nội dung/use case sau này.
-[Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher)]
-public sealed class LearningController(ILearningAccessService learningAccessService) : Controller
+[Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+public sealed class LearningController(ICourseService courses) : Controller
 {
+    private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
     [HttpGet]
-    public IActionResult Index() => Dashboard();
-
-    [HttpGet]
-    public Task<IActionResult> Course(Guid id, CancellationToken cancellationToken) =>
-        OpenResourceAsync(LearningResourceType.Course, id, LearningOperation.ViewContent, cancellationToken);
-
-    [HttpGet]
-    public Task<IActionResult> Module(Guid id, CancellationToken cancellationToken) =>
-        OpenResourceAsync(LearningResourceType.Module, id, LearningOperation.ViewContent, cancellationToken);
-
-    [HttpGet]
-    public Task<IActionResult> Lesson(Guid id, CancellationToken cancellationToken) =>
-        OpenResourceAsync(LearningResourceType.Lesson, id, LearningOperation.ViewContent, cancellationToken);
-
-    [Authorize(Roles = AppRoles.Teacher)]
-    [HttpGet]
-    public Task<IActionResult> ManageCourse(Guid id, CancellationToken cancellationToken) =>
-        OpenResourceAsync(LearningResourceType.Course, id, LearningOperation.ManageContent, cancellationToken);
-
-    private async Task<IActionResult> OpenResourceAsync(
-        LearningResourceType type, Guid id, LearningOperation operation, CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
-        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-            return Challenge();
-
-        var access = await learningAccessService.CheckAccessAsync(userId, type, id, operation, cancellationToken);
-        return access switch
-        {
-            LearningAccessResult.Allowed => Dashboard(),
-            LearningAccessResult.NotFound => NotFound(),
-            _ => Forbid()
-        };
+        if (User.IsInRole(AppRoles.Teacher)) return RedirectToAction("Index", "TeacherCourses");
+        var result = await courses.MyCoursesAsync(UserId, false, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
-
-    private IActionResult Dashboard()
+    [HttpGet]
+    public async Task<IActionResult> Course(Guid id, CancellationToken ct)
     {
-        ViewData["ActiveSection"] = "courses";
-        return View("~/Views/Home/Index.cshtml");
+        var result = await courses.OpenCourseAsync(UserId, id, false, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+    }
+    [HttpGet]
+    public async Task<IActionResult> Module(Guid id, CancellationToken ct)
+    {
+        var result = await courses.ModuleCourseAsync(UserId, id, ct);
+        return result.Access == LearningAccessResult.Allowed ? RedirectToAction(nameof(Course), new { id = result.Value }) : Denied(result.Access);
+    }
+    [HttpGet]
+    public async Task<IActionResult> Lesson(Guid id, CancellationToken ct)
+    {
+        var result = await courses.OpenLessonAsync(UserId, id, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+    }
+    [HttpGet]
+    public async Task<IActionResult> Resource(Guid id, CancellationToken ct)
+    {
+        var result = await courses.OpenResourceAsync(UserId, id, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+    }
+    [Authorize(Policy = AuthorizationPolicies.Teacher), HttpGet]
+    public async Task<IActionResult> ManageCourse(Guid id, CancellationToken ct)
+    {
+        var result = await courses.OpenCourseAsync(UserId, id, true, ct);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        var resources = await courses.AuthoringResourcesAsync(UserId, id, ct);
+        return resources.Access == LearningAccessResult.Allowed
+            ? View("~/Views/TeacherCourses/Manage.cshtml", new EnglishLearningPlatform.Web.Models.Courses.AuthoringModel(result.Value!, resources.Value!))
+            : Denied(resources.Access);
     }
 }

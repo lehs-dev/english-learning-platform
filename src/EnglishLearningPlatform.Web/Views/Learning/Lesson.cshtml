@@ -1,0 +1,5 @@
+@model LessonPage
+@{ ViewData["Title"] = Model.Title; }
+<a asp-action="Course" asp-route-id="@Model.CourseId">← @Model.CourseTitle</a><h1>@Model.Title</h1>
+@if (Model.Resources.Count == 0) { <p class="panel empty">Chưa có nội dung khả dụng</p> }
+@foreach (var resource in Model.Resources) { <partial name="_ResourceContent" model="resource" /> }

@@ -1,0 +1,16 @@
+@model CourseEditModel
+@{ ViewData["Title"] = Model.Id.HasValue ? "Sửa khóa học" : "Tạo khóa học Draft"; }
+<a asp-action="Index">← Khóa học của tôi</a><h1>@ViewData["Title"]</h1>
+<form method="post" asp-action="Edit" asp-route-id="@Model.Id" class="panel editor-form">
+<div asp-validation-summary="All" class="validation" role="alert"></div>
+<label asp-for="Input.Title">Tên khóa học</label><input asp-for="Input.Title" maxlength="200" required /><span asp-validation-for="Input.Title" class="validation"></span>
+<label asp-for="Input.Description">Mô tả</label><textarea asp-for="Input.Description" maxlength="4000" rows="4"></textarea><span asp-validation-for="Input.Description" class="validation"></span>
+<label asp-for="Input.Objectives">Mục tiêu</label><textarea asp-for="Input.Objectives" maxlength="4000" rows="4"></textarea><span asp-validation-for="Input.Objectives" class="validation"></span>
+<label asp-for="Input.Level">Cấp độ</label><select asp-for="Input.Level" asp-items="Html.GetEnumSelectList<CourseLevel>()"></select><span asp-validation-for="Input.Level" class="validation"></span>
+<fieldset><legend>Kỹ năng</legend><div class="actions">@foreach (var skill in Enum.GetValues<EnglishSkill>()) { <label class="check"><input type="checkbox" name="Input.Skills" value="@skill" checked="@(Model.Input.Skills?.Contains(skill) == true)" /> @skill</label> }</div></fieldset><span asp-validation-for="Input.Skills" class="validation"></span>
+<label asp-for="Input.Topics">Chủ đề (ngăn cách bằng dấu phẩy)</label><input asp-for="Input.Topics" maxlength="4000" placeholder="Travel, Business, Everyday English" /><span asp-validation-for="Input.Topics" class="validation"></span>
+<label asp-for="Input.IsPaid">Loại khóa</label><select asp-for="Input.IsPaid" data-price-type><option value="false">Free</option><option value="true">Paid</option></select>
+<label asp-for="Input.Price">Giá (VND)</label><input asp-for="Input.Price" type="number" min="0" step="0.01" max="9999999999999999.99" data-price /><span asp-validation-for="Input.Price" class="validation"></span><p class="muted">Free có giá 0. Paid cần giá dương. Publish là thao tác riêng sau khi thêm nội dung.</p>
+<div class="actions"><button class="button">Lưu khóa học</button><a asp-action="Index">Hủy</a></div>
+</form>
+@section Scripts { <script src="~/js/course-editor.js" asp-append-version="true" defer></script> }
