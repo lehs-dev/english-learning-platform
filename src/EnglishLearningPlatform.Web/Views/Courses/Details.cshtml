@@ -1,7 +1,11 @@
 @model CoursePage
 @{ ViewData["Title"] = Model.Course.Title; }
 <a asp-action="Index">← Danh mục khóa học</a>
-<section class="panel course-hero"><h1>@Model.Course.Title</h1><partial name="_CourseSummary" model="Model.Course" /><h2>Giới thiệu</h2><p class="preserve">@Model.Course.Description</p><h2>Mục tiêu</h2><p class="preserve">@Model.Course.Objectives</p>
+<section class="panel course-hero"><h1>@Model.Course.Title</h1><partial name="_CourseSummary" model="Model.Course" /><h2>Giới thiệu</h2><p class="preserve">@Model.Course.Description</p>
+@if (!string.IsNullOrWhiteSpace(Model.Course.Objectives))
+{
+    <h2>Mục tiêu</h2><p class="preserve">@Model.Course.Objectives</p>
+}
 <div class="actions">
 @if (Model.IsOwner) { <a class="button" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a> }
 @if (Model.CanLearn) { <a class="button" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Course.Id">@(Model.IsOwner ? "Preview" : "Vào học")</a> }

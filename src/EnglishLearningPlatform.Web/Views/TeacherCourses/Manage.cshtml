@@ -16,9 +16,17 @@
     var module = coursePage.Modules[mi];
     <section class="panel module-panel"><div class="content-row"><h3>@module.Title <span class="badge">@module.Visibility</span></h3><div class="actions"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId" asp-route-id="@module.Id">Sửa Module</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Module, courseId, coursePage.Modules.Select(m => m.Id).ToArray(), mi)" /></div></div><p class="preserve">@module.Description</p>
     <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id">+ Lesson</a>
+    @if (module.Lessons.Count == 0)
+    {
+        <p class="empty">Module chưa có bài học. Chọn + Lesson để thêm bài học.</p>
+    }
     @for (var li = 0; li < module.Lessons.Count; li++) {
         var lesson = module.Lessons[li]; var resources = Model.Resources.GetValueOrDefault(lesson.Id) ?? [];
         <section class="lesson-editor"><div class="content-row"><h4>@lesson.Title <span class="badge">@lesson.Status</span></h4><div class="actions"><a asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">Preview</a><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id" asp-route-id="@lesson.Id">Sửa Lesson</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Lesson, module.Id, module.Lessons.Select(l => l.Id).ToArray(), li)" /></div></div>
+        @if (resources.Count == 0)
+        {
+            <p class="empty">Bài học chưa có tài nguyên. Chọn + Resource để thêm nội dung.</p>
+        }
         @for (var ri = 0; ri < resources.Count; ri++) {
             var resource = resources[ri];
             <div class="resource-row"><span>@(resource.Title ?? "Resource") <span class="badge">@resource.Type</span></span><div class="actions"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id" asp-route-id="@resource.Id">Sửa</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Resource, lesson.Id, resources.Select(r => r.Id).ToArray(), ri)" /><form method="post" asp-controller="TeacherCourses" asp-action="DeleteResource" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id" asp-route-id="@resource.Id"><button class="button small danger">Xóa resource</button></form></div></div>
