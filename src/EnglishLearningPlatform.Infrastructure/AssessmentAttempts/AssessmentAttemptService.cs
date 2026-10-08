@@ -296,4 +296,139 @@ public sealed class AssessmentAttemptService(
             attempt.Passed,
             reason);
     }
+
+
+    public async Task<AttemptSaveStatus> SaveAnswerAsync(
+        Guid studentId,
+        Guid attemptId,
+        Guid assessmentQuestionId,
+        Guid? selectedOptionId,
+        CancellationToken ct = default)
+    {
+        var snapshot = await db.Attempts.AsNoTracking()
+            .Where(a => a.Id == attemptId)
+            .Select(a => new
+            {
+                a.StudentUserId,
+                a.AssessmentId,
+                a.Assessment.CourseId
+            })
+            .SingleOrDefaultAsync(ct);
+
+        if (snapshot is null || snapshot.StudentUserId != studentId)
+            return AttemptSaveStatus.NotFound;
+
+        var student = await users.FindByIdAsync(studentId.ToString());
+
+        if (student is null ||
+            student.AccountStatus != AccountStatus.Active)
+            return AttemptSaveStatus.Forbidden;
+
+        var roles = await users.GetRolesAsync(student);
+
+        if (roles.Count != 1 || roles[0] != AppRoles.Student)
+            return AttemptSaveStatus.Forbidden;
+
+        await using var tx = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable, ct);
+
+        // Cùng thứ tự khóa với Start và Finalize.
+        if (snapshot.CourseId is Guid courseId)
+        {
+            await db.Courses.FromSqlInterpolated(
+                $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}")
+                .SingleOrDefaultAsync(ct);
+        }
+
+        var assessment = await db.Assessments.FromSqlInterpolated(
+            $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.AssessmentId}")
+            .SingleOrDefaultAsync(ct);
+
+        if (assessment is null ||
+            assessment.CourseId != snapshot.CourseId)
+            return AttemptSaveStatus.Unavailable;
+
+        var attempt = await db.Attempts.FromSqlInterpolated(
+            $"SELECT * FROM Attempts WITH (UPDLOCK, HOLDLOCK) WHERE Id = {attemptId}")
+            .SingleOrDefaultAsync(ct);
+
+        if (attempt is null ||
+            attempt.StudentUserId != studentId ||
+            attempt.AssessmentId != assessment.Id)
+            return AttemptSaveStatus.NotFound;
+
+        if (attempt.Status != AttemptStatus.InProgress)
+            return AttemptSaveStatus.AlreadyFinalized;
+
+        var now = DateTimeOffset.UtcNow;
+
+        if (now >= attempt.DeadlineUtc)
+            return AttemptSaveStatus.Expired;
+
+        // Kiểm tra câu hỏi thuộc chính Assessment đang làm.
+        var questionId = await db.AssessmentQuestions
+            .AsNoTracking()
+            .Where(q =>
+                q.Id == assessmentQuestionId &&
+                q.AssessmentId == assessment.Id)
+            .Select(q => (Guid?)q.QuestionId)
+            .SingleOrDefaultAsync(ct);
+
+        if (!questionId.HasValue)
+            return AttemptSaveStatus.InvalidAnswer;
+
+        // Không được chọn option thuộc câu hỏi khác.
+        if (selectedOptionId.HasValue)
+        {
+            var validOption = await db.QuestionOptions
+                .AsNoTracking()
+                .AnyAsync(o =>
+                    o.Id == selectedOptionId.Value &&
+                    o.QuestionId == questionId.Value,
+                    ct);
+
+            if (!validOption)
+                return AttemptSaveStatus.InvalidAnswer;
+        }
+
+        var answer = await db.AttemptAnswers
+            .SingleOrDefaultAsync(a =>
+                a.AttemptId == attemptId &&
+                a.AssessmentQuestionId == assessmentQuestionId,
+                ct);
+
+        if (!selectedOptionId.HasValue)
+        {
+            if (answer is not null)
+            {
+                db.AttemptAnswers.Remove(answer);
+                await db.SaveChangesAsync(ct);
+            }
+
+            await tx.CommitAsync(ct);
+            return AttemptSaveStatus.Cleared;
+        }
+
+        if (answer is null)
+        {
+            db.AttemptAnswers.Add(new AttemptAnswer
+            {
+                AttemptId = attemptId,
+                AssessmentQuestionId = assessmentQuestionId,
+                SelectedOptionId = selectedOptionId.Value,
+                SavedAtUtc = now
+            });
+        }
+        else
+        {
+            answer.SelectedOptionId = selectedOptionId.Value;
+            answer.SavedAtUtc = now;
+        }
+
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        return AttemptSaveStatus.Saved;
+    }
+
 }

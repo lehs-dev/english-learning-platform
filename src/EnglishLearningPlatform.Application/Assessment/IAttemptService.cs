@@ -12,4 +12,11 @@ public interface IAttemptService
     Guid studentId,
     Guid attemptId,
     CancellationToken ct = default);
+
+    Task<AttemptSaveStatus> SaveAnswerAsync(
+    Guid studentId,
+    Guid attemptId,
+    Guid assessmentQuestionId,
+    Guid? selectedOptionId,
+    CancellationToken ct = default);
 }

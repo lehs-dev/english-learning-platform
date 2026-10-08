@@ -327,4 +327,98 @@ public sealed class AssessmentAttemptStartTests(
         Assert.NotNull(saved.FinalizedAtUtc);
     }
 
+
+    [Fact]
+    public async Task SaveAnswer_ValidatesOwnershipOptionAndFinalization()
+    {
+        var (studentId, assessmentId) = await SeedAsync();
+        var started = await StartAsync(studentId, assessmentId);
+
+        Assert.Equal(AttemptStartStatus.Started, started.Status);
+
+        var attemptId = started.AttemptId!.Value;
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider
+            .GetRequiredService<AppDbContext>();
+
+        var service = scope.ServiceProvider
+            .GetRequiredService<IAttemptService>();
+
+        var questions = await db.AssessmentQuestions
+            .AsNoTracking()
+            .Where(q => q.AssessmentId == assessmentId)
+            .OrderBy(q => q.OrderIndex)
+            .Select(q => new { q.Id, q.QuestionId })
+            .Take(2)
+            .ToListAsync();
+
+        Assert.Equal(2, questions.Count);
+
+        var first = questions[0];
+        var second = questions[1];
+
+        var correctOptionId = await db.QuestionOptions
+            .Where(o => o.QuestionId == first.QuestionId &&
+                        o.IsCorrect)
+            .Select(o => o.Id)
+            .SingleAsync();
+
+        var foreignOptionId = await db.QuestionOptions
+            .Where(o => o.QuestionId == second.QuestionId)
+            .Select(o => o.Id)
+            .FirstAsync();
+
+        // Option thuộc câu khác phải bị từ chối.
+        Assert.Equal(
+            AttemptSaveStatus.InvalidAnswer,
+            await service.SaveAnswerAsync(
+                studentId, attemptId, first.Id, foreignOptionId));
+
+        // Lưu cùng một câu nhiều lần không tạo Answer trùng.
+        Assert.Equal(
+            AttemptSaveStatus.Saved,
+            await service.SaveAnswerAsync(
+                studentId, attemptId, first.Id, correctOptionId));
+
+        Assert.Equal(
+            AttemptSaveStatus.Saved,
+            await service.SaveAnswerAsync(
+                studentId, attemptId, first.Id, correctOptionId));
+
+        Assert.Equal(1, await db.AttemptAnswers.CountAsync(
+            a => a.AttemptId == attemptId));
+
+        // Học viên khác không được sửa Attempt này.
+        var other = await IdentityTestHelpers.CreateUserAsync(
+            factory, AppRoles.Student);
+
+        Assert.Equal(
+            AttemptSaveStatus.NotFound,
+            await service.SaveAnswerAsync(
+                other.Id, attemptId, first.Id, correctOptionId));
+
+        // Nộp bài và chấm điểm.
+        var graded = await service.FinalizeAsync(
+            studentId, attemptId);
+
+        Assert.Equal(AttemptFinalizeStatus.Graded, graded.Status);
+        Assert.Equal(20m, graded.OverallScore);
+
+        // Sau Finalize, không thể ghi lại đáp án.
+        Assert.Equal(
+            AttemptSaveStatus.AlreadyFinalized,
+            await service.SaveAnswerAsync(
+                studentId, attemptId, first.Id, foreignOptionId));
+
+        Assert.Equal(1, await db.AttemptAnswers.CountAsync(
+            a => a.AttemptId == attemptId));
+
+        var saved = await db.AttemptAnswers.AsNoTracking()
+            .SingleAsync(a => a.AttemptId == attemptId);
+
+        Assert.Equal(correctOptionId, saved.SelectedOptionId);
+    }
+
+
 }
