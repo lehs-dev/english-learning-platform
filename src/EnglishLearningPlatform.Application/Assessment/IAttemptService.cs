@@ -7,4 +7,9 @@ public interface IAttemptService
         Guid assessmentId,
         CancellationToken ct = default
     );
+
+    Task<AttemptFinalizeResult> FinalizeAsync(
+    Guid studentId,
+    Guid attemptId,
+    CancellationToken ct = default);
 }

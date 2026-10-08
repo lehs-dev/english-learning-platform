@@ -62,7 +62,8 @@ public static class DependencyInjection
         services.AddScoped<ICheckoutTransactionFactory, CheckoutTransactionFactory>();
         services.AddScoped<CheckoutTransactionExecutor>();
         services.AddScoped<ICheckoutService, CheckoutService>();
-        services.AddScoped<IAttemptService, AssessmentAttemptService>(); 
+        services.AddScoped<IAttemptService, AssessmentAttemptService>();
+        services.AddScoped<IExamScoringService, ExamScoringService>();
         return services;
     }
 }
