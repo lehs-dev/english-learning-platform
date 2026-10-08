@@ -1,6 +1,7 @@
 @model CoursePage
 @{ ViewData["Title"] = Model.Course.Title; }
 <a asp-action="Index">← Danh mục khóa học</a>
+<partial name="_CourseNotice" />
 <section class="panel course-hero"><h1>@Model.Course.Title</h1><partial name="_CourseSummary" model="Model.Course" /><h2>Giới thiệu</h2><p class="preserve">@Model.Course.Description</p>
 @if (!string.IsNullOrWhiteSpace(Model.Course.Objectives))
 {
@@ -12,7 +13,7 @@
 else if (User.Identity?.IsAuthenticated != true) { <a class="button" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Courses", new { id = Model.Course.Id })">Đăng nhập để tham gia</a> }
 else if (User.IsInRole("Student")) {
     if (!Model.Course.IsPaid) { <form method="post" asp-action="EnrollFree" asp-route-id="@Model.Course.Id"><button class="button">Tham gia miễn phí</button></form> }
-    else { <a class="button" asp-controller="Checkout" asp-action="Index" asp-route-courseId="@Model.Course.Id">Mua khóa học</a><p class="notice">Thanh toán thử nghiệm — không thu tiền thật.</p> }
+    else { <a class="button" asp-controller="Checkout" asp-action="Index" asp-route-courseId="@Model.Course.Id">Mua khóa học</a> }
 }
 </div></section>
 <h2>Nội dung khóa học</h2><p class="muted">Bạn có thể xem cấu trúc trước khi tham gia. Nội dung bài học dành cho người đã tham gia khóa học.</p>

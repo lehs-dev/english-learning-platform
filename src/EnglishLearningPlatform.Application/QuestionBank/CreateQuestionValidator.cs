@@ -6,16 +6,19 @@ public sealed class CreateQuestionValidator : ICreateQuestionValidator
     {
          ArgumentNullException.ThrowIfNull(request);
          var errors = new List<QuestionError>();
-        if (string.IsNullOrEmpty(request.Content))
+        if (string.IsNullOrWhiteSpace(request.Content))
         {
-            errors.Add(new QuestionError(nameof(request.Content),
-            "required",
-            "Nội Dung Câu Hỏi Không Được Để Trống."));
+            errors.Add(new QuestionError(
+                nameof(request.Content),
+                "required",
+                "Nội dung câu hỏi không được để trống."));
         }
-        else if(request.Content.Length > 400){
-            errors.Add(new QuestionError(nameof(request.Content),
-            "maxLength",
-            "Nội Dung Câu Hỏi Không Được Vượt Quá 400 Ký Tự."));
+        else if (request.Content.Length > 4000)
+        {
+            errors.Add(new QuestionError(
+                nameof(request.Content),
+                "max_length",
+                "Nội dung câu hỏi không được vượt quá 4000 ký tự."));
         }
         if(request.PrimarySkill is not EnglishSkill skill || !Enum.IsDefined(skill))
         {

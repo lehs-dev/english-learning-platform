@@ -6,7 +6,9 @@
 
 **Cập nhật 03/10/2026:** Đã có catalog Course công khai, tìm/lọc/phân trang, detail chỉ metadata/cấu trúc/giá, enroll Free, đọc Lesson/resource có quyền và giao diện Teacher authoring/preview/Publish/Unpublish/Archive. Paid hiện có schema và kiểm tra Enrollment/Payment; checkout/webhook chưa triển khai. Xem [hướng dẫn Course và dữ liệu demo](docs/project/course-authoring.md).
 
-**Cập nhật checkout local:** Đã bổ sung checkout Student, Order → callback có xác thực → Payment/Enrollment và sandbox Success/Failed/Cancelled. Sandbox mặc định tắt, chỉ bật trong Development, không thu tiền thật. Xem [contract, cách bật và kiểm thử](docs/project/checkout-local.md). Chưa tích hợp gateway thật hoặc lịch sử giao dịch.
+**Cập nhật 08/10/2026:** Đã có Order/hosted checkout, webhook ký HMAC xác minh phía server, chống Enrollment trùng, My Courses có progress, trang Module/Lesson và Completed/Incomplete. Áp dụng migration `AddCheckoutOrderMetadata`. Thanh toán mặc định tắt và chưa nối provider thật; xem [cấu hình và hợp đồng checkout](docs/architecture/payment-sandbox.md). Progress chỉ tính Lesson Published trong Module Visible; không có bài thì không tính phần trăm; Archived chỉ đọc. Chi tiết ở [hướng dẫn Learning](docs/project/course-authoring.md).
+
+**Checkout hợp nhất:** Hosted checkout/metadata Order và progress của main dùng chung service với UI Estudy và sandbox local. Hosted được ưu tiên khi cấu hình sẵn sàng; sandbox là chế độ opt-in chỉ Development, không thu tiền thật và không thể xác nhận Order hosted. Helper bảo vệ begin/commit/rollback/dispose, cancellation và callback replay. Xem [sandbox local](docs/project/checkout-local.md) và [hợp đồng hosted](docs/architecture/payment-sandbox.md). Chưa thử provider thật hoặc pair với Sơn/Khánh.
 
 ## Sản phẩm cần xây
 
@@ -25,7 +27,7 @@ Trong phạm vi hiện tại, mỗi tài khoản có một role đang hoạt đ�
 - **Practice:** Bài luyện gắn với Lesson hoặc Module. Student có thể làm lại không giới hạn; chấm đều theo số câu đúng, lưu kết quả gần nhất và xem đáp án/giải thích sau khi nộp.
 - **Assessment:** Bài đánh giá có attempt chính thức, deadline do server quản lý, giới hạn lượt làm theo cấu hình, chấm điểm theo trọng số câu hỏi và lưu lịch sử. Kết quả gồm điểm tổng, điểm theo kỹ năng và kỹ năng cần cải thiện; không hiện đáp án chi tiết của từng câu trong Assessment. Các loại cần hỗ trợ là Placement Test, Skill Assessment và Mock/Practice Exam.
 
-Mỗi Question của MVP là trắc nghiệm chọn **một** đáp án đúng, có một `PrimarySkill` trong Reading, Listening, Vocabulary, Grammar. Kết quả Placement không tự nhận là chứng nhận CEFR/TOEIC. Thanh toán thật, diễn đàn, livestream hoặc chấm Speaking/Writing bằng AI nằm ngoài phạm vi hiện tại; checkout chỉ hỗ trợ sandbox local theo tài liệu trên.
+Mỗi Question của MVP là trắc nghiệm chọn **một** đáp án đúng, có một `PrimarySkill` trong Reading, Listening, Vocabulary, Grammar. Kết quả Placement không tự nhận là chứng nhận CEFR/TOEIC. Các ý tưởng như thanh toán, diễn đàn, livestream hoặc chấm Speaking/Writing bằng AI nằm ngoài phạm vi hiện tại.
 
 ### Các mốc bàn giao
 

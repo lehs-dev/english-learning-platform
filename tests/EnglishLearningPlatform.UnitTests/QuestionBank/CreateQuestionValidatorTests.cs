@@ -37,4 +37,80 @@ public sealed class CreateQuestionValidatorTests
         });
         Assert.NotEmpty(errors);
     }
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_BlankContent_ReturnsRequiredError(string? content)
+    {
+        var request = validRequest with { Content = content! };
+        var errors = _validator.Validate(request);
+        Assert.Contains(errors, error =>
+        error.Field == nameof(CreateQuestionRequest.Content)
+        && error.Code == "required");
+    }
+    [Fact]
+    public void Validate_ContentAtLimit_ReturnsNoErrors()
+    {
+        var request = validRequest with { Content = new string('a', 4000) };
+        var errors = _validator.Validate(request);
+        Assert.Empty(errors);
+    }
+    [Fact]
+    public void Validate_ContentOverLimit_ReturnsMaxLengthError()
+    {
+        var request = validRequest with {Content = new string('a',4001)};
+        var errors = _validator.Validate(request);
+        Assert.Contains(errors, error =>
+        error.Field == nameof(CreateQuestionRequest.Content)
+        && error.Code == "max_length");
+
+    }
+    [Fact]
+    public void Validate_MissingPrimarySkill_ReturnsInvalidError()
+    {
+        var request = validRequest with
+        {
+            PrimarySkill = null
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == nameof(CreateQuestionRequest.PrimarySkill)
+            && error.Code == "invalid");
+    }
+    [Theory]
+[InlineData(0)]
+[InlineData(-1)]
+[InlineData(999)]
+    public void Validate_UndefinedPrimarySkill_ReturnsInvalidError(int value)
+    {
+        var request = validRequest with
+        {
+            PrimarySkill = (EnglishSkill)value
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Contains(errors, error =>
+            error.Field == nameof(CreateQuestionRequest.PrimarySkill)
+            && error.Code == "invalid");
+    }
+    [Theory]
+    [InlineData(EnglishSkill.Vocabulary)]
+    [InlineData(EnglishSkill.Grammar)]
+    [InlineData(EnglishSkill.Reading)]
+    [InlineData(EnglishSkill.Listening)]
+    public void Validate_ValidPrimarySkill_ReturnsNoErrors(EnglishSkill skill)
+    {
+        var request = validRequest with
+        {
+            PrimarySkill = skill
+        };
+
+        var errors = _validator.Validate(request);
+
+        Assert.Empty(errors);
+    }
 }

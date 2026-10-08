@@ -14,6 +14,11 @@ public sealed class LocalSandboxGateway : IPaymentGateway
     public const string ProviderName = "local-sandbox";
     private readonly byte[] _key;
     public bool IsEnabled { get; }
+    public string Provider => ProviderName;
+    public bool IsConfigured => IsEnabled;
+    public DateTimeOffset CheckoutDeadline => DateTimeOffset.UtcNow.AddMinutes(30);
+    public string CreateCheckoutUrl(CheckoutOrder order) => $"/Checkout/Order/{order.Id:D}";
+    public PaymentNotification? VerifyNotification(byte[] body, string signature) => null;
 
     public LocalSandboxGateway(IHostEnvironment environment, IConfiguration configuration)
     {
@@ -30,7 +35,7 @@ public sealed class LocalSandboxGateway : IPaymentGateway
             SandboxScenario.Cancelled => PaymentStatus.Cancelled,
             _ => throw new ArgumentOutOfRangeException(nameof(scenario))
         };
-        return Sign(new(order.Id, order.Amount, order.Currency, ProviderName, $"local-{order.Id:N}", status));
+        return Sign(new(order.Id, order.Amount, order.Currency, ProviderName, $"local-{order.Id:N}", status, order.CreatedAtUtc));
     }
 
     // Server-only operation, intentionally not exposed by any HTTP route.
@@ -54,5 +59,6 @@ public sealed class LocalSandboxGateway : IPaymentGateway
 
     private static byte[] Canonical(PaymentCallback data) => Encoding.UTF8.GetBytes(string.Join("\n",
         data.OrderId.ToString("N"), data.Amount.ToString("G29", CultureInfo.InvariantCulture),
-        data.Currency, data.Provider, data.ProviderTransactionId, ((int)data.Status).ToString(CultureInfo.InvariantCulture)));
+        data.Currency, data.Provider, data.ProviderTransactionId, ((int)data.Status).ToString(CultureInfo.InvariantCulture),
+        data.OccurredAtUtc.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)));
 }

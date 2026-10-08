@@ -24,7 +24,7 @@ public interface ICheckoutTransactionFactory
 public sealed class CheckoutTransactionFactory(AppDbContext db) : ICheckoutTransactionFactory
 {
     public async Task<ICheckoutTransaction> BeginAsync(CancellationToken ct) =>
-        new EfCheckoutTransaction(await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct));
+        new EfCheckoutTransaction(await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct));
 }
 
 internal sealed class EfCheckoutTransaction(IDbContextTransaction transaction) : ICheckoutTransaction

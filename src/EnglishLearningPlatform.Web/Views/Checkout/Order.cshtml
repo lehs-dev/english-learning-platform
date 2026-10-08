@@ -6,7 +6,7 @@
     <a class="checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId">← Chi tiết khóa học</a>
     <header class="checkout-heading">
         <h1>Thanh toán khóa học</h1>
-        <p class="checkout-test-label">Thanh toán thử nghiệm — không thu tiền thật.</p>
+        @if (Model.IsSandbox) { <p class="checkout-test-label">Thanh toán thử nghiệm — không thu tiền thật.</p> }
     </header>
     <partial name="_CourseNotice" />
     <section class="panel checkout-card" aria-labelledby="checkout-course-title">
@@ -22,21 +22,21 @@
         {
             <div class="checkout-status checkout-status--success" role="status">
                 <strong>Thành công</strong>
-                <p>Thanh toán thử nghiệm thành công.@if (Model.CanLearn) { <text> Bạn đã có thể bắt đầu học.</text> }</p>
+                <p>@(Model.IsSandbox ? "Thanh toán thử nghiệm thành công." : "Thanh toán thành công.")@if (Model.CanLearn) { <text> Bạn đã có thể bắt đầu học.</text> }</p>
             </div>
         }
         else if (Model.Status == PaymentStatus.Failed)
         {
             <div class="checkout-status checkout-status--error" role="alert">
                 <strong>Thanh toán thất bại</strong>
-                <p>Thanh toán thử nghiệm chưa thành công. Vui lòng thử lại.</p>
+                <p>Thanh toán chưa thành công. Vui lòng thử lại.</p>
             </div>
         }
         else if (Model.Status == PaymentStatus.Cancelled)
         {
             <div class="checkout-status checkout-status--neutral" role="status">
                 <strong>Đã hủy thanh toán</strong>
-                <p>Bạn đã hủy thanh toán thử nghiệm. Có thể thử lại khi sẵn sàng.</p>
+                <p>Bạn đã hủy thanh toán. Có thể thử lại khi sẵn sàng.</p>
             </div>
         }
         else
@@ -52,9 +52,20 @@
         }
         else if (Model.Status == PaymentStatus.Succeeded)
         {
-            <p class="notice" role="status">Khóa học hiện chưa thể mở. Vui lòng thử lại sau.</p>
+            @if (Model.IsSandbox)
+            { <p class="notice" role="status">Khóa học hiện chưa thể mở. Vui lòng thử lại sau.</p> }
+            else
+            { <p class="notice error" role="alert">Thanh toán đã được xác nhận nhưng khóa học hoặc tài khoản chưa đủ điều kiện tham gia. Vui lòng liên hệ hỗ trợ kèm mã đơn hàng.</p> }
         }
-        else if (!Model.Status.HasValue && Model.SandboxEnabled)
+        else if (!Model.IsSandbox && !Model.Status.HasValue)
+        {
+            <div class="actions checkout-actions">
+                @if (Model.CheckoutUrl is not null) { <a class="button" href="@Model.CheckoutUrl">Đến trang thanh toán</a> }
+                else { <p class="muted">Đơn hàng đã hết hạn hoặc thanh toán hiện không khả dụng.</p> }
+                <a class="button secondary" asp-action="Result" asp-route-id="@Model.Id">Kiểm tra trạng thái</a>
+            </div>
+        }
+        else if (!Model.Status.HasValue && Model.SandboxEnabled && Model.CanCheckout)
         {
             <section class="checkout-tools" aria-labelledby="checkout-tools-title">
                 <h3 id="checkout-tools-title">Công cụ thử nghiệm</h3>
@@ -70,7 +81,7 @@
         {
             <div class="actions checkout-actions"><a class="button" asp-action="Index" asp-route-courseId="@Model.CourseId">Thử lại</a></div>
         }
-        @if (!Model.SandboxEnabled)
+        @if (Model.IsSandbox && (!Model.SandboxEnabled || (!Model.Status.HasValue && !Model.CanCheckout)))
         {
             <p class="notice" role="status">Thanh toán thử nghiệm hiện chưa khả dụng.</p>
         }

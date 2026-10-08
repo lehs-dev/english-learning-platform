@@ -44,7 +44,7 @@ public sealed partial class CheckoutFlowTests(CheckoutTestFactory factory) : ICl
     }
 
     private SignedPaymentCallback Event(OrderCheckout order, SandboxScenario scenario = SandboxScenario.Success) =>
-        factory.Services.GetRequiredService<IPaymentGateway>().CreateCallback(order, scenario);
+        factory.Services.GetRequiredService<LocalSandboxGateway>().CreateCallback(order, scenario);
 
     private SignedPaymentCallback Sign(PaymentCallback data) => factory.Services.GetRequiredService<LocalSandboxGateway>().Sign(data);
 
@@ -233,7 +233,7 @@ public sealed partial class CheckoutFlowTests(CheckoutTestFactory factory) : ICl
         { ["scenario"] = "success", ["Status"] = "Failed", ["Amount"] = "1", ["__RequestVerificationToken"] = token }));
         Assert.Equal(HttpStatusCode.Redirect, simulation.StatusCode);
         using var result = await client.GetAsync(simulation.Headers.Location);
-        var html = await result.Content.ReadAsStringAsync(); Assert.Contains("Thanh toán thử nghiệm thành công. Bạn đã có thể bắt đầu học.", html); Assert.Contains("Vào học", html);
+        var html = await result.Content.ReadAsStringAsync(); Assert.Contains("Thanh toán thử nghiệm thành công. Bạn đã có thể bắt đầu học.", WebUtility.HtmlDecode(html)); Assert.Contains("Vào học", html);
         SaveBrowserArtifact("success.html", html);
         using var lesson = await client.GetAsync($"/Learning/Lesson/{course.Modules.First().Lessons.First().Id}");
         Assert.Equal(HttpStatusCode.OK, lesson.StatusCode);
@@ -422,7 +422,7 @@ public sealed partial class CheckoutFlowTests(CheckoutTestFactory factory) : ICl
         });
         var (student, course) = await Setup();
         using var scope = host.Services.CreateScope();
-        Assert.False(scope.ServiceProvider.GetRequiredService<IPaymentGateway>().IsEnabled);
+        Assert.False(scope.ServiceProvider.GetRequiredService<LocalSandboxGateway>().IsEnabled);
         Assert.Equal(CheckoutCode.Disabled, (await scope.ServiceProvider.GetRequiredService<ICheckoutService>().CreateOrderAsync(student.Id, course.Id)).Code);
         using var client = host.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         using var callback = await client.PostAsJsonAsync("/payments/webhook", new SignedPaymentCallback(

@@ -19,13 +19,25 @@ Publish là POST riêng: kiểm tra metadata/giá, mọi Lesson Published và í
 
 Reorder phải gửi đủ ID không trùng của cùng parent. Transaction ghi các index tạm thấp hơn mọi index hiện tại, rồi ghi index cuối; tránh va chạm unique index và giữ ID/progress. POST lỗi trả thông báo hoặc field validation. Trang protected và detail có dữ liệu theo user dùng `no-store`.
 
-**Paid có checkout sandbox local opt-in trong Development**, xem [contract và cách chạy](checkout-local.md). Detail có nút Mua khóa học; sandbox tắt thì checkout thông báo chưa bật và không tạo Order. Gateway thật chưa tích hợp. Enrollment có Payment phải khớp Payment Succeeded, Student/Course của Order, currency VND và Amount của Order lúc mua. Không so với giá Course hiện tại. Enrollment free đã cấp với PaymentId null vẫn hợp lệ sau khi đổi Free thành Paid. Chỉ service xử lý callback đã xác minh mới được tạo Enrollment Paid.
+**Paid có checkout hợp nhất hosted/local và webhook phía server.** Nút mua mở GET xác nhận, POST tạo/reuse Order và chuyển tới trang đơn riêng của Student. Hosted được ưu tiên khi được cấu hình; sandbox local chỉ opt-in Development, xem [cách thử](checkout-local.md). Hai adapter không xác nhận Order của nhau; POST Start của hosted vẫn được giữ. Chỉ webhook ký đã xác minh mới ghi Payment và cấp Enrollment. Xem [hợp đồng và cấu hình payment](../architecture/payment-sandbox.md). Enrollment có Payment phải khớp Payment Succeeded, Student/Course của Order, currency VND và Amount của Order lúc mua. Không so với giá Course hiện tại. Enrollment free đã cấp với PaymentId null vẫn hợp lệ sau khi đổi Free thành Paid.
+
+## Progress và khu học tập (08/10/2026)
+
+`/Learning` hiển thị progress và liên kết bài học khả dụng. `/Learning/Module/{id}` có trang Module riêng; Lesson có breadcrumb, bài trước/sau theo thứ tự Module/Lesson và trạng thái hoàn thành. Giáo viên sở hữu khóa preview được Draft/Hidden; Student chỉ thấy Module Visible và Lesson Published.
+
+POST `/Learning/Completion/{lessonId}` nhận `completed=true/false`, có CSRF, chỉ Student Active có Enrollment hợp lệ được ghi. Server đặt trạng thái yêu cầu thay vì đảo trạng thái, nên POST lặp cùng trạng thái là idempotent. Transaction khóa Course trước khi kiểm tra quyền/lifecycle và ghi LessonProgress; unique (EnrollmentId, LessonId) chống trùng. Vị trí tiếp tục học được cập nhật khi Student đổi completion; nếu vị trí cũ không còn khả dụng, chọn bài chưa hoàn thành đầu tiên, rồi bài khả dụng đầu tiên. Mở trang GET không tự đánh dấu hoàn thành hoặc thay đổi progress.
+
+Progress tính live: completed Lesson Published trong Module Visible / tổng Lesson Published trong Module Visible. Tổng bằng 0 trả Percentage null, hiện “Chưa có nội dung khả dụng”, không tính 0%/100%, không có liên kết tiếp tục hoặc thao tác completion trên bài bị ẩn. Giữ các bản ghi tiến độ cũ để khi hiện lại nội dung có thể tính lại.
+
+Unpublished giữ quyền học và completion của Student đã enroll. Archived chỉ đọc: xem content/progress/historical completion, không POST completion. Owner Disabled chặn enrollment mới nhưng giữ quyền học cũ.
+
+Khi completion hoặc tập bài khả dụng thay đổi, kiểm tra CompletedAt trong cùng transaction: tập bài phải không rỗng và hoàn thành hết. Nếu có Final, yêu cầu Final cùng Course/owner, Published, SkillAssessment/PracticeExam và có Attempt Graded đạt PassingScore. CompletedAt chỉ ghi lần đầu, không xóa khi đánh dấu Incomplete, thêm/ẩn bài hoặc progress giảm. Luồng chấm/gắn/thay Final chưa triển khai trong repository; khi bổ sung phải nối bước xét completion ngay sau mutation Final theo BR14.
 
 Ứng dụng bảo vệ việc tiết lộ URL resource ngoài. Sau khi người có quyền nhận URL công khai, ứng dụng không thể ngăn họ chia sẻ URL đó. Không lưu file protected trong wwwroot.
 
 ## Chạy local và database demo
 
-Không có migration mới trong thay đổi này. Dùng các migration hiện có, gồm `AddCommerce` và `MakeEnrollmentPaymentIdNullable`. SQL Server Windows Authentication:
+Dùng các migration đã có trên main, gồm `AddCommerce`, `MakeEnrollmentPaymentIdNullable` và `AddCheckoutOrderMetadata`. Việc resolve conflict không thêm migration và không áp dụng lên database ứng dụng. SQL Server Windows Authentication:
 
 Dừng ứng dụng đang chạy bằng Ctrl+C/Stop Debugging trước khi build hoặc chạy EF trên Windows để tránh DLL bị khóa (MSB3021/MSB3027). Chạy web sau khi cập nhật database xong.
 
@@ -79,4 +91,4 @@ Các file chính: Domain `CourseRules`; Application `CourseModels`/`ICourseServi
 
 Kết quả ngày 03/10/2026: build thành công với 0 warning/0 error; 32 unit tests và 38 integration tests pass trên SQL Server local; `git diff --check` pass. Seed Development đã chạy trên database kiểm thử riêng `EnglishLearningCourseDemo`; ứng dụng kiểm thử đã dừng. Database demo theo lệnh hướng dẫn ở trên là `EnglishLearningDemoDb`, để bạn tự chọn credential từ lần seed đầu tiên.
 
-Chưa xác minh trực quan desktop/mobile vì công cụ trình duyệt của phiên không có browser khả dụng; Razor views/form đã được kiểm tra qua HTTP integration tests. Chưa có checkout/webhook Paid, upload file protected hoặc chức năng ghi progress mới trong đợt này.
+Kết quả 03/10 ở trên là lịch sử của đợt authoring. Đợt 08/10 bổ sung checkout/webhook, ghi progress và Module navigation; có HTTP integration tests kiểm tra Razor/form/quyền và các request đồng thời. Chưa chạy thử với cổng thanh toán thật hoặc xác minh trực quan desktop/mobile. Upload file protected chưa thuộc phạm vi.

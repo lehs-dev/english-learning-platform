@@ -6,7 +6,7 @@
     <a class="checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId">← Chi tiết khóa học</a>
     <header class="checkout-heading">
         <h1>Xác nhận mua khóa học</h1>
-        <p class="checkout-test-label">Thanh toán thử nghiệm — không thu tiền thật.</p>
+        @if (Model.SandboxEnabled && !Model.HostedEnabled) { <p class="checkout-test-label">Thanh toán thử nghiệm — không thu tiền thật.</p> }
     </header>
     <partial name="_CourseNotice" />
     <section class="panel checkout-card" aria-labelledby="checkout-course-title">
@@ -17,7 +17,7 @@
             <span>Tổng thanh toán</span>
             <strong>@Model.Amount.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @Model.Currency</strong>
         </div>
-        @if (Model.SandboxEnabled)
+        @if (Model.HostedEnabled || Model.SandboxEnabled)
         {
             <form method="post" asp-action="CreateOrder" class="actions checkout-actions">
                 <input type="hidden" name="CourseId" value="@Model.CourseId" />
@@ -27,7 +27,7 @@
         }
         else
         {
-            <p class="notice" role="status">Thanh toán thử nghiệm hiện chưa khả dụng. Vui lòng thử lại sau.</p>
+            <p class="notice" role="status">Thanh toán hiện chưa khả dụng. Vui lòng thử lại sau.</p>
         }
     </section>
 </div>

@@ -27,7 +27,7 @@ public sealed class CheckoutTestFactory : WebApplicationFactory<Program>, IAsync
         builder.UseEnvironment("Development");
         builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["CheckoutSandbox:Enabled"] = "true", ["LearningDemo:Enabled"] = "false"
+            ["CheckoutSandbox:Enabled"] = "true", ["LearningDemo:Enabled"] = "false", ["Payments:Enabled"] = "false"
         }));
         builder.ConfigureServices(services =>
         {

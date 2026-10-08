@@ -1,0 +1,15 @@
+@model ModulePage
+@{ ViewData["Title"] = Model.Title; }
+<a asp-action="Course" asp-route-id="@Model.CourseId">← @Model.CourseTitle</a>
+<h1>@Model.Title</h1><p class="preserve">@Model.Description</p>
+@if (Model.CourseStatus == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Nội dung và tiến độ chỉ được xem.</p> }
+@if (Model.Progress is not null) { <partial name="_LearningProgress" model="Model.Progress" /> }
+@if (Model.Lessons.Count == 0) { <p class="panel empty">Chưa có nội dung khả dụng</p> }
+<ul class="lesson-list">
+@foreach (var lesson in Model.Lessons)
+{
+    <li><a asp-action="Lesson" asp-route-id="@lesson.Id">@lesson.Title</a>
+        <span class="badge">@(Model.IsOwner ? lesson.Status.ToString() : lesson.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành")</span>
+    </li>
+}
+</ul>
