@@ -178,7 +178,7 @@ public sealed class CourseCompletionIntegrationTests(IntegrationTestFactory fact
         var finals = Enumerable.Range(0, 5).Select(async _ => { await gate.Task; return await Finalize(data, attempt); }).ToArray();
         var lessons = Enumerable.Range(0, 5).Select(async _ => { await gate.Task; return await SetLesson(data, data.Lessons[1]); }).ToArray();
         gate.SetResult(); await Task.WhenAll(finals.Cast<Task>().Concat(lessons));
-        Assert.Single(finals, t => t.Result.Status == AttemptFinalizeStatus.Graded);
+        _ = Assert.Single(finals, t => t.Result.Status == AttemptFinalizeStatus.Graded);
         Assert.Equal(4, finals.Count(t => t.Result.Status == AttemptFinalizeStatus.AlreadyGraded));
         Assert.All(finals, t => { Assert.Equal(100m, t.Result.OverallScore); Assert.True(t.Result.Passed); });
         Assert.All(lessons, t => Assert.True(t.Result.Success));
