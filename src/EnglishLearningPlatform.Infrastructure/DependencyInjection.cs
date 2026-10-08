@@ -10,6 +10,8 @@ using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Learning;
 using EnglishLearningPlatform.Application.Commerce;
 using EnglishLearningPlatform.Infrastructure.Commerce;
+using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Infrastructure.AssessmentAttempts;
 
 namespace EnglishLearningPlatform.Infrastructure;
 
@@ -60,6 +62,8 @@ public static class DependencyInjection
         services.AddScoped<ICheckoutTransactionFactory, CheckoutTransactionFactory>();
         services.AddScoped<CheckoutTransactionExecutor>();
         services.AddScoped<ICheckoutService, CheckoutService>();
+        services.AddScoped<IAttemptService, AssessmentAttemptService>();
+        services.AddScoped<IExamScoringService, ExamScoringService>();
         return services;
     }
 }
