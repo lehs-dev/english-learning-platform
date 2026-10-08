@@ -17,6 +17,30 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed partial class CheckoutFlowTests
 {
+    [Theory]
+    [InlineData("local-sandbox")]
+    [InlineData("LOCAL-SANDBOX")]
+    public async Task ReservedLocalProviderCannotConfigureHostedCheckout(string provider)
+    {
+        var (student, course) = await Setup();
+        var options = factory.Services.GetRequiredService<IOptions<HostedPaymentOptions>>().Value;
+        options.Enabled = true; options.Provider = provider;
+        options.SigningSecret = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+        options.CheckoutUrl = "https://gateway.example.test/checkout";
+        options.PublicBaseUrl = "https://learning.example.test";
+        try
+        {
+            using var scope = factory.Services.CreateScope();
+            var gateway = scope.ServiceProvider.GetRequiredService<IPaymentGateway>();
+            Assert.False(gateway.IsConfigured);
+            var result = await scope.ServiceProvider.GetRequiredService<ICheckoutService>()
+                .StartAsync(student.Id, course.Id);
+            Assert.NotNull(result.Error); Assert.Null(result.OrderId);
+            await AssertCounts(course.Id, 0, 0, 0);
+        }
+        finally { options.Enabled = false; }
+    }
+
     [Fact]
     public async Task HostedOrderCannotBeSettledByLocalSimulatorOrLocalSignature()
     {

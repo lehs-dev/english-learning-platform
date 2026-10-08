@@ -28,6 +28,7 @@ public sealed class HostedPaymentGateway(IOptions<HostedPaymentOptions> options,
     public string Provider => settings.Provider;
     public bool IsConfigured => settings.Enabled && settings.SigningSecret.Length >= 32 &&
         settings.Provider.Length is > 0 and <= 64 && settings.Provider.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' or '.') &&
+        !string.Equals(settings.Provider, LocalSandboxGateway.ProviderName, StringComparison.OrdinalIgnoreCase) &&
         settings.CheckoutMinutes is >= 1 and <= 1440 && ValidUrl(settings.CheckoutUrl) && ValidUrl(settings.PublicBaseUrl);
     public DateTimeOffset CheckoutDeadline => DateTimeOffset.UtcNow.AddMinutes(settings.CheckoutMinutes);
 
