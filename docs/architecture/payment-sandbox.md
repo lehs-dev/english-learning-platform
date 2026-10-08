@@ -1,43 +1,67 @@
-# Thiết kế luồng thanh toán sandbox
+# Enrollment trả phí và hợp đồng hosted checkout
 
-## Mục tiêu
-Cho phép Student mua khóa trả phí qua cổng thanh toán giả lập (sandbox),
-đảm bảo: (1) chỉ webhook đã xác minh mới được ghi nhận thanh toán,
-(2) callback gọi lặp không tạo Payment/Enrollment trùng.
+Cập nhật 08/10/2026. Luồng Order, checkout, xác minh webhook và Enrollment đã có. Adapter `HostedPaymentGateway` dùng hợp đồng HMAC bên dưới với một cổng thanh toán ngoài. UI Estudy được dùng chung; repository có sandbox local opt-in Development tách khỏi hosted, xem [contract local](../project/checkout-local.md). Browser không thể dùng sandbox để xác nhận Order hosted. Chưa có adapter VNPay/MoMo hay credentials cho provider thật. Mặc định thanh toán tắt; nút mua hiển thị thông báo khi cấu hình chưa sẵn sàng và không tạo Order.
 
-## Luồng
+## Cấu hình
 
-1. Student bấm "Mua khóa học" (khóa có `IsPaid = true`) → server tạo `Order`
-   (chưa có `Payment`), redirect sang trang thanh toán của cổng sandbox.
-2. Student thanh toán ở cổng sandbox → cổng gọi webhook server-to-server
-   về `POST /payments/webhook`, kèm `providerTransactionId`, số tiền,
-   chữ ký (signature).
-3. Server **xác minh chữ ký** bằng secret chỉ server và cổng biết.
-   Chữ ký sai → trả 400, không xử lý gì thêm. Không bao giờ tin dữ liệu
-   từ browser/client để ghi nhận thanh toán.
-4. **Kiểm tra idempotency**: `Payment` với `ProviderTransactionId` đã tồn tại?
-   → Có: trả 200 OK và dừng (callback lặp an toàn).
-5. Chưa tồn tại → trong **một transaction**: tạo `Payment` (`Succeeded`) +
-   tạo `Enrollment` (nối `PaymentId`) → commit. Hoặc cả hai cùng thành công,
-   hoặc không gì được ghi.
-6. Trả 200 OK cho cổng. Student được redirect về trang kết quả.
+Áp dụng migration `AddCheckoutOrderMetadata` trước khi chạy. Migration bổ sung Provider và ExpiresAtUtc cho Order, không sửa migration cũ hoặc quyền học đã cấp.
 
-## Hàng rào chống trùng (defense in depth)
+Đặt các giá trị sau qua environment hoặc cấu hình local. Secret chỉ được đặt ở server và cổng ngoài, không commit:
 
-- Tầng database: unique index `IX_Payment_ProviderTransactionId`
-  (đã có test `CommercePaymentTests.DuplicateProviderTransactionId_IsRejected`).
-- Tầng ứng dụng: kiểm tra tồn tại ở bước 4 trước khi insert.
-- `Enrollment` đã có unique `(StudentUserId, CourseId)` từ trước.
+| Khóa | Giá trị |
+| --- | --- |
+| `Payments__Enabled` | `true` |
+| `Payments__Provider` | Tên provider 1–64 ký tự ASCII chữ/số/`-_.` |
+| `Payments__CheckoutUrl` | URL checkout của cổng ngoài |
+| `Payments__PublicBaseUrl` | URL public của ứng dụng; không suy ra từ Host header |
+| `Payments__SigningSecret` | Secret riêng, ít nhất 32 ký tự |
+| `Payments__CheckoutMinutes` | Thời hạn đơn, mặc định 30 phút, cho phép 1–1440 |
 
-## Thiết kế mở rộng
+URL phải là HTTPS, không user info/query/fragment. HTTP loopback chỉ được phép trong Development. Cổng ngoài phải triển khai đúng hợp đồng này. Nếu dùng provider có protocol khác, implement `IPaymentGateway` phù hợp và đổi đăng ký DI; không gửi hợp đồng HMAC tùy chỉnh trực tiếp tới VNPay/MoMo.
 
-- Cổng thanh toán là interface `IPaymentGateway`; sandbox chỉ là một
-  implementation giả lập. Sau này thay VNPay/MoMo thật: implement interface
-  mới, không sửa code cũ (Dependency Inversion).
-- Mọi webhook đều được ghi `AuditLog` để truy vết.
-- Ngoài phạm vi: coupon, subscription, payout, refund tự động.
+## Luồng HTTP
 
-## Rủi ro đã biết
+1. Student Active gửi POST có CSRF tới `/Checkout/Start/{courseId}`. Server kiểm tra khóa Published, Paid, giá hợp lệ và owner không Disabled. Student/giá lấy ở server. Enrollment hợp lệ đã có thì chuyển vào khu học tập.
+2. Server tái sử dụng Order chưa có Payment, còn hạn, cùng Student/Course/provider/giá, hoặc tạo Order mới. Giá VND được chốt trong Order. Chưa tạo Payment/Enrollment. Khóa SQL và transaction ngăn nhiều POST đồng thời tạo nhiều Order chờ giống nhau.
+3. `/Checkout/Result/{orderId}` chỉ chủ đơn Student Active được xem. Trang hiển thị số tiền và liên kết sang cổng ngoài; GET luôn đọc trạng thái đã lưu. Các tham số `status`, `paid` hoặc return redirect không cấp quyền.
+4. Cổng gửi POST `/payments/webhook`, body JSON UTF-8, header `X-Payment-Signature` là HMAC-SHA256 của **đúng bytes body**, hex 64 ký tự. Server so chữ ký bằng phép so thời gian cố định trước khi xử lý JSON. Giới hạn body 16 KiB.
+5. Trong một transaction, server kiểm tra Order/provider/amount/currency và thời điểm thanh toán; ghi Payment đã xác minh và Enrollment nếu đủ điều kiện. Signature sai, dữ liệu sai hoặc giao dịch trùng cho đơn khác không cấp quyền học.
+6. Student bấm kiểm tra trạng thái trên trang kết quả. Chỉ Payment Succeeded được xác minh và Enrollment hợp lệ mới mở nội dung.
 
-- Webhook đến trước khi Student quay lại trang kết quả: trang kết quả phải
-  đọc trạng thái từ server (polling), không dựa vào redirect của cổng.
+## Chữ ký checkout
+
+Query gồm các trường theo đúng thứ tự: `orderId`, `amount`, `currency`, `expiresAt`, `returnUrl`, `webhookUrl`, rồi `signature`. Amount dùng invariant culture, đúng 2 chữ số thập phân; expiresAt là Unix seconds. Giá trị từng trường được encode bằng URI percent encoding (`Uri.EscapeDataString`), ghép `key=value` bằng `&`. Signature là HMAC-SHA256 của chuỗi ghép này bằng UTF-8, hex chữ thường, dùng SigningSecret. Cổng phải kiểm tra chữ ký và hạn trước khi nhận tiền. Không cho người dùng tự thay giá, đơn hoặc URL callback.
+
+Webhook JSON gồm `orderId` (GUID), `providerTransactionId` (1–128 ký tự, không ký tự điều khiển), `amount` (số dương, tối đa 2 chữ số thập phân), `currency` (`VND`), `status` (**1 = Succeeded, 2 = Failed**, giá trị numeric của enum hiện tại), `occurredAtUtc` (ISO 8601). Chỉ nhận sự kiện kết thúc Succeeded/Failed. Pending/Cancelled chưa có hợp đồng xử lý trong adapter này.
+
+OccurredAt phải từ thời điểm tạo Order (cho phép lệch đồng hồ tối đa 1 phút) tới hạn Order; không được ở tương lai quá 5 phút. Webhook retry có thể đến sau hạn nếu thời điểm giao dịch đã ký nằm trong hạn. Giá so với quote Order lúc mua, không thay bằng giá Course mới; vẫn kiểm tra Course hiện Published/Paid và giá hiện tại hợp lệ trước khi cấp Enrollment.
+
+## Idempotency và lifecycle
+
+- Unique index Payment.ProviderTransactionId và Enrollment(StudentUserId, CourseId) giữ hàng rào database. Luồng app khóa Course trước, rồi khóa range transaction ID trong cùng transaction Serializable. Request lặp cùng giao dịch/Order/amount/status trả 200 và không ghi thêm.
+- Transaction ID đã gắn đơn khác hoặc cùng Order đã có Payment Succeeded nhưng nhận success khác trả 409. Sai chữ ký/body/quote/thời gian trả 400; không thấy Order trả 404; gateway tắt/chưa cấu hình trả 503.
+- Payment Failed được lưu nhưng không tạo Enrollment. Student có thể tạo Order mới để thử lại. Không chuyển một receipt Failed sang Succeeded với cùng transaction ID; provider phải gửi kết quả cuối ổn định.
+- Nếu nhận receipt thành công nhưng Course đã Unpublished/Archived, owner Disabled hoặc Student không Active/không còn đúng role, vẫn lưu receipt đã xác minh và AuditLog, không cấp Enrollment mới. Trang kết quả hướng dẫn liên hệ hỗ trợ với mã đơn. Refund tự động nằm ngoài phạm vi.
+- Nếu đã có Enrollment hợp lệ, giao dịch khác không tạo Enrollment thứ hai. Enrollment free cũ vẫn hợp lệ khi đổi khóa sang Paid. Enrollment Paid giữ liên kết payment/quote gốc khi giá khóa thay đổi.
+- Order cũ trước migration có Provider rỗng/ExpiresAt null không được xác nhận qua adapter này; Enrollment Paid cũ vẫn được kiểm tra theo các quy tắc quyền học hiện có.
+
+## Kiểm tra
+
+`CheckoutFeatureTests` kiểm tra nhiều POST tạo đơn và nhiều webhook đồng thời, chữ ký/amount/currency sai, transaction dùng lại cho đơn khác, sự kiện quá hạn, quote sau đổi giá, callback return giả, quyền xem đơn, CSRF, payment Failed, khóa bị rút và gateway chưa cấu hình. Đây là test server với thông báo ký từ fixture, không chứng minh kết nối một provider thật.
+
+## Sau hợp nhất với UI/sandbox local
+
+- `ICheckoutService`, `CheckoutService`, `CheckoutController` chỉ có một implementation/pipeline.
+  Hai adapter riêng: hosted theo raw-body HMAC và local theo envelope có HMAC trong bộ nhớ.
+  `StartAsync`/`Start` và `ConfirmAsync` luôn hosted, không fallback sandbox.
+- GET xác nhận không tạo Order. `CreateOrderAsync` ưu tiên hosted khi được cấu hình, còn local chỉ khi
+  Development + CheckoutSandbox enabled. Order lưu Provider/ExpiresAt; GET kết quả chọn adapter theo Provider đã lưu.
+- Serializable + mutex commerce + khóa Course trước mutation/khóa transaction ID tránh race với Free/progress.
+  Receipt hosted Failed có thể nhận receipt mới khác transaction ID như main; local Failed/Cancelled là terminal.
+- Callback không hợp lệ (signature/body/quote/provider/time) trả 400 trước replay; callback hợp lệ xung đột trả 409.
+  Receipt thành công chỉ cấp Enrollment nếu Course hiện Published/Paid, buyer Active và owner không Disabled.
+  Hosted replay không cấp quyền đã bị từ chối lúc receipt đầu; local replay có thể sửa receipt thiếu Enrollment khi hiện đủ điều kiện.
+- Begin/operation/commit được bảo vệ; lỗi rollback/dispose không che lỗi chính. Cancellation được truyền lên.
+  Chỉ báo thành công sau commit được xác nhận; mất xác nhận/unique violation trả 503 để bên gửi gửi lại, không tự retry.
+  Log chỉ có operation/reference/phase/type/HResult/SQL number, không body, message, secret hoặc chữ ký.
+- Chưa gọi provider thật hoặc kiểm thử mất mạng thật/nhiều process. Merge giữ migration main, không tạo hoặc tự áp dụng migration.

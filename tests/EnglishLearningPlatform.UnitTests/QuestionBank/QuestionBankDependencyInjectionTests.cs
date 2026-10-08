@@ -11,7 +11,7 @@ public sealed class QuestionBankDependencyInjectionTests
     {
         var services = new ServiceCollection();
         services.AddApplication();
-        var registration = Assert.Single(services.Where(service => service.ServiceType == typeof(ICreateQuestionValidator)));
+        var registration = Assert.Single(services, service => service.ServiceType == typeof(ICreateQuestionValidator));
         Assert.Equal(typeof(CreateQuestionValidator), registration.ImplementationType);
         Assert.Equal(ServiceLifetime.Scoped, registration.Lifetime);
 

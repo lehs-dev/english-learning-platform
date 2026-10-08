@@ -2,4 +2,20 @@
 @{ ViewData["Title"] = "Khóa đã tham gia"; }
 <div class="page-heading"><h1>Khóa đã tham gia</h1><a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a></div>
 @if (Model.Count == 0) { <p class="panel empty">Bạn chưa tham gia khóa học nào.</p> }
-<div class="course-grid">@foreach (var course in Model) { <article class="panel course-card"><h2>@course.Title</h2><span class="badge">@course.Status</span><partial name="_CourseSummary" model="course" /><a class="button" asp-action="Course" asp-route-id="@course.Id">Vào học</a></article> }</div>
+<div class="course-grid">
+@foreach (var course in Model)
+{
+    <article class="panel course-card">
+        <h2>@course.Title</h2><span class="badge">@course.Status</span>
+        <partial name="_CourseSummary" model="course" />
+        @if (course.Progress is not null) { <partial name="_LearningProgress" model="course.Progress" /> }
+        <div class="actions">
+            <a class="button secondary" asp-action="Course" asp-route-id="@course.Id">Xem khóa học</a>
+            @if (course.Progress?.ContinueLessonId is Guid lessonId)
+            {
+                <a class="button" asp-action="Lesson" asp-route-id="@lessonId">@(course.Status == CourseStatus.Archived ? "Xem bài học" : "Tiếp tục học")</a>
+            }
+        </div>
+    </article>
+}
+</div>

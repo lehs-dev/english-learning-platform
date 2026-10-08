@@ -12,10 +12,10 @@ internal static class IdentityTestHelpers
 {
     internal const string Password = "TestOnly_123!";
 
-    internal static HttpClient CreateClient(IntegrationTestFactory factory) => factory.CreateClient(
+    internal static HttpClient CreateClient(WebApplicationFactory<Program> factory) => factory.CreateClient(
         new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-    internal static async Task<ApplicationUser> CreateUserAsync(IntegrationTestFactory factory, string role)
+    internal static async Task<ApplicationUser> CreateUserAsync(WebApplicationFactory<Program> factory, string role)
     {
         using var scope = factory.Services.CreateScope();
         var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();

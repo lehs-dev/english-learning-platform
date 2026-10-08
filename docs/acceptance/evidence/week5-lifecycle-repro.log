@@ -1,0 +1,29 @@
+Week 5 lifecycle reproduction before AssessmentAttemptService fixes. Actual run exit 1.
+Command: ELP_TEST_SQLSERVER="$ConnectionStrings__DefaultConnection" dotnet test tests/EnglishLearningPlatform.IntegrationTests/EnglishLearningPlatform.IntegrationTests.csproj --no-restore --filter FullyQualifiedName~AssessmentLifecycleAcceptanceTests
+SQL Server: GUID database managed by DatabaseFixture. Raw framework logs omitted.
+
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingAttempt_ResumesOrFinalizesAfterAssessmentWithdrawn(status: Archived, expired: True) [944 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingAttempt_ResumesOrFinalizesAfterAssessmentWithdrawn(status: Unpublished, expired: False) [181 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingAttempt_ResumesOrFinalizesAfterAssessmentWithdrawn(status: Archived, expired: False) [186 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingAttempt_ResumesOrFinalizesAfterAssessmentWithdrawn(status: Unpublished, expired: True) [177 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_RequiresExactlyStudentRole(replacementRole: null) [330 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_RequiresExactlyStudentRole(replacementRole: "Teacher") [193 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_RequiresExactlyStudentRole(replacementRole: "Admin") [181 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableCourse_DoesNotStartNewAttempt(status: Archived) [259 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableCourse_DoesNotStartNewAttempt(status: Draft) [166 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingCourseAttempt_PreservesDeadlineAndCanFinishAfterArchive(status: Unpublished, expired: True) [232 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingCourseAttempt_PreservesDeadlineAndCanFinishAfterArchive(status: Archived, expired: False) [179 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingCourseAttempt_PreservesDeadlineAndCanFinishAfterArchive(status: Archived, expired: True) [173 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingCourseAttempt_PreservesDeadlineAndCanFinishAfterArchive(status: Unpublished, expired: False) [180 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableAssessment_DoesNotStartNewAttempt(status: Archived) [157 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableAssessment_DoesNotStartNewAttempt(status: Unpublished) [182 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableAssessment_DoesNotStartNewAttempt(status: Draft) [153 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Start_RechecksAssessmentScopeAfterSnapshotBeforeCreatingAttempt [487 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_BlocksInactiveStudentWithoutMutatingAttempt(status: Disabled) [182 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_BlocksInactiveStudentWithoutMutatingAttempt(status: Locked) [177 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_ConcealsAnotherStudentsAttemptAndPreservesResult [238 ms]
+Test Run Failed.
+Total tests: 20
+     Passed: 8
+     Failed: 12
+ Total time: 7.4846 Seconds
