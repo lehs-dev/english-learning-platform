@@ -22,16 +22,41 @@ public sealed record CatalogPage(CatalogQuery Query, IReadOnlyList<CourseSummary
 }
 public sealed record CourseSummary(Guid Id, Guid OwnerId, string Title, string? Description, string? Objectives,
     string Teacher, CourseLevel Level, CourseStatus Status, bool IsPaid, decimal Price,
-    IReadOnlyList<EnglishSkill> Skills, IReadOnlyList<string> Topics, int ModuleCount, int LessonCount);
+    IReadOnlyList<EnglishSkill> Skills, IReadOnlyList<string> Topics, int ModuleCount, int LessonCount)
+{
+    public CourseProgress? Progress { get; init; }
+}
+public sealed record CourseProgress(int CompletedLessons, int TotalLessons, DateTimeOffset? CompletedAtUtc, Guid? ContinueLessonId)
+{
+    public decimal? Percentage => TotalLessons == 0 ? null : Math.Round(CompletedLessons * 100m / TotalLessons, 2);
+}
 // Public structure deliberately has no resource fields.
-public sealed record LessonOutline(Guid Id, string Title, LessonStatus Status);
+public sealed record LessonOutline(Guid Id, string Title, LessonStatus Status)
+{
+    public bool IsCompleted { get; init; }
+}
 public sealed record ModuleOutline(Guid Id, string Title, string? Description, ModuleVisibility Visibility,
     IReadOnlyList<LessonOutline> Lessons);
 public sealed record CoursePage(CourseSummary Course, IReadOnlyList<ModuleOutline> Modules,
-    bool CanLearn, bool IsOwner, int EnrollmentCount, IReadOnlyList<string> PublishErrors);
+    bool CanLearn, bool IsOwner, int EnrollmentCount, IReadOnlyList<string> PublishErrors)
+{
+    public CourseProgress? Progress { get; init; }
+}
+public sealed record ModulePage(Guid Id, Guid CourseId, string CourseTitle, string Title, string? Description,
+    CourseStatus CourseStatus, bool IsOwner, IReadOnlyList<LessonOutline> Lessons, CourseProgress? Progress);
 public sealed record ResourceContent(Guid Id, string? Title, LessonResourceType Type, string? Text, string? Url);
 public sealed record LessonPage(Guid Id, Guid CourseId, string CourseTitle, string Title,
-    IReadOnlyList<ResourceContent> Resources);
+    IReadOnlyList<ResourceContent> Resources)
+{
+    public Guid ModuleId { get; init; }
+    public string ModuleTitle { get; init; } = "";
+    public bool IsCompleted { get; init; }
+    public bool CanRecordProgress { get; init; }
+    public CourseStatus CourseStatus { get; init; }
+    public CourseProgress? Progress { get; init; }
+    public LessonOutline? Previous { get; init; }
+    public LessonOutline? Next { get; init; }
+}
 public sealed record LearningOutcome<T>(LearningAccessResult Access, T? Value = default);
 public sealed record WriteOutcome(LearningAccessResult Access, Guid Id, IReadOnlyDictionary<string, string[]> Errors)
 {
@@ -69,6 +94,8 @@ public interface ICourseService
     Task<LearningOutcome<IReadOnlyList<CourseSummary>>> MyCoursesAsync(Guid userId, bool teacher, CancellationToken ct = default);
     Task<LearningOutcome<CoursePage>> OpenCourseAsync(Guid userId, Guid id, bool manage, CancellationToken ct = default);
     Task<LearningOutcome<LessonPage>> OpenLessonAsync(Guid userId, Guid id, CancellationToken ct = default);
+    Task<LearningOutcome<ModulePage>> OpenModuleAsync(Guid userId, Guid id, CancellationToken ct = default);
+    Task<WriteOutcome> SetLessonCompletedAsync(Guid userId, Guid id, bool completed, CancellationToken ct = default);
     Task<LearningOutcome<ResourceContent>> OpenResourceAsync(Guid userId, Guid id, CancellationToken ct = default);
     Task<LearningOutcome<Guid>> ModuleCourseAsync(Guid userId, Guid id, CancellationToken ct = default);
     Task<LearningOutcome<CourseInput>> CourseInputAsync(Guid userId, Guid id, CancellationToken ct = default);

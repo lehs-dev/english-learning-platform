@@ -6,6 +6,8 @@
 
 **Cập nhật 03/10/2026:** Đã có catalog Course công khai, tìm/lọc/phân trang, detail chỉ metadata/cấu trúc/giá, enroll Free, đọc Lesson/resource có quyền và giao diện Teacher authoring/preview/Publish/Unpublish/Archive. Paid hiện có schema và kiểm tra Enrollment/Payment; checkout/webhook chưa triển khai. Xem [hướng dẫn Course và dữ liệu demo](docs/project/course-authoring.md).
 
+**Cập nhật 08/10/2026:** Đã có Order/hosted checkout, webhook ký HMAC xác minh phía server, chống Enrollment trùng, My Courses có progress, trang Module/Lesson và Completed/Incomplete. Áp dụng migration `AddCheckoutOrderMetadata`. Thanh toán mặc định tắt và chưa nối provider thật; xem [cấu hình và hợp đồng checkout](docs/architecture/payment-sandbox.md). Progress chỉ tính Lesson Published trong Module Visible; không có bài thì không tính phần trăm; Archived chỉ đọc. Chi tiết ở [hướng dẫn Learning](docs/project/course-authoring.md).
+
 ## Sản phẩm cần xây
 
 | Người dùng | Luồng chính |

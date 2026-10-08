@@ -9,6 +9,8 @@ public sealed class Order : BaseEntity
     public Course Course { get; set; } = null!;
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "VND";
+    public string Provider { get; set; } = string.Empty;
+    public DateTimeOffset? ExpiresAtUtc { get; set; }
 
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

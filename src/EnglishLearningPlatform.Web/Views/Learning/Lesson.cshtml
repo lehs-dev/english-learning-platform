@@ -1,5 +1,24 @@
 @model LessonPage
 @{ ViewData["Title"] = Model.Title; }
 <a asp-action="Course" asp-route-id="@Model.CourseId">← @Model.CourseTitle</a><h1>@Model.Title</h1>
+<a asp-action="Module" asp-route-id="@Model.ModuleId">@Model.ModuleTitle</a>
+<partial name="_CourseNotice" />
+@if (Model.Progress is not null)
+{
+    <partial name="_LearningProgress" model="Model.Progress" />
+    <p><span class="badge">@(Model.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành")</span></p>
+}
+@if (Model.CourseStatus == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Bạn không thể thay đổi tiến độ.</p> }
+@if (Model.CanRecordProgress)
+{
+    <form method="post" asp-action="Completion" asp-route-id="@Model.Id">
+        <input type="hidden" name="completed" value="@((!Model.IsCompleted).ToString().ToLowerInvariant())" />
+        <button class="button">@(Model.IsCompleted ? "Đánh dấu chưa hoàn thành" : "Đánh dấu hoàn thành")</button>
+    </form>
+}
 @if (Model.Resources.Count == 0) { <p class="panel empty">Chưa có nội dung khả dụng</p> }
 @foreach (var resource in Model.Resources) { <partial name="_ResourceContent" model="resource" /> }
+<nav class="actions lesson-navigation" aria-label="Điều hướng bài học">
+    @if (Model.Previous is not null) { <a class="button secondary" asp-action="Lesson" asp-route-id="@Model.Previous.Id">← @Model.Previous.Title</a> }
+    @if (Model.Next is not null) { <a class="button secondary" asp-action="Lesson" asp-route-id="@Model.Next.Id">@Model.Next.Title →</a> }
+</nav>

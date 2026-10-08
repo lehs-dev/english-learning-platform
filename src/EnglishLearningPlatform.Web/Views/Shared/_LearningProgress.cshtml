@@ -1,0 +1,16 @@
+@model CourseProgress
+<div class="learning-progress">
+    @if (Model.Percentage is decimal percentage)
+    {
+        <p>@Model.CompletedLessons / @Model.TotalLessons bài học hoàn thành · <strong>@percentage.ToString("0.##")%</strong></p>
+        <progress value="@Model.CompletedLessons" max="@Model.TotalLessons" aria-label="Tiến độ học tập"></progress>
+    }
+    else
+    {
+        <p class="muted">Chưa có nội dung khả dụng</p>
+    }
+    @if (Model.CompletedAtUtc is DateTimeOffset completedAt)
+    {
+        <p class="muted">Đã hoàn thành khóa học vào <time datetime="@completedAt.ToString("O")" data-local-date>@completedAt.ToString("dd/MM/yyyy")</time></p>
+    }
+</div>
