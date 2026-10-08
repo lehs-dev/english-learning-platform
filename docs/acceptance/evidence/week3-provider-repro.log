@@ -1,0 +1,10 @@
+Reproduction before reserved-provider fix; expected failure
+Date: 2026-10-08 (Asia/Saigon)
+SQL Server: existing local instance, DatabaseFixture isolated GUID database; no application DB migration.
+Sensitive connection values and server logs omitted; passing/failing test names and actual runner summary retained.
+  Failed EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.ReservedLocalProviderCannotConfigureHostedCheckout(provider: "local-sandbox") [737 ms]
+  Failed EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.ReservedLocalProviderCannotConfigureHostedCheckout(provider: "LOCAL-SANDBOX") [151 ms]
+Test Run Failed.
+Total tests: 2
+     Failed: 2
+ Total time: 3.4230 Seconds

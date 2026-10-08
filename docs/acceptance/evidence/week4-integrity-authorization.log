@@ -1,0 +1,75 @@
+Sanitized VSTest evidence: framework HTTP/SQL logs omitted; credentials are never recorded.
+Command: ELP_TEST_SQLSERVER="$ConnectionStrings__DefaultConnection" dotnet test tests/EnglishLearningPlatform.IntegrationTests/EnglishLearningPlatform.IntegrationTests.csproj --filter 'FullyQualifiedName~EnglishLearningPlatform.IntegrationTests.AccountAuthorizationTests.|FullyQualifiedName~EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.|FullyQualifiedName~EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.|FullyQualifiedName~EnglishLearningPlatform.IntegrationTests.LearningAccessTests.|FullyQualifiedName~EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.|FullyQualifiedName~EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.|FullyQualifiedName~EnglishLearningPlatform.IntegrationTests.CommercePaymentTests.' --logger 'console;verbosity=normal'
+DatabaseFixture created a separate GUID-named test database per fixture.
+
+  EnglishLearningPlatform.Domain -> /workspaces/english-learning-platform/src/EnglishLearningPlatform.Domain/bin/Debug/net10.0/EnglishLearningPlatform.Domain.dll
+  EnglishLearningPlatform.Application -> /workspaces/english-learning-platform/src/EnglishLearningPlatform.Application/bin/Debug/net10.0/EnglishLearningPlatform.Application.dll
+  EnglishLearningPlatform.Infrastructure -> /workspaces/english-learning-platform/src/EnglishLearningPlatform.Infrastructure/bin/Debug/net10.0/EnglishLearningPlatform.Infrastructure.dll
+  EnglishLearningPlatform.Web -> /workspaces/english-learning-platform/src/EnglishLearningPlatform.Web/bin/Debug/net10.0/EnglishLearningPlatform.Web.dll
+  EnglishLearningPlatform.IntegrationTests -> /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Debug/net10.0/EnglishLearningPlatform.IntegrationTests.dll
+Test run for /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Debug/net10.0/EnglishLearningPlatform.IntegrationTests.dll (.NETCoreApp,Version=v10.0)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.0+00ab0a9ec4 (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.06]   Discovering: EnglishLearningPlatform.IntegrationTests
+[xUnit.net 00:00:00.11]   Discovered:  EnglishLearningPlatform.IntegrationTests
+[xUnit.net 00:00:00.13]   Starting:    EnglishLearningPlatform.IntegrationTests
+Applying migration '20260924123837_InitialCreate'.
+Applying migration '20260924145931_SeedIdentityRoles'.
+Applying migration '20260930163814_HardenAssessmentSchema'.
+Applying migration '20261003024109_AddCommerce'.
+Applying migration '20261003032336_MakeEnrollmentPaymentIdNullable'.
+Applying migration '20261008035103_AddCheckoutOrderMetadata'.
+  Passed EnglishLearningPlatform.IntegrationTests.AccountAuthorizationTests.Guest_AccountForm_HasAntiforgeryToken(path: "/Account/Register") [247 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AccountAuthorizationTests.Guest_AccountForm_HasAntiforgeryToken(path: "/Account/Login") [31 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AccountAuthorizationTests.Logout_WithoutLogin_RedirectsToLogin [17 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.MigratedDatabase_MatchesEfModel_AndCommerceIntegrityConstraints [353 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CommercePaymentTests.DuplicateProviderTransactionId_IsRejected [797 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.DuplicateEnrollment_IsRejectedByDatabase_AndOriginalEnrollmentPersists [462 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnavailableLesson_IsBlockedForEnrolledStudent_ButOwnerCanPreview(visibility: Visible, status: Draft) [869 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.InactiveAccount_CannotLogin_AndExistingSessionIsRejected(status: Disabled) [928 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnavailableLesson_IsBlockedForEnrolledStudent_ButOwnerCanPreview(visibility: Visible, status: Hidden) [198 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.InactiveAccount_CannotLogin_AndExistingSessionIsRejected(status: Locked) [161 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.PublicDetail_DoesNotLeakResourcesOrHiddenStructure_AndCannotGuessNonPublicIds [1 s]
+  Passed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.InactiveAccount_RejectsExistingCookieImmediately_ForApiAndMvc(status: Locked) [318 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.Login_ReturnUrl_AllowsOnlyLocalUrls(returnUrl: "/Profile", expected: "/Profile") [132 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnavailableLesson_IsBlockedForEnrolledStudent_ButOwnerCanPreview(visibility: Hidden, status: Published) [173 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.InactiveAccount_RejectsExistingCookieImmediately_ForApiAndMvc(status: Disabled) [224 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.Login_ReturnUrl_AllowsOnlyLocalUrls(returnUrl: "https://example.test/steal", expected: "/") [153 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.ProfileUpdate_WithoutAntiforgeryToken_IsRejected [149 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: "Teacher", expected: OK) [175 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.OtherTeacher_CannotOpenCourseModuleLessonOrManageCourse [329 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: "Admin", expected: Forbidden) [169 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.Mutations_AreIdempotentConcurrentAndEnforceLifecycleAndOwnership [1 s]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Archived, canView: True, canRecord: False) [203 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.EachRole_CanLogin_ViewOwnProfile_AndLogout(role: "Admin", roleLabel: "Quản trị viên") [249 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: "Student", expected: Forbidden) [135 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: null, expected: Unauthorized) [1 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.EachRole_CanLogin_ViewOwnProfile_AndLogout(role: "Teacher", roleLabel: "Giáo viên") [177 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Draft, canView: False, canRecord: False) [217 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.Completion_PostRequiresCsrfAndExplicitState_ModuleAndLessonRenderProgress [393 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.EachRole_CanLogin_ViewOwnProfile_AndLogout(role: "Student", roleLabel: "Học viên") [200 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Unpublished, canView: True, canRecord: True) [163 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.Register_AlwaysCreatesStudent_EvenWhenClientPostsTeacherRole [117 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.EmptyEffectiveSet_DoesNotCompleteEnrollment [191 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Published, canView: True, canRecord: True) [178 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.InvalidCredentials_RenderValidation_WithoutLoggingIn [172 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnenrolledStudent_CannotOpenPublishedContent_AndGuestMustLogin [215 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.TeacherForms_EndToEndPublishPreviewAndOtherOwnerMutationDenied [1 s]
+  Passed EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.FinalAssessment_RequiresGradedPassingScoreBeforeHistoricalCompletion [363 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.MissingResource_Returns404_AndAccessDeniedPageReturns403 [148 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.UpdateProfile_OnlyChangesOwnFullName_IgnoresSensitiveFields [255 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.ManageCourse_RequiresTeacherRoleAndOwnership(role: "Admin", canManage: False) [211 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.Reorder_AllThreeLevelsUsesUniqueIndexAndPreservesResourcesAndProgress [330 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.Progress_FollowsEffectiveLessonsAndPreservesFirstCompletion [279 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.ManageCourse_RequiresTeacherRoleAndOwnership(role: "Teacher", canManage: True) [223 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.ExistingEnrollmentSurvivesPriceTypeAndLifecycleChanges_PaymentMustMatchOriginalOrder [362 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.ManageCourse_RequiresTeacherRoleAndOwnership(role: "Student", canManage: False) [218 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.Authoring_ValidatesOwnershipParentsPricePublishAndResourceData [364 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.ConcurrentEnrollments_CreateExactlyOneEnrollment [177 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.Catalog_FiltersPaginatesAndOnlyExposesPublishedMetadata [397 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.InactiveAccountsAndDisabledOwnerCannotEnrollOrAuthor [216 ms]
+  Passed EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.FreeEnrollment_IsRequiredIdempotentCsrfProtectedAndScopedToStudentAndCourse [441 ms]
+[xUnit.net 00:00:10.98]   Finished:    EnglishLearningPlatform.IntegrationTests
+Test Run Successful.
+Total tests: 50
+     Passed: 50
+ Total time: 11.3240 Seconds

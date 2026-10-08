@@ -1,0 +1,14 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  EnglishLearningPlatform.Domain -> /workspaces/english-learning-platform/src/EnglishLearningPlatform.Domain/bin/Debug/net10.0/EnglishLearningPlatform.Domain.dll
+  EnglishLearningPlatform.Application -> /workspaces/english-learning-platform/src/EnglishLearningPlatform.Application/bin/Debug/net10.0/EnglishLearningPlatform.Application.dll
+  EnglishLearningPlatform.Infrastructure -> /workspaces/english-learning-platform/src/EnglishLearningPlatform.Infrastructure/bin/Debug/net10.0/EnglishLearningPlatform.Infrastructure.dll
+  EnglishLearningPlatform.UnitTests -> /workspaces/english-learning-platform/tests/EnglishLearningPlatform.UnitTests/bin/Debug/net10.0/EnglishLearningPlatform.UnitTests.dll
+  EnglishLearningPlatform.Web -> /workspaces/english-learning-platform/src/EnglishLearningPlatform.Web/bin/Debug/net10.0/EnglishLearningPlatform.Web.dll
+  EnglishLearningPlatform.IntegrationTests -> /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Debug/net10.0/EnglishLearningPlatform.IntegrationTests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:07.01
