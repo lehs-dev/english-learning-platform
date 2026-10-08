@@ -1,0 +1,10 @@
+Week 5 Completion reproduction before Finalize reconciliation hook. Actual run exit 1.
+Command: ELP_TEST_SQLSERVER="$ConnectionStrings__DefaultConnection" dotnet test tests/EnglishLearningPlatform.IntegrationTests/EnglishLearningPlatform.IntegrationTests.csproj --no-restore --filter FullyQualifiedName~CourseCompletionIntegrationTests.PassingFinalAfterLessons_CompletesImmediatelyWithoutAnotherLessonRequest
+SQL Server GUID test database. Raw framework logs omitted.
+
+  Failed EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.PassingFinalAfterLessons_CompletesImmediatelyWithoutAnotherLessonRequest [1 s]
+   Assert.NotNull() Failure: Value of type 'Nullable<DateTimeOffset>' does not have a value
+Test Run Failed.
+Total tests: 1
+     Failed: 1
+ Total time: 3.9546 Seconds

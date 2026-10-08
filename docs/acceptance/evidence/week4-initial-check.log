@@ -1,0 +1,63 @@
+1130:  Failed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.InactiveAccount_RejectsExistingCookieImmediately_ForApiAndMvc(status: Locked) [417 ms]
+1131-  Error Message:
+1132-   Assert.Null() Failure: Value is not null
+1133-Expected: null
+1134-Actual:   http://localhost/Account/Login?ReturnUrl=%2Fapi%2Fprobe%2Fpolicy%2Fteacher
+1135-  Stack Trace:
+1136-     at EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.InactiveAccount_RejectsExistingCookieImmediately_ForApiAndMvc(AccountStatus status) in /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/AuthorizationIntegrityAcceptanceTests.cs:line 65
+1137---- End of stack trace from previous location ---
+1138-  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.Login_ReturnUrl_AllowsOnlyLocalUrls(returnUrl: "/Profile", expected: "/Profile") [196 ms]
+1139-  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnavailableLesson_IsBlockedForEnrolledStudent_ButOwnerCanPreview(visibility: Hidden, status: Published) [244 ms]
+1140-  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.Login_ReturnUrl_AllowsOnlyLocalUrls(returnUrl: "https://example.test/steal", expected: "/") [157 ms]
+1141:  Failed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.InactiveAccount_RejectsExistingCookieImmediately_ForApiAndMvc(status: Disabled) [349 ms]
+1142-  Error Message:
+1143-   Assert.Null() Failure: Value is not null
+1144-Expected: null
+1145-Actual:   http://localhost/Account/Login?ReturnUrl=%2Fapi%2Fprobe%2Fpolicy%2Fteacher
+1146-  Stack Trace:
+1147-     at EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.InactiveAccount_RejectsExistingCookieImmediately_ForApiAndMvc(AccountStatus status) in /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/AuthorizationIntegrityAcceptanceTests.cs:line 65
+1148---- End of stack trace from previous location ---
+1149-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+1150-      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+1151-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+1152-      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+1153-info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+--
+2184:  Failed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: "Admin", expected: Forbidden) [193 ms]
+2185-  Error Message:
+2186-   Assert.Null() Failure: Value is not null
+2187-Expected: null
+2188-Actual:   http://localhost/Account/AccessDenied?ReturnUrl=%2Fapi%2Fprobe%2Fpolicy%2Fteacher
+2189-  Stack Trace:
+2190-     at EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(String role, HttpStatusCode expected) in /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/AuthorizationIntegrityAcceptanceTests.cs:line 36
+2191---- End of stack trace from previous location ---
+2192-info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2193-  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.EachRole_CanLogin_ViewOwnProfile_AndLogout(role: "Teacher", roleLabel: "Giáo viên") [198 ms]
+2194-      Request starting HTTP/1.1 GET http://localhost/Account/Register - - -
+2195-  Passed EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Draft, canView: False, canRecord: False) [219 ms]
+2196:  Failed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: "Student", expected: Forbidden) [195 ms]
+2197-  Error Message:
+2198-   Assert.Null() Failure: Value is not null
+2199-Expected: null
+2200-Actual:   http://localhost/Account/AccessDenied?ReturnUrl=%2Fapi%2Fprobe%2Fpolicy%2Fteacher
+2201-  Stack Trace:
+2202-     at EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(String role, HttpStatusCode expected) in /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/AuthorizationIntegrityAcceptanceTests.cs:line 36
+2203---- End of stack trace from previous location ---
+2204:  Failed EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: null, expected: Unauthorized) [1 ms]
+2205-  Error Message:
+2206-   Assert.Null() Failure: Value is not null
+2207-Expected: null
+2208-Actual:   http://localhost/Account/Login?ReturnUrl=%2Fapi%2Fprobe%2Fpolicy%2Fteacher
+2209-  Stack Trace:
+2210-     at EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(String role, HttpStatusCode expected) in /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/AuthorizationIntegrityAcceptanceTests.cs:line 36
+2211---- End of stack trace from previous location ---
+2212-  Passed EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.EachRole_CanLogin_ViewOwnProfile_AndLogout(role: "Student", roleLabel: "Học viên") [206 ms]
+2213-info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2214-      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Register (EnglishLearningPlatform.Web)'
+2215-info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+2216-      Executing RedirectResult, redirecting to /Checkout/Order/97fac59d-b5f8-4d8f-8fa5-d326745dfceb.
+--
+3416:Total tests: 52
+3417:     Passed: 47
+3418:     Failed: 5
+3419- Total time: 11.9116 Seconds

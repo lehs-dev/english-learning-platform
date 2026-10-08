@@ -83,22 +83,6 @@ public sealed partial class CourseService
 
     // Run inside the same course transaction after mutations to the effective lesson set.
     // Completion is historical and is never cleared when lessons are added/hidden later.
-    private Task<int> ReconcileCompletionAsync(Guid courseId, CancellationToken ct)
-    {
-        var effective = db.Lessons.Effective().Where(l => l.Module.CourseId == courseId);
-        var now = DateTimeOffset.UtcNow;
-        return db.Enrollments.Valid().Where(e => e.CourseId == courseId && e.CompletedAtUtc == null &&
-            (e.Course.Status == CourseStatus.Published || e.Course.Status == CourseStatus.Unpublished) &&
-            effective.Any() && !effective.Any(l => !db.LessonProgressEntries.Any(p =>
-                p.EnrollmentId == e.Id && p.LessonId == l.Id && p.IsCompleted)) &&
-            (!e.Course.FinalAssessmentId.HasValue || (e.Course.FinalAssessment!.CourseId == courseId &&
-                e.Course.FinalAssessment.OwnerTeacherUserId == e.Course.OwnerTeacherUserId &&
-                e.Course.FinalAssessment.Status == AssessmentStatus.Published &&
-                (e.Course.FinalAssessment.AssessmentType == AssessmentType.SkillAssessment || e.Course.FinalAssessment.AssessmentType == AssessmentType.PracticeExam) &&
-                e.Course.FinalAssessment.PassingScore != null &&
-                e.Course.FinalAssessment.PassingScore >= 0 && e.Course.FinalAssessment.PassingScore <= 100 &&
-                db.Attempts.Any(a => a.StudentUserId == e.StudentUserId && a.AssessmentId == e.Course.FinalAssessmentId &&
-                    a.Status == AttemptStatus.Graded && a.OverallScore >= e.Course.FinalAssessment.PassingScore))))
-            .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.CompletedAtUtc, (DateTimeOffset?)now), ct);
-    }
+    private Task<int> ReconcileCompletionAsync(Guid courseId, CancellationToken ct) =>
+        CourseCompletion.ReconcileAsync(db, courseId, ct);
 }

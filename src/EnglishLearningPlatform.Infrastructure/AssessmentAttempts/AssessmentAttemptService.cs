@@ -51,7 +51,7 @@ public sealed class AssessmentAttemptService(
             $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {assessmentId}"
         ).SingleOrDefaultAsync(ct);
 
-        if (assessment is null)
+        if (assessment is null || assessment.CourseId != snapshot.CourseId)
         {
             return new(AttemptStartStatus.Unavailable);
         }
@@ -71,14 +71,9 @@ public sealed class AssessmentAttemptService(
             return new(AttemptStartStatus.Forbidden);
         }
 
-        if (assessment.Status != AssessmentStatus.Published)
-        {
-            return new(AttemptStartStatus.Unavailable);
-        }
-
         if (assessment.CourseId.HasValue)
         {
-            if (course is null || course.Status is not (CourseStatus.Published or CourseStatus.Unpublished) || course.OwnerTeacherUserId != assessment.OwnerTeacherUserId)
+            if (course is null || course.OwnerTeacherUserId != assessment.OwnerTeacherUserId)
             {
                 return new(AttemptStartStatus.Unavailable);
             }
@@ -129,6 +124,14 @@ public sealed class AssessmentAttemptService(
             }
 
             return new(AttemptStartStatus.Resumed, active.Id, active.DeadlineUtc);
+        }
+
+        // Withdrawal blocks new attempts, while an existing attempt keeps
+        // its original deadline and can still be resumed or finalized.
+        if (assessment.Status != AssessmentStatus.Published ||
+            (course is not null && course.Status is not (CourseStatus.Published or CourseStatus.Unpublished)))
+        {
+            return new(AttemptStartStatus.Unavailable);
         }
 
         var usedAttempts = await db.Attempts.CountAsync(
@@ -238,13 +241,23 @@ public sealed class AssessmentAttemptService(
             attempt.AssessmentId != assessment.Id)
             return new(AttemptFinalizeStatus.NotFound);
 
+        var student = await users.FindByIdAsync(studentId.ToString());
+
+        if (student is null || student.AccountStatus != AccountStatus.Active)
+            return new(AttemptFinalizeStatus.Forbidden);
+
+        var roles = await users.GetRolesAsync(student);
+
+        if (roles.Count != 1 || roles[0] != AppRoles.Student)
+            return new(AttemptFinalizeStatus.Forbidden);
+
         var result = await FinalizeLockedAsync(
             attempt,
             assessment,
             DateTimeOffset.UtcNow,
             ct);
 
-        if (result.Status == AttemptFinalizeStatus.Graded)
+        if (result.Status is AttemptFinalizeStatus.Graded or AttemptFinalizeStatus.AlreadyGraded)
         {
             await tx.CommitAsync(ct);
         }
@@ -412,6 +425,11 @@ public sealed class AssessmentAttemptService(
 
         if (attempt.Status == AttemptStatus.Graded)
         {
+            // Replays can repair completion missed before this integration,
+            // while preserving the original grade and finalization timestamp.
+            if (assessment.CourseId is Guid completedCourseId)
+                await CourseCompletion.ReconcileAsync(db, completedCourseId, ct);
+
             return new(
                 AttemptFinalizeStatus.AlreadyGraded,
                 attempt.Id,
@@ -473,6 +491,11 @@ public sealed class AssessmentAttemptService(
         attempt.UpdatedAtUtc = now;
 
         await db.SaveChangesAsync(ct);
+
+        // The caller already holds the Course lock. Grade and completion
+        // commit together, including lazy finalization from Start/Save.
+        if (assessment.CourseId is Guid courseId)
+            await CourseCompletion.ReconcileAsync(db, courseId, ct);
 
         return new(
             AttemptFinalizeStatus.Graded,
