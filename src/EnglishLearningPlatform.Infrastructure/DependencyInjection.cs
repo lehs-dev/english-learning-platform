@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Learning;
+using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Infrastructure.QuestionBank;
 
 namespace EnglishLearningPlatform.Infrastructure;
 
@@ -52,6 +54,7 @@ public static class DependencyInjection
         services.AddScoped<IProfileService, IdentityProfileService>();
         services.AddScoped<ILearningAccessService, LearningAccessService>();
         services.AddScoped<ICourseService, CourseService>();
+        services.AddScoped<IQuestionCreationService, QuestionCreationService>();
         return services;
     }
 }
