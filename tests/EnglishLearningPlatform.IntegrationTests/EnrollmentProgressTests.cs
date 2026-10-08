@@ -146,12 +146,13 @@ public sealed class EnrollmentProgressTests(IntegrationTestFactory factory) : IC
         Assert.Equal(100m, (await service.OpenCourseAsync(data.Student, data.Course.Id, false)).Value!.Progress!.Percentage);
         Assert.Null((await service.OpenCourseAsync(data.Student, data.Course.Id, false)).Value!.Progress!.CompletedAtUtc);
         var attempt = new Attempt { StudentUserId = data.Student, AssessmentId = final.Id, Status = AttemptStatus.Graded,
-            OverallScore = 69.99m, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(15), FinalizedAtUtc = DateTimeOffset.UtcNow, FinalizationReason = AttemptFinalizationReason.ManualSubmit };
+            OverallScore = 69.99m, Passed = false, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(15), FinalizedAtUtc = DateTimeOffset.UtcNow, FinalizationReason = AttemptFinalizationReason.ManualSubmit };
         db.Attempts.Add(attempt); await db.SaveChangesAsync();
         var first = data.Course.Modules.First().Lessons.First();
         Assert.True((await service.SetLessonCompletedAsync(data.Student, first.Id, true)).Success);
         Assert.Null((await service.OpenCourseAsync(data.Student, data.Course.Id, false)).Value!.Progress!.CompletedAtUtc);
-        attempt.OverallScore = 70; await db.SaveChangesAsync();
+        // Seed a consistent graded result, as FinalizeAsync does from raw points.
+        attempt.OverallScore = 70; attempt.Passed = true; await db.SaveChangesAsync();
         Assert.True((await service.SetLessonCompletedAsync(data.Student, first.Id, true)).Success);
         Assert.NotNull((await service.OpenCourseAsync(data.Student, data.Course.Id, false)).Value!.Progress!.CompletedAtUtc);
     }
