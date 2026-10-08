@@ -56,6 +56,9 @@ public static class DependencyInjection
         services.AddScoped<ICourseService, CourseService>();
         services.Configure<HostedPaymentOptions>(configuration.GetSection("Payments"));
         services.AddSingleton<IPaymentGateway, HostedPaymentGateway>();
+        services.AddSingleton<LocalSandboxGateway>();
+        services.AddScoped<ICheckoutTransactionFactory, CheckoutTransactionFactory>();
+        services.AddScoped<CheckoutTransactionExecutor>();
         services.AddScoped<ICheckoutService, CheckoutService>();
         return services;
     }

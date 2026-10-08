@@ -1,6 +1,6 @@
 # Enrollment trả phí và hợp đồng hosted checkout
 
-Cập nhật 08/10/2026. Luồng Order, checkout, xác minh webhook và Enrollment đã có. Adapter `HostedPaymentGateway` dùng hợp đồng HMAC bên dưới với một cổng thanh toán ngoài. Repository không chứa trang giả lập trả tiền hoặc endpoint cho browser tự xác nhận thành công. Chưa có adapter VNPay/MoMo hay credentials cho provider thật. Mặc định thanh toán tắt; nút mua hiển thị thông báo khi cấu hình chưa sẵn sàng và không tạo Order.
+Cập nhật 08/10/2026. Luồng Order, checkout, xác minh webhook và Enrollment đã có. Adapter `HostedPaymentGateway` dùng hợp đồng HMAC bên dưới với một cổng thanh toán ngoài. UI Estudy được dùng chung; repository có sandbox local opt-in Development tách khỏi hosted, xem [contract local](../project/checkout-local.md). Browser không thể dùng sandbox để xác nhận Order hosted. Chưa có adapter VNPay/MoMo hay credentials cho provider thật. Mặc định thanh toán tắt; nút mua hiển thị thông báo khi cấu hình chưa sẵn sàng và không tạo Order.
 
 ## Cấu hình
 
@@ -48,3 +48,20 @@ OccurredAt phải từ thời điểm tạo Order (cho phép lệch đồng hồ
 ## Kiểm tra
 
 `CheckoutFeatureTests` kiểm tra nhiều POST tạo đơn và nhiều webhook đồng thời, chữ ký/amount/currency sai, transaction dùng lại cho đơn khác, sự kiện quá hạn, quote sau đổi giá, callback return giả, quyền xem đơn, CSRF, payment Failed, khóa bị rút và gateway chưa cấu hình. Đây là test server với thông báo ký từ fixture, không chứng minh kết nối một provider thật.
+
+## Sau hợp nhất với UI/sandbox local
+
+- `ICheckoutService`, `CheckoutService`, `CheckoutController` chỉ có một implementation/pipeline.
+  Hai adapter riêng: hosted theo raw-body HMAC và local theo envelope có HMAC trong bộ nhớ.
+  `StartAsync`/`Start` và `ConfirmAsync` luôn hosted, không fallback sandbox.
+- GET xác nhận không tạo Order. `CreateOrderAsync` ưu tiên hosted khi được cấu hình, còn local chỉ khi
+  Development + CheckoutSandbox enabled. Order lưu Provider/ExpiresAt; GET kết quả chọn adapter theo Provider đã lưu.
+- Serializable + mutex commerce + khóa Course trước mutation/khóa transaction ID tránh race với Free/progress.
+  Receipt hosted Failed có thể nhận receipt mới khác transaction ID như main; local Failed/Cancelled là terminal.
+- Callback không hợp lệ (signature/body/quote/provider/time) trả 400 trước replay; callback hợp lệ xung đột trả 409.
+  Receipt thành công chỉ cấp Enrollment nếu Course hiện Published/Paid, buyer Active và owner không Disabled.
+  Hosted replay không cấp quyền đã bị từ chối lúc receipt đầu; local replay có thể sửa receipt thiếu Enrollment khi hiện đủ điều kiện.
+- Begin/operation/commit được bảo vệ; lỗi rollback/dispose không che lỗi chính. Cancellation được truyền lên.
+  Chỉ báo thành công sau commit được xác nhận; mất xác nhận/unique violation trả 503 để bên gửi gửi lại, không tự retry.
+  Log chỉ có operation/reference/phase/type/HResult/SQL number, không body, message, secret hoặc chữ ký.
+- Chưa gọi provider thật hoặc kiểm thử mất mạng thật/nhiều process. Merge giữ migration main, không tạo hoặc tự áp dụng migration.

@@ -1,0 +1,179 @@
+.checkout-page {
+    width: 100%;
+    max-width: 820px;
+    margin: 24px auto 40px;
+}
+
+.checkout-page .checkout-back {
+    display: inline-block;
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.checkout-page .checkout-heading {
+    margin-bottom: 20px;
+}
+
+.checkout-page .checkout-heading h1 {
+    margin: 0 0 10px;
+    font-size: clamp(26px, 4vw, 34px);
+    line-height: 1.25;
+}
+
+.checkout-page .checkout-test-label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.checkout-page .checkout-card {
+    padding: 28px;
+    margin: 0;
+}
+
+.checkout-page .checkout-card .eyebrow {
+    margin: 0 0 10px;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+}
+
+.checkout-page .checkout-course-title {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 28px);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.checkout-page .checkout-teacher {
+    margin: 10px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.checkout-page .checkout-order-id {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.checkout-page .checkout-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    padding: 20px 0;
+    margin: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.checkout-page .checkout-total > span {
+    color: var(--ink);
+    font-size: 14px;
+}
+
+.checkout-page .checkout-total strong {
+    color: var(--primary-dark);
+    font-size: 26px;
+    overflow-wrap: anywhere;
+}
+
+.checkout-page .checkout-status {
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    line-height: 1.6;
+}
+
+.checkout-page .checkout-status strong {
+    display: block;
+    font-size: 16px;
+}
+
+.checkout-page .checkout-status p {
+    margin: 4px 0 0;
+    font-size: 14px;
+}
+
+.checkout-page .checkout-status--success {
+    color: #17643f;
+    background: #effaf3;
+    border-color: #bde4cf;
+}
+
+.checkout-page .checkout-status--error {
+    color: #ad2626;
+    background: #fff3f3;
+    border-color: #ecc7c7;
+}
+
+.checkout-page .checkout-status--neutral {
+    color: var(--ink);
+    background: #f5f7fb;
+}
+
+.checkout-page .checkout-actions {
+    margin-top: 20px;
+}
+
+.checkout-page .checkout-start {
+    background: #17643f;
+    border-color: #17643f;
+    min-width: 160px;
+}
+
+.checkout-page .checkout-start:hover {
+    background: #105033;
+    border-color: #105033;
+}
+
+.checkout-page .checkout-tools {
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px dashed #cdd8e6;
+    border-radius: 10px;
+    background: #f8faff;
+}
+
+.checkout-page .checkout-tools h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.checkout-page .checkout-tools p {
+    margin: 6px 0 14px;
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .checkout-page {
+        margin-top: 18px;
+    }
+
+    .checkout-page .checkout-card {
+        padding: 20px;
+    }
+
+    .checkout-page .checkout-total {
+        gap: 6px;
+        flex-direction: column;
+        padding: 16px 0;
+        margin: 16px 0;
+    }
+
+    .checkout-page .checkout-tools {
+        padding: 14px;
+    }
+
+    .checkout-page .checkout-tools .actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .checkout-page .checkout-actions > .button {
+        width: 100%;
+    }
+}

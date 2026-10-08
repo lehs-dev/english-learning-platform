@@ -19,7 +19,7 @@ Publish là POST riêng: kiểm tra metadata/giá, mọi Lesson Published và í
 
 Reorder phải gửi đủ ID không trùng của cùng parent. Transaction ghi các index tạm thấp hơn mọi index hiện tại, rồi ghi index cuối; tránh va chạm unique index và giữ ID/progress. POST lỗi trả thông báo hoặc field validation. Trang protected và detail có dữ liệu theo user dùng `no-store`.
 
-**Paid đã có Order/checkout và webhook phía server.** Nút mua tạo/reuse Order và chuyển tới trang đơn riêng của Student; liên kết checkout chỉ xuất hiện khi gateway ngoài được cấu hình. Chỉ webhook ký đã xác minh mới ghi Payment và cấp Enrollment. Xem [hợp đồng và cấu hình payment](../architecture/payment-sandbox.md). Enrollment có Payment phải khớp Payment Succeeded, Student/Course của Order, currency VND và Amount của Order lúc mua. Không so với giá Course hiện tại. Enrollment free đã cấp với PaymentId null vẫn hợp lệ sau khi đổi Free thành Paid.
+**Paid có checkout hợp nhất hosted/local và webhook phía server.** Nút mua mở GET xác nhận, POST tạo/reuse Order và chuyển tới trang đơn riêng của Student. Hosted được ưu tiên khi được cấu hình; sandbox local chỉ opt-in Development, xem [cách thử](checkout-local.md). Hai adapter không xác nhận Order của nhau; POST Start của hosted vẫn được giữ. Chỉ webhook ký đã xác minh mới ghi Payment và cấp Enrollment. Xem [hợp đồng và cấu hình payment](../architecture/payment-sandbox.md). Enrollment có Payment phải khớp Payment Succeeded, Student/Course của Order, currency VND và Amount của Order lúc mua. Không so với giá Course hiện tại. Enrollment free đã cấp với PaymentId null vẫn hợp lệ sau khi đổi Free thành Paid.
 
 ## Progress và khu học tập (08/10/2026)
 
@@ -37,7 +37,7 @@ Khi completion hoặc tập bài khả dụng thay đổi, kiểm tra CompletedA
 
 ## Chạy local và database demo
 
-Không có migration mới trong thay đổi này. Dùng các migration hiện có, gồm `AddCommerce` và `MakeEnrollmentPaymentIdNullable`. SQL Server Windows Authentication:
+Dùng các migration đã có trên main, gồm `AddCommerce`, `MakeEnrollmentPaymentIdNullable` và `AddCheckoutOrderMetadata`. Việc resolve conflict không thêm migration và không áp dụng lên database ứng dụng. SQL Server Windows Authentication:
 
 Dừng ứng dụng đang chạy bằng Ctrl+C/Stop Debugging trước khi build hoặc chạy EF trên Windows để tránh DLL bị khóa (MSB3021/MSB3027). Chạy web sau khi cập nhật database xong.
 

@@ -8,6 +8,8 @@
 
 **Cập nhật 08/10/2026:** Đã có Order/hosted checkout, webhook ký HMAC xác minh phía server, chống Enrollment trùng, My Courses có progress, trang Module/Lesson và Completed/Incomplete. Áp dụng migration `AddCheckoutOrderMetadata`. Thanh toán mặc định tắt và chưa nối provider thật; xem [cấu hình và hợp đồng checkout](docs/architecture/payment-sandbox.md). Progress chỉ tính Lesson Published trong Module Visible; không có bài thì không tính phần trăm; Archived chỉ đọc. Chi tiết ở [hướng dẫn Learning](docs/project/course-authoring.md).
 
+**Checkout hợp nhất:** Hosted checkout/metadata Order và progress của main dùng chung service với UI Estudy và sandbox local. Hosted được ưu tiên khi cấu hình sẵn sàng; sandbox là chế độ opt-in chỉ Development, không thu tiền thật và không thể xác nhận Order hosted. Helper bảo vệ begin/commit/rollback/dispose, cancellation và callback replay. Xem [sandbox local](docs/project/checkout-local.md) và [hợp đồng hosted](docs/architecture/payment-sandbox.md). Chưa thử provider thật hoặc pair với Sơn/Khánh.
+
 ## Sản phẩm cần xây
 
 | Người dùng | Luồng chính |
