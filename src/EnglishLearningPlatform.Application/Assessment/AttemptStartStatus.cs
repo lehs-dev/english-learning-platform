@@ -10,5 +10,6 @@ public enum AttemptStartStatus
     LimitReached,
     Forbidden,
     NotFound,
-    Unavailable
+    Unavailable,
+    ExpiredFinalized
 }

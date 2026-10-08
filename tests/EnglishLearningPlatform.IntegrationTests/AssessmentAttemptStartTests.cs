@@ -138,7 +138,7 @@ public sealed class AssessmentAttemptStartTests(
 
     [Theory]
     [InlineData(false, AttemptStartStatus.Resumed)]
-    [InlineData(true, AttemptStartStatus.NeedsFinalization)]
+    [InlineData(true, AttemptStartStatus.ExpiredFinalized)]
     public async Task ActiveAttempt_AtMaxAttempts_ReturnsExistingAttempt(
         bool expired, AttemptStartStatus expectedStatus)
     {
@@ -178,7 +178,9 @@ public sealed class AssessmentAttemptStartTests(
             .ToListAsync());
 
         Assert.Equal(first.AttemptId, saved.Id);
-        Assert.Equal(AttemptStatus.InProgress, saved.Status);
+        Assert.Equal(
+            expired ? AttemptStatus.Graded : AttemptStatus.InProgress,
+            saved.Status);
         Assert.Equal(deadline, saved.DeadlineUtc);
     }
 
@@ -418,6 +420,276 @@ public sealed class AssessmentAttemptStartTests(
             .SingleAsync(a => a.AttemptId == attemptId);
 
         Assert.Equal(correctOptionId, saved.SelectedOptionId);
+    }
+
+
+    [Fact]
+    public async Task ConcurrentSaveAndFinalize_PreservesGradedResult()
+    {
+        var (studentId, assessmentId) = await SeedAsync();
+        var started = await StartAsync(studentId, assessmentId);
+
+        Assert.Equal(AttemptStartStatus.Started, started.Status);
+        var attemptId = started.AttemptId!.Value;
+
+        Guid assessmentQuestionId;
+        Guid correctOptionId;
+        Guid wrongOptionId;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider
+                .GetRequiredService<AppDbContext>();
+
+            var question = await db.AssessmentQuestions
+                .AsNoTracking()
+                .Where(q => q.AssessmentId == assessmentId)
+                .OrderBy(q => q.OrderIndex)
+                .Select(q => new { q.Id, q.QuestionId })
+                .FirstAsync();
+
+            assessmentQuestionId = question.Id;
+
+            var options = await db.QuestionOptions
+                .AsNoTracking()
+                .Where(o => o.QuestionId == question.QuestionId)
+                .Select(o => new { o.Id, o.IsCorrect })
+                .ToListAsync();
+
+            correctOptionId = options.Single(o => o.IsCorrect).Id;
+            wrongOptionId = options.Single(o => !o.IsCorrect).Id;
+        }
+
+        // Cho các request cùng bắt đầu ở thời điểm gần nhau.
+        var gate = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+
+        async Task<AttemptSaveStatus> SaveOnceAsync(Guid optionId)
+        {
+            await gate.Task;
+
+            using var scope = factory.Services.CreateScope();
+            var service = scope.ServiceProvider
+                .GetRequiredService<IAttemptService>();
+
+            return await service.SaveAnswerAsync(
+                studentId,
+                attemptId,
+                assessmentQuestionId,
+                optionId);
+        }
+
+        async Task<AttemptFinalizeResult> FinalizeOnceAsync()
+        {
+            await gate.Task;
+
+            using var scope = factory.Services.CreateScope();
+            var service = scope.ServiceProvider
+                .GetRequiredService<IAttemptService>();
+
+            return await service.FinalizeAsync(studentId, attemptId);
+        }
+
+        // 10 request Save xen kẽ đáp án đúng và sai.
+        var saveTasks = Enumerable.Range(0, 10)
+            .Select(i => SaveOnceAsync(
+                i % 2 == 0 ? correctOptionId : wrongOptionId))
+            .ToArray();
+
+        // 5 request Finalize đồng thời.
+        var finalizeTasks = Enumerable.Range(0, 5)
+            .Select(_ => FinalizeOnceAsync())
+            .ToArray();
+
+        gate.SetResult(true);
+
+        await Task.WhenAll(
+            saveTasks.Cast<Task>().Concat(finalizeTasks.Cast<Task>()));
+
+        var saveResults = await Task.WhenAll(saveTasks);
+        var finalizeResults = await Task.WhenAll(finalizeTasks);
+
+        // Save chỉ có thể thành công trước Finalize
+        // hoặc bị từ chối sau Finalize.
+        Assert.All(saveResults, result =>
+            Assert.True(
+                result is AttemptSaveStatus.Saved
+                    or AttemptSaveStatus.AlreadyFinalized,
+                $"Unexpected Save status: {result}"));
+
+        // Chỉ một request thực sự chấm điểm.
+        Assert.Single(
+            finalizeResults,
+            r => r.Status == AttemptFinalizeStatus.Graded);
+
+        Assert.Equal(
+            4,
+            finalizeResults.Count(r =>
+                r.Status == AttemptFinalizeStatus.AlreadyGraded));
+
+        using var finalScope = factory.Services.CreateScope();
+        var finalDb = finalScope.ServiceProvider
+            .GetRequiredService<AppDbContext>();
+
+        var persisted = await finalDb.Attempts
+            .AsNoTracking()
+            .SingleAsync(a => a.Id == attemptId);
+
+        var answer = await finalDb.AttemptAnswers
+            .AsNoTracking()
+            .SingleOrDefaultAsync(a => a.AttemptId == attemptId);
+
+        Assert.Equal(AttemptStatus.Graded, persisted.Status);
+        Assert.NotNull(persisted.FinalizedAtUtc);
+
+        // Trong đề 5 câu, mỗi câu 1 điểm:
+        // đúng 1 câu = 20%, sai/chưa trả lời = 0%.
+        var expectedScore =
+            answer?.SelectedOptionId == correctOptionId
+                ? 20m
+                : 0m;
+
+        Assert.Equal(expectedScore, persisted.OverallScore);
+
+        Assert.All(finalizeResults, result =>
+            Assert.Equal(persisted.OverallScore, result.OverallScore));
+
+        // Sau khi tất cả request hoàn tất,
+        // mọi thao tác Save mới đều phải bị từ chối.
+        using var checkScope = factory.Services.CreateScope();
+        var checkService = checkScope.ServiceProvider
+            .GetRequiredService<IAttemptService>();
+
+        var lateSave = await checkService.SaveAnswerAsync(
+            studentId,
+            attemptId,
+            assessmentQuestionId,
+            wrongOptionId);
+
+        Assert.Equal(
+            AttemptSaveStatus.AlreadyFinalized,
+            lateSave);
+    }
+
+
+    [Fact]
+    public async Task ExpiredAttempt_IsGradedOnceBeforeAnotherStart()
+    {
+        var (studentId, assessmentId) = await SeedAsync();
+        var started = await StartAsync(studentId, assessmentId);
+        var attemptId = started.AttemptId!.Value;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider
+                .GetRequiredService<AppDbContext>();
+
+            // Giả lập server đã đi qua DeadlineUtc.
+            await db.Attempts
+                .Where(a => a.Id == attemptId)
+                .ExecuteUpdateAsync(s => s.SetProperty(
+                    a => a.DeadlineUtc,
+                    DateTimeOffset.UtcNow.AddSeconds(-5)));
+        }
+
+        // 5 request cùng phát hiện Attempt hết hạn.
+        var results = await Task.WhenAll(
+            Enumerable.Range(0, 5)
+                .Select(_ => StartAsync(studentId, assessmentId)));
+
+        Assert.Single(results,
+            r => r.Status == AttemptStartStatus.ExpiredFinalized);
+
+        // SeedAsync cấu hình MaxAttempts = 1.
+        Assert.Equal(4, results.Count(
+            r => r.Status == AttemptStartStatus.LimitReached));
+
+        using var checkScope = factory.Services.CreateScope();
+        var checkDb = checkScope.ServiceProvider
+            .GetRequiredService<AppDbContext>();
+
+        var saved = await checkDb.Attempts.AsNoTracking()
+            .SingleAsync(a => a.Id == attemptId);
+
+        Assert.Equal(AttemptStatus.Graded, saved.Status);
+        Assert.Equal(
+            AttemptFinalizationReason.DeadlineElapsed,
+            saved.FinalizationReason);
+
+        Assert.Equal(0m, saved.OverallScore);
+        Assert.NotNull(saved.FinalizedAtUtc);
+
+        Assert.Equal(1, await checkDb.Attempts.CountAsync(
+            a => a.StudentUserId == studentId &&
+                 a.AssessmentId == assessmentId));
+    }
+
+    [Fact]
+    public async Task LateSave_TriggersAutoFinalizeWithoutSavingAnswer()
+    {
+        var (studentId, assessmentId) = await SeedAsync();
+        var started = await StartAsync(studentId, assessmentId);
+        var attemptId = started.AttemptId!.Value;
+
+        Guid assessmentQuestionId;
+        Guid optionId;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider
+                .GetRequiredService<AppDbContext>();
+
+            var question = await db.AssessmentQuestions
+                .Where(q => q.AssessmentId == assessmentId)
+                .OrderBy(q => q.OrderIndex)
+                .Select(q => new { q.Id, q.QuestionId })
+                .FirstAsync();
+
+            assessmentQuestionId = question.Id;
+
+            optionId = await db.QuestionOptions
+                .Where(o => o.QuestionId == question.QuestionId &&
+                            o.IsCorrect)
+                .Select(o => o.Id)
+                .SingleAsync();
+
+            await db.Attempts
+                .Where(a => a.Id == attemptId)
+                .ExecuteUpdateAsync(s => s.SetProperty(
+                    a => a.DeadlineUtc,
+                    DateTimeOffset.UtcNow.AddSeconds(-5)));
+        }
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var service = scope.ServiceProvider
+                .GetRequiredService<IAttemptService>();
+
+            Assert.Equal(
+                AttemptSaveStatus.Expired,
+                await service.SaveAnswerAsync(
+                    studentId,
+                    attemptId,
+                    assessmentQuestionId,
+                    optionId));
+        }
+
+        using var checkScope = factory.Services.CreateScope();
+        var checkDb = checkScope.ServiceProvider
+            .GetRequiredService<AppDbContext>();
+
+        Assert.False(await checkDb.AttemptAnswers.AnyAsync(
+            a => a.AttemptId == attemptId));
+
+        var saved = await checkDb.Attempts
+            .AsNoTracking()
+            .SingleAsync(a => a.Id == attemptId);
+
+        Assert.Equal(AttemptStatus.Graded, saved.Status);
+        Assert.Equal(0m, saved.OverallScore);
+        Assert.Equal(
+            AttemptFinalizationReason.DeadlineElapsed,
+            saved.FinalizationReason);
     }
 
 

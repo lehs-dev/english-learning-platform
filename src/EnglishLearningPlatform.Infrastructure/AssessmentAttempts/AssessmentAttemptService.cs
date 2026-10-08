@@ -108,7 +108,24 @@ public sealed class AssessmentAttemptService(
         {
             if (active.DeadlineUtc <= now)
             {
-                return new(AttemptStartStatus.NeedsFinalization, active.Id, active.DeadlineUtc);
+                var finalized = await FinalizeLockedAsync(
+                    active,
+                    assessment,
+                    now,
+                    ct);
+
+                if (finalized.Status != AttemptFinalizeStatus.Graded)
+                    return new(AttemptStartStatus.Unavailable);
+
+                await tx.CommitAsync(ct);
+
+                // Trả kết quả lượt cũ để giao diện có thể dẫn
+                // học viên đến trang Result.
+                // Không tự tạo lượt làm mới trong request này.
+                return new(
+                    AttemptStartStatus.ExpiredFinalized,
+                    active.Id,
+                    active.DeadlineUtc);
             }
 
             return new(AttemptStartStatus.Resumed, active.Id, active.DeadlineUtc);
@@ -221,80 +238,18 @@ public sealed class AssessmentAttemptService(
             attempt.AssessmentId != assessment.Id)
             return new(AttemptFinalizeStatus.NotFound);
 
-        // Request thứ hai đến sau request đầu:
-        // đọc kết quả đã lưu, không chấm lại.
-        if (attempt.Status == AttemptStatus.Graded)
+        var result = await FinalizeLockedAsync(
+            attempt,
+            assessment,
+            DateTimeOffset.UtcNow,
+            ct);
+
+        if (result.Status == AttemptFinalizeStatus.Graded)
         {
-            return new(
-                AttemptFinalizeStatus.AlreadyGraded,
-                attempt.Id,
-                attempt.OverallScore,
-                attempt.Passed,
-                attempt.FinalizationReason);
+            await tx.CommitAsync(ct);
         }
 
-        if (attempt.Status is not (
-            AttemptStatus.InProgress or
-            AttemptStatus.Submitted or
-            AttemptStatus.AutoSubmitted))
-            return new(AttemptFinalizeStatus.Unavailable);
-
-        var now = DateTimeOffset.UtcNow;
-
-        var reason = attempt.FinalizationReason ??
-            (now >= attempt.DeadlineUtc
-                ? AttemptFinalizationReason.DeadlineElapsed
-                : AttemptFinalizationReason.ManualSubmit);
-
-        // Lấy câu hỏi và đáp án chuẩn từ database,
-        // tuyệt đối không nhận đáp án đúng/điểm từ client.
-        var assessmentForScoring = await db.Assessments
-            .AsNoTracking()
-            .Include(a => a.Questions)
-            .ThenInclude(aq => aq.Question)
-            .ThenInclude(q => q.Options)
-            .AsSplitQuery()
-            .SingleAsync(a => a.Id == assessment.Id, ct);
-
-        var responses = await db.AttemptAnswers
-            .AsNoTracking()
-            .Where(a => a.AttemptId == attemptId)
-            .Select(a => new QuestionResponse(
-                a.AssessmentQuestion.QuestionId,
-                (Guid?)a.SelectedOptionId))
-            .ToListAsync(ct);
-
-        if (assessmentForScoring.Questions.Count == 0)
-            return new(AttemptFinalizeStatus.Unavailable);
-
-        var result = scoring.Score(assessmentForScoring, responses);
-
-        if (result.MaxScore <= 0m)
-            return new(AttemptFinalizeStatus.Unavailable);
-
-        attempt.OverallScore = result.Percentage;
-
-        // So sánh ngưỡng bằng điểm gốc,
-        // không dùng Percentage đã làm tròn.
-        attempt.Passed = assessment.PassingScore.HasValue
-            ? result.Score * 100m >=
-              assessment.PassingScore.Value * result.MaxScore
-            : null;
-
-        attempt.Status = AttemptStatus.Graded;
-        attempt.FinalizationReason = reason;
-        attempt.FinalizedAtUtc = now;
-        attempt.UpdatedAtUtc = now;
-
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-
-        return new(
-            AttemptFinalizeStatus.Graded,
-            attempt.Id,
-            attempt.OverallScore,
-            attempt.Passed,
-            reason);
+        return result;
     }
 
 
@@ -363,7 +318,21 @@ public sealed class AssessmentAttemptService(
         var now = DateTimeOffset.UtcNow;
 
         if (now >= attempt.DeadlineUtc)
+        {
+            // Không ghi nhận đáp án mới đã đến muộn.
+            // Chỉ chấm các câu được lưu trước đó.
+            var finalized = await FinalizeLockedAsync(
+                attempt,
+                assessment,
+                now,
+                ct);
+
+            if (finalized.Status != AttemptFinalizeStatus.Graded)
+                return AttemptSaveStatus.Unavailable;
+
+            await tx.CommitAsync(ct);
             return AttemptSaveStatus.Expired;
+        }
 
         // Kiểm tra câu hỏi thuộc chính Assessment đang làm.
         var questionId = await db.AssessmentQuestions
@@ -430,5 +399,88 @@ public sealed class AssessmentAttemptService(
 
         return AttemptSaveStatus.Saved;
     }
+
+
+    private async Task<AttemptFinalizeResult> FinalizeLockedAsync(
+        Attempt attempt,
+        Assessment assessment,
+        DateTimeOffset now,
+        CancellationToken ct)
+    {
+        // Caller đã mở transaction và lấy các khóa cần thiết.
+        // Hàm này KHÔNG tự mở hoặc commit transaction.
+
+        if (attempt.Status == AttemptStatus.Graded)
+        {
+            return new(
+                AttemptFinalizeStatus.AlreadyGraded,
+                attempt.Id,
+                attempt.OverallScore,
+                attempt.Passed,
+                attempt.FinalizationReason);
+        }
+
+        if (attempt.AssessmentId != assessment.Id ||
+            attempt.Status is not (
+                AttemptStatus.InProgress or
+                AttemptStatus.Submitted or
+                AttemptStatus.AutoSubmitted))
+        {
+            return new(AttemptFinalizeStatus.Unavailable);
+        }
+
+        var reason = attempt.FinalizationReason ??
+            (now >= attempt.DeadlineUtc
+                ? AttemptFinalizationReason.DeadlineElapsed
+                : AttemptFinalizationReason.ManualSubmit);
+
+        var assessmentForScoring = await db.Assessments
+            .AsNoTracking()
+            .Include(a => a.Questions)
+                .ThenInclude(aq => aq.Question)
+                    .ThenInclude(q => q.Options)
+            .AsSplitQuery()
+            .SingleAsync(a => a.Id == assessment.Id, ct);
+
+        var responses = await db.AttemptAnswers
+            .AsNoTracking()
+            .Where(a => a.AttemptId == attempt.Id)
+            .Select(a => new QuestionResponse(
+                a.AssessmentQuestion.QuestionId,
+                (Guid?)a.SelectedOptionId))
+            .ToListAsync(ct);
+
+        if (assessmentForScoring.Questions.Count == 0)
+            return new(AttemptFinalizeStatus.Unavailable);
+
+        var result = scoring.Score(
+            assessmentForScoring, responses);
+
+        if (result.MaxScore <= 0m)
+            return new(AttemptFinalizeStatus.Unavailable);
+
+        attempt.OverallScore = result.Percentage;
+
+        // So sánh điểm gốc trước khi làm tròn.
+        attempt.Passed = assessment.PassingScore.HasValue
+            ? result.Score * 100m >=
+              assessment.PassingScore.Value * result.MaxScore
+            : null;
+
+        attempt.Status = AttemptStatus.Graded;
+        attempt.FinalizationReason = reason;
+        attempt.FinalizedAtUtc = now;
+        attempt.UpdatedAtUtc = now;
+
+        await db.SaveChangesAsync(ct);
+
+        return new(
+            AttemptFinalizeStatus.Graded,
+            attempt.Id,
+            attempt.OverallScore,
+            attempt.Passed,
+            reason);
+    }
+
 
 }
