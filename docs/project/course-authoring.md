@@ -19,7 +19,7 @@ Publish là POST riêng: kiểm tra metadata/giá, mọi Lesson Published và í
 
 Reorder phải gửi đủ ID không trùng của cùng parent. Transaction ghi các index tạm thấp hơn mọi index hiện tại, rồi ghi index cuối; tránh va chạm unique index và giữ ID/progress. POST lỗi trả thông báo hoặc field validation. Trang protected và detail có dữ liệu theo user dùng `no-store`.
 
-**Paid chưa có checkout/webhook use case.** UI hiển thị chờ tích hợp thanh toán, không có nút cấp Enrollment trực tiếp. Entity Order/Payment và migration đã có; thiết kế tham khảo [payment-sandbox.md](../architecture/payment-sandbox.md). Enrollment có Payment phải khớp Payment Succeeded, Student/Course của Order, currency VND và Amount của Order lúc mua. Không so với giá Course hiện tại. Enrollment free đã cấp với PaymentId null vẫn hợp lệ sau khi đổi Free thành Paid. Khi tích hợp Paid sau này, chỉ server xử lý thanh toán đã xác minh mới được tạo Enrollment.
+**Paid có checkout sandbox local opt-in trong Development**, xem [contract và cách chạy](checkout-local.md). Detail có nút Mua khóa học; sandbox tắt thì checkout thông báo chưa bật và không tạo Order. Gateway thật chưa tích hợp. Enrollment có Payment phải khớp Payment Succeeded, Student/Course của Order, currency VND và Amount của Order lúc mua. Không so với giá Course hiện tại. Enrollment free đã cấp với PaymentId null vẫn hợp lệ sau khi đổi Free thành Paid. Chỉ service xử lý callback đã xác minh mới được tạo Enrollment Paid.
 
 Ứng dụng bảo vệ việc tiết lộ URL resource ngoài. Sau khi người có quyền nhận URL công khai, ứng dụng không thể ngăn họ chia sẻ URL đó. Không lưu file protected trong wwwroot.
 

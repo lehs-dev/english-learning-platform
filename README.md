@@ -6,6 +6,8 @@
 
 **Cập nhật 03/10/2026:** Đã có catalog Course công khai, tìm/lọc/phân trang, detail chỉ metadata/cấu trúc/giá, enroll Free, đọc Lesson/resource có quyền và giao diện Teacher authoring/preview/Publish/Unpublish/Archive. Paid hiện có schema và kiểm tra Enrollment/Payment; checkout/webhook chưa triển khai. Xem [hướng dẫn Course và dữ liệu demo](docs/project/course-authoring.md).
 
+**Cập nhật checkout local:** Đã bổ sung checkout Student, Order → callback có xác thực → Payment/Enrollment và sandbox Success/Failed/Cancelled. Sandbox mặc định tắt, chỉ bật trong Development, không thu tiền thật. Xem [contract, cách bật và kiểm thử](docs/project/checkout-local.md). Chưa tích hợp gateway thật hoặc lịch sử giao dịch.
+
 ## Sản phẩm cần xây
 
 | Người dùng | Luồng chính |
@@ -23,7 +25,7 @@ Trong phạm vi hiện tại, mỗi tài khoản có một role đang hoạt đ�
 - **Practice:** Bài luyện gắn với Lesson hoặc Module. Student có thể làm lại không giới hạn; chấm đều theo số câu đúng, lưu kết quả gần nhất và xem đáp án/giải thích sau khi nộp.
 - **Assessment:** Bài đánh giá có attempt chính thức, deadline do server quản lý, giới hạn lượt làm theo cấu hình, chấm điểm theo trọng số câu hỏi và lưu lịch sử. Kết quả gồm điểm tổng, điểm theo kỹ năng và kỹ năng cần cải thiện; không hiện đáp án chi tiết của từng câu trong Assessment. Các loại cần hỗ trợ là Placement Test, Skill Assessment và Mock/Practice Exam.
 
-Mỗi Question của MVP là trắc nghiệm chọn **một** đáp án đúng, có một `PrimarySkill` trong Reading, Listening, Vocabulary, Grammar. Kết quả Placement không tự nhận là chứng nhận CEFR/TOEIC. Các ý tưởng như thanh toán, diễn đàn, livestream hoặc chấm Speaking/Writing bằng AI nằm ngoài phạm vi hiện tại.
+Mỗi Question của MVP là trắc nghiệm chọn **một** đáp án đúng, có một `PrimarySkill` trong Reading, Listening, Vocabulary, Grammar. Kết quả Placement không tự nhận là chứng nhận CEFR/TOEIC. Thanh toán thật, diễn đàn, livestream hoặc chấm Speaking/Writing bằng AI nằm ngoài phạm vi hiện tại; checkout chỉ hỗ trợ sandbox local theo tài liệu trên.
 
 ### Các mốc bàn giao
 

@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Learning;
+using EnglishLearningPlatform.Application.Commerce;
+using EnglishLearningPlatform.Infrastructure.Commerce;
 
 namespace EnglishLearningPlatform.Infrastructure;
 
@@ -52,6 +54,11 @@ public static class DependencyInjection
         services.AddScoped<IProfileService, IdentityProfileService>();
         services.AddScoped<ILearningAccessService, LearningAccessService>();
         services.AddScoped<ICourseService, CourseService>();
+        services.AddSingleton<LocalSandboxGateway>();
+        services.AddSingleton<IPaymentGateway>(provider => provider.GetRequiredService<LocalSandboxGateway>());
+        services.AddScoped<ICheckoutTransactionFactory, CheckoutTransactionFactory>();
+        services.AddScoped<CheckoutTransactionExecutor>();
+        services.AddScoped<ICheckoutService, CheckoutService>();
         return services;
     }
 }
