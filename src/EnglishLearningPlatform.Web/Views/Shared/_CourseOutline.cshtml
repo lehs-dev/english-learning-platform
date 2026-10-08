@@ -1,6 +1,6 @@
 @model CoursePage
 @if (!Model.Modules.Any(m => m.Lessons.Count > 0)) { <p class="panel empty">Chưa có nội dung khả dụng</p> }
 @foreach (var module in Model.Modules) {
-    <section class="panel"><h3>@module.Title @if (Model.IsOwner) { <span class="badge">@module.Visibility</span> }</h3><p class="preserve">@module.Description</p>
-    <ul class="lesson-list">@foreach (var lesson in module.Lessons) { <li>@if (Model.CanLearn) { <a asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">@lesson.Title</a> } else { <span>@lesson.Title <small class="muted">· Cần tham gia</small></span> } @if (Model.IsOwner) { <span class="badge">@lesson.Status</span> }</li> }</ul></section>
+    <section class="panel"><h3>@if (Model.CanLearn) { <a asp-controller="Learning" asp-action="Module" asp-route-id="@module.Id">@module.Title</a> } else { @module.Title } @if (Model.IsOwner) { <span class="badge">@module.Visibility</span> }</h3><p class="preserve">@module.Description</p>
+    <ul class="lesson-list">@foreach (var lesson in module.Lessons) { <li>@if (Model.CanLearn) { <a asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">@lesson.Title</a> } else { <span>@lesson.Title <small class="muted">· Cần tham gia</small></span> } @if (Model.IsOwner) { <span class="badge">@lesson.Status</span> } else if (Model.Progress is not null) { <span class="badge">@(lesson.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành")</span> }</li> }</ul></section>
 }

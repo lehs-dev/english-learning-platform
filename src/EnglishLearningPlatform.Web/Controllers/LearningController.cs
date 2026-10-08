@@ -27,14 +27,23 @@ public sealed class LearningController(ICourseService courses) : Controller
     [HttpGet]
     public async Task<IActionResult> Module(Guid id, CancellationToken ct)
     {
-        var result = await courses.ModuleCourseAsync(UserId, id, ct);
-        return result.Access == LearningAccessResult.Allowed ? RedirectToAction(nameof(Course), new { id = result.Value }) : Denied(result.Access);
+        var result = await courses.OpenModuleAsync(UserId, id, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
     [HttpGet]
     public async Task<IActionResult> Lesson(Guid id, CancellationToken ct)
     {
         var result = await courses.OpenLessonAsync(UserId, id, ct);
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+    }
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = AuthorizationPolicies.Student)]
+    public async Task<IActionResult> Completion(Guid id, bool? completed, CancellationToken ct)
+    {
+        if (!ModelState.IsValid || !completed.HasValue) return BadRequest();
+        var result = await courses.SetLessonCompletedAsync(UserId, id, completed.Value, ct);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        TempData["Success"] = completed.Value ? "Đã đánh dấu bài học hoàn thành." : "Đã đánh dấu bài học chưa hoàn thành.";
+        return RedirectToAction(nameof(Lesson), new { id });
     }
     [HttpGet]
     public async Task<IActionResult> Resource(Guid id, CancellationToken ct)

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.Learning;
 
-public sealed class CourseService(AppDbContext db, ILearningAccessService access, UserManager<ApplicationUser> users) : ICourseService
+public sealed partial class CourseService(AppDbContext db, ILearningAccessService access, UserManager<ApplicationUser> users) : ICourseService
 {
     private IQueryable<CourseSummary> Summaries(IQueryable<Course> query, bool publicOnly = false) => query.Select(c => new CourseSummary(
         c.Id, c.OwnerTeacherUserId, c.Title, c.Description, c.Objectives,
@@ -74,11 +74,17 @@ public sealed class CourseService(AppDbContext db, ILearningAccessService access
     public async Task<LearningOutcome<IReadOnlyList<CourseSummary>>> MyCoursesAsync(Guid userId, bool teacher, CancellationToken ct = default)
     {
         if (!await ActiveRole(userId, teacher ? AppRoles.Teacher : AppRoles.Student)) return new(LearningAccessResult.Forbidden);
+        var enrollments = db.Enrollments.AsNoTracking().Valid().Where(e => e.StudentUserId == userId);
         var query = db.Courses.AsNoTracking().Where(c => teacher ? c.OwnerTeacherUserId == userId :
-            c.Status != CourseStatus.Draft && c.Enrollments.Any(e => e.StudentUserId == userId &&
-                (!e.PaymentId.HasValue || (e.Payment!.Status == PaymentStatus.Succeeded && e.Payment.Order.StudentUserId == userId &&
-                    e.Payment.Order.CourseId == c.Id && e.Payment.Amount == e.Payment.Order.Amount && e.Payment.Order.Currency == "VND"))));
-        return new(LearningAccessResult.Allowed, await Summaries(query.OrderByDescending(c => c.CreatedAtUtc).ThenBy(c => c.Id)).ToListAsync(ct));
+            (c.Status == CourseStatus.Published || c.Status == CourseStatus.Unpublished || c.Status == CourseStatus.Archived) &&
+            enrollments.Any(e => e.CourseId == c.Id));
+        var courses = await Summaries(query.OrderByDescending(c => c.CreatedAtUtc).ThenBy(c => c.Id), !teacher).ToListAsync(ct);
+        if (!teacher)
+        {
+            var progress = await ProgressAsync(userId, courses.Select(c => c.Id).ToArray(), ct);
+            courses = courses.Select(c => c with { Progress = progress.GetValueOrDefault(c.Id) }).ToList();
+        }
+        return new(LearningAccessResult.Allowed, courses);
     }
     public async Task<LearningOutcome<CoursePage>> OpenCourseAsync(Guid userId, Guid id, bool manage, CancellationToken ct = default)
     {
@@ -86,10 +92,13 @@ public sealed class CourseService(AppDbContext db, ILearningAccessService access
             manage ? LearningOperation.ManageContent : LearningOperation.ViewContent, ct);
         if (allowed != LearningAccessResult.Allowed) return new(allowed);
         var owner = await Manage(userId, id, ct) == LearningAccessResult.Allowed;
-        var summary = await Summaries(db.Courses.AsNoTracking().Where(c => c.Id == id)).SingleAsync(ct);
+        var summary = await Summaries(db.Courses.AsNoTracking().Where(c => c.Id == id), !owner).SingleAsync(ct);
         var errors = owner ? CourseRules.PublishErrors((await Graph().AsNoTracking().SingleAsync(c => c.Id == id, ct))) : [];
-        return new(allowed, new(summary, await Outline(id, owner, ct), true, owner,
-            owner ? await db.Enrollments.CountAsync(e => e.CourseId == id, ct) : 0, errors));
+        var modules = await Outline(id, owner, ct);
+        var progress = owner ? null : (await ProgressAsync(userId, [id], ct)).GetValueOrDefault(id);
+        if (!owner) modules = await CompletedOutlineAsync(userId, id, modules, ct);
+        return new(allowed, new(summary, modules, true, owner,
+            owner ? await db.Enrollments.CountAsync(e => e.CourseId == id, ct) : 0, errors) { Progress = progress });
     }
     public async Task<LearningOutcome<LessonPage>> OpenLessonAsync(Guid userId, Guid id, CancellationToken ct = default)
     {
@@ -98,7 +107,17 @@ public sealed class CourseService(AppDbContext db, ILearningAccessService access
         var lesson = await db.Lessons.AsNoTracking().Where(l => l.Id == id).Select(l => new LessonPage(l.Id,
             l.Module.CourseId, l.Module.Course.Title, l.Title, l.Resources.OrderBy(r => r.OrderIndex).ThenBy(r => r.Id)
                 .Select(r => new ResourceContent(r.Id, r.Title, r.ResourceType, r.ContentText, r.ResourceUrl)).ToList())).SingleAsync(ct);
-        return new(allowed, lesson);
+        var module = await db.Lessons.Where(l => l.Id == id).Select(l => new { l.ModuleId, l.Module.Title, l.Module.Course.Status }).SingleAsync(ct);
+        var owner = await Manage(userId, lesson.CourseId, ct) == LearningAccessResult.Allowed;
+        var navigation = (await Outline(lesson.CourseId, owner, ct)).SelectMany(m => m.Lessons).ToList();
+        var position = navigation.FindIndex(l => l.Id == id);
+        var progress = owner ? null : (await ProgressAsync(userId, [lesson.CourseId], ct)).GetValueOrDefault(lesson.CourseId);
+        var completed = !owner && await db.LessonProgressEntries.AnyAsync(p => p.LessonId == id && p.IsCompleted &&
+            p.Enrollment.StudentUserId == userId && p.Enrollment.CourseId == lesson.CourseId, ct);
+        return new(allowed, lesson with { ModuleId = module.ModuleId, ModuleTitle = module.Title, CourseStatus = module.Status,
+            IsCompleted = completed, CanRecordProgress = !owner && module.Status is CourseStatus.Published or CourseStatus.Unpublished,
+            Progress = progress, Previous = position > 0 ? navigation[position - 1] : null,
+            Next = position >= 0 && position + 1 < navigation.Count ? navigation[position + 1] : null });
     }
     public async Task<LearningOutcome<ResourceContent>> OpenResourceAsync(Guid userId, Guid id, CancellationToken ct = default)
     {
@@ -194,6 +213,7 @@ public sealed class CourseService(AppDbContext db, ILearningAccessService access
         if (kind == ContentKind.Resource && !Enum.IsDefined(input.ResourceType)) errors[nameof(input.ResourceType)] = ["Loại resource không hợp lệ."];
         if (errors.Count > 0) return Invalid(courseId, errors);
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await LockCourseAsync(courseId, ct);
         Guid savedId;
         if (kind == ContentKind.Module)
         {
@@ -217,7 +237,9 @@ public sealed class CourseService(AppDbContext db, ILearningAccessService access
             r.ResourceUrl = input.ResourceType == LessonResourceType.Text ? null : input.ResourceUrl;
             if (!id.HasValue) db.LessonResources.Add(r); savedId = r.Id;
         }
-        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
+        await db.SaveChangesAsync(ct);
+        if (kind is ContentKind.Module or ContentKind.Lesson) await ReconcileCompletionAsync(courseId, ct);
+        await tx.CommitAsync(ct);
         return WriteOutcome.Ok(savedId);
     }
     public async Task<WriteOutcome> DeleteResourceAsync(Guid userId, Guid courseId, Guid lessonId, Guid id, CancellationToken ct = default)
@@ -261,6 +283,7 @@ public sealed class CourseService(AppDbContext db, ILearningAccessService access
         if (allowed != LearningAccessResult.Allowed) return WriteOutcome.Denied(allowed);
         if (status is not (CourseStatus.Published or CourseStatus.Unpublished or CourseStatus.Archived)) return Invalid(id, new() { [""] = ["Trạng thái không hợp lệ."] });
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await LockCourseAsync(id, ct);
         var course = await Graph().SingleAsync(c => c.Id == id, ct);
         if (status == CourseStatus.Published)
         {
@@ -268,14 +291,16 @@ public sealed class CourseService(AppDbContext db, ILearningAccessService access
             if (errors.Count > 0) return Invalid(id, new() { [""] = errors.ToArray() });
         }
         course.Status = status; course.UpdatedAtUtc = DateTimeOffset.UtcNow;
-        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return WriteOutcome.Ok(id);
+        await db.SaveChangesAsync(ct);
+        await ReconcileCompletionAsync(id, ct);
+        await tx.CommitAsync(ct); return WriteOutcome.Ok(id);
     }
     public async Task<WriteOutcome> EnrollFreeAsync(Guid userId, Guid id, CancellationToken ct = default)
     {
-        if (!await ActiveRole(userId, AppRoles.Student)) return WriteOutcome.Denied(LearningAccessResult.Forbidden);
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
-        var c = await db.Courses.SingleOrDefaultAsync(c => c.Id == id && c.Status == CourseStatus.Published, ct);
-        if (c is null) return WriteOutcome.Denied(LearningAccessResult.NotFound);
+        var c = await LockCourseAsync(id, ct);
+        if (!await ActiveRole(userId, AppRoles.Student)) return WriteOutcome.Denied(LearningAccessResult.Forbidden);
+        if (c is null || c.Status != CourseStatus.Published) return WriteOutcome.Denied(LearningAccessResult.NotFound);
         if (c.IsPaid || c.Price != 0 || !await db.Users.AnyAsync(u => u.Id == c.OwnerTeacherUserId && u.AccountStatus != AccountStatus.Disabled, ct))
             return WriteOutcome.Denied(LearningAccessResult.Forbidden);
         // Reserve the enrollment key range before checking, so concurrent repeated POSTs

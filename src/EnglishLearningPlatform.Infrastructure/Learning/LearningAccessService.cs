@@ -42,7 +42,7 @@ public sealed class LearningAccessService(
         if (operation != LearningOperation.ViewContent && operation != LearningOperation.RecordProgress)
             return LearningAccessResult.Forbidden;
 
-        if (!resource.IsVisible || resource.CourseStatus == CourseStatus.Draft)
+        if (!resource.IsVisible || resource.CourseStatus is not (CourseStatus.Published or CourseStatus.Unpublished or CourseStatus.Archived))
             return LearningAccessResult.Forbidden;
 
         // Course Unpublished/Archived vẫn được xem bởi Student đã enroll.
@@ -51,12 +51,8 @@ public sealed class LearningAccessService(
             && (resourceType != LearningResourceType.Lesson || resource.CourseStatus == CourseStatus.Archived))
             return LearningAccessResult.Forbidden;
 
-        var enrolled = await dbContext.Enrollments.AsNoTracking().AnyAsync(
-            enrollment => enrollment.StudentUserId == userId && enrollment.CourseId == resource.CourseId &&
-                (!enrollment.PaymentId.HasValue || (enrollment.Payment!.Status == PaymentStatus.Succeeded &&
-                    enrollment.Payment.Order.StudentUserId == userId && enrollment.Payment.Order.CourseId == resource.CourseId &&
-                    enrollment.Payment.Amount == enrollment.Payment.Order.Amount && enrollment.Payment.Order.Currency == "VND")),
-            cancellationToken);
+        var enrolled = await dbContext.Enrollments.AsNoTracking().Valid().AnyAsync(
+            enrollment => enrollment.StudentUserId == userId && enrollment.CourseId == resource.CourseId, cancellationToken);
 
         return enrolled ? LearningAccessResult.Allowed : LearningAccessResult.Forbidden;
     }

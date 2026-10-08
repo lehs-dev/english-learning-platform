@@ -12,6 +12,7 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         e.ToTable("Order");
         e.Property(x => x.Amount).HasPrecision(18, 2);
         e.Property(x => x.Currency).HasMaxLength(3).IsRequired();
+        e.Property(x => x.Provider).HasMaxLength(64).IsRequired();
         e.HasIndex(x => new { x.StudentUserId, x.CourseId });
         e.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.StudentUserId).OnDelete(DeleteBehavior.NoAction);
         e.HasOne(x => x.Course).WithMany().HasForeignKey(x => x.CourseId).OnDelete(DeleteBehavior.NoAction);
