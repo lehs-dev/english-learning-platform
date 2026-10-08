@@ -259,6 +259,24 @@ public sealed class CourseCompletionIntegrationTests(IntegrationTestFactory fact
     }
 
     [Fact]
+    public async Task HighestPassingFinal_CompletesDespiteLaterFailedAttempt()
+    {
+        var data = await Seed();
+        var highest = await Finalize(data, await StartAndAnswer(data, 4));
+        Assert.Equal(80m, highest.OverallScore); Assert.True(highest.Passed);
+        Assert.Null(await CompletedAt(data));
+        var latest = await Finalize(data, await StartAndAnswer(data, 3));
+        Assert.Equal(60m, latest.OverallScore); Assert.False(latest.Passed);
+        Assert.Null(await CompletedAt(data));
+
+        await CompleteLessons(data);
+
+        Assert.NotNull(await CompletedAt(data));
+        await InDb(async db => Assert.Equal(2, await db.Attempts.CountAsync(a =>
+            a.StudentUserId == data.Student && a.AssessmentId == data.Final && a.Status == AttemptStatus.Graded)));
+    }
+
+    [Fact]
     public async Task VerifiedHostedPaymentThroughLearningAndRealFinal_RecordsCourseCompletion()
     {
         var data = await Seed(paid: true);

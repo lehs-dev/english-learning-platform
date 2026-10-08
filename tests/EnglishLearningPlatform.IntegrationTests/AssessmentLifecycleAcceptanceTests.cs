@@ -232,6 +232,39 @@ public sealed class AssessmentLifecycleAcceptanceTests(IntegrationTestFactory fa
     }
 
     [Fact]
+    public async Task SaveAnswer_RejectsAnotherAssessmentsQuestion_AndClearIsIdempotent()
+    {
+        var data = await SeedAsync();
+        var foreign = await SeedAsync();
+        var started = await StartAsync(data.Student, data.Assessment);
+        Assert.Equal(AttemptStartStatus.Started, started.Status);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var service = scope.ServiceProvider.GetRequiredService<IAttemptService>();
+        var questions = await db.AssessmentQuestions.AsNoTracking()
+            .Where(q => q.AssessmentId == data.Assessment || q.AssessmentId == foreign.Assessment)
+            .OrderBy(q => q.OrderIndex)
+            .Select(q => new { q.Id, q.AssessmentId, CorrectOption = q.Question.Options.Where(o => o.IsCorrect).Select(o => o.Id).Single() })
+            .ToListAsync();
+        var ownQuestion = questions.First(q => q.AssessmentId == data.Assessment);
+        var foreignQuestion = questions.First(q => q.AssessmentId == foreign.Assessment);
+        var attempt = started.AttemptId!.Value;
+
+        Assert.Equal(AttemptSaveStatus.InvalidAnswer,
+            await service.SaveAnswerAsync(data.Student, attempt, foreignQuestion.Id, foreignQuestion.CorrectOption));
+        Assert.False(await db.AttemptAnswers.AnyAsync(a => a.AttemptId == attempt));
+        Assert.Equal(AttemptSaveStatus.Saved,
+            await service.SaveAnswerAsync(data.Student, attempt, ownQuestion.Id, ownQuestion.CorrectOption));
+        Assert.Equal(1, await db.AttemptAnswers.CountAsync(a => a.AttemptId == attempt));
+        Assert.Equal(AttemptSaveStatus.Cleared, await service.SaveAnswerAsync(data.Student, attempt, ownQuestion.Id, null));
+        Assert.Equal(AttemptSaveStatus.Cleared, await service.SaveAnswerAsync(data.Student, attempt, ownQuestion.Id, null));
+        Assert.False(await db.AttemptAnswers.AnyAsync(a => a.AttemptId == attempt));
+        var saved = await db.Attempts.AsNoTracking().SingleAsync(a => a.Id == attempt);
+        Assert.Equal(AttemptStatus.InProgress, saved.Status);
+        Assert.Equal(started.DeadlineUtc, saved.DeadlineUtc);
+    }
+
+    [Fact]
     public async Task Start_RechecksAssessmentScopeAfterSnapshotBeforeCreatingAttempt()
     {
         var data = await SeedAsync(courseLinked: true);
