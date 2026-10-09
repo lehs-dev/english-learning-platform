@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Learning;
+using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Infrastructure.QuestionBank;
 using EnglishLearningPlatform.Application.Commerce;
 using EnglishLearningPlatform.Infrastructure.Commerce;
 using EnglishLearningPlatform.Application.Assessment;
@@ -56,6 +58,7 @@ public static class DependencyInjection
         services.AddScoped<IProfileService, IdentityProfileService>();
         services.AddScoped<ILearningAccessService, LearningAccessService>();
         services.AddScoped<ICourseService, CourseService>();
+        services.AddScoped<IQuestionCreationService, QuestionCreationService>();
         services.Configure<HostedPaymentOptions>(configuration.GetSection("Payments"));
         services.AddSingleton<IPaymentGateway, HostedPaymentGateway>();
         services.AddSingleton<LocalSandboxGateway>();
