@@ -24,7 +24,7 @@
                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#menu")"></use></svg>
             </button>
             <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
-@if (User.IsInRole("Teacher")) { <a class="nav-link" asp-controller="TeacherCourses" asp-action="Index">Khóa của tôi</a> } else if (User.IsInRole("Student")) { <a class="nav-link" asp-controller="Learning" asp-action="Index">Khu học tập</a> }
+@if (User.IsInRole("Teacher")) { <a class="nav-link" asp-controller="TeacherCourses" asp-action="Index">Khóa của tôi</a> } else if (User.IsInRole("Student")) { <a class="nav-link" asp-controller="Learning" asp-action="Index">Khu học tập</a><a class="nav-link @(activeSection == "transactions" ? "is-active" : "")" asp-controller="Checkout" asp-action="History" aria-current="@(activeSection == "transactions" ? "page" : null)">Lịch sử giao dịch</a> }
                 <a class="nav-link @(activeSection == "courses" ? "is-active" : "")" asp-controller="Courses" asp-action="Index" aria-current="@(activeSection == "courses" ? "page" : null)">Khóa học</a>
                 <a class="nav-link @(activeSection == "exams" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="exams" aria-current="@(activeSection == "exams" ? "page" : null)">Đề thi</a>
                 <a class="nav-link @(activeSection == "assessment" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="assessment" aria-current="@(activeSection == "assessment" ? "page" : null)">Đánh giá năng lực</a>

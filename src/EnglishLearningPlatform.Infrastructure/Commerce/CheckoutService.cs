@@ -33,6 +33,10 @@ public sealed class CheckoutService(AppDbContext db, UserManager<ApplicationUser
         .FromSqlInterpolated($"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {id}").SingleOrDefaultAsync(ct);
     private Task<bool> Enrolled(Guid user, Guid course, CancellationToken ct) => db.Enrollments.Valid()
         .AnyAsync(e => e.StudentUserId == user && e.CourseId == course, ct);
+    private static PaymentStatus? ResolveStatus(IEnumerable<Payment> payments) =>
+        payments.Any(p => p.Status == PaymentStatus.Succeeded) ? PaymentStatus.Succeeded :
+        payments.Any(p => p.Status == PaymentStatus.Failed) ? PaymentStatus.Failed :
+        payments.Any(p => p.Status == PaymentStatus.Cancelled) ? PaymentStatus.Cancelled : null;
     private async Task<CheckoutCode> Eligibility(Guid user, Course? course, CancellationToken ct)
     {
         if (!await ActiveStudent(user)) return CheckoutCode.Forbidden;
@@ -106,9 +110,7 @@ public sealed class CheckoutService(AppDbContext db, UserManager<ApplicationUser
                 .SingleOrDefaultAsync(o => o.Id == orderId && o.StudentUserId == userId, ct);
             if (order is null) return new(CheckoutCode.NotFound);
             var enrolled = await Enrolled(userId, order.CourseId, ct);
-            PaymentStatus? status = order.Payments.Any(p => p.Status == PaymentStatus.Succeeded) ? PaymentStatus.Succeeded :
-                order.Payments.Any(p => p.Status == PaymentStatus.Failed) ? PaymentStatus.Failed :
-                order.Payments.Any(p => p.Status == PaymentStatus.Cancelled) ? PaymentStatus.Cancelled : null;
+            var status = ResolveStatus(order.Payments);
             var isLocal = order.Provider == LocalSandboxGateway.ProviderName;
             var gateway = isLocal ? (IPaymentGateway)local : hosted;
             var canCheckout = !enrolled && !status.HasValue && order.ExpiresAtUtc > DateTimeOffset.UtcNow &&
@@ -121,6 +123,24 @@ public sealed class CheckoutService(AppDbContext db, UserManager<ApplicationUser
                 order.Provider, order.ExpiresAtUtc, order.CreatedAtUtc,
                 canCheckout ? gateway.CreateCheckoutUrl(new(order.Id, order.Amount, order.Currency, order.ExpiresAtUtc!.Value)) : null, canCheckout));
         }, new(CheckoutCode.IntegrationError), ct);
+    public Task<CheckoutOutcome<TransactionHistoryPage>> HistoryAsync(Guid userId, int page = 1, CancellationToken ct = default) =>
+        transactions.ReadAsync<CheckoutOutcome<TransactionHistoryPage>>("transaction-history", userId, async () =>
+        {
+            if (!await ActiveStudent(userId)) return new(CheckoutCode.Forbidden);
+
+            var query = db.Orders.AsNoTracking().Where(o => o.StudentUserId == userId);
+            var total = await query.CountAsync(ct);
+            var pages = Math.Max(1, (total + TransactionHistoryPage.PageSize - 1) / TransactionHistoryPage.PageSize);
+            page = Math.Clamp(page, 1, pages);
+            var orders = await query.Include(o => o.Course).Include(o => o.Payments)
+                .OrderByDescending(o => o.CreatedAtUtc).ThenByDescending(o => o.Id)
+                .Skip((page - 1) * TransactionHistoryPage.PageSize)
+                .Take(TransactionHistoryPage.PageSize).ToListAsync(ct);
+            var items = orders.Select(o => new TransactionHistoryItem(o.Id, o.Course.Title,
+                o.Amount, o.Currency, o.CreatedAtUtc, ResolveStatus(o.Payments))).ToList();
+            return new(CheckoutCode.Allowed, new TransactionHistoryPage(items, page, total));
+        }, new(CheckoutCode.IntegrationError), ct);
+
     public async Task<LearningOutcome<CheckoutPage>> GetAsync(Guid userId, Guid orderId, CancellationToken ct = default)
     {
         var result = await GetOrderAsync(userId, orderId, ct);

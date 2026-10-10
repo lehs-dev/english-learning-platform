@@ -20,6 +20,15 @@ public sealed record OrderCheckout(Guid Id, Guid CourseId, string Title, string 
     public bool IsSandbox => Provider == "local-sandbox";
 }
 
+public sealed record TransactionHistoryItem(Guid OrderId, string CourseTitle, decimal Amount,
+    string Currency, DateTimeOffset CreatedAtUtc, PaymentStatus? Status);
+
+public sealed record TransactionHistoryPage(IReadOnlyList<TransactionHistoryItem> Orders, int Page, int Total)
+{
+    public const int PageSize = 10;
+    public int Pages => Math.Max(1, (Total + PageSize - 1) / PageSize);
+}
+
 // Only CourseId is accepted from the purchase form; price and buyer are server-owned.
 public sealed class CreateOrderRequest
 {

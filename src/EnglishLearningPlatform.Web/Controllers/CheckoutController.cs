@@ -57,6 +57,20 @@ public sealed class CheckoutController(ICheckoutService checkout, ILogger<Checko
     public Task<IActionResult> Order(Guid id, CancellationToken ct) => RenderOrder(id, ct);
     [HttpGet]
     public Task<IActionResult> Result(Guid id, CancellationToken ct) => RenderOrder(id, ct);
+    [HttpGet]
+    public async Task<IActionResult> History(int page = 1, CancellationToken ct = default)
+    {
+        if (!UserId.HasValue) return Challenge();
+        ViewData["ActiveSection"] = "transactions";
+        var result = await checkout.HistoryAsync(UserId.Value, page, ct);
+        if (result.Code == CheckoutCode.IntegrationError)
+        {
+            Response.StatusCode = 503;
+            TempData["Error"] = Message(result.Code);
+            return View("Unavailable");
+        }
+        return result.Code == CheckoutCode.Allowed ? View(result.Value) : Forbid();
+    }
     private async Task<IActionResult> RenderOrder(Guid id, CancellationToken ct)
     {
         if (!UserId.HasValue) return Challenge();
