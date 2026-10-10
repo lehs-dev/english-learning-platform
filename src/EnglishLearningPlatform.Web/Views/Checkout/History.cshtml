@@ -1,0 +1,81 @@
+@using EnglishLearningPlatform.Application.Commerce
+@using EnglishLearningPlatform.Domain.Enums
+@model TransactionHistoryPage
+@{
+    ViewData["Title"] = "Lịch sử giao dịch";
+
+    static string StatusLabel(PaymentStatus? status) => status switch
+    {
+        PaymentStatus.Succeeded => "Đã thanh toán",
+        PaymentStatus.Failed => "Thất bại",
+        PaymentStatus.Cancelled => "Đã hủy",
+        _ => "Chờ thanh toán"
+    };
+}
+@section Styles { <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" /> }
+<div class="transaction-history-page">
+    <div class="page-heading">
+        <div>
+            <p class="eyebrow">ESTUDY · TÀI KHOẢN</p>
+            <h1>Lịch sử giao dịch</h1>
+            <p class="muted">Các đơn mua khóa học của bạn</p>
+        </div>
+        <a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a>
+    </div>
+
+    @if (Model.Orders.Count == 0)
+    {
+        <section class="panel empty" aria-live="polite">
+            <p>Bạn chưa có giao dịch nào.</p>
+            <a class="button secondary" asp-controller="Courses" asp-action="Index">Xem danh mục khóa học</a>
+        </section>
+    }
+    else
+    {
+        <section class="panel transaction-history-card" aria-labelledby="transaction-history-title">
+            <h2 id="transaction-history-title" class="visually-hidden">Danh sách đơn mua khóa học</h2>
+            <div class="transaction-history-table-wrap">
+                <table class="transaction-history-table">
+                    <caption class="visually-hidden">Lịch sử giao dịch, trang @Model.Page trên @Model.Pages</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Mã đơn</th>
+                            <th scope="col">Khóa học</th>
+                            <th scope="col">Số tiền</th>
+                            <th scope="col">Ngày tạo</th>
+                            <th scope="col">Trạng thái</th>
+                            <th scope="col"><span class="visually-hidden">Thao tác</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var order in Model.Orders)
+                    {
+                        <tr>
+                            <td data-label="Mã đơn"><span class="transaction-order-id">@order.OrderId</span></td>
+                            <td data-label="Khóa học">@order.CourseTitle</td>
+                            <td data-label="Số tiền"><span class="transaction-amount">@order.Amount.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @order.Currency</span></td>
+                            <td data-label="Ngày tạo">@order.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td data-label="Trạng thái"><span class="transaction-status transaction-status--@((order.Status ?? PaymentStatus.Pending).ToString().ToLowerInvariant())">@StatusLabel(order.Status)</span></td>
+                            <td data-label="Thao tác"><a href="@Url.Action("Order", "Checkout", new { id = order.OrderId })">Xem chi tiết</a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        @if (Model.Pages > 1)
+        {
+            <nav class="actions pagination transaction-history-pagination" aria-label="Phân trang lịch sử giao dịch">
+                @if (Model.Page > 1)
+                {
+                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page - 1)">← Trước</a>
+                }
+                <span class="muted" aria-current="page">Trang @Model.Page / @Model.Pages</span>
+                @if (Model.Page < Model.Pages)
+                {
+                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page + 1)">Sau →</a>
+                }
+            </nav>
+        }
+    }
+</div>
