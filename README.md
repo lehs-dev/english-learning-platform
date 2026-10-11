@@ -2,7 +2,7 @@
 
 **Đề tài:** Xây dựng nền tảng học tập và đánh giá năng lực tiếng Anh trực tuyến trên nền web bằng ASP.NET Core.
 
-> **Tình trạng mã nguồn (26/09/2026):** Repo đã có migration SQL Server **InitialCreate**, migration tạo các role Identity (**Student**, **Teacher**, **Admin**) và cấu hình chạy bằng Docker Compose. Luồng sản phẩm vẫn đang phát triển; các mục dưới đây mô tả phạm vi cần xây, không có nghĩa là mọi chức năng đã xong. Xem issue/PR để biết tiến độ thực tế.
+> **Cập nhật Công việc 10–12 (11/10/2026):** Có giao diện Final Assessment (Start/Save/Resume/Submit/Result), huy hiệu hoàn thành khóa, Admin tra cứu giao dịch/tài khoản và bộ hồ sơ bàn giao trong [docs/handover](docs/handover/README.md). Trạng thái kiểm thử, CI và rehearsal được ghi riêng theo bằng chứng thực tế; không suy ra mọi phân hệ của dự án đã hoàn tất.
 
 **Cập nhật 03/10/2026:** Đã có catalog Course công khai, tìm/lọc/phân trang, detail chỉ metadata/cấu trúc/giá, enroll Free, đọc Lesson/resource có quyền và giao diện Teacher authoring/preview/Publish/Unpublish/Archive. Paid hiện có schema và kiểm tra Enrollment/Payment; checkout/webhook chưa triển khai. Xem [hướng dẫn Course và dữ liệu demo](docs/project/course-authoring.md).
 
@@ -111,7 +111,9 @@ Thực hiện Cách B từ bước tạo **.env** đến hết lệnh **dotnet e
 
     docker compose up --build -d
 
-Mở **http://localhost:8080**. Khi pull migration mới, cập nhật schema bằng lệnh EF ở Cách B rồi khởi động lại stack. Kiểm tra các container bằng **docker compose ps**; health check tại **http://localhost:8080/health** cần database hoạt động.
+Đặt `MSSQL_SA_PASSWORD` trong environment hoặc `.env` local (không commit). Compose chờ SQL healthy, chạy service `migrate` một lần rồi mới mở `web`; cập nhật schema không cần EF CLI trên host. Khi pull migration mới, chạy `docker compose run --rm migrate` trước khi mở lại web. Mở **http://localhost:8080**; `docker compose ps` và **http://localhost:8080/health** kiểm tra readiness. Image chạy bằng user `app`. `ELP_SQL_PORT` và `ELP_WEB_PORT` đổi cổng khi cần; cổng mặc định chỉ bind localhost.
+
+Demo dữ liệu và checkout local chỉ bật khi opt-in Development: xem [hướng dẫn demo](docs/project/son-demo-fallback.md). `bash scripts/fresh-demo.sh` tạo project/volume riêng, từ chối tên project đã có dữ liệu. [Browser UAT](tests/browser/README.md) chạy Guest → thanh toán → học → Final → kết quả → Teacher → Admin và lưu ảnh không chứa secret.
 
 Dừng container nhưng giữ dữ liệu bằng **docker compose down** hoặc **docker compose stop**. Volume **sqlserver-data** giữ database qua các lần dừng/chạy. Chỉ dùng **docker compose down -v** nếu chủ động muốn xóa database local.
 
@@ -127,7 +129,7 @@ dotnet run --project src/EnglishLearningPlatform.Web --launch-profile LocalSqlSe
 
 Mở **http://localhost:5098**. Profile `LocalSqlServer` trỏ tới database **EnglishLearningDb** trên instance mặc định; chọn profile này khi chạy Windows local. Nếu dùng named instance hoặc SQL Authentication, đặt connection string phù hợp và chạy profile `http` để giữ cấu hình bạn đã đặt.
 
-`dotnet ef` không đọc `launchSettings.json` hay profile `LocalSqlServer`. Vì vậy, phải đặt biến `ConnectionStrings__DefaultConnection` trước lệnh EF trong cùng terminal, hoặc truyền trực tiếp `--connection 'Server=localhost;Database=EnglishLearningDb;Integrated Security=True;TrustServerCertificate=True;MultipleActiveResultSets=true'`. Bỏ bước này sẽ dùng cấu hình mặc định `localhost,1433` dành cho Docker và có thể gặp lỗi TCP timeout (258) trên SQL Server Windows local.
+`dotnet ef` không đọc `launchSettings.json` hay profile `LocalSqlServer`. Vì vậy, phải đặt biến `ConnectionStrings__DefaultConnection` trước lệnh EF trong cùng terminal, hoặc dùng user-secrets. `appsettings.json` không chứa connection string hoặc mật khẩu mặc định; bỏ bước cấu hình sẽ không thể kết nối database.
 
 Trước khi build hoặc cập nhật database trên Windows, dừng ứng dụng đang chạy bằng **Ctrl+C** trong terminal của `dotnet run` hoặc Stop Debugging trong VS Code. Nếu app đang giữ DLL, EF có thể báo `Build failed` và build báo MSB3021/MSB3027. Khi đã build thành công, có thể thêm `--no-build` cho lệnh `dotnet ef database update`; chạy web sau khi cập nhật database xong.
 

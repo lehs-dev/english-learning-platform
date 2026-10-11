@@ -24,6 +24,42 @@
       "args": ["run", "--project", "src/EnglishLearningPlatform.Web"],
       "problemMatcher": "$msCompile",
       "isBackground": true
+    },
+    {
+        "label": "build",
+        "command": "dotnet",
+        "type": "process",
+        "args": [
+            "build",
+            "${workspaceFolder}/scripts/HandoverExport/HandoverExport.csproj",
+            "/property:GenerateFullPaths=true",
+            "/consoleloggerparameters:NoSummary;ForceNoAlign"
+        ],
+        "problemMatcher": "$msCompile"
+    },
+    {
+        "label": "publish",
+        "command": "dotnet",
+        "type": "process",
+        "args": [
+            "publish",
+            "${workspaceFolder}/scripts/HandoverExport/HandoverExport.csproj",
+            "/property:GenerateFullPaths=true",
+            "/consoleloggerparameters:NoSummary;ForceNoAlign"
+        ],
+        "problemMatcher": "$msCompile"
+    },
+    {
+        "label": "watch",
+        "command": "dotnet",
+        "type": "process",
+        "args": [
+            "watch",
+            "run",
+            "--project",
+            "${workspaceFolder}/scripts/HandoverExport/HandoverExport.csproj"
+        ],
+        "problemMatcher": "$msCompile"
     }
   ]
 }

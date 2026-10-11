@@ -41,6 +41,7 @@ public sealed record CoursePage(CourseSummary Course, IReadOnlyList<ModuleOutlin
     bool CanLearn, bool IsOwner, int EnrollmentCount, IReadOnlyList<string> PublishErrors)
 {
     public CourseProgress? Progress { get; init; }
+    public Guid? FinalAssessmentId { get; init; }
 }
 public sealed record ModulePage(Guid Id, Guid CourseId, string CourseTitle, string Title, string? Description,
     CourseStatus CourseStatus, bool IsOwner, IReadOnlyList<LessonOutline> Lessons, CourseProgress? Progress);

@@ -9,6 +9,13 @@ TestResults/
 coverage/
 .sqlserver/
 .env
+.env.*
+!.env.example
+**/appsettings.Production.json
+**/node_modules/
+docs/acceptance/evidence/
+docs/handover/generated/
+artifacts/
 **/appsettings.Local.json
 **/appsettings.*.Local.json
 **/*.user

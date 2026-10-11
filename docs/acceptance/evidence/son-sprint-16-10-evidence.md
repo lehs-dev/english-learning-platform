@@ -1,5 +1,7 @@
 # Bằng chứng triển khai SON-01–SON-07
 
+> Bản ghi dưới đây giữ nguyên bằng chứng đợt backend trước. Đợt triển khai tiếp theo Công việc 10–12 trên branch riêng được ghi tại [tasks-10-12-release.md](tasks-10-12-release.md); không lấy SHA/log cũ làm bằng chứng candidate mới.
+
 Ngày thực hiện: 11/10/2026 (Asia/Saigon). Nguồn: kế hoạch kỹ thuật Sơn 11–16/10 được cung cấp và [tiến độ công việc.xlsx](https://docs.google.com/spreadsheets/d/1E_nodHM2VwFwqbon_2l6pzlnI02t1Z33/edit), đọc qua Google Drive connector. File nguồn là Excel trên Drive, không phải native Google Sheet; giữ nguyên file nguồn. Phân công Sơn: kiến trúc, Identity/Authorization, Commerce, đồng thời/toàn vẹn và phát hành; UI Assessment/Admin/Dashboard vẫn thuộc owner module.
 
 ## Phiên bản và môi trường

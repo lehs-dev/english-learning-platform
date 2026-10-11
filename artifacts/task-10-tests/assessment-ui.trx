@@ -1,0 +1,1151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="b6832ddc-d329-4228-93cf-5e241cfd8b5b" name="@57ac21493b14 2026-10-11 13:54:02" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-11T13:54:02.6169493+00:00" queuing="2026-10-11T13:54:02.6169493+00:00" start="2026-10-11T13:53:58.6732640+00:00" finish="2026-10-11T13:54:04.3556081+00:00" />
+  <TestSettings name="default" id="9d373caa-64c4-4a16-b9e4-55411966b486">
+    <Deployment runDeploymentRoot="_57ac21493b14_2026-10-11_13_54_02" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="590098c0-672a-407a-9d72-1d0e69678f4b" testId="d5b82c60-25d3-c2d6-6015-46e8229bd3ec" testName="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.ExpiredGetNeverGrades_PostStartFinalizesSavedAnswersWithoutCreatingNewAttempt" computerName="57ac21493b14" duration="00:00:00.2839928" startTime="2026-10-11T13:54:02.6085086+00:00" endTime="2026-10-11T13:54:02.8850605+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="590098c0-672a-407a-9d72-1d0e69678f4b" />
+    <UnitTestResult executionId="017fccac-bf28-4c72-a82b-16ff0977b330" testId="60d3dd0d-c293-ad8b-650d-12e9c1a8e43c" testName="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.GetOverview_DoesNotConsumeAttempts_AndStartRequiresStudentEnrollmentAndCsrf" computerName="57ac21493b14" duration="00:00:00.4051296" startTime="2026-10-11T13:54:03.8388674+00:00" endTime="2026-10-11T13:54:04.2441588+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="017fccac-bf28-4c72-a82b-16ff0977b330" />
+    <UnitTestResult executionId="d23737f9-1b30-4c7a-b89f-f55a63c1b2f6" testId="c8cf411d-31bf-25d4-cb39-c1ebb829b0df" testName="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.PlacementResultWithoutPassingScore_DoesNotLabelStudentFailed_AndExhaustedAttemptsRetainResultLink" computerName="57ac21493b14" duration="00:00:00.2500440" startTime="2026-10-11T13:54:03.1720149+00:00" endTime="2026-10-11T13:54:03.4221963+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d23737f9-1b30-4c7a-b89f-f55a63c1b2f6" />
+    <UnitTestResult executionId="83594bf3-bc28-4209-88f4-34c7412a083a" testId="6894edee-14c4-0399-6e8e-7e66e28c6271" testName="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.SubmitPassedFinal_ShowsSkillScoresAndCompletion_PreservesHistoryAfterLessonAddedAndReplay" computerName="57ac21493b14" duration="00:00:00.4161640" startTime="2026-10-11T13:54:03.4223235+00:00" endTime="2026-10-11T13:54:03.8387381+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="83594bf3-bc28-4209-88f4-34c7412a083a" />
+    <UnitTestResult executionId="101c47af-b4f9-4159-bc64-337cf9a81a19" testId="fb994db0-3f2a-b07d-07ae-051bd1b25feb" testName="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.SaveResume_RejectsMalformedForeignAndDuplicateAnswersBeforeWriting_AndEncodesContent" computerName="57ac21493b14" duration="00:00:00.2865471" startTime="2026-10-11T13:54:02.8858872+00:00" endTime="2026-10-11T13:54:03.1718102+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="101c47af-b4f9-4159-bc64-337cf9a81a19" />
+    <UnitTestResult executionId="c7945dc2-a91a-4bed-9348-543ad9d7a20e" testId="3f1713a4-2655-fe6d-5ae7-f7a6825c3f37" testName="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.ForeignAttempt_ResultReadAndSaveSubmitDenied_AndResultSurvivesWithdrawal" computerName="57ac21493b14" duration="00:00:01.9261228" startTime="2026-10-11T13:54:00.6885091+00:00" endTime="2026-10-11T13:54:02.5987201+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c7945dc2-a91a-4bed-9348-543ad9d7a20e" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.GetOverview_DoesNotConsumeAttempts_AndStartRequiresStudentEnrollmentAndCsrf" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="60d3dd0d-c293-ad8b-650d-12e9c1a8e43c">
+      <Execution id="017fccac-bf28-4c72-a82b-16ff0977b330" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests" name="GetOverview_DoesNotConsumeAttempts_AndStartRequiresStudentEnrollmentAndCsrf" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.PlacementResultWithoutPassingScore_DoesNotLabelStudentFailed_AndExhaustedAttemptsRetainResultLink" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="c8cf411d-31bf-25d4-cb39-c1ebb829b0df">
+      <Execution id="d23737f9-1b30-4c7a-b89f-f55a63c1b2f6" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests" name="PlacementResultWithoutPassingScore_DoesNotLabelStudentFailed_AndExhaustedAttemptsRetainResultLink" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.ForeignAttempt_ResultReadAndSaveSubmitDenied_AndResultSurvivesWithdrawal" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="3f1713a4-2655-fe6d-5ae7-f7a6825c3f37">
+      <Execution id="c7945dc2-a91a-4bed-9348-543ad9d7a20e" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests" name="ForeignAttempt_ResultReadAndSaveSubmitDenied_AndResultSurvivesWithdrawal" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.ExpiredGetNeverGrades_PostStartFinalizesSavedAnswersWithoutCreatingNewAttempt" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="d5b82c60-25d3-c2d6-6015-46e8229bd3ec">
+      <Execution id="590098c0-672a-407a-9d72-1d0e69678f4b" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests" name="ExpiredGetNeverGrades_PostStartFinalizesSavedAnswersWithoutCreatingNewAttempt" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.SubmitPassedFinal_ShowsSkillScoresAndCompletion_PreservesHistoryAfterLessonAddedAndReplay" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="6894edee-14c4-0399-6e8e-7e66e28c6271">
+      <Execution id="83594bf3-bc28-4209-88f4-34c7412a083a" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests" name="SubmitPassedFinal_ShowsSkillScoresAndCompletion_PreservesHistoryAfterLessonAddedAndReplay" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.SaveResume_RejectsMalformedForeignAndDuplicateAnswersBeforeWriting_AndEncodesContent" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="fb994db0-3f2a-b07d-07ae-051bd1b25feb">
+      <Execution id="101c47af-b4f9-4159-bc64-337cf9a81a19" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests" name="SaveResume_RejectsMalformedForeignAndDuplicateAnswersBeforeWriting_AndEncodesContent" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d5b82c60-25d3-c2d6-6015-46e8229bd3ec" executionId="590098c0-672a-407a-9d72-1d0e69678f4b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="60d3dd0d-c293-ad8b-650d-12e9c1a8e43c" executionId="017fccac-bf28-4c72-a82b-16ff0977b330" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c8cf411d-31bf-25d4-cb39-c1ebb829b0df" executionId="d23737f9-1b30-4c7a-b89f-f55a63c1b2f6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6894edee-14c4-0399-6e8e-7e66e28c6271" executionId="83594bf3-bc28-4209-88f4-34c7412a083a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fb994db0-3f2a-b07d-07ae-051bd1b25feb" executionId="101c47af-b4f9-4159-bc64-337cf9a81a19" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3f1713a4-2655-fe6d-5ae7-f7a6825c3f37" executionId="c7945dc2-a91a-4bed-9348-543ad9d7a20e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="6" executed="6" passed="6" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.0+00ab0a9ec4 (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.06]   Discovering: EnglishLearningPlatform.IntegrationTests
+[xUnit.net 00:00:00.14]   Discovered:  EnglishLearningPlatform.IntegrationTests
+[xUnit.net 00:00:00.16]   Starting:    EnglishLearningPlatform.IntegrationTests
+warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+      Storing keys in a directory '/home/vscode/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[62]
+      User profile is available. Using '/home/vscode/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+      Overriding HTTP_PORTS '8080' and HTTPS_PORTS ''. Binding to values defined by URLS instead 'http://0.0.0.0:8080'.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:8080
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /workspaces/english-learning-platform/src/EnglishLearningPlatform.Web
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924123837_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924145931_SeedIdentityRoles'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260930163814_HardenAssessmentSchema'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003024109_AddCommerce'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003032336_MakeEnrollmentPaymentIdNullable'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261008035103_AddCheckoutOrderMetadata'.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+      Failed to determine the https port for redirect.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 86.3952ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 96.6866ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 129.3968ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 138.815ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 148.9302ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/be404625-474a-4985-b2ef-2f8f3d373524 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 21.8184ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 92.1588ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/be404625-474a-4985-b2ef-2f8f3d373524 - 200 - text/html;+charset=utf-8 130.0889ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/be404625-474a-4985-b2ef-2f8f3d373524 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/be404625-474a-4985-b2ef-2f8f3d373524?attemptId=a580d369-74c2-41e9-bbef-723e7d25a43b.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 112.3578ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/be404625-474a-4985-b2ef-2f8f3d373524 - 302 - - 119.8541ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Submit/a580d369-74c2-41e9-bbef-723e7d25a43b - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Submit", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Submit(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Result/a580d369-74c2-41e9-bbef-723e7d25a43b.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web) in 286.576ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Submit/a580d369-74c2-41e9-bbef-723e7d25a43b - 302 - - 299.2934ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 2.3191ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 3.9014ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 4.2931ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 51.5417ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.8695ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Profile - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.ProfileController.Index (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Index", controller = "Profile"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Index() on controller EnglishLearningPlatform.Web.Controllers.ProfileController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Index.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Index executed in 19.7364ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.ProfileController.Index (EnglishLearningPlatform.Web) in 21.5924ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.ProfileController.Index (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Profile - 200 - text/html;+charset=utf-8 27.6562ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Result/a580d369-74c2-41e9-bbef-723e7d25a43b - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Result", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Result(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 404
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web) in 52.647ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Result/a580d369-74c2-41e9-bbef-723e7d25a43b - 404 - - 58.7154ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/be404625-474a-4985-b2ef-2f8f3d373524?attemptId=a580d369-74c2-41e9-bbef-723e7d25a43b - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 404
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 6.3824ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/be404625-474a-4985-b2ef-2f8f3d373524?attemptId=a580d369-74c2-41e9-bbef-723e7d25a43b - 404 - - 9.1779ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Save/a580d369-74c2-41e9-bbef-723e7d25a43b - application/x-www-form-urlencoded 709
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Save", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Save(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter[1]
+      Antiforgery token validation failed. The required antiforgery request token was not provided in either form field "__RequestVerificationToken" or header value "RequestVerificationToken".
+      Microsoft.AspNetCore.Antiforgery.AntiforgeryValidationException: The required antiforgery request token was not provided in either form field "__RequestVerificationToken" or header value "RequestVerificationToken".
+         at Microsoft.AspNetCore.Antiforgery.DefaultAntiforgery.ValidateRequestAsync(HttpContext httpContext)
+         at Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter.OnAuthorizationAsync(AuthorizationFilterContext context)
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[3]
+      Authorization failed for the request at filter 'Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter'.
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web) in 2.555ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Save/a580d369-74c2-41e9-bbef-723e7d25a43b - 400 - - 9.5301ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Save/a580d369-74c2-41e9-bbef-723e7d25a43b - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Save", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Save(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 404
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web) in 3.1071ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Save/a580d369-74c2-41e9-bbef-723e7d25a43b - 404 - - 5.7907ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Submit/a580d369-74c2-41e9-bbef-723e7d25a43b - application/x-www-form-urlencoded 709
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Submit", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Submit(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter[1]
+      Antiforgery token validation failed. The required antiforgery request token was not provided in either form field "__RequestVerificationToken" or header value "RequestVerificationToken".
+      Microsoft.AspNetCore.Antiforgery.AntiforgeryValidationException: The required antiforgery request token was not provided in either form field "__RequestVerificationToken" or header value "RequestVerificationToken".
+         at Microsoft.AspNetCore.Antiforgery.DefaultAntiforgery.ValidateRequestAsync(HttpContext httpContext)
+         at Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter.OnAuthorizationAsync(AuthorizationFilterContext context)
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[3]
+      Authorization failed for the request at filter 'Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter'.
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web) in 0.1851ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Submit/a580d369-74c2-41e9-bbef-723e7d25a43b - 400 - - 1.9627ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Submit/a580d369-74c2-41e9-bbef-723e7d25a43b - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Submit", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Submit(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 404
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web) in 1.804ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Submit/a580d369-74c2-41e9-bbef-723e7d25a43b - 404 - - 3.5182ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Result/a580d369-74c2-41e9-bbef-723e7d25a43b - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Result", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Result(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Result.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Result executed in 7.9025ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web) in 11.3771ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Result/a580d369-74c2-41e9-bbef-723e7d25a43b - 200 - text/html;+charset=utf-8 13.7083ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 1.2725ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 1.3795ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.7086ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 50.1154ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 50.4420ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/291668a9-3f07-429a-9eaa-44402b610ec9 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 2.0335ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 5.8288ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/291668a9-3f07-429a-9eaa-44402b610ec9 - 200 - text/html;+charset=utf-8 7.8461ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/291668a9-3f07-429a-9eaa-44402b610ec9 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/291668a9-3f07-429a-9eaa-44402b610ec9?attemptId=75656846-d03c-4105-8743-6fb92ab16420.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 10.7019ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/291668a9-3f07-429a-9eaa-44402b610ec9 - 302 - - 13.1706ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Save/75656846-d03c-4105-8743-6fb92ab16420 - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Save", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Save(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/291668a9-3f07-429a-9eaa-44402b610ec9?attemptId=75656846-d03c-4105-8743-6fb92ab16420.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web) in 28.2088ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Save/75656846-d03c-4105-8743-6fb92ab16420 - 302 - - 30.6179ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/291668a9-3f07-429a-9eaa-44402b610ec9?attemptId=75656846-d03c-4105-8743-6fb92ab16420 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 2.8686ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 8.938ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/291668a9-3f07-429a-9eaa-44402b610ec9?attemptId=75656846-d03c-4105-8743-6fb92ab16420 - 200 - text/html;+charset=utf-8 11.8005ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/291668a9-3f07-429a-9eaa-44402b610ec9 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Result/75656846-d03c-4105-8743-6fb92ab16420.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 8.7313ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/291668a9-3f07-429a-9eaa-44402b610ec9 - 302 - - 11.1753ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.7691ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 0.8911ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.2374ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 51.9154ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 52.2353ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 2.2536ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 4.8612ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87 - 200 - text/html;+charset=utf-8 7.8618ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/1a2325f7-1841-4294-b6a3-7849c507de87 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87?attemptId=794923be-33c4-4c1a-bff9-30af0b2ac7c5.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 9.7933ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/1a2325f7-1841-4294-b6a3-7849c507de87 - 302 - - 13.0061ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87?attemptId=794923be-33c4-4c1a-bff9-30af0b2ac7c5 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 6.1775ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 12.0846ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87?attemptId=794923be-33c4-4c1a-bff9-30af0b2ac7c5 - 200 - text/html;+charset=utf-8 15.0391ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Save/794923be-33c4-4c1a-bff9-30af0b2ac7c5 - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Save", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Save(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web) in 3.7097ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Save/794923be-33c4-4c1a-bff9-30af0b2ac7c5 - 400 - - 6.8506ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Submit/794923be-33c4-4c1a-bff9-30af0b2ac7c5 - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Submit", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Submit(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web) in 2.4287ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Submit/794923be-33c4-4c1a-bff9-30af0b2ac7c5 - 400 - - 5.0504ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Save/794923be-33c4-4c1a-bff9-30af0b2ac7c5 - application/x-www-form-urlencoded 274
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Save", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Save(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web) in 1.002ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Save/794923be-33c4-4c1a-bff9-30af0b2ac7c5 - 400 - - 3.0452ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Save/794923be-33c4-4c1a-bff9-30af0b2ac7c5 - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Save", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Save(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87?attemptId=794923be-33c4-4c1a-bff9-30af0b2ac7c5.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web) in 30.5967ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Save (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Save/794923be-33c4-4c1a-bff9-30af0b2ac7c5 - 302 - - 33.3607ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/1a2325f7-1841-4294-b6a3-7849c507de87 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87?attemptId=794923be-33c4-4c1a-bff9-30af0b2ac7c5.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 3.8625ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/1a2325f7-1841-4294-b6a3-7849c507de87 - 302 - - 6.2060ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87?attemptId=794923be-33c4-4c1a-bff9-30af0b2ac7c5 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 1.5083ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 4.7695ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/1a2325f7-1841-4294-b6a3-7849c507de87?attemptId=794923be-33c4-4c1a-bff9-30af0b2ac7c5 - 200 - text/html;+charset=utf-8 6.9165ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.8475ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 0.9653ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.2957ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 51.3771ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.6735ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/94c8110f-6794-41f6-afec-e9cf496a2bc2 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 2.0496ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 7.4636ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/94c8110f-6794-41f6-afec-e9cf496a2bc2 - 200 - text/html;+charset=utf-8 9.6188ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/94c8110f-6794-41f6-afec-e9cf496a2bc2 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/94c8110f-6794-41f6-afec-e9cf496a2bc2?attemptId=bdb6ace5-6fd3-402c-aefc-101f17898c73.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 5.9582ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/94c8110f-6794-41f6-afec-e9cf496a2bc2 - 302 - - 7.8982ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Submit/bdb6ace5-6fd3-402c-aefc-101f17898c73 - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Submit", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Submit(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Result/bdb6ace5-6fd3-402c-aefc-101f17898c73.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web) in 32.5947ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Submit/bdb6ace5-6fd3-402c-aefc-101f17898c73 - 302 - - 34.9686ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Result/bdb6ace5-6fd3-402c-aefc-101f17898c73 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Result", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Result(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Result.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Result executed in 1.5463ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web) in 2.6998ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Result/bdb6ace5-6fd3-402c-aefc-101f17898c73 - 200 - text/html;+charset=utf-8 4.7626ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/94c8110f-6794-41f6-afec-e9cf496a2bc2 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/94c8110f-6794-41f6-afec-e9cf496a2bc2.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 3.3839ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/94c8110f-6794-41f6-afec-e9cf496a2bc2 - 302 - - 5.5652ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/94c8110f-6794-41f6-afec-e9cf496a2bc2 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 1.8949ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 3.9067ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/94c8110f-6794-41f6-afec-e9cf496a2bc2 - 200 - text/html;+charset=utf-8 5.6449ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.718ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 0.8356ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.1469ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 50.835ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.1556ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/667c116d-9936-4fdf-9825-ac945b305d93 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 1.4996ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 3.4125ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/667c116d-9936-4fdf-9825-ac945b305d93 - 200 - text/html;+charset=utf-8 5.4634ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/667c116d-9936-4fdf-9825-ac945b305d93 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Take/667c116d-9936-4fdf-9825-ac945b305d93?attemptId=2c25f57e-3bf6-4fd1-b4ef-8ca73950152b.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 7.066ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/667c116d-9936-4fdf-9825-ac945b305d93 - 302 - - 9.4980ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Submit/2c25f57e-3bf6-4fd1-b4ef-8ca73950152b - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Submit", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Submit(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+warn: Microsoft.EntityFrameworkCore.Database.Transaction[30004]
+      Savepoints are disabled because Multiple Active Result Sets (MARS) is enabled. If 'SaveChanges' fails, then the transaction cannot be automatically rolled back to a known clean state. Instead, the transaction should be rolled back by the application before retrying 'SaveChanges'. See https://go.microsoft.com/fwlink/?linkid=2149338 for more information and examples. To identify the code which triggers this warning, call 'ConfigureWarnings(w =&gt; w.Throw(SqlServerEventId.SavepointsDisabledBecauseOfMARS))'.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Result/2c25f57e-3bf6-4fd1-b4ef-8ca73950152b.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web) in 33.9378ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Submit/2c25f57e-3bf6-4fd1-b4ef-8ca73950152b - 302 - - 37.6715ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Result/2c25f57e-3bf6-4fd1-b4ef-8ca73950152b - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Result", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Result(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Result.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Result executed in 1.6332ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web) in 2.8482ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Result (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Result/2c25f57e-3bf6-4fd1-b4ef-8ca73950152b - 200 - text/html;+charset=utf-8 5.1496ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Submit/2c25f57e-3bf6-4fd1-b4ef-8ca73950152b - application/x-www-form-urlencoded 935
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Submit", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Submit(System.Guid, EnglishLearningPlatform.Web.Models.Assessment.AssessmentSubmissionInput, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /Assessment/Result/2c25f57e-3bf6-4fd1-b4ef-8ca73950152b.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web) in 6.4174ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Submit (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Submit/2c25f57e-3bf6-4fd1-b4ef-8ca73950152b - 302 - - 8.5491ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Learning/Course/bb01f1fa-b213-4a0e-b395-41cb2562b0b9 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Course", controller = "Learning"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Course(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.LearningController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Course.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Course executed in 19.9514ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web) in 130.015ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Learning/Course/bb01f1fa-b213-4a0e-b395-41cb2562b0b9 - 200 - text/html;+charset=utf-8 136.4567ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/667c116d-9936-4fdf-9825-ac945b305d93 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 1.3453ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 3.516ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/667c116d-9936-4fdf-9825-ac945b305d93 - 200 - text/html;+charset=utf-8 5.8002ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Student)
+      EnglishLearningPlatform.Application.Authorization.ActiveRoleRequirement
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[12]
+      AuthenticationScheme: Identity.Application was challenged.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - 302 - - 1.5666ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.8813ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 0.9769ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.2312ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 51.3318ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.6315ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 1.4072ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 3.5653ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - 200 - text/html;+charset=utf-8 5.6150ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Take.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Take executed in 1.3015ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 4.1294ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - 200 - text/html;+charset=utf-8 6.9051ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/d6f0910c-afbe-478e-8a65-15168d4ae770 - application/x-www-form-urlencoded 0
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter[1]
+      Antiforgery token validation failed. The required antiforgery request token was not provided in either form field "__RequestVerificationToken" or header value "RequestVerificationToken".
+      Microsoft.AspNetCore.Antiforgery.AntiforgeryValidationException: The required antiforgery request token was not provided in either form field "__RequestVerificationToken" or header value "RequestVerificationToken".
+         at Microsoft.AspNetCore.Antiforgery.DefaultAntiforgery.ValidateRequestAsync(HttpContext httpContext)
+         at Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter.OnAuthorizationAsync(AuthorizationFilterContext context)
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[3]
+      Authorization failed for the request at filter 'Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter'.
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 0.198ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/d6f0910c-afbe-478e-8a65-15168d4ae770 - 400 - - 2.1800ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.7306ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 0.844ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.1927ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 49.7527ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 50.0518ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Take", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Take(System.Guid, System.Nullable`1[System.Guid], System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 404
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web) in 1.3675ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Take (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - 404 - - 3.2726ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Profile - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.ProfileController.Index (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Index", controller = "Profile"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Index() on controller EnglishLearningPlatform.Web.Controllers.ProfileController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Index.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Index executed in 1.7317ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.ProfileController.Index (EnglishLearningPlatform.Web) in 2.7641ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.ProfileController.Index (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Profile - 200 - text/html;+charset=utf-8 4.6181ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Assessment/Start/d6f0910c-afbe-478e-8a65-15168d4ae770 - application/x-www-form-urlencoded 225
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Start", controller = "Assessment"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Start(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AssessmentController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ForbidResult[1]
+      Executing ForbidResult with authentication schemes ().
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[13]
+      AuthenticationScheme: Identity.Application was forbidden.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web) in 4.1499ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AssessmentController.Start (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Assessment/Start/d6f0910c-afbe-478e-8a65-15168d4ae770 - 302 - - 6.1201ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.6878ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 0.7727ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.0234ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 50.7889ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.0718ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Student)
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[13]
+      AuthenticationScheme: Identity.Application was forbidden.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Assessment/Take/d6f0910c-afbe-478e-8a65-15168d4ae770 - 302 - - 4.1583ms
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[xUnit.net 00:00:05.37]   Finished:    EnglishLearningPlatform.IntegrationTests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

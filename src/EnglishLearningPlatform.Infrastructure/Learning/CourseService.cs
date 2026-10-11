@@ -98,7 +98,11 @@ public sealed partial class CourseService(AppDbContext db, ILearningAccessServic
         var progress = owner ? null : (await ProgressAsync(userId, [id], ct)).GetValueOrDefault(id);
         if (!owner) modules = await CompletedOutlineAsync(userId, id, modules, ct);
         return new(allowed, new(summary, modules, true, owner,
-            owner ? await db.Enrollments.CountAsync(e => e.CourseId == id, ct) : 0, errors) { Progress = progress });
+            owner ? await db.Enrollments.CountAsync(e => e.CourseId == id, ct) : 0, errors)
+        {
+            Progress = progress,
+            FinalAssessmentId = await db.Courses.AsNoTracking().Where(c => c.Id == id).Select(c => c.FinalAssessmentId).SingleAsync(ct)
+        });
     }
     public async Task<LearningOutcome<LessonPage>> OpenLessonAsync(Guid userId, Guid id, CancellationToken ct = default)
     {

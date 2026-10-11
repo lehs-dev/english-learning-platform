@@ -7,7 +7,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://0.0.0.0:8080
-      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=EnglishLearningDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Change_this_password_123!};TrustServerCertificate=True;MultipleActiveResultSets=true"
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=EnglishLearningDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in local .env};TrustServerCertificate=True;MultipleActiveResultSets=true"
     depends_on:
       - db
     networks:
@@ -17,7 +17,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Change_this_password_123!}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in local .env}"
     ports:
       - "1433:1433"
     volumes:

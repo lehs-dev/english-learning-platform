@@ -22,7 +22,8 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
             .Where(a => a.Id == assessmentId && a.Status == AssessmentStatus.Published)
             .Select(a => new
             {
-                a.Id, a.CourseId, a.Title, a.Description, a.DurationMinutes, a.MaxAttempts, a.PassingScore,
+                a.Id, a.CourseId, a.Title, a.Description, a.DurationMinutes, a.MaxAttempts, a.PassingScore, a.Status,
+                QuestionCount = a.Questions.Count,
                 CourseStatus = a.CourseId.HasValue ? (CourseStatus?)a.Course!.Status : null,
                 OwnerAvailable = db.Users.Any(u => u.Id == a.OwnerTeacherUserId && u.AccountStatus != AccountStatus.Disabled)
             })
@@ -33,7 +34,8 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
 
         var attempts = await db.Attempts.AsNoTracking()
             .Where(a => a.StudentUserId == studentId && a.AssessmentId == assessmentId)
-            .Select(a => new { a.Id, a.Status, a.OverallScore, a.DeadlineUtc })
+            .OrderByDescending(a => a.StartedAtUtc).ThenBy(a => a.Id)
+            .Select(a => new { a.Id, a.Status, a.OverallScore, a.DeadlineUtc, a.StartedAtUtc, a.FinalizedAtUtc, a.Passed })
             .ToListAsync(ct);
         var now = timeProvider.GetUtcNow();
         var active = attempts.SingleOrDefault(a => a.Status == AttemptStatus.InProgress && a.DeadlineUtc > now);
@@ -55,7 +57,13 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
         return new AssessmentOverviewModel(
             assessment.Id, assessment.CourseId, assessment.Title, assessment.Description,
             assessment.DurationMinutes, assessment.MaxAttempts, assessment.PassingScore,
-            attempts.Count, highest, active?.Id, active?.DeadlineUtc);
+            attempts.Count, highest, active?.Id, active?.DeadlineUtc)
+        {
+            Status = assessment.Status,
+            QuestionCount = assessment.QuestionCount,
+            AttemptHistory = attempts.Select(a => new AssessmentAttemptHistoryModel(
+                a.Id, a.Status, a.StartedAtUtc, a.DeadlineUtc, a.FinalizedAtUtc, a.OverallScore, a.Passed)).ToList()
+        };
     }
 
     public async Task<AssessmentTakingSheet?> GetTakingSheetAsync(
