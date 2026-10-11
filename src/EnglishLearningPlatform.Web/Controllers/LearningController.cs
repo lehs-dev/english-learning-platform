@@ -1,5 +1,6 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using EnglishLearningPlatform.Application.Authorization;
+using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class LearningController(ICourseService courses) : Controller
+public sealed class LearningController(ICourseService courses, IAssessmentQueryService assessments) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -22,7 +23,10 @@ public sealed class LearningController(ICourseService courses) : Controller
     public async Task<IActionResult> Course(Guid id, CancellationToken ct)
     {
         var result = await courses.OpenCourseAsync(UserId, id, false, ct);
-        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        if (User.IsInRole(AppRoles.Student) && result.Value!.FinalAssessmentId is Guid assessmentId)
+            ViewData["FinalAssessment"] = await assessments.GetAssessmentOverviewAsync(UserId, assessmentId, ct);
+        return View(result.Value);
     }
     [HttpGet]
     public async Task<IActionResult> Module(Guid id, CancellationToken ct)

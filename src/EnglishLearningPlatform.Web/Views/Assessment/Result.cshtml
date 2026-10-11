@@ -1,0 +1,38 @@
+@model EnglishLearningPlatform.Application.Assessment.AssessmentResultView
+@{
+    ViewData["Title"] = "Kết quả: " + Model.AssessmentTitle;
+    ViewData["ActiveSection"] = "assessment";
+}
+@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+<div class="page-heading"><div><span class="eyebrow">KẾT QUẢ BÀI THI</span><h1>@Model.AssessmentTitle</h1></div></div>
+<section class="panel">
+    <p class="assessment-score">@Model.OverallScore.ToString("0.##")<span>/100</span></p>
+    @if (Model.PassingScore is decimal passingScore)
+    {
+        <p><span class="badge @(Model.Passed ? "assessment-passed" : "assessment-failed")">@(Model.Passed ? "Đạt" : "Chưa đạt")</span> · Điểm đạt: @passingScore.ToString("0.##")/100</p>
+    }
+    else { <p class="notice">Bài đánh giá này không áp dụng ngưỡng đạt / trượt.</p> }
+    <p class="muted">Đã chấm lúc <time datetime="@Model.FinalizedAtUtc.ToString("O")">@Model.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy") (UTC+7)</time> · @(Model.FinalizationReason == AttemptFinalizationReason.DeadlineElapsed ? "Tự nộp khi hết giờ" : "Nộp bài chủ động")</p>
+</section>
+<section class="panel" aria-labelledby="skills-title">
+    <h2 id="skills-title">Điểm theo kỹ năng</h2>
+    @if (Model.SkillBreakdowns.Count == 0)
+    { <p class="muted">Lượt làm lịch sử này chưa có dữ liệu điểm theo kỹ năng.</p> }
+    else
+    {
+        <div class="assessment-table-wrap"><table class="assessment-table">
+            <thead><tr><th scope="col">Kỹ năng</th><th scope="col">Số câu</th><th scope="col">Điểm / 100</th></tr></thead>
+            <tbody>
+            @foreach (var skill in Model.SkillBreakdowns)
+            {
+                <tr><td>@skill.Skill</td><td>@skill.QuestionCount</td><td>@skill.Score.ToString("0.##")</td></tr>
+            }
+            </tbody>
+        </table></div>
+    }
+</section>
+<div class="actions">
+    @if (Model.CourseId is Guid courseId) { <a class="button" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">Về khóa học và tiến độ</a> }
+    <a class="button secondary" asp-action="Take" asp-route-id="@Model.AssessmentId">Thông tin bài thi và lịch sử</a>
+    <a asp-controller="Learning" asp-action="Index">Khu học tập</a>
+</div>

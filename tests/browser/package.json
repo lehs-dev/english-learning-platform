@@ -1,0 +1,7 @@
+{
+  "name": "english-learning-platform-browser-uat",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node uat.mjs" },
+  "devDependencies": { "playwright": "1.64.0" }
+}

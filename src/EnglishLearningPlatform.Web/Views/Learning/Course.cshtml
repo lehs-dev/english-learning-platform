@@ -1,8 +1,29 @@
 @model CoursePage
 @{ ViewData["Title"] = Model.Course.Title; }
-<a asp-action="Index">← Khu học tập</a><div class="page-heading"><div><h1>@Model.Course.Title</h1><span class="badge">@Model.Course.Status</span></div>
+@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+<a asp-action="Index">← Khu học tập</a><div class="page-heading"><div><h1>@Model.Course.Title</h1><span class="badge">@Model.Course.Status</span>
+@if (Model.Progress?.CompletedAtUtc is DateTimeOffset completedAt)
+{
+    <span class="badge course-completed">Đã hoàn thành khóa học</span>
+    <p class="muted">Ngày hoàn thành: <time datetime="@completedAt.ToString("O")">@completedAt.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") (UTC+7)</time></p>
+}</div>
 @if (Model.IsOwner) { <a class="button" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a> }</div>
 @if (Model.Course.Status == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Bạn vẫn được đọc nội dung; không ghi progress mới.</p> }
 @if (Model.Course.Status == CourseStatus.Unpublished) { <p class="notice">Khóa học đã ngừng nhận học viên mới. Bạn vẫn có thể tiếp tục học.</p> }
 @if (Model.Progress is not null) { <partial name="_LearningProgress" model="Model.Progress" /> }
 <p class="muted">Chọn bất kỳ bài học khả dụng nào để bắt đầu.</p><partial name="_CourseOutline" model="Model" />
+
+@if (Model.FinalAssessmentId.HasValue && !Model.IsOwner)
+{
+    <section class="panel" aria-labelledby="final-assessment-title">
+        <h2 id="final-assessment-title">Bài thi kết thúc khóa</h2>
+        @if (ViewData["FinalAssessment"] is EnglishLearningPlatform.Application.Assessment.AssessmentOverviewModel final)
+        {
+            <h3>@final.Title</h3>
+            <partial name="_AssessmentDetails" model="final" />
+            <p class="muted">Hoàn thành tất cả bài học và đạt bài thi kết thúc khóa để nhận trạng thái hoàn thành. Ngày hoàn thành và điểm đã đạt được giữ trong lịch sử.</p>
+            <a class="button" asp-controller="Assessment" asp-action="Take" asp-route-id="@final.AssessmentId">@(final.ActiveAttemptId.HasValue ? "Tiếp tục làm bài" : "Xem bài thi và lịch sử")</a>
+        }
+        else { <p class="notice">Bài thi hiện chưa khả dụng. Kết quả và ngày hoàn thành đã ghi nhận vẫn được lưu.</p> }
+    </section>
+}

@@ -1,0 +1,100 @@
+@using EnglishLearningPlatform.Web.Models.Assessment
+@model AssessmentTakePage
+@{
+    ViewData["Title"] = Model.Sheet?.Title ?? Model.Overview!.Title;
+    ViewData["ActiveSection"] = "assessment";
+    var overview = Model.Overview;
+}
+@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+@if (overview?.CourseId is Guid courseId)
+{
+    <a asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">← Về khóa học</a>
+}
+<div class="page-heading"><div><span class="eyebrow">ĐÁNH GIÁ NĂNG LỰC</span><h1>@ViewData["Title"]</h1></div></div>
+@if (TempData["AssessmentError"] is string error) { <p class="notice error" role="alert">@error</p> }
+@if (TempData["AssessmentSuccess"] is string success) { <p class="notice" role="status">@success</p> }
+@if (Model.Sheet is { } sheet)
+{
+    <div class="assessment-clock panel" data-assessment-clock data-deadline="@sheet.DeadlineUtc.ToString("O")" data-server-now="@DateTimeOffset.UtcNow.ToString("O")">
+        <strong>Thời gian còn lại: <span data-time-remaining aria-live="off">Đang tính…</span></strong>
+        <p class="muted">Hết giờ, bài được tự động nộp. Hệ thống chỉ tính các đáp án đã lưu trước thời hạn.</p>
+        <noscript><p>JavaScript đang tắt. Thời hạn nộp bài: <time datetime="@sheet.DeadlineUtc.ToString("O")">@sheet.DeadlineUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm:ss dd/MM/yyyy") (UTC+7)</time>. Dùng nút lưu thường xuyên; hệ thống vẫn kiểm tra thời hạn khi lưu hoặc nộp.</p></noscript>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(sheet.Description)) { <p class="preserve">@sheet.Description</p> }
+    <form asp-action="Submit" asp-route-id="@sheet.AttemptId" method="post" data-assessment-form data-save-url="@Url.Action("Save", new { id = sheet.AttemptId })">
+        @for (var i = 0; i < sheet.Questions.Count; i++)
+        {
+            var question = sheet.Questions[i];
+            <fieldset class="panel assessment-question">
+                <legend>Câu @(i + 1) · @question.Points.ToString("0.##") điểm</legend>
+                <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
+                @if (!string.IsNullOrWhiteSpace(question.StimulusContent))
+                {
+                    <div class="assessment-stimulus preserve">@question.StimulusContent</div>
+                }
+                <p class="preserve">@question.Content</p>
+                @foreach (var option in question.Options)
+                {
+                    <label class="assessment-option" for="option-@option.Id">
+                        <input type="radio" id="option-@option.Id" name="Answers[@i].SelectedOptionId" value="@option.Id" checked="@(question.SelectedOptionId == option.Id)" />
+                        <span class="preserve">@option.Content</span>
+                    </label>
+                }
+                <label class="assessment-option muted">
+                    <input type="radio" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" /> Bỏ chọn / chưa trả lời
+                </label>
+            </fieldset>
+        }
+        <div class="panel assessment-submit">
+            <p class="muted" data-save-status role="status">Đáp án được tự động lưu khi chọn. Bạn cũng có thể lưu bằng nút bên dưới.</p>
+            <div class="actions">
+                <button class="button secondary" type="submit" asp-action="Save" asp-route-id="@sheet.AttemptId" data-save-button>Lưu đáp án</button>
+                <button class="button" type="submit" data-submit-button>Nộp bài và xem kết quả</button>
+            </div>
+        </div>
+    </form>
+}
+else if (overview is not null)
+{
+    <section class="panel" aria-labelledby="assessment-overview-title">
+        <h2 id="assessment-overview-title">Thông tin bài thi</h2>
+        @if (!string.IsNullOrWhiteSpace(overview.Description)) { <p class="preserve">@overview.Description</p> }
+        <partial name="_AssessmentDetails" model="overview" />
+        @if (overview.AttemptHistory.Any(a => a.Status == AttemptStatus.InProgress))
+        {
+            <p class="notice">Lượt làm trước đã hết giờ. Hoàn tất chấm điểm để xem kết quả trước khi bắt đầu lượt mới.</p>
+            <form asp-action="Start" asp-route-id="@overview.AssessmentId" method="post"><button class="button" type="submit">Hoàn tất lượt đã hết giờ</button></form>
+        }
+        else if (overview.UsedAttempts < overview.MaxAttempts)
+        {
+            <p class="muted">Thời gian được tính ngay khi bấm bắt đầu. Bạn có thể quay lại tiếp tục trong thời gian còn lại.</p>
+            <form asp-action="Start" asp-route-id="@overview.AssessmentId" method="post"><button class="button" type="submit">Bắt đầu làm bài</button></form>
+        }
+        else { <p class="notice">Bạn đã sử dụng hết lượt làm bài.</p> }
+    </section>
+}
+@if (overview?.AttemptHistory.Count > 0)
+{
+    <section class="panel" aria-labelledby="attempt-history-title">
+        <h2 id="attempt-history-title">Lịch sử làm bài</h2>
+        <div class="assessment-table-wrap"><table class="assessment-table">
+            <thead><tr><th scope="col">Bắt đầu (UTC+7)</th><th scope="col">Trạng thái</th><th scope="col">Điểm</th><th scope="col">Kết quả</th></tr></thead>
+            <tbody>
+            @foreach (var attempt in overview.AttemptHistory)
+            {
+                <tr>
+                    <td><time datetime="@attempt.StartedAtUtc.ToString("O")">@attempt.StartedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time></td>
+                    <td>@(attempt.Status == AttemptStatus.Graded ? "Đã chấm" : "Đang làm / chờ chấm")</td>
+                    <td>@(attempt.OverallScore?.ToString("0.##") ?? "—")</td>
+                    <td>@if (attempt.Status == AttemptStatus.Graded && attempt.FinalizedAtUtc.HasValue)
+                        { <a asp-action="Result" asp-route-id="@attempt.AttemptId">Xem kết quả</a> }
+                        else if (attempt.AttemptId == overview.ActiveAttemptId)
+                        { <a asp-action="Take" asp-route-id="@overview.AssessmentId" asp-route-attemptId="@attempt.AttemptId">Tiếp tục</a> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table></div>
+    </section>
+}
+@section Scripts { <script src="~/js/assessment.js" asp-append-version="true" defer></script> }

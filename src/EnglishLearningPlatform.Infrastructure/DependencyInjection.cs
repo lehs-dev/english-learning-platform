@@ -15,6 +15,11 @@ using EnglishLearningPlatform.Application.Commerce;
 using EnglishLearningPlatform.Infrastructure.Commerce;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Infrastructure.AssessmentAttempts;
+using EnglishLearningPlatform.Application.Administration;
+using EnglishLearningPlatform.Infrastructure.Administration;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 
 namespace EnglishLearningPlatform.Infrastructure;
 
@@ -45,10 +50,14 @@ public static class DependencyInjection
             options.LoginPath = "/Account/Login";
             options.AccessDeniedPath = "/Account/AccessDenied";
             options.Cookie.HttpOnly = true;
-            options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SameSite = SameSiteMode.Lax;
             options.SlidingExpiration = true;
             options.EventsType = typeof(AccountStatusCookieEvents);
         });
+
+        services.AddOptions<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme)
+            .Configure<IHostEnvironment>((options, environment) =>
+                options.Cookie.SecurePolicy = environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always);
 
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
         services.AddScoped<IRegistrationService, IdentityRegistrationService>();
@@ -70,6 +79,7 @@ public static class DependencyInjection
         services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<IAssessmentQueryService, AssessmentQueryService>();
         services.AddScoped<IExamScoringService, ExamScoringService>();
+        services.AddScoped<IAdminQueryService, AdminQueryService>();
         return services;
     }
 }

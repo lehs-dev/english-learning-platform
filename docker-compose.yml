@@ -3,24 +3,54 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Change_this_password_123!}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in environment or local .env}"
     ports:
-      - "1433:1433"
+      - "127.0.0.1:${ELP_SQL_PORT:-1433}:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -Q 'SELECT 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
 
-  web:
+  migrate:
+    image: english-learning-platform:${ELP_IMAGE_TAG:-local}
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        ELP_CANDIDATE_SHA: "${ELP_CANDIDATE_SHA:-development}"
+    command: ["--migrate"]
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=EnglishLearningDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Change_this_password_123!};TrustServerCertificate=True;MultipleActiveResultSets=true"
-    ports:
-      - "8080:8080"
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=EnglishLearningDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  web:
+    image: english-learning-platform:${ELP_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ELP_CANDIDATE_SHA: "${ELP_CANDIDATE_SHA:-development}"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=EnglishLearningDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true"
+      LearningDemo__Enabled: "${LearningDemo__Enabled:-false}"
+      LearningDemo__Password: "${LearningDemo__Password:-}"
+      Payments__Enabled: "${Payments__Enabled:-false}"
+      CheckoutSandbox__Enabled: "${CheckoutSandbox__Enabled:-false}"
+    ports:
+      - "127.0.0.1:${ELP_WEB_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   sqlserver-data:

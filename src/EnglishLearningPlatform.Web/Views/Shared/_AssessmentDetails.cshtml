@@ -1,0 +1,9 @@
+@model EnglishLearningPlatform.Application.Assessment.AssessmentOverviewModel
+<dl class="assessment-details">
+    <div><dt>Trạng thái</dt><dd>@(Model.Status == AssessmentStatus.Published ? "Đang mở" : "Chưa khả dụng")</dd></div>
+    <div><dt>Thời lượng</dt><dd>@Model.DurationMinutes phút</dd></div>
+    <div><dt>Số câu hỏi</dt><dd>@Model.QuestionCount câu</dd></div>
+    <div><dt>Lượt đã dùng</dt><dd>@Model.UsedAttempts / @Model.MaxAttempts</dd></div>
+    <div><dt>Điểm cao nhất</dt><dd>@(Model.HighestScore is decimal score ? score.ToString("0.##") + "/100" : "Chưa có")</dd></div>
+    @if (Model.PassingScore is decimal passingScore) { <div><dt>Điểm đạt</dt><dd>@passingScore.ToString("0.##")/100</dd></div> }
+</dl>
