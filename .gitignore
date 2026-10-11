@@ -6,9 +6,19 @@ obj/
 *.suo
 TestResults/
 coverage/
+__pycache__/
+*.pyc
+node_modules
+artifacts/
+__pycache__/
+*.pyc
+*.bak
 
 ## Secrets/config
 .env
+.env.*
+!.env.example
+appsettings.Production.json
 appsettings.Local.json
 appsettings.*.Local.json
 

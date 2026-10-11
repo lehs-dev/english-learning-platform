@@ -1,0 +1,129 @@
+.assessment-details {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin: 20px 0
+}
+
+.assessment-details dt {
+    font-size: 14px;
+    color: #62718b
+}
+
+.assessment-details dd {
+    margin: 4px 0;
+    font-weight: 600
+}
+
+.assessment-clock {
+    position: sticky;
+    top: 12px;
+    z-index: 2;
+    background: #f4f8ff;
+    border-color: #bdd3fa
+}
+
+.assessment-clock p {
+    margin-bottom: 0
+}
+
+.assessment-clock.is-expiring {
+    background: #fff6ed;
+    border-color: #edbc8c
+}
+
+.assessment-question {
+    min-width: 0
+}
+
+.assessment-question legend {
+    padding: 0 8px;
+    font-weight: 700
+}
+
+.assessment-option {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border: 1px solid #dce4ee;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    cursor: pointer
+}
+
+.assessment-option:has(input:checked) {
+    background: #edf4ff;
+    border-color: #176bff
+}
+
+.assessment-option input {
+    margin-top: 6px;
+    accent-color: #176bff;
+    flex-shrink: 0
+}
+
+.assessment-stimulus {
+    padding: 16px;
+    background: #f5f7fa;
+    border-left: 3px solid #a7c7f6;
+    margin: 10px 0
+}
+
+.assessment-table-wrap {
+    overflow-x: auto
+}
+
+.assessment-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left
+}
+
+.assessment-table th,
+.assessment-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e3e9f2
+}
+
+.assessment-score {
+    font-weight: 800;
+    font-size: 56px;
+    margin: 12px 0;
+    color: #195bc8
+}
+
+.assessment-score span {
+    font-size: 24px;
+    color: #62718b
+}
+
+.assessment-passed,
+.course-completed {
+    background: #e7f7ec;
+    color: #206b3a
+}
+
+.assessment-failed {
+    background: #fff2e7;
+    color: #925018
+}
+
+.assessment-submit {
+    margin-top: 24px
+}
+
+@media(max-width:640px) {
+    .assessment-details {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .assessment-clock {
+        top: 0
+    }
+
+    .assessment-table th,
+    .assessment-table td {
+        padding: 8px
+    }
+}

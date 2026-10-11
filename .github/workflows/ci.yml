@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - 'feat/**'
 
 permissions:
   contents: read
@@ -21,6 +22,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
@@ -35,6 +38,11 @@ jobs:
           mkdir -p TestResults
           git rev-parse HEAD > TestResults/candidate-sha.txt
           dotnet --version > TestResults/sdk-version.txt
+
+      - name: Audit repository and reachable history for credentials
+        run: |
+          python3 scripts/security-audit.py --self-test
+          python3 scripts/security-audit.py --output TestResults/security-audit.csv
 
       - name: Build solution
         run: dotnet build EnglishLearningPlatform.sln --configuration Release --no-restore
@@ -66,4 +74,6 @@ jobs:
             TestResults/*.trx
             TestResults/*-sha.txt
             TestResults/sdk-version.txt
+            TestResults/security-audit.csv
+            TestResults/security-audit.txt
           if-no-files-found: ignore

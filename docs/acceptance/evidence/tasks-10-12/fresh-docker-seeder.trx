@@ -1,0 +1,427 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="d48634ac-dda5-4eec-896d-a18028663245" name="@57ac21493b14 2026-10-11 14:03:16" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-11T14:03:16.6650704+00:00" queuing="2026-10-11T14:03:16.6650704+00:00" start="2026-10-11T14:03:08.5303229+00:00" finish="2026-10-11T14:03:33.0589902+00:00" />
+  <TestSettings name="default" id="1a634675-31c1-4483-a3c2-c5f0dc9f49e8">
+    <Deployment runDeploymentRoot="_57ac21493b14_2026-10-11_14_03_16" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="15d6378a-f240-4c4a-8323-c0687613ea05" testId="8b5b06cd-1ebf-d225-a0c3-16b9afe68803" testName="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.RepeatSeed_PreservesRealGradedHistoryAndCompletedEnrollment" computerName="57ac21493b14" duration="00:00:01.1617500" startTime="2026-10-11T14:03:16.6563813+00:00" endTime="2026-10-11T14:03:22.1183759+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="15d6378a-f240-4c4a-8323-c0687613ea05" />
+    <UnitTestResult executionId="84e4a198-9967-4ed5-af47-d974a072dec7" testId="1fff7cbc-e263-4cbb-6361-3e46fdd45531" testName="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.FreshSeed_AllActorsAuthenticateAndRepeatWithoutDuplicatesOrPaidGrants" computerName="57ac21493b14" duration="00:00:01.6620932" startTime="2026-10-11T14:03:27.0874106+00:00" endTime="2026-10-11T14:03:32.9951120+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="84e4a198-9967-4ed5-af47-d974a072dec7" />
+    <UnitTestResult executionId="32cf1aca-5b0e-49c2-baab-ecc3098071e0" testId="6c0711e1-9687-7f94-9c9c-413de01778ee" testName="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.LegacySeed_BackfillsMissingFinalAndAdminWithoutReplacingExistingCourseData" computerName="57ac21493b14" duration="00:00:00.6113037" startTime="2026-10-11T14:03:22.1206267+00:00" endTime="2026-10-11T14:03:27.0869459+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32cf1aca-5b0e-49c2-baab-ecc3098071e0" />
+    <UnitTestResult executionId="fb0d304b-9bf4-42de-be40-4dcd81d5fa06" testId="291bedca-1534-efbd-b4bc-8e6046f52037" testName="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.ExistingAdminWithUnexpectedRole_IsRejectedWithoutChangingIdentityOrSeedingData" computerName="57ac21493b14" duration="00:00:00.6915893" startTime="2026-10-11T14:03:08.9641745+00:00" endTime="2026-10-11T14:03:16.6436950+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fb0d304b-9bf4-42de-be40-4dcd81d5fa06" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.ExistingAdminWithUnexpectedRole_IsRejectedWithoutChangingIdentityOrSeedingData" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="291bedca-1534-efbd-b4bc-8e6046f52037">
+      <Execution id="fb0d304b-9bf4-42de-be40-4dcd81d5fa06" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests" name="ExistingAdminWithUnexpectedRole_IsRejectedWithoutChangingIdentityOrSeedingData" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.RepeatSeed_PreservesRealGradedHistoryAndCompletedEnrollment" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="8b5b06cd-1ebf-d225-a0c3-16b9afe68803">
+      <Execution id="15d6378a-f240-4c4a-8323-c0687613ea05" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests" name="RepeatSeed_PreservesRealGradedHistoryAndCompletedEnrollment" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.FreshSeed_AllActorsAuthenticateAndRepeatWithoutDuplicatesOrPaidGrants" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="1fff7cbc-e263-4cbb-6361-3e46fdd45531">
+      <Execution id="84e4a198-9967-4ed5-af47-d974a072dec7" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests" name="FreshSeed_AllActorsAuthenticateAndRepeatWithoutDuplicatesOrPaidGrants" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.LegacySeed_BackfillsMissingFinalAndAdminWithoutReplacingExistingCourseData" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="6c0711e1-9687-7f94-9c9c-413de01778ee">
+      <Execution id="32cf1aca-5b0e-49c2-baab-ecc3098071e0" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests" name="LegacySeed_BackfillsMissingFinalAndAdminWithoutReplacingExistingCourseData" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="8b5b06cd-1ebf-d225-a0c3-16b9afe68803" executionId="15d6378a-f240-4c4a-8323-c0687613ea05" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1fff7cbc-e263-4cbb-6361-3e46fdd45531" executionId="84e4a198-9967-4ed5-af47-d974a072dec7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6c0711e1-9687-7f94-9c9c-413de01778ee" executionId="32cf1aca-5b0e-49c2-baab-ecc3098071e0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="291bedca-1534-efbd-b4bc-8e6046f52037" executionId="fb0d304b-9bf4-42de-be40-4dcd81d5fa06" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.0+00ab0a9ec4 (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.07]   Discovering: EnglishLearningPlatform.IntegrationTests
+[xUnit.net 00:00:00.13]   Discovered:  EnglishLearningPlatform.IntegrationTests
+[xUnit.net 00:00:00.15]   Starting:    EnglishLearningPlatform.IntegrationTests
+[testcontainers.org 00:00:00.13] Connected to Docker:
+  Host: unix:///var/run/docker.sock
+  Server Version: 29.8.2
+  Kernel Version: 7.2.9-200.fc44.x86_64
+  API Version: 1.56
+  Operating System: Fedora Linux 44 (Workstation Edition)
+  Total Memory: 15.27 GB
+[testcontainers.org 00:00:00.28] Docker container 96fc0a657a07 created
+[testcontainers.org 00:00:00.30] Start Docker container 96fc0a657a07
+[testcontainers.org 00:00:00.42] Wait for Docker container 96fc0a657a07 to complete readiness checks
+[testcontainers.org 00:00:01.44] Docker container 96fc0a657a07 ready
+[testcontainers.org 00:00:01.49] Docker container 8f405a50f3ad created
+[testcontainers.org 00:00:01.49] Start Docker container 8f405a50f3ad
+[testcontainers.org 00:00:01.60] Wait for Docker container 8f405a50f3ad to complete readiness checks
+[testcontainers.org 00:00:01.61] Execute "/bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit" at Docker container 8f405a50f3ad
+[testcontainers.org 00:00:01.65] Execute "/opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1;" at Docker container 8f405a50f3ad
+[testcontainers.org 00:00:05.20] Docker container 8f405a50f3ad ready
+warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+      Storing keys in a directory '/home/vscode/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[62]
+      User profile is available. Using '/home/vscode/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+      Overriding HTTP_PORTS '8080' and HTTPS_PORTS ''. Binding to values defined by URLS instead 'http://0.0.0.0:8080'.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:8080
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /workspaces/english-learning-platform/src/EnglishLearningPlatform.Web
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924123837_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924145931_SeedIdentityRoles'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260930163814_HardenAssessmentSchema'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003024109_AddCommerce'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003032336_MakeEnrollmentPaymentIdNullable'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261008035103_AddCheckoutOrderMetadata'.
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[testcontainers.org 00:00:07.34] Delete Docker container 8f405a50f3ad
+[testcontainers.org 00:00:07.65] Docker container 4ca7d275d664 created
+[testcontainers.org 00:00:07.65] Start Docker container 4ca7d275d664
+[testcontainers.org 00:00:07.74] Wait for Docker container 4ca7d275d664 to complete readiness checks
+[testcontainers.org 00:00:07.74] Execute "/bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit" at Docker container 4ca7d275d664
+[testcontainers.org 00:00:07.79] Execute "/opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1;" at Docker container 4ca7d275d664
+[testcontainers.org 00:00:11.33] Docker container 4ca7d275d664 ready
+warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+      Storing keys in a directory '/home/vscode/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[62]
+      User profile is available. Using '/home/vscode/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+      Overriding HTTP_PORTS '8080' and HTTPS_PORTS ''. Binding to values defined by URLS instead 'http://0.0.0.0:8080'.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:8080
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /workspaces/english-learning-platform/src/EnglishLearningPlatform.Web
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924123837_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924145931_SeedIdentityRoles'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260930163814_HardenAssessmentSchema'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003024109_AddCommerce'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003032336_MakeEnrollmentPaymentIdNullable'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261008035103_AddCheckoutOrderMetadata'.
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[testcontainers.org 00:00:12.85] Delete Docker container 4ca7d275d664
+[testcontainers.org 00:00:13.12] Docker container 7add058c2bf5 created
+[testcontainers.org 00:00:13.12] Start Docker container 7add058c2bf5
+[testcontainers.org 00:00:13.23] Wait for Docker container 7add058c2bf5 to complete readiness checks
+[testcontainers.org 00:00:13.23] Execute "/bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit" at Docker container 7add058c2bf5
+[testcontainers.org 00:00:13.26] Execute "/opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1;" at Docker container 7add058c2bf5
+[testcontainers.org 00:00:16.80] Docker container 7add058c2bf5 ready
+warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+      Storing keys in a directory '/home/vscode/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[62]
+      User profile is available. Using '/home/vscode/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+      Overriding HTTP_PORTS '8080' and HTTPS_PORTS ''. Binding to values defined by URLS instead 'http://0.0.0.0:8080'.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:8080
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /workspaces/english-learning-platform/src/EnglishLearningPlatform.Web
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924123837_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924145931_SeedIdentityRoles'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260930163814_HardenAssessmentSchema'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003024109_AddCommerce'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003032336_MakeEnrollmentPaymentIdNullable'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261008035103_AddCheckoutOrderMetadata'.
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[testcontainers.org 00:00:17.82] Delete Docker container 7add058c2bf5
+[testcontainers.org 00:00:18.09] Docker container c885e6046a53 created
+[testcontainers.org 00:00:18.09] Start Docker container c885e6046a53
+[testcontainers.org 00:00:18.19] Wait for Docker container c885e6046a53 to complete readiness checks
+[testcontainers.org 00:00:18.19] Execute "/bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit" at Docker container c885e6046a53
+[testcontainers.org 00:00:18.23] Execute "/opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1;" at Docker container c885e6046a53
+[testcontainers.org 00:00:21.77] Execute "/opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1;" at Docker container c885e6046a53
+[testcontainers.org 00:00:21.82] Docker container c885e6046a53 ready
+warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+      Storing keys in a directory '/home/vscode/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[62]
+      User profile is available. Using '/home/vscode/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+      Overriding HTTP_PORTS '8080' and HTTPS_PORTS ''. Binding to values defined by URLS instead 'http://0.0.0.0:8080'.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:8080
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /workspaces/english-learning-platform/src/EnglishLearningPlatform.Web
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924123837_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924145931_SeedIdentityRoles'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260930163814_HardenAssessmentSchema'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003024109_AddCommerce'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003032336_MakeEnrollmentPaymentIdNullable'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261008035103_AddCheckoutOrderMetadata'.
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Courses - - -
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+      Failed to determine the https port for redirect.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.CoursesController.Index (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Index", controller = "Courses"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Index(EnglishLearningPlatform.Application.Learning.CatalogQuery, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.CoursesController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Index.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Index executed in 77.1001ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.CoursesController.Index (EnglishLearningPlatform.Web) in 161.3858ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.CoursesController.Index (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Courses - 200 - text/html;+charset=utf-8 201.6242ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Courses/Details/82c8b996-87d9-47c1-9147-fe0940cad18d - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.CoursesController.Details (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Details", controller = "Courses"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Details(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.CoursesController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Details.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Details executed in 18.366ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.CoursesController.Details (EnglishLearningPlatform.Web) in 54.9838ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.CoursesController.Details (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Courses/Details/82c8b996-87d9-47c1-9147-fe0940cad18d - 200 - text/html;+charset=utf-8 60.7374ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Learning/Course/82c8b996-87d9-47c1-9147-fe0940cad18d - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+      EnglishLearningPlatform.Application.Authorization.ActiveRoleRequirement
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Student|Teacher)
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[12]
+      AuthenticationScheme: Identity.Application was challenged.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Learning/Course/82c8b996-87d9-47c1-9147-fe0940cad18d - 302 - - 6.1294ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 52.0848ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 53.2907ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 57.5560ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 268
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 77.8872ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 83.2256ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/api/probe/policy/single-active-role - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.ArchitectureProbeController.SingleActiveRolePolicyProbe (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "SingleActiveRolePolicyProbe", controller = "ArchitectureProbe"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult SingleActiveRolePolicyProbe() on controller EnglishLearningPlatform.Web.Controllers.ArchitectureProbeController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor[1]
+      Executing OkObjectResult, writing value of type '&lt;&gt;f__AnonymousType1`2[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.ArchitectureProbeController.SingleActiveRolePolicyProbe (EnglishLearningPlatform.Web) in 10.0406ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.ArchitectureProbeController.SingleActiveRolePolicyProbe (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/api/probe/policy/single-active-role - 200 - application/json;+charset=utf-8 18.9027ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 1.3868ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 5.7588ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 6.1331ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 270
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 50.7852ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.1414ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Learning/ManageCourse/82c8b996-87d9-47c1-9147-fe0940cad18d - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.LearningController.ManageCourse (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "ManageCourse", controller = "Learning"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] ManageCourse(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.LearningController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view ~/Views/TeacherCourses/Manage.cshtml.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view ~/Views/TeacherCourses/Manage.cshtml executed in 26.51ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.LearningController.ManageCourse (EnglishLearningPlatform.Web) in 187.3485ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.LearningController.ManageCourse (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Learning/ManageCourse/82c8b996-87d9-47c1-9147-fe0940cad18d - 200 - text/html;+charset=utf-8 195.5608ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 1.1614ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 1.2633ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.5146ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 270
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 51.6165ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.9156ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Learning/Course/82c8b996-87d9-47c1-9147-fe0940cad18d - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Course", controller = "Learning"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Course(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.LearningController (EnglishLearningPlatform.Web).
+warn: Microsoft.EntityFrameworkCore.Query[20504]
+      Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w =&gt; w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Course.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Course executed in 16.9862ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web) in 130.0085ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Learning/Course/82c8b996-87d9-47c1-9147-fe0940cad18d - 200 - text/html;+charset=utf-8 136.6142ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Learning/Course/d4ad0139-b5f1-487b-a263-58f21cb3614c - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Course", controller = "Learning"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Course(System.Guid, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.LearningController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ForbidResult[1]
+      Executing ForbidResult with authentication schemes ().
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[13]
+      AuthenticationScheme: Identity.Application was forbidden.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web) in 4.0638ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.LearningController.Course (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Learning/Course/d4ad0139-b5f1-487b-a263-58f21cb3614c - 302 - - 5.8642ms
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[testcontainers.org 00:00:23.73] Delete Docker container c885e6046a53
+[xUnit.net 00:00:24.20]   Finished:    EnglishLearningPlatform.IntegrationTests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

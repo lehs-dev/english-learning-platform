@@ -1,0 +1,3 @@
+NAME                    IMAGE                                        COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+elp-rc-task1012-db-1    mcr.microsoft.com/mssql/server:2022-latest   "/opt/mssql/bin/laun…"   db        14 minutes ago   Up 14 minutes (healthy)   127.0.0.1:15434->1433/tcp
+elp-rc-task1012-web-1   english-learning-platform:tasks-10-12        "dotnet EnglishLearn…"   web       11 minutes ago   Up 11 minutes             127.0.0.1:18081->8080/tcp

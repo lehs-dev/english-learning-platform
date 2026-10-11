@@ -1,0 +1,619 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="c29e0d60-9853-4a50-ae86-e0b66775df69" name="@57ac21493b14 2026-10-11 13:55:22" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-11T13:55:22.4398522+00:00" queuing="2026-10-11T13:55:22.4398523+00:00" start="2026-10-11T13:55:20.6822505+00:00" finish="2026-10-11T13:55:30.5176493+00:00" />
+  <TestSettings name="default" id="c6ab5d5c-9e90-435d-bb35-010472279283">
+    <Deployment runDeploymentRoot="_57ac21493b14_2026-10-11_13_55_22" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="c707d5ba-f317-4f00-a13d-c854de6395ab" testId="6e52f899-0d02-b5b6-92ca-b9c7ff3602b4" testName="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: &quot;Development&quot;, secure: SameAsRequest)" computerName="57ac21493b14" duration="00:00:00.0004487" startTime="2026-10-11T13:55:21.1316253+00:00" endTime="2026-10-11T13:55:21.1320807+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c707d5ba-f317-4f00-a13d-c854de6395ab" />
+    <UnitTestResult executionId="ae599a8b-ae4e-406a-ae1a-1c34769a5d68" testId="5c7ea474-a141-d814-4029-906774cb70ee" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.GlobalCsrfGate_RejectsPostToActionsWithoutVerbConstraint" computerName="57ac21493b14" duration="00:00:00.0088534" startTime="2026-10-11T13:55:30.1634905+00:00" endTime="2026-10-11T13:55:30.1725550+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ae599a8b-ae4e-406a-ae1a-1c34769a5d68" />
+    <UnitTestResult executionId="15fd8598-c2f5-48c7-91b4-ed135fcf6b7d" testId="99b19b19-07d1-0fd5-6b8d-40659905e7ac" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: &quot;/Admin/Transactions?status=99&quot;)" computerName="57ac21493b14" duration="00:00:00.1329822" startTime="2026-10-11T13:55:28.5442427+00:00" endTime="2026-10-11T13:55:28.6776461+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="15fd8598-c2f5-48c7-91b4-ed135fcf6b7d" />
+    <UnitTestResult executionId="35790e8c-e41c-4590-9eff-0549e84f66c7" testId="75cf758f-847a-4ef7-1764-aac883fc5aac" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.NonAdmin_CannotReadAdministrationThroughControllerOrService(role: &quot;Teacher&quot;)" computerName="57ac21493b14" duration="00:00:00.1204327" startTime="2026-10-11T13:55:29.1549915+00:00" endTime="2026-10-11T13:55:29.2756356+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="35790e8c-e41c-4590-9eff-0549e84f66c7" />
+    <UnitTestResult executionId="78f0526d-af79-42c3-9638-06b78b74ce2d" testId="fb7da38c-8700-2cea-8dc1-d783bef5f2fd" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InactiveAdmin_IsDeniedOnNextRequestAndDirectServiceCall(status: Locked)" computerName="57ac21493b14" duration="00:00:00.1954569" startTime="2026-10-11T13:55:28.8406070+00:00" endTime="2026-10-11T13:55:29.0361621+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="78f0526d-af79-42c3-9638-06b78b74ce2d" />
+    <UnitTestResult executionId="8e729260-6216-46d7-b4e4-39c83ff0d6cb" testId="1dbf3ddd-a675-d7c1-5357-13cc791b52da" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Guest_MustLogin(path: &quot;/Admin/Transactions&quot;)" computerName="57ac21493b14" duration="00:00:00.0042495" startTime="2026-10-11T13:55:28.8334166+00:00" endTime="2026-10-11T13:55:28.8378834+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8e729260-6216-46d7-b4e4-39c83ff0d6cb" />
+    <UnitTestResult executionId="0dba965a-4ffb-453c-a1a8-eb3145dbc4e1" testId="d9617de5-fa1c-0bc3-2059-81e69d61eba9" testName="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AdminSurface_IsReadOnly_AndProjectionExcludesIdentitySecretsAndAnswers" computerName="57ac21493b14" duration="00:00:00.0090918" startTime="2026-10-11T13:55:21.0814581+00:00" endTime="2026-10-11T13:55:21.0947191+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0dba965a-4ffb-453c-a1a8-eb3145dbc4e1" />
+    <UnitTestResult executionId="7d2ff46f-30a8-43c0-9cee-4b0635f8170f" testId="5caea7fd-5db2-29c2-a88e-f2751a7109ea" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.AdminQueries_FilterStatusAndClampPagination" computerName="57ac21493b14" duration="00:00:00.3504284" startTime="2026-10-11T13:55:29.4230492+00:00" endTime="2026-10-11T13:55:29.7736787+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7d2ff46f-30a8-43c0-9cee-4b0635f8170f" />
+    <UnitTestResult executionId="040f9e95-dbc4-4232-a865-6ec444f90291" testId="e831092c-6f1c-60a5-a0e5-16a27d357f94" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: &quot;/Admin/Transactions?status=invalid&quot;)" computerName="57ac21493b14" duration="00:00:00.1547201" startTime="2026-10-11T13:55:28.6779763+00:00" endTime="2026-10-11T13:55:28.8327548+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="040f9e95-dbc4-4232-a865-6ec444f90291" />
+    <UnitTestResult executionId="91aeb2f2-53d4-49d5-8f05-a8816ea2f7a6" testId="5a291e08-6b7b-793f-963c-8c50e2b6c757" testName="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AllDeclaredMutationEndpoints_RequireAntiforgery_ExceptBoundedSignedWebhook" computerName="57ac21493b14" duration="00:00:00.0055941" startTime="2026-10-11T13:55:21.1321551+00:00" endTime="2026-10-11T13:55:21.1377609+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="91aeb2f2-53d4-49d5-8f05-a8816ea2f7a6" />
+    <UnitTestResult executionId="003807e3-b484-48c0-af79-447f946a94b4" testId="b0c05fd3-2031-8839-cc61-a0394d226f76" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.NonAdmin_CannotReadAdministrationThroughControllerOrService(role: &quot;Student&quot;)" computerName="57ac21493b14" duration="00:00:00.1470065" startTime="2026-10-11T13:55:29.2757590+00:00" endTime="2026-10-11T13:55:29.4229039+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="003807e3-b484-48c0-af79-447f946a94b4" />
+    <UnitTestResult executionId="ae0a898e-134d-4ff2-a05a-c67980c39671" testId="ac198fcb-005d-1ff9-e7dc-a987696bb633" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Admin_SearchesTransactionsAndUserStatus_ReadOnlyAndHtmlEncoded" computerName="57ac21493b14" duration="00:00:00.3892061" startTime="2026-10-11T13:55:29.7738482+00:00" endTime="2026-10-11T13:55:30.1633258+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ae0a898e-134d-4ff2-a05a-c67980c39671" />
+    <UnitTestResult executionId="2841d2f4-c757-4e96-8f1c-fdf002cc9f54" testId="16756b24-aa75-fdc8-5493-91c721a1fc06" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Guest_MustLogin(path: &quot;/Admin/Users&quot;)" computerName="57ac21493b14" duration="00:00:00.0021004" startTime="2026-10-11T13:55:28.8381762+00:00" endTime="2026-10-11T13:55:28.8402932+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2841d2f4-c757-4e96-8f1c-fdf002cc9f54" />
+    <UnitTestResult executionId="7247cfb4-2275-48ab-83cc-6e163a4d2cbc" testId="d2563cf0-aa3c-805d-60f4-542fc736281b" testName="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: &quot;Production&quot;, secure: Always)" computerName="57ac21493b14" duration="00:00:00.0341175" startTime="2026-10-11T13:55:21.1011512+00:00" endTime="2026-10-11T13:55:21.1290097+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7247cfb4-2275-48ab-83cc-6e163a4d2cbc" />
+    <UnitTestResult executionId="57203610-da6d-41d2-bcbd-fd8bb2c86991" testId="4ee14ea0-476c-1cff-77a4-9e053cea6727" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: &quot;/Admin/Users?status=99&quot;)" computerName="57ac21493b14" duration="00:00:00.7855964" startTime="2026-10-11T13:55:27.7564364+00:00" endTime="2026-10-11T13:55:28.5435293+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="57203610-da6d-41d2-bcbd-fd8bb2c86991" />
+    <UnitTestResult executionId="5a0dfdc2-e2d0-4e09-81d7-7db0f0828141" testId="73dce18f-6269-10ad-edf7-2b60c37edfd6" testName="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InactiveAdmin_IsDeniedOnNextRequestAndDirectServiceCall(status: Disabled)" computerName="57ac21493b14" duration="00:00:00.1183561" startTime="2026-10-11T13:55:29.0363133+00:00" endTime="2026-10-11T13:55:29.1548500+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5a0dfdc2-e2d0-4e09-81d7-7db0f0828141" />
+    <UnitTestResult executionId="01fd9357-ae99-489e-a81f-213eda71ea7d" testId="d24322ca-af88-d56b-dcb9-e8dee20eec04" testName="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: &quot;Staging&quot;, secure: Always)" computerName="57ac21493b14" duration="00:00:00.0025873" startTime="2026-10-11T13:55:21.1294851+00:00" endTime="2026-10-11T13:55:21.1315610+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="01fd9357-ae99-489e-a81f-213eda71ea7d" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.AdminQueries_FilterStatusAndClampPagination" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="5caea7fd-5db2-29c2-a88e-f2751a7109ea">
+      <Execution id="7d2ff46f-30a8-43c0-9cee-4b0635f8170f" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="AdminQueries_FilterStatusAndClampPagination" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Guest_MustLogin(path: &quot;/Admin/Users&quot;)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="16756b24-aa75-fdc8-5493-91c721a1fc06">
+      <Execution id="2841d2f4-c757-4e96-8f1c-fdf002cc9f54" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="Guest_MustLogin" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AdminSurface_IsReadOnly_AndProjectionExcludesIdentitySecretsAndAnswers" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="d9617de5-fa1c-0bc3-2059-81e69d61eba9">
+      <Execution id="0dba965a-4ffb-453c-a1a8-eb3145dbc4e1" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests" name="AdminSurface_IsReadOnly_AndProjectionExcludesIdentitySecretsAndAnswers" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: &quot;Production&quot;, secure: Always)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="d2563cf0-aa3c-805d-60f4-542fc736281b">
+      <Execution id="7247cfb4-2275-48ab-83cc-6e163a4d2cbc" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests" name="AuthenticationCookie_HasRequiredFlags" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.NonAdmin_CannotReadAdministrationThroughControllerOrService(role: &quot;Teacher&quot;)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="75cf758f-847a-4ef7-1764-aac883fc5aac">
+      <Execution id="35790e8c-e41c-4590-9eff-0549e84f66c7" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="NonAdmin_CannotReadAdministrationThroughControllerOrService" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Admin_SearchesTransactionsAndUserStatus_ReadOnlyAndHtmlEncoded" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="ac198fcb-005d-1ff9-e7dc-a987696bb633">
+      <Execution id="ae0a898e-134d-4ff2-a05a-c67980c39671" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="Admin_SearchesTransactionsAndUserStatus_ReadOnlyAndHtmlEncoded" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: &quot;Development&quot;, secure: SameAsRequest)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="6e52f899-0d02-b5b6-92ca-b9c7ff3602b4">
+      <Execution id="c707d5ba-f317-4f00-a13d-c854de6395ab" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests" name="AuthenticationCookie_HasRequiredFlags" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InactiveAdmin_IsDeniedOnNextRequestAndDirectServiceCall(status: Disabled)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="73dce18f-6269-10ad-edf7-2b60c37edfd6">
+      <Execution id="5a0dfdc2-e2d0-4e09-81d7-7db0f0828141" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="InactiveAdmin_IsDeniedOnNextRequestAndDirectServiceCall" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Guest_MustLogin(path: &quot;/Admin/Transactions&quot;)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="1dbf3ddd-a675-d7c1-5357-13cc791b52da">
+      <Execution id="8e729260-6216-46d7-b4e4-39c83ff0d6cb" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="Guest_MustLogin" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.NonAdmin_CannotReadAdministrationThroughControllerOrService(role: &quot;Student&quot;)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="b0c05fd3-2031-8839-cc61-a0394d226f76">
+      <Execution id="003807e3-b484-48c0-af79-447f946a94b4" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="NonAdmin_CannotReadAdministrationThroughControllerOrService" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: &quot;/Admin/Transactions?status=99&quot;)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="99b19b19-07d1-0fd5-6b8d-40659905e7ac">
+      <Execution id="15fd8598-c2f5-48c7-91b4-ed135fcf6b7d" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="InvalidAdminFilters_AreRejected" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AllDeclaredMutationEndpoints_RequireAntiforgery_ExceptBoundedSignedWebhook" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="5a291e08-6b7b-793f-963c-8c50e2b6c757">
+      <Execution id="91aeb2f2-53d4-49d5-8f05-a8816ea2f7a6" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests" name="AllDeclaredMutationEndpoints_RequireAntiforgery_ExceptBoundedSignedWebhook" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.GlobalCsrfGate_RejectsPostToActionsWithoutVerbConstraint" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="5c7ea474-a141-d814-4029-906774cb70ee">
+      <Execution id="ae599a8b-ae4e-406a-ae1a-1c34769a5d68" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="GlobalCsrfGate_RejectsPostToActionsWithoutVerbConstraint" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: &quot;/Admin/Transactions?status=invalid&quot;)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="e831092c-6f1c-60a5-a0e5-16a27d357f94">
+      <Execution id="040f9e95-dbc4-4232-a865-6ec444f90291" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="InvalidAdminFilters_AreRejected" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InactiveAdmin_IsDeniedOnNextRequestAndDirectServiceCall(status: Locked)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="fb7da38c-8700-2cea-8dc1-d783bef5f2fd">
+      <Execution id="78f0526d-af79-42c3-9638-06b78b74ce2d" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="InactiveAdmin_IsDeniedOnNextRequestAndDirectServiceCall" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: &quot;/Admin/Users?status=99&quot;)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="4ee14ea0-476c-1cff-77a4-9e053cea6727">
+      <Execution id="57203610-da6d-41d2-bcbd-fd8bb2c86991" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests" name="InvalidAdminFilters_AreRejected" />
+    </UnitTest>
+    <UnitTest name="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: &quot;Staging&quot;, secure: Always)" storage="/workspaces/english-learning-platform/tests/englishlearningplatform.integrationtests/bin/release/net10.0/englishlearningplatform.integrationtests.dll" id="d24322ca-af88-d56b-dcb9-e8dee20eec04">
+      <Execution id="01fd9357-ae99-489e-a81f-213eda71ea7d" />
+      <TestMethod codeBase="/workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests" name="AuthenticationCookie_HasRequiredFlags" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="6e52f899-0d02-b5b6-92ca-b9c7ff3602b4" executionId="c707d5ba-f317-4f00-a13d-c854de6395ab" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5c7ea474-a141-d814-4029-906774cb70ee" executionId="ae599a8b-ae4e-406a-ae1a-1c34769a5d68" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="99b19b19-07d1-0fd5-6b8d-40659905e7ac" executionId="15fd8598-c2f5-48c7-91b4-ed135fcf6b7d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="75cf758f-847a-4ef7-1764-aac883fc5aac" executionId="35790e8c-e41c-4590-9eff-0549e84f66c7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fb7da38c-8700-2cea-8dc1-d783bef5f2fd" executionId="78f0526d-af79-42c3-9638-06b78b74ce2d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1dbf3ddd-a675-d7c1-5357-13cc791b52da" executionId="8e729260-6216-46d7-b4e4-39c83ff0d6cb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d9617de5-fa1c-0bc3-2059-81e69d61eba9" executionId="0dba965a-4ffb-453c-a1a8-eb3145dbc4e1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5caea7fd-5db2-29c2-a88e-f2751a7109ea" executionId="7d2ff46f-30a8-43c0-9cee-4b0635f8170f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e831092c-6f1c-60a5-a0e5-16a27d357f94" executionId="040f9e95-dbc4-4232-a865-6ec444f90291" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5a291e08-6b7b-793f-963c-8c50e2b6c757" executionId="91aeb2f2-53d4-49d5-8f05-a8816ea2f7a6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b0c05fd3-2031-8839-cc61-a0394d226f76" executionId="003807e3-b484-48c0-af79-447f946a94b4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ac198fcb-005d-1ff9-e7dc-a987696bb633" executionId="ae0a898e-134d-4ff2-a05a-c67980c39671" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="16756b24-aa75-fdc8-5493-91c721a1fc06" executionId="2841d2f4-c757-4e96-8f1c-fdf002cc9f54" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d2563cf0-aa3c-805d-60f4-542fc736281b" executionId="7247cfb4-2275-48ab-83cc-6e163a4d2cbc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4ee14ea0-476c-1cff-77a4-9e053cea6727" executionId="57203610-da6d-41d2-bcbd-fd8bb2c86991" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="73dce18f-6269-10ad-edf7-2b60c37edfd6" executionId="5a0dfdc2-e2d0-4e09-81d7-7db0f0828141" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d24322ca-af88-d56b-dcb9-e8dee20eec04" executionId="01fd9357-ae99-489e-a81f-213eda71ea7d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="17" executed="17" passed="17" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.0+00ab0a9ec4 (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.05]   Discovering: EnglishLearningPlatform.IntegrationTests
+[xUnit.net 00:00:00.11]   Discovered:  EnglishLearningPlatform.IntegrationTests
+[xUnit.net 00:00:00.12]   Starting:    EnglishLearningPlatform.IntegrationTests
+[testcontainers.org 00:00:00.08] Connected to Docker:
+  Host: unix:///var/run/docker.sock
+  Server Version: 29.8.2
+  Kernel Version: 7.2.9-200.fc44.x86_64
+  API Version: 1.56
+  Operating System: Fedora Linux 44 (Workstation Edition)
+  Total Memory: 15.27 GB
+[testcontainers.org 00:00:00.24] Docker container df0d2128da85 created
+[testcontainers.org 00:00:00.26] Start Docker container df0d2128da85
+[testcontainers.org 00:00:00.37] Wait for Docker container df0d2128da85 to complete readiness checks
+[testcontainers.org 00:00:01.38] Docker container df0d2128da85 ready
+[testcontainers.org 00:00:01.43] Docker container 240cdd5d9d2d created
+[testcontainers.org 00:00:01.44] Start Docker container 240cdd5d9d2d
+[testcontainers.org 00:00:01.53] Wait for Docker container 240cdd5d9d2d to complete readiness checks
+[testcontainers.org 00:00:01.54] Execute "/bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit" at Docker container 240cdd5d9d2d
+[testcontainers.org 00:00:01.60] Execute "/opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1;" at Docker container 240cdd5d9d2d
+[testcontainers.org 00:00:05.15] Docker container 240cdd5d9d2d ready
+warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+      Storing keys in a directory '/home/vscode/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[62]
+      User profile is available. Using '/home/vscode/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+      Overriding HTTP_PORTS '8080' and HTTPS_PORTS ''. Binding to values defined by URLS instead 'http://0.0.0.0:8080'.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:8080
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /workspaces/english-learning-platform/src/EnglishLearningPlatform.Web
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924123837_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924145931_SeedIdentityRoles'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260930163814_HardenAssessmentSchema'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003024109_AddCommerce'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261003032336_MakeEnrollmentPaymentIdNullable'.
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20261008035103_AddCheckoutOrderMetadata'.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+      Failed to determine the https port for redirect.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 79.0744ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 89.8826ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 129.4480ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 295
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 154.6954ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Users?status=99 - - -
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 165.3529ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Users (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Users", controller = "Admin"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Users(System.String, System.Nullable`1[EnglishLearningPlatform.Domain.Enums.AccountStatus], Int32, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AdminController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AdminController.Users (EnglishLearningPlatform.Web) in 6.1372ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Users (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Users?status=99 - 400 - - 33.7195ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 3.5513ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 8.213ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 8.7295ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 295
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 52.387ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 52.8618ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Transactions?status=99 - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Transactions", controller = "Admin"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Transactions(System.String, System.Nullable`1[EnglishLearningPlatform.Domain.Enums.PaymentStatus], Int32, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AdminController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web) in 1.1097ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Transactions?status=99 - 400 - - 10.5330ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 2.5244ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 2.67ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 3.1378ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 295
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 53.7548ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 54.5888ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Transactions?status=invalid - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Transactions", controller = "Admin"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Transactions(System.String, System.Nullable`1[EnglishLearningPlatform.Domain.Enums.PaymentStatus], Int32, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AdminController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web) in 1.3169ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Transactions?status=invalid - 400 - - 8.6625ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Transactions - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Admin)
+      EnglishLearningPlatform.Application.Authorization.ActiveRoleRequirement
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[12]
+      AuthenticationScheme: Identity.Application was challenged.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Transactions - 302 - - 2.2015ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Users - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Admin)
+      EnglishLearningPlatform.Application.Authorization.ActiveRoleRequirement
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[12]
+      AuthenticationScheme: Identity.Application was challenged.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Users - 302 - - 1.0405ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.9719ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 1.098ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.5143ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 295
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 51.0228ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.4437ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Users - - -
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[11]
+      AuthenticationScheme: Identity.Application signed out.
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[7]
+      Identity.Application was not authenticated. Failure message: No principal.
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Admin)
+      EnglishLearningPlatform.Application.Authorization.ActiveRoleRequirement
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[12]
+      AuthenticationScheme: Identity.Application was challenged.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Users - 302 - - 4.8543ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.9408ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 1.0682ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.4905ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 295
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 50.4449ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 50.8376ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Users - - -
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[11]
+      AuthenticationScheme: Identity.Application signed out.
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[7]
+      Identity.Application was not authenticated. Failure message: No principal.
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Admin)
+      EnglishLearningPlatform.Application.Authorization.ActiveRoleRequirement
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[12]
+      AuthenticationScheme: Identity.Application was challenged.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Users - 302 - - 2.0304ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.913ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 1.0368ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.4645ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 50.4061ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 50.7569ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Transactions - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Admin)
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[13]
+      AuthenticationScheme: Identity.Application was forbidden.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Transactions - 302 - - 3.8139ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Users - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Admin)
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[13]
+      AuthenticationScheme: Identity.Application was forbidden.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Users - 302 - - 3.0625ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.8618ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 1.0027ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.4012ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 297
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 49.9825ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 50.3150ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Transactions - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Admin)
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[13]
+      AuthenticationScheme: Identity.Application was forbidden.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Transactions - 302 - - 2.5063ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Users - - -
+info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+      Authorization failed. These requirements were not met:
+      RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (Admin)
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[13]
+      AuthenticationScheme: Identity.Application was forbidden.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Users - 302 - - 2.6585ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Account/Login - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(System.String) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Login.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Login executed in 0.9864ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 1.1482ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Account/Login - 200 - text/html;+charset=utf-8 1.6495ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/Account/Login - application/x-www-form-urlencoded 295
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Account"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(EnglishLearningPlatform.Web.Models.Account.LoginViewModel) on controller EnglishLearningPlatform.Web.Controllers.AccountController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler[10]
+      AuthenticationScheme: Identity.Application signed in.
+info: Microsoft.AspNetCore.Mvc.RedirectToActionResult[1]
+      Executing RedirectResult, redirecting to /.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web) in 50.6591ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AccountController.Login (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/Account/Login - 302 - - 51.0266ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Transactions?search=b86379ac-cb2f-4bc0-a419-d7a89e07d8f0&amp;status=Succeeded - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Transactions", controller = "Admin"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Transactions(System.String, System.Nullable`1[EnglishLearningPlatform.Domain.Enums.PaymentStatus], Int32, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AdminController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Transactions.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Transactions executed in 20.6198ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web) in 48.4194ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Transactions (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Transactions?search=b86379ac-cb2f-4bc0-a419-d7a89e07d8f0&amp;status=Succeeded - 200 - text/html;+charset=utf-8 51.4814ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 GET http://localhost/Admin/Users?search=student-2cdc31b050c54019b1687b0c48d4bdbe%40example.test&amp;status=Locked - - -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Users (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Users", controller = "Admin"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Users(System.String, System.Nullable`1[EnglishLearningPlatform.Domain.Enums.AccountStatus], Int32, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.AdminController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[1]
+      Executing ViewResult, running view Users.
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor[4]
+      Executed ViewResult - view Users executed in 10.1296ms.
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.AdminController.Users (EnglishLearningPlatform.Web) in 47.3057ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.AdminController.Users (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 GET http://localhost/Admin/Users?search=student-2cdc31b050c54019b1687b0c48d4bdbe%40example.test&amp;status=Locked - 200 - text/html;+charset=utf-8 50.3229ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost/ - application/x-www-form-urlencoded 0
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'EnglishLearningPlatform.Web.Controllers.HomeController.Index (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Index", controller = "Home"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Index(System.String, System.Threading.CancellationToken) on controller EnglishLearningPlatform.Web.Controllers.HomeController (EnglishLearningPlatform.Web).
+info: Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.AutoValidateAntiforgeryTokenAuthorizationFilter[1]
+      Antiforgery token validation failed. The required antiforgery cookie ".AspNetCore.Antiforgery.e9sI5xKFpwY" is not present.
+      Microsoft.AspNetCore.Antiforgery.AntiforgeryValidationException: The required antiforgery cookie ".AspNetCore.Antiforgery.e9sI5xKFpwY" is not present.
+         at Microsoft.AspNetCore.Antiforgery.DefaultAntiforgery.ValidateRequestAsync(HttpContext httpContext)
+         at Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter.OnAuthorizationAsync(AuthorizationFilterContext context)
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[3]
+      Authorization failed for the request at filter 'Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.AutoValidateAntiforgeryTokenAuthorizationFilter'.
+info: Microsoft.AspNetCore.Mvc.StatusCodeResult[1]
+      Executing StatusCodeResult, setting HTTP status code 400
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action EnglishLearningPlatform.Web.Controllers.HomeController.Index (EnglishLearningPlatform.Web) in 2.4731ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'EnglishLearningPlatform.Web.Controllers.HomeController.Index (EnglishLearningPlatform.Web)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost/ - 400 - - 6.9176ms
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[testcontainers.org 00:00:09.03] Delete Docker container 240cdd5d9d2d
+[xUnit.net 00:00:09.53]   Finished:    EnglishLearningPlatform.IntegrationTests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

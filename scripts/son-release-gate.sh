@@ -36,6 +36,8 @@ run_gate() {
 
 run_gate restore dotnet restore EnglishLearningPlatform.sln
 run_gate build dotnet build EnglishLearningPlatform.sln -c Release --no-restore
+run_gate security-self-test python3 scripts/security-audit.py --self-test
+run_gate security python3 scripts/security-audit.py --output "$elp_results_directory/security-audit.csv"
 run_gate unit dotnet test tests/EnglishLearningPlatform.UnitTests/EnglishLearningPlatform.UnitTests.csproj \
     -c Release --no-build --no-restore --logger 'trx;LogFileName=unit.trx' --results-directory "$elp_results_directory"
 run_gate integration dotnet test tests/EnglishLearningPlatform.IntegrationTests/EnglishLearningPlatform.IntegrationTests.csproj \

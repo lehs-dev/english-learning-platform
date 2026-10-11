@@ -1,0 +1,11 @@
+.admin-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; }
+.admin-filters > div { display: grid; gap: .4rem; flex: 1 1 220px; }
+.admin-filters label { font-weight: 600; }
+.admin-filters input, .admin-filters select { width: 100%; min-height: 42px; padding: .65rem .8rem; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #172033; }
+.admin-filters input:focus, .admin-filters select:focus { outline: 2px solid #2563eb; outline-offset: 2px; }
+.admin-table-wrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+.admin-table th, .admin-table td { padding: .8rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+.admin-table th { background: #f8fafc; white-space: nowrap; }
+.admin-table td { overflow-wrap: anywhere; min-width: 100px; }
+.admin-pagination { margin-top: 1.25rem; align-items: center; }

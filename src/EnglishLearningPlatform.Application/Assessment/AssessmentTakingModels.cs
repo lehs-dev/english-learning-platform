@@ -53,4 +53,18 @@ public sealed record AssessmentOverviewModel(
     int UsedAttempts,
     decimal? HighestScore,
     Guid? ActiveAttemptId,
-    DateTimeOffset? ActiveDeadlineUtc);
+    DateTimeOffset? ActiveDeadlineUtc)
+{
+    public AssessmentStatus Status { get; init; }
+    public int QuestionCount { get; init; }
+    public IReadOnlyList<AssessmentAttemptHistoryModel> AttemptHistory { get; init; } = [];
+}
+
+public sealed record AssessmentAttemptHistoryModel(
+    Guid AttemptId,
+    AttemptStatus Status,
+    DateTimeOffset StartedAtUtc,
+    DateTimeOffset DeadlineUtc,
+    DateTimeOffset? FinalizedAtUtc,
+    decimal? OverallScore,
+    bool? Passed);
