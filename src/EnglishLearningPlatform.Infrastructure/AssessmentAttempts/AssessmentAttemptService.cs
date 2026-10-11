@@ -490,6 +490,22 @@ public sealed class AssessmentAttemptService(
         attempt.FinalizedAtUtc = now;
         attempt.UpdatedAtUtc = now;
 
+        // Persist the weighted skill breakdown with the grade. The Attempt lock
+        // and the graded replay branch ensure concurrent submits write it once.
+        foreach (var skillQuestions in assessmentForScoring.Questions
+                     .GroupBy(q => q.Question.PrimarySkill))
+        {
+            var skillAssessment = new Assessment { Questions = skillQuestions.ToList() };
+            var skillScore = scoring.Score(skillAssessment, responses);
+            db.AttemptSkillResults.Add(new AttemptSkillResult
+            {
+                AttemptId = attempt.Id,
+                Skill = skillQuestions.Key,
+                Score = skillScore.Percentage,
+                QuestionCount = skillQuestions.Count()
+            });
+        }
+
         await db.SaveChangesAsync(ct);
 
         // The caller already holds the Course lock. Grade and completion

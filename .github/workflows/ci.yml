@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -29,6 +30,12 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore EnglishLearningPlatform.sln
 
+      - name: Record tested candidate
+        run: |
+          mkdir -p TestResults
+          git rev-parse HEAD > TestResults/candidate-sha.txt
+          dotnet --version > TestResults/sdk-version.txt
+
       - name: Build solution
         run: dotnet build EnglishLearningPlatform.sln --configuration Release --no-restore
 
@@ -55,5 +62,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: TestResults/*.trx
+          path: |
+            TestResults/*.trx
+            TestResults/*-sha.txt
+            TestResults/sdk-version.txt
           if-no-files-found: ignore

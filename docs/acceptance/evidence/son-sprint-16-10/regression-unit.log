@@ -1,0 +1,6 @@
+Test run for /workspaces/english-learning-platform/tests/EnglishLearningPlatform.UnitTests/bin/Release/net10.0/EnglishLearningPlatform.UnitTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /tmp/elp-son-sprint/regression-unit.trx
+Results File: /tmp/elp-son-sprint/regression-unit.trx
+
+Passed!  - Failed:     0, Passed:    84, Skipped:     0, Total:    84, Duration: 83 ms - EnglishLearningPlatform.UnitTests.dll (net10.0)

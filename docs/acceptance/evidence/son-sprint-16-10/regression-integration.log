@@ -1,0 +1,6 @@
+Test run for /workspaces/english-learning-platform/tests/EnglishLearningPlatform.IntegrationTests/bin/Release/net10.0/EnglishLearningPlatform.IntegrationTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /tmp/elp-son-sprint/regression-integration.trx
+Results File: /tmp/elp-son-sprint/regression-integration.trx
+
+Passed!  - Failed:     0, Passed:   247, Skipped:     0, Total:   247, Duration: 41 s - EnglishLearningPlatform.IntegrationTests.dll (net10.0)

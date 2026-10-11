@@ -1,0 +1,20 @@
+git diff --check: exit 0
+
+bash -n scripts/son-release-gate.sh: exit 0
+
+source digest check: exit 0
+.github/workflows/ci.yml: OK
+scripts/son-release-gate.sh: OK
+src/EnglishLearningPlatform.Application/Assessment/AssessmentTakingModels.cs: OK
+src/EnglishLearningPlatform.Application/Assessment/IAssessmentQueryService.cs: OK
+src/EnglishLearningPlatform.Infrastructure/AssessmentAttempts/AssessmentQueryService.cs: OK
+src/EnglishLearningPlatform.Infrastructure/AssessmentAttempts/AssessmentAttemptService.cs: OK
+src/EnglishLearningPlatform.Infrastructure/DependencyInjection.cs: OK
+src/EnglishLearningPlatform.Infrastructure/Identity/AccountStatusCookieEvents.cs: OK
+src/EnglishLearningPlatform.Infrastructure/Learning/LearningDemoSeeder.cs: OK
+tests/EnglishLearningPlatform.IntegrationTests/AssessmentQueryServiceTests.cs: OK
+tests/EnglishLearningPlatform.IntegrationTests/AuthorizationIntegrityAcceptanceTests.cs: OK
+tests/EnglishLearningPlatform.IntegrationTests/CheckoutFeatureTests.cs: OK
+tests/EnglishLearningPlatform.IntegrationTests/CourseCompletionIntegrationTests.cs: OK
+tests/EnglishLearningPlatform.IntegrationTests/LearningDemoSeederTests.cs: OK
+tests/EnglishLearningPlatform.IntegrationTests/PaidEnrollmentAssessmentAccessTests.cs: OK

@@ -80,6 +80,38 @@ public sealed class CheckoutFeatureTests : IClassFixture<IntegrationTestFactory>
     }
 
     [Fact]
+    public async Task WebhookHmac_BindsExactRawBytes_WhenJsonWhitespaceChanges()
+    {
+        var data = await Seed();
+        var checkout = await Start(data.Student.Id, data.Course.Id);
+        var body = Body(checkout.OrderId!.Value, Guid.NewGuid().ToString());
+        var changedBody = Encoding.UTF8.GetBytes(" \n" + Encoding.UTF8.GetString(body) + "\n ");
+        var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        Assert.Equal(JsonSerializer.Deserialize<PaymentNotification>(body, jsonOptions),
+            JsonSerializer.Deserialize<PaymentNotification>(changedBody, jsonOptions));
+
+        Assert.Equal(PaymentConfirmation.Invalid, await Confirm(changedBody, Sign(body)));
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var tampered = new HttpRequestMessage(HttpMethod.Post, "/payments/webhook")
+        { Content = new ByteArrayContent(changedBody) };
+        tampered.Headers.Add("X-Payment-Signature", Sign(body));
+        using var denied = await client.SendAsync(tampered);
+        Assert.Equal(HttpStatusCode.BadRequest, denied.StatusCode);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.False(await db.Payments.AnyAsync(p => p.OrderId == checkout.OrderId));
+        Assert.False(await db.Enrollments.AnyAsync(e => e.CourseId == data.Course.Id));
+
+        using var correctlySigned = new HttpRequestMessage(HttpMethod.Post, "/payments/webhook")
+        { Content = new ByteArrayContent(changedBody) };
+        correctlySigned.Headers.Add("X-Payment-Signature", Sign(changedBody));
+        using var accepted = await client.SendAsync(correctlySigned);
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        Assert.Equal(1, await db.Payments.CountAsync(p => p.OrderId == checkout.OrderId));
+        Assert.Equal(1, await db.Enrollments.CountAsync(e => e.StudentUserId == data.Student.Id && e.CourseId == data.Course.Id));
+    }
+
+    [Fact]
     public async Task FailedPaymentAndWithdrawnCourse_DoNotGrantLearningRights()
     {
         var data = await Seed(); var order = await Start(data.Student.Id, data.Course.Id);

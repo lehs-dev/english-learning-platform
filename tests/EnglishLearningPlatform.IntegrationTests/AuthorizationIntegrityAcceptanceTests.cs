@@ -78,6 +78,55 @@ public sealed class AuthorizationIntegrityAcceptanceTests(IntegrationTestFactory
         Assert.Contains("/Account/Login", mvcResponse.Headers.Location!.ToString());
     }
 
+    [Theory]
+    [InlineData(AppRoles.Teacher, AppRoles.Student)]
+    [InlineData(AppRoles.Student, AppRoles.Admin)]
+    [InlineData(AppRoles.Admin, AppRoles.Teacher)]
+    [InlineData(AppRoles.Teacher, null)]
+    public async Task ChangedRole_RejectsStaleCookieImmediately_WithoutSecurityStampChange(
+        string originalRole, string? replacementRole)
+    {
+        var user = await IdentityTestHelpers.CreateUserAsync(factory, originalRole);
+        using var apiClient = IdentityTestHelpers.CreateClient(factory);
+        using var mvcClient = IdentityTestHelpers.CreateClient(factory);
+        using var apiLogin = await IdentityTestHelpers.LoginAsync(apiClient, user);
+        using var mvcLogin = await IdentityTestHelpers.LoginAsync(mvcClient, user);
+        Assert.Equal(HttpStatusCode.Redirect, apiLogin.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, mvcLogin.StatusCode);
+        using var before = await apiClient.GetAsync("/api/probe/policy/single-active-role");
+        Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var stamp = await db.Users.Where(u => u.Id == user.Id).Select(u => u.SecurityStamp).SingleAsync();
+            await db.UserRoles.Where(r => r.UserId == user.Id).ExecuteDeleteAsync();
+            if (replacementRole is not null)
+            {
+                var roleId = await db.Roles.Where(r => r.Name == replacementRole).Select(r => r.Id).SingleAsync();
+                db.UserRoles.Add(new IdentityUserRole<Guid> { UserId = user.Id, RoleId = roleId });
+                await db.SaveChangesAsync();
+            }
+            Assert.Equal(stamp, await db.Users.Where(u => u.Id == user.Id).Select(u => u.SecurityStamp).SingleAsync());
+        }
+
+        using var apiResponse = await apiClient.GetAsync("/api/probe/policy/single-active-role");
+        Assert.Equal(HttpStatusCode.Unauthorized, apiResponse.StatusCode);
+        using var mvcResponse = await mvcClient.GetAsync("/TeacherCourses");
+        Assert.Equal(HttpStatusCode.Redirect, mvcResponse.StatusCode);
+        Assert.Contains("/Account/Login", mvcResponse.Headers.Location!.ToString());
+
+        if (replacementRole is not null)
+        {
+            using var freshClient = IdentityTestHelpers.CreateClient(factory);
+            using var freshLogin = await IdentityTestHelpers.LoginAsync(freshClient, user);
+            Assert.Equal(HttpStatusCode.Redirect, freshLogin.StatusCode);
+            using var freshRequest = await freshClient.GetAsync("/api/probe/policy/teacher");
+            Assert.Equal(replacementRole == AppRoles.Teacher ? HttpStatusCode.OK : HttpStatusCode.Forbidden,
+                freshRequest.StatusCode);
+        }
+    }
+
     [Fact]
     public async Task MigratedDatabase_MatchesEfModel_AndCommerceIntegrityConstraints()
     {
