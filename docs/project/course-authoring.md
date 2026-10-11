@@ -31,7 +31,7 @@ Progress tính live: completed Lesson Published trong Module Visible / tổng Le
 
 Unpublished giữ quyền học và completion của Student đã enroll. Archived chỉ đọc: xem content/progress/historical completion, không POST completion. Owner Disabled chặn enrollment mới nhưng giữ quyền học cũ.
 
-Khi completion hoặc tập bài khả dụng thay đổi, kiểm tra CompletedAt trong cùng transaction: tập bài phải không rỗng và hoàn thành hết. Nếu có Final, yêu cầu Final cùng Course/owner, Published, SkillAssessment/PracticeExam và có Attempt Graded đạt PassingScore. CompletedAt chỉ ghi lần đầu, không xóa khi đánh dấu Incomplete, thêm/ẩn bài hoặc progress giảm. Luồng chấm/gắn/thay Final chưa triển khai trong repository; khi bổ sung phải nối bước xét completion ngay sau mutation Final theo BR14.
+Khi completion hoặc tập bài khả dụng thay đổi, kiểm tra CompletedAt trong cùng transaction: tập bài phải không rỗng và hoàn thành hết. Nếu có Final, yêu cầu Final cùng Course/owner, Published, SkillAssessment/PracticeExam và có Attempt Graded đạt PassingScore. CompletedAt chỉ ghi lần đầu, không xóa khi đánh dấu Incomplete, thêm/ẩn bài hoặc progress giảm. Finalize đã nối CourseCompletion trong cùng transaction sau khi ghi grade và skill breakdown; replay giữ điểm/timestamp cũ. Giao diện gắn/thay Final vẫn cần owner module tích hợp.
 
 Ứng dụng bảo vệ việc tiết lộ URL resource ngoài. Sau khi người có quyền nhận URL công khai, ứng dụng không thể ngăn họ chia sẻ URL đó. Không lưu file protected trong wwwroot.
 
@@ -63,7 +63,7 @@ Remove-Item Env:LearningDemo__Password, Env:LearningDemo__Enabled
 
 Giữ connection string demo ở cùng terminal, áp dụng migration trước seed. Không bật seed trong production. Khi chạy lại, seed sử dụng tài khoản/khóa đã tạo, không reset mật khẩu hoặc role và không tạo Enrollment trùng. Nếu đã có tài khoản demo, dùng mật khẩu đã cấu hình lần đầu. Seed không cấp Enrollment Paid.
 
-Tài khoản: `teacher1@demo.example.test`, `teacher2@demo.example.test`, `student1@demo.example.test`, `student2@demo.example.test`. Cả bốn dùng mật khẩu local đã nhập. Teacher1 có Free Published với Text/Link/Audio/Video, Paid Published và Draft trống. Có Module Hidden, Lesson Draft/Hidden. Student1 đã enroll Free; Student2 chưa enroll. Media mẫu cần Internet và phụ thuộc máy chủ ngoài.
+Tài khoản: `admin1@demo.example.test`, `teacher1@demo.example.test`, `teacher2@demo.example.test`, `student1@demo.example.test`, `student2@demo.example.test`. Cả năm dùng mật khẩu local đã nhập. Guest chưa đăng nhập, không có role trong DB. Teacher1 có Free Published với Text/Link/Audio/Video và Final 5 câu, 15 phút, 3 lượt, điểm đạt 80%; Paid Published và Draft trống. Có Module Hidden, Lesson Draft/Hidden. Student1 đã enroll Free; Student2 chưa enroll. Seed bổ sung Admin/Final cho demo cũ, giữ mật khẩu/progress/attempt và không cấp Enrollment Paid. Media mẫu cần Internet và phụ thuộc máy chủ ngoài. Xem [kịch bản demo và release gate](son-demo-fallback.md).
 
 ## Test tay
 

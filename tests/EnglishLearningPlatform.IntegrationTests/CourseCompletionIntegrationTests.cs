@@ -370,8 +370,18 @@ public sealed class CourseCompletionIntegrationTests(IntegrationTestFactory fact
         var saved = await PersistedAttempt(attempt);
         Assert.Equal(AttemptStatus.InProgress, saved.Status); Assert.Null(saved.OverallScore);
         Assert.Null(saved.Passed); Assert.Null(saved.FinalizedAtUtc); Assert.Null(await CompletedAt(data));
+        await InDb(async db => Assert.Empty(await db.AttemptSkillResults.AsNoTracking()
+            .Where(s => s.AttemptId == attempt).ToListAsync()));
         Assert.Equal(AttemptFinalizeStatus.Graded, (await Finalize(data, attempt)).Status);
         Assert.NotNull(await CompletedAt(data)); Assert.True((await PersistedAttempt(attempt)).Passed);
+        await InDb(async db =>
+        {
+            var skill = Assert.Single(await db.AttemptSkillResults.AsNoTracking()
+                .Where(s => s.AttemptId == attempt).ToListAsync());
+            Assert.Equal(EnglishSkill.Grammar, skill.Skill);
+            Assert.Equal(100m, skill.Score);
+            Assert.Equal(5, skill.QuestionCount);
+        });
     }
 
     [Fact]

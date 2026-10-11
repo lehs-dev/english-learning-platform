@@ -1,0 +1,46 @@
+1791710280 create testcontainers-ryuk-07a8b6ca-6da4-44b1-a101-f1966435174d testcontainers/ryuk:0.14.0@sha256:7c1a8a9a47c780ed0f983770a662f80deb115d95cce3e2daa3d12115b8cd28f0
+1791710281 start testcontainers-ryuk-07a8b6ca-6da4-44b1-a101-f1966435174d testcontainers/ryuk:0.14.0@sha256:7c1a8a9a47c780ed0f983770a662f80deb115d95cce3e2daa3d12115b8cd28f0
+1791710282 create frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710282 start frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710282 exec_create: /bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710282 exec_start: /bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710282 exec_die frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710282 exec_create: /opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1; frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710282 exec_start: /opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1; frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710289 exec_die frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710294 kill frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710294 die frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710294 destroy frosty_greider mcr.microsoft.com/mssql/server:2022-latest
+1791710294 create wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710295 start wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710295 exec_create: /bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710295 exec_start: /bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710295 exec_die wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710295 exec_create: /opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1; wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710295 exec_start: /opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1; wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710301 exec_die wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710305 kill wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710306 die wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710306 destroy wizardly_williams mcr.microsoft.com/mssql/server:2022-latest
+1791710306 create crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710306 start crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710306 exec_create: /bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710306 exec_start: /bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710306 exec_die crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710306 exec_create: /opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1; crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710306 exec_start: /opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1; crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710313 exec_die crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710316 kill crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710316 die crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710316 destroy crazy_yalow mcr.microsoft.com/mssql/server:2022-latest
+1791710316 create interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710317 start interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710317 exec_create: /bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710317 exec_start: /bin/sh -c find /opt/mssql-tools*/bin/sqlcmd -type f -print -quit interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710317 exec_die interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710317 exec_create: /opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1; interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710317 exec_start: /opt/mssql-tools18/bin/sqlcmd -C -b -r 1 -d master -Q SELECT 1; interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710323 exec_die interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710328 kill interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710328 die interesting_black mcr.microsoft.com/mssql/server:2022-latest
+1791710329 destroy interesting_black mcr.microsoft.com/mssql/server:2022-latest

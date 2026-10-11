@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Learning;
@@ -66,6 +67,8 @@ public static class DependencyInjection
         services.AddScoped<CheckoutTransactionExecutor>();
         services.AddScoped<ICheckoutService, CheckoutService>();
         services.AddScoped<IAttemptService, AssessmentAttemptService>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<IAssessmentQueryService, AssessmentQueryService>();
         services.AddScoped<IExamScoringService, ExamScoringService>();
         return services;
     }

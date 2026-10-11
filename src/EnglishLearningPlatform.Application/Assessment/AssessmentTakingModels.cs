@@ -1,0 +1,56 @@
+using EnglishLearningPlatform.Domain.Enums;
+
+namespace EnglishLearningPlatform.Application.Assessment;
+
+public sealed record AssessmentTakingSheet(
+    Guid AttemptId,
+    Guid AssessmentId,
+    string Title,
+    string? Description,
+    int DurationMinutes,
+    DateTimeOffset DeadlineUtc,
+    IReadOnlyList<AssessmentQuestionTakingModel> Questions);
+
+public sealed record AssessmentQuestionTakingModel(
+    Guid AssessmentQuestionId,
+    Guid QuestionId,
+    string Content,
+    decimal Points,
+    string? StimulusContent,
+    Guid? SelectedOptionId,
+    IReadOnlyList<AssessmentOptionTakingModel> Options);
+
+public sealed record AssessmentOptionTakingModel(
+    Guid Id,
+    string Content,
+    int OrderIndex);
+
+public sealed record AssessmentResultView(
+    Guid AttemptId,
+    Guid AssessmentId,
+    string AssessmentTitle,
+    Guid? CourseId,
+    decimal OverallScore,
+    decimal? PassingScore,
+    bool Passed,
+    DateTimeOffset FinalizedAtUtc,
+    AttemptFinalizationReason FinalizationReason,
+    IReadOnlyList<SkillScoreBreakdown> SkillBreakdowns);
+
+public sealed record SkillScoreBreakdown(
+    EnglishSkill Skill,
+    decimal Score,
+    int QuestionCount);
+
+public sealed record AssessmentOverviewModel(
+    Guid AssessmentId,
+    Guid? CourseId,
+    string Title,
+    string? Description,
+    int DurationMinutes,
+    int MaxAttempts,
+    decimal? PassingScore,
+    int UsedAttempts,
+    decimal? HighestScore,
+    Guid? ActiveAttemptId,
+    DateTimeOffset? ActiveDeadlineUtc);
