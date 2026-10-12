@@ -1,0 +1,17 @@
+@model CourseActivities
+<section class="panel" aria-labelledby="course-activities-title">
+    <h2 id="course-activities-title">Luyện tập và đánh giá</h2>
+    @if (Model.Practices.Count == 0 && Model.Assessments.Count == 0) { <p class="muted">Chưa có bài luyện hoặc bài đánh giá khả dụng tại đây.</p> }
+    <ul class="lesson-list">
+    @foreach (var practice in Model.Practices)
+    {
+        <li><a asp-controller="Practice" asp-action="Take" asp-route-id="@practice.Id">@practice.Title</a> <span class="badge">Luyện tập · @practice.QuestionCount câu</span></li>
+    }
+    @foreach (var assessment in Model.Assessments)
+    {
+        <li><a asp-controller="Assessment" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">@assessment.Title</a>
+            <span class="badge">Đánh giá · @assessment.QuestionCount câu</span>
+            @if (assessment.ActiveAttemptId.HasValue) { <span class="muted">Có lượt đang làm</span> }</li>
+    }
+    </ul>
+</section>

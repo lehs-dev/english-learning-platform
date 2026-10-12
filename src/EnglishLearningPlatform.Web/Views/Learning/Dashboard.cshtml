@@ -1,0 +1,73 @@
+@model StudentDashboard
+@{ ViewData["Title"] = "Tiến độ học tập"; ViewData["ActiveSection"] = "dashboard"; }
+@section Styles { <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" /> }
+<div class="page-heading"><div><p class="eyebrow">KHU HỌC TẬP</p><h1>Tiến độ học tập</h1></div><div class="actions"><a class="button secondary" asp-action="Index">Khóa đã tham gia</a><a class="button" asp-controller="Assessment" asp-action="Index">Bài đánh giá</a></div></div>
+<div class="stat-grid" aria-label="Tổng quan học tập">
+    <div class="panel"><strong class="stat-value">@Model.Courses.Count</strong><span>Khóa đã tham gia</span></div>
+    <div class="panel"><strong class="stat-value">@Model.CompletedCourses</strong><span>Khóa đã ghi nhận hoàn thành</span></div>
+    <div class="panel"><strong class="stat-value">@Model.Results.Count</strong><span>Bài đánh giá có kết quả</span></div>
+</div>
+<h2>Tiếp tục học</h2>
+@if (Model.Courses.Count == 0)
+{
+    <div class="panel empty"><p>Bạn chưa tham gia khóa học nào.</p><a class="button" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a></div>
+}
+<div class="course-grid">
+@foreach (var course in Model.Courses)
+{
+    <article class="panel course-card">
+        <h3>@course.Title</h3><span class="badge">@course.Status</span>
+        @if (course.Progress is not null) { <partial name="_LearningProgress" model="course.Progress" /> }
+        <div class="actions"><a asp-action="Course" asp-route-id="@course.Id">Xem khóa học</a>
+        @if (course.Progress?.ContinueLessonId.HasValue == true)
+        {
+            <a class="button" asp-action="Continue" asp-route-id="@course.Id">@(course.Status == CourseStatus.Archived ? "Xem lại bài học" : "Tiếp tục học")</a>
+        }</div>
+    </article>
+}
+</div>
+<section class="panel" aria-labelledby="dashboard-results"><h2 id="dashboard-results">Kết quả đánh giá</h2>
+<p class="muted">Mỗi bài hiển thị lượt có điểm tổng cao nhất; khi đồng điểm, chọn lượt hoàn thành gần nhất. Điểm kỹ năng lấy từ cùng lượt đó. Chỉ phân tích kỹ năng có ít nhất 3 câu hỏi.</p>
+@if (Model.Results.Count == 0) { <p>Chưa có kết quả đánh giá đã chấm.</p> }
+@foreach (var result in Model.Results)
+{
+    <article class="result-summary"><h3><a asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">@result.Title</a></h3>
+        <p>Điểm tổng: <strong>@result.OverallScore.ToString("0.##")%</strong></p>
+        @if (result.Skills.Count == 0) { <p class="muted">Chưa có nhóm kỹ năng đủ dữ liệu để phân tích.</p> }
+        <ul>@foreach (var skill in result.Skills) { <li>@skill.Skill: @skill.Score.ToString("0.##")% (@skill.QuestionCount câu) @if (skill.IsWeak) { <span class="badge">Cần ôn tập</span> }</li> }</ul>
+    </article>
+}
+</section>
+<section class="panel" aria-labelledby="dashboard-practice-results"><h2 id="dashboard-practice-results">Kết quả luyện tập gần đây</h2>
+<p class="muted">Tối đa 20 bài luyện đã nộp gần đây, mỗi bài giữ kết quả lần nộp gần nhất.</p>
+@if (Model.PracticeResults.Count == 0) { <p>Chưa có kết quả luyện tập.</p> }
+<ul class="lesson-list">@foreach (var result in Model.PracticeResults) { <li><a asp-controller="Practice" asp-action="Result" asp-route-id="@result.PracticeId">@result.Title</a> · @result.Score.ToString("0.##")%</li> }</ul>
+</section>
+<section aria-labelledby="recommendations-title"><h2 id="recommendations-title">Gợi ý ôn tập</h2>
+<p class="muted">Gợi ý dựa trên kỹ năng dưới 60% trước khi làm tròn, metadata nội dung và quyền học của bạn.</p>
+@if (Model.Recommendations.Count == 0) { <p class="panel">Chưa xác định nội dung cần ôn tập từ kết quả hiện có.</p> }
+@foreach (var recommendation in Model.Recommendations)
+{
+    <article class="panel"><h3>@recommendation.Skill · @recommendation.Score.ToString("0.##")%</h3>
+        <p class="muted">Căn cứ: <a asp-controller="Assessment" asp-action="Result" asp-route-id="@recommendation.AttemptId">@recommendation.AssessmentTitle</a>.</p>
+        @if (recommendation.Contents.Count == 0) { <p>Chưa có nội dung khả dụng phù hợp với kỹ năng này.</p> }
+        <ul class="lesson-list">
+        @foreach (var content in recommendation.Contents)
+        {
+            <li>@switch (content.Kind)
+            {
+                case RecommendedContentKind.Course:
+                    <a asp-action="Course" asp-route-id="@content.Id">Khóa học: @content.Title</a>
+                    break;
+                case RecommendedContentKind.Practice:
+                    <a asp-controller="Practice" asp-action="Take" asp-route-id="@content.Id">Luyện tập: @content.Title</a>
+                    break;
+                case RecommendedContentKind.Assessment:
+                    <a asp-controller="Assessment" asp-action="Take" asp-route-id="@content.Id">Đánh giá: @content.Title</a>
+                    break;
+            }</li>
+        }
+        </ul>
+    </article>
+}
+</section>

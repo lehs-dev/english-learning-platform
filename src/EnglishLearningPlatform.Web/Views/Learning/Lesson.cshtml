@@ -18,6 +18,7 @@
 }
 @if (Model.Resources.Count == 0) { <p class="panel empty">Chưa có nội dung khả dụng</p> }
 @foreach (var resource in Model.Resources) { <partial name="_ResourceContent" model="resource" /> }
+@if (ViewData["Activities"] is CourseActivities activities) { <partial name="_CourseActivities" model="activities" /> }
 <nav class="actions lesson-navigation" aria-label="Điều hướng bài học">
     @if (Model.Previous is not null) { <a class="button secondary" asp-action="Lesson" asp-route-id="@Model.Previous.Id">← @Model.Previous.Title</a> }
     @if (Model.Next is not null) { <a class="button secondary" asp-action="Lesson" asp-route-id="@Model.Next.Id">@Model.Next.Title →</a> }

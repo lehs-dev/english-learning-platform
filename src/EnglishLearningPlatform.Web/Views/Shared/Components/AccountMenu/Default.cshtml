@@ -12,6 +12,10 @@
         </summary>
         <div class="account-dropdown">
             <div class="account-summary"><strong>@Model.FullName</strong><span>@Model.RoleLabel</span></div>
+            @if (User.IsInRole("Student"))
+            {
+                <a class="dropdown-item" asp-controller="Learning" asp-action="Dashboard">Tiến độ học tập</a>
+            }
             <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
                 Xem profile

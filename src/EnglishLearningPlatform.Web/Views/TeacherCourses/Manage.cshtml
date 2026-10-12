@@ -3,6 +3,7 @@
 <a asp-controller="TeacherCourses" asp-action="Index">← Khóa học của tôi</a>
 <div class="page-heading"><div><h1>@coursePage.Course.Title</h1><span class="badge">@coursePage.Course.Status</span><partial name="_CourseSummary" model="coursePage.Course" /></div><div class="actions"><a asp-controller="TeacherCourses" asp-action="Edit" asp-route-id="@courseId">Sửa metadata / giá</a><a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">Preview</a></div></div>
 <partial name="_CourseNotice" />
+<p><a class="button secondary" asp-action="Students" asp-route-id="@courseId">Học viên, tiến độ và thống kê</a></p>
 @if (coursePage.EnrollmentCount > 0) { <p class="notice">Khóa học có @coursePage.EnrollmentCount học viên. Thay đổi cấu trúc hoặc ẩn nội dung ảnh hưởng bài học khả dụng; Enrollment và progress được giữ nguyên.</p> }
 <section class="panel"><h2>Xuất bản khóa học</h2>
 @if (coursePage.PublishErrors.Count > 0) { <p>Cần sửa trước khi Publish:</p><ul class="validation">@foreach (var error in coursePage.PublishErrors) { <li>@error</li> }</ul> } else { <p>Khóa học đủ điều kiện Publish.</p> }
