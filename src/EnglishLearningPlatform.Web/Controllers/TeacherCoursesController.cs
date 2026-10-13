@@ -8,10 +8,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Policy = AuthorizationPolicies.Teacher)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class TeacherCoursesController(ICourseService courses) : Controller
+public sealed class TeacherCoursesController(ICourseService courses, ITeacherCourseReportService reports) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
+    [HttpGet]
+    public async Task<IActionResult> Students(Guid id, CourseStudentsQuery query, CancellationToken ct)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+        var result = await reports.GetAsync(UserId, id, query, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+    }
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken ct)
     {

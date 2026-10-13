@@ -13,3 +13,4 @@
     </li>
 }
 </ul>
+@if (ViewData["Activities"] is CourseActivities activities) { <partial name="_CourseActivities" model="activities" /> }

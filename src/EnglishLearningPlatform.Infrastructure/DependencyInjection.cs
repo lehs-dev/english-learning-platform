@@ -17,6 +17,8 @@ using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Infrastructure.AssessmentAttempts;
 using EnglishLearningPlatform.Application.Administration;
 using EnglishLearningPlatform.Infrastructure.Administration;
+using EnglishLearningPlatform.Application.Practice;
+using EnglishLearningPlatform.Infrastructure.Practices;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
@@ -80,6 +82,9 @@ public static class DependencyInjection
         services.AddScoped<IAssessmentQueryService, AssessmentQueryService>();
         services.AddScoped<IExamScoringService, ExamScoringService>();
         services.AddScoped<IAdminQueryService, AdminQueryService>();
+        services.AddScoped<IStudentLearningService, StudentLearningService>();
+        services.AddScoped<ITeacherCourseReportService, TeacherCourseReportService>();
+        services.AddScoped<IPracticeService, PracticeService>();
         return services;
     }
 }
