@@ -1,0 +1,33 @@
+@model TeacherCourseReport
+@{ ViewData["Title"] = "Học viên · " + Model.Title; }
+@section Styles { <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" /> }
+<a asp-action="Manage" asp-route-id="@Model.CourseId">← Nội dung khóa học</a>
+<div class="page-heading"><h1>Học viên · @Model.Title</h1></div>
+<div class="stat-grid" aria-label="Thống kê khóa học">
+    <div class="panel"><strong class="stat-value">@Model.Commerce.Enrollments</strong><span>Enrollment hợp lệ</span><p class="muted">@Model.Commerce.FreeEnrollments không qua thanh toán · @Model.Commerce.PaidEnrollments qua thanh toán</p></div>
+    <div class="panel"><strong class="stat-value">@Model.Commerce.CompletedEnrollments</strong><span>Đã ghi nhận hoàn thành</span></div>
+    <div class="panel"><strong class="stat-value">@Model.Commerce.Orders</strong><span>Đơn đã tạo</span><p class="muted">@Model.Commerce.SuccessfulOrders đơn có thanh toán thành công</p></div>
+    <div class="panel"><strong class="stat-value">@Model.Commerce.SuccessfulPaymentAmount.ToString("N0")</strong><span>Tổng tiền giao dịch thành công (VND)</span></div>
+</div>
+<p class="muted">Thống kê toàn khóa, theo giá ghi trong đơn lúc mua. Bộ lọc bên dưới chỉ áp dụng cho danh sách học viên.</p>
+<form method="get" class="panel filter-grid" asp-action="Students" asp-route-id="@Model.CourseId">
+    <div><label for="student-search">Tên học viên</label><input id="student-search" name="Search" value="@Model.Query.Search" maxlength="120" /></div>
+    <div><label for="student-completed">Lịch sử hoàn thành</label><select id="student-completed" name="Completed"><option value="">Tất cả</option><option value="true" selected="@(Model.Query.Completed == true)">Đã hoàn thành</option><option value="false" selected="@(Model.Query.Completed == false)">Chưa hoàn thành</option></select></div>
+    <div class="actions"><button class="button">Lọc</button><a asp-action="Students" asp-route-id="@Model.CourseId">Xóa bộ lọc</a></div>
+</form>
+<section class="panel"><h2>Danh sách học viên (@Model.TotalStudents)</h2>
+@if (Model.Students.Count == 0) { <p class="empty">Không có học viên phù hợp.</p> }
+else
+{
+    <div class="table-scroll"><table class="report-table"><thead><tr><th scope="col">Học viên</th><th scope="col">Ngày tham gia</th><th scope="col">Tiến độ hiện tại và lịch sử</th></tr></thead><tbody>
+    @foreach (var student in Model.Students)
+    {
+        <tr><td>@student.Name</td><td><time datetime="@student.EnrolledAtUtc.ToString("O")">@student.EnrolledAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</time></td><td><partial name="_LearningProgress" model="student.Progress" /></td></tr>
+    }
+    </tbody></table></div>
+}
+<nav class="actions pagination" aria-label="Phân trang học viên">
+    @if (Model.Query.Page > 1) { <a class="button secondary" asp-action="Students" asp-route-id="@Model.CourseId" asp-route-Search="@Model.Query.Search" asp-route-Completed="@Model.Query.Completed" asp-route-Page="@(Model.Query.Page - 1)">Trước</a> }
+    <span>Trang @Model.Query.Page / @Model.Pages</span>
+    @if (Model.Query.Page < Model.Pages) { <a class="button secondary" asp-action="Students" asp-route-id="@Model.CourseId" asp-route-Search="@Model.Query.Search" asp-route-Completed="@Model.Query.Completed" asp-route-Page="@(Model.Query.Page + 1)">Sau</a> }
+</nav></section>

@@ -13,6 +13,8 @@
 @if (Model.Progress is not null) { <partial name="_LearningProgress" model="Model.Progress" /> }
 <p class="muted">Chọn bất kỳ bài học khả dụng nào để bắt đầu.</p><partial name="_CourseOutline" model="Model" />
 
+@if (ViewData["Activities"] is CourseActivities activities) { <partial name="_CourseActivities" model="activities" /> }
+
 @if (Model.FinalAssessmentId.HasValue && !Model.IsOwner)
 {
     <section class="panel" aria-labelledby="final-assessment-title">

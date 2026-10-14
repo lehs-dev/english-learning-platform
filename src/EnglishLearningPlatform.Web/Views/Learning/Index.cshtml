@@ -1,6 +1,6 @@
 @model IReadOnlyList<CourseSummary>
 @{ ViewData["Title"] = "Khóa đã tham gia"; }
-<div class="page-heading"><h1>Khóa đã tham gia</h1><a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a></div>
+<div class="page-heading"><h1>Khóa đã tham gia</h1><div class="actions"><a class="button" asp-action="Dashboard">Tiến độ học tập</a><a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a></div></div>
 @if (Model.Count == 0) { <p class="panel empty">Bạn chưa tham gia khóa học nào.</p> }
 <div class="course-grid">
 @foreach (var course in Model)
@@ -13,7 +13,7 @@
             <a class="button secondary" asp-action="Course" asp-route-id="@course.Id">Xem khóa học</a>
             @if (course.Progress?.ContinueLessonId is Guid lessonId)
             {
-                <a class="button" asp-action="Lesson" asp-route-id="@lessonId">@(course.Status == CourseStatus.Archived ? "Xem bài học" : "Tiếp tục học")</a>
+                <a class="button" asp-action="Continue" asp-route-id="@course.Id">@(course.Status == CourseStatus.Archived ? "Xem bài học" : "Tiếp tục học")</a>
             }
         </div>
     </article>

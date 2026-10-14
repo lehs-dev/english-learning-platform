@@ -1,0 +1,24 @@
+@model EnglishLearningPlatform.Application.Practice.PracticeSheet
+@{ ViewData["Title"] = Model.Title; }
+<a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">← @Model.CourseTitle</a>
+<div class="page-heading"><h1>@Model.Title</h1>@if (Model.HasResult) { <a asp-action="Result" asp-route-id="@Model.Id">Kết quả gần nhất</a> }</div>
+<p class="preserve">@Model.Description</p>
+<p class="muted">@Model.Questions.Count câu. Mỗi câu có cùng trọng số; câu bỏ trống nhận 0 điểm. Bạn có thể luyện lại và xem giải thích sau khi nộp.</p>
+<form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="editor-form">
+@for (var index = 0; index < Model.Questions.Count; index++)
+{
+    var question = Model.Questions[index];
+    <fieldset class="panel"><legend>Câu @(index + 1) · @question.Skill</legend>
+        <input type="hidden" name="Answers[@index].PracticeQuestionId" value="@question.Id" />
+        @if (!string.IsNullOrWhiteSpace(question.Passage)) { <p class="preserve">@question.Passage</p> }
+        @if (question.AudioUrl is not null) { <audio controls preload="none" src="@question.AudioUrl">Trình duyệt chưa hỗ trợ audio.</audio> }
+        <p class="preserve">@question.Content</p>
+        @foreach (var option in question.Options)
+        {
+            <label class="check"><input type="radio" name="Answers[@index].SelectedOptionId" value="@option.Id" /> @option.Content</label>
+        }
+        <label class="check"><input type="radio" name="Answers[@index].SelectedOptionId" value="" checked /> Bỏ trống</label>
+    </fieldset>
+}
+<button class="button">Nộp bài luyện</button>
+</form>

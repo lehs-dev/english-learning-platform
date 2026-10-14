@@ -2,6 +2,7 @@ using System.Security.Claims;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Web.Models.Assessment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,17 @@ namespace EnglishLearningPlatform.Web.Controllers;
 
 [Authorize(Policy = AuthorizationPolicies.Student)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class AssessmentController(IAssessmentQueryService queries, IAttemptService attempts) : Controller
+public sealed class AssessmentController(IAssessmentQueryService queries, IAttemptService attempts,
+    IStudentLearningService learning) : Controller
 {
     private Guid StudentId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    [HttpGet]
+    public async Task<IActionResult> Index(CancellationToken ct)
+    {
+        var result = await learning.AssessmentsAsync(StudentId, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Forbid();
+    }
 
     [HttpGet]
     public async Task<IActionResult> Take(Guid id, Guid? attemptId, CancellationToken ct)

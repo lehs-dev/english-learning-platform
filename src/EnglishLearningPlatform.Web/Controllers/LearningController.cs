@@ -8,10 +8,27 @@ using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class LearningController(ICourseService courses, IAssessmentQueryService assessments) : Controller
+public sealed class LearningController(ICourseService courses, IAssessmentQueryService assessments,
+    IStudentLearningService learning) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
+    [HttpGet, Authorize(Policy = AuthorizationPolicies.Student)]
+    public async Task<IActionResult> Dashboard(CancellationToken ct)
+    {
+        var result = await learning.DashboardAsync(UserId, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+    }
+    [HttpGet, Authorize(Policy = AuthorizationPolicies.Student)]
+    public async Task<IActionResult> Continue(Guid id, CancellationToken ct)
+    {
+        // Resolve the current target each time, so a hidden lesson cannot leave a stale resume link.
+        var result = await courses.OpenCourseAsync(UserId, id, false, ct);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        return result.Value!.Progress?.ContinueLessonId is Guid lessonId
+            ? RedirectToAction(nameof(Lesson), new { id = lessonId })
+            : RedirectToAction(nameof(Course), new { id });
+    }
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken ct)
     {
@@ -26,18 +43,39 @@ public sealed class LearningController(ICourseService courses, IAssessmentQueryS
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         if (User.IsInRole(AppRoles.Student) && result.Value!.FinalAssessmentId is Guid assessmentId)
             ViewData["FinalAssessment"] = await assessments.GetAssessmentOverviewAsync(UserId, assessmentId, ct);
+        if (User.IsInRole(AppRoles.Student))
+        {
+            var activities = await learning.ActivitiesAsync(UserId, id, ct);
+            if (activities.Access != LearningAccessResult.Allowed) return Denied(activities.Access);
+            ViewData["Activities"] = activities.Value;
+        }
         return View(result.Value);
     }
     [HttpGet]
     public async Task<IActionResult> Module(Guid id, CancellationToken ct)
     {
         var result = await courses.OpenModuleAsync(UserId, id, ct);
+        if (result.Access == LearningAccessResult.Allowed && !result.Value!.IsOwner)
+        {
+            var activities = await learning.ActivitiesAsync(UserId, result.Value.CourseId, ct);
+            if (activities.Access != LearningAccessResult.Allowed) return Denied(activities.Access);
+            var lessons = result.Value.Lessons.Select(l => l.Id).ToHashSet();
+            ViewData["Activities"] = new CourseActivities(activities.Value!.Practices.Where(p => p.ModuleId == id ||
+                (p.LessonId.HasValue && lessons.Contains(p.LessonId.Value))).ToList(), []);
+        }
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
     [HttpGet]
     public async Task<IActionResult> Lesson(Guid id, CancellationToken ct)
     {
         var result = await courses.OpenLessonAsync(UserId, id, ct);
+        if (result.Access == LearningAccessResult.Allowed && User.IsInRole(AppRoles.Student))
+        {
+            var activities = await learning.ActivitiesAsync(UserId, result.Value!.CourseId, ct);
+            if (activities.Access != LearningAccessResult.Allowed) return Denied(activities.Access);
+            ViewData["Activities"] = new CourseActivities(activities.Value!.Practices.Where(p => p.LessonId == id ||
+                p.ModuleId == result.Value.ModuleId).ToList(), []);
+        }
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = AuthorizationPolicies.Student)]

@@ -1,0 +1,11 @@
+@model EnglishLearningPlatform.Application.Practice.PracticeResult
+@{ ViewData["Title"] = "Kết quả · " + Model.Title; }
+<a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">← Khóa học</a>
+<div class="page-heading"><div><h1>@Model.Title</h1><p>Kết quả gần nhất: <strong>@Model.Score.ToString("0.##")%</strong></p><p class="muted">Nộp lúc @Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") (UTC+7)</p></div>
+@if (ViewData["CanRetry"] is true) { <a class="button" asp-action="Take" asp-route-id="@Model.PracticeId">Luyện lại</a> }
+</div>
+@foreach (var question in Model.Questions)
+{
+    <article class="panel"><h2>@question.Content</h2><span class="badge">@(question.IsCorrect ? "Đúng" : "Sai / bỏ trống")</span>
+    <p>Bạn chọn: @(question.SelectedAnswer ?? "Bỏ trống")</p><p>Đáp án đúng: @question.CorrectAnswer</p><p class="preserve">@question.Explanation</p></article>
+}
