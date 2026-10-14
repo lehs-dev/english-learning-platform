@@ -32,6 +32,7 @@
     }
 </section>
 <div class="actions">
+    <a class="button secondary" asp-controller="Learning" asp-action="Dashboard" asp-fragment="recommendations-title">Xem gợi ý ôn tập theo kỹ năng</a>
     @if (Model.CourseId is Guid courseId) { <a class="button" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">Về khóa học và tiến độ</a> }
     <a class="button secondary" asp-action="Take" asp-route-id="@Model.AssessmentId">Thông tin bài thi và lịch sử</a>
     <a asp-controller="Learning" asp-action="Index">Khu học tập</a>

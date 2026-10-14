@@ -215,6 +215,50 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         Assert.Equal(1, await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
     }
 
+    [Fact]
+    public async Task ListeningAudio_IsAvailableOnlyToEnrolledAttemptOwner_AndResumeKeepsDeadline()
+    {
+        var data = await SeedAsync();
+        const string audioUrl = "https://example.com/listening-regression.mp3";
+        var question = data.Assessment.Questions.OrderBy(q => q.OrderIndex).First();
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var entity = await db.Questions.SingleAsync(q => q.Id == question.QuestionId);
+            entity.PrimarySkill = EnglishSkill.Listening;
+            entity.Stimulus = new Stimulus { OwnerTeacherUserId = data.Teacher.Id,
+                StimulusType = StimulusType.Audio, ResourceUrl = audioUrl, ContentText = "Listen and choose." };
+            db.Stimuli.Add(entity.Stimulus);
+            await db.SaveChangesAsync();
+        }
+        using var client = await StudentClient(data.Student);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        var attemptId = await Start(client, data, token);
+        DateTimeOffset deadline;
+        using (var scope = factory.Services.CreateScope())
+            deadline = (await scope.ServiceProvider.GetRequiredService<IAssessmentQueryService>()
+                .GetTakingSheetAsync(data.Student.Id, attemptId))!.DeadlineUtc;
+        using var saved = await Post(client, $"/Assessment/Save/{attemptId}", token, Answers(data, 4));
+        using var resumed = await Post(client, $"/Assessment/Start/{data.Assessment.Id}", token);
+        using var page = await client.GetAsync(resumed.Headers.Location);
+        var html = await page.Content.ReadAsStringAsync();
+        Assert.Contains("<audio", html);
+        Assert.Contains(audioUrl, html);
+        Assert.DoesNotContain("QUESTION_PRIVATE_EXPLANATION", html);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var sheet = await scope.ServiceProvider.GetRequiredService<IAssessmentQueryService>()
+                .GetTakingSheetAsync(data.Student.Id, attemptId);
+            Assert.Equal(deadline, sheet!.DeadlineUtc);
+            Assert.All(sheet.Questions, q => Assert.NotNull(q.SelectedOptionId));
+        }
+        var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var otherClient = await StudentClient(other);
+        using var denied = await otherClient.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
+        Assert.Equal(HttpStatusCode.NotFound, denied.StatusCode);
+        Assert.DoesNotContain(audioUrl, await denied.Content.ReadAsStringAsync());
+    }
+
     private async Task<HttpClient> StudentClient(ApplicationUser user)
     {
         var client = IdentityTestHelpers.CreateClient(factory);

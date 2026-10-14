@@ -33,8 +33,14 @@
 }
 
 .assessment-question {
-    min-width: 0
+    min-width: 0;
+    scroll-margin-top: 150px
 }
+
+.assessment-navigation .is-answered { background: #e7f7ec; color: #206b3a; border-color: #206b3a }
+.assessment-question audio { display: block; width: 100%; margin: 12px 0 }
+[data-submit-dialog] { max-width: 480px; width: calc(100% - 40px); border: 1px solid #bdd3fa; border-radius: 12px; padding: 24px; box-sizing: border-box }
+[data-submit-dialog]::backdrop { background: rgb(0 0 0 / 45%) }
 
 .assessment-question legend {
     padding: 0 8px;
