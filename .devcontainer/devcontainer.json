@@ -37,7 +37,7 @@
       "settings": {
         "dotnet.defaultSolution": "EnglishLearningPlatform.sln",
         "editor.formatOnSave": true,
-        "files.eol": "\\n"
+        "files.eol": "\n"
       }
     }
   },
