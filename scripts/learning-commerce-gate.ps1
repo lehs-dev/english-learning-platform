@@ -141,8 +141,11 @@ try {
         $taskJsonStart = $taskJson.IndexOf('[{')
         if ($taskJsonStart -lt 0) { throw 'No JSON evidence array returned by SQL Server.' }
         $taskJson = $taskJson.Substring($taskJsonStart).Trim()
-        $taskRows = @($taskJson | ConvertFrom-Json)
-        if ($taskRows.Count -ne 2) { throw 'Demo course count mismatch.' }
+        # Windows PowerShell 5 emits a JSON array as one pipeline object; an
+        # outer @() would wrap that array again and incorrectly report count 1.
+        $taskRows = $taskJson | ConvertFrom-Json
+        $taskRows | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $taskOutput 'database-evidence.json') -Encoding UTF8
+        if (@($taskRows).Count -ne 2) { throw 'Demo course count mismatch.' }
         foreach ($row in $taskRows) {
             if ($row.AppliedMigrations -ne 6 -or $row.DemoUsers -ne 5 -or $row.Enrollments -ne 1 -or
                 $row.HistoricalCompletions -ne 1 -or $row.Status -ne 'Archived' -or $row.CompletedEffectiveLessons -ne 1) {
@@ -153,7 +156,6 @@ try {
             if (-not $row.IsPaid -and ($row.Orders -ne 0 -or $row.FailedPayments -ne 0 -or $row.SuccessfulPayments -ne 0 -or
                 $row.SuccessfulPaymentAmount -ne 0 -or $row.EffectiveLessons -ne 2)) { throw 'Free demo invariants failed.' }
         }
-        $taskRows | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $taskOutput 'database-evidence.json') -Encoding UTF8
     }
     $taskManifest['outcome'] = 'Passed'
 } catch {
