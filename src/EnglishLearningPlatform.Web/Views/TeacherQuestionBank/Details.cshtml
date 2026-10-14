@@ -1,0 +1,127 @@
+@using EnglishLearningPlatform.Application.QuestionBank
+@using EnglishLearningPlatform.Domain.Enums
+@model QuestionDetail
+
+@{
+    ViewData["Title"] = "Chi tiết câu hỏi";
+    // Dùng CSS chung của Question Bank và class riêng cho bố cục chi tiết.
+    ViewData["PageClass"] = "question-bank-page question-bank-detail-page";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Chi tiết câu hỏi</h1>
+        <p>Thông tin, lựa chọn và đáp án của câu hỏi.</p>
+    </div>
+    <a class="button secondary"
+       asp-controller="TeacherQuestionBank"
+       asp-action="Index">
+        ← Quay lại Question Bank
+    </a>
+</div>
+
+<section class="panel question-bank-detail" aria-labelledby="question-content-title">
+
+    @* Gom từng nhãn và giá trị thành một ô, không dùng thụt lề mặc định của dd. *@
+    <dl class="question-bank-metadata">
+        <div>
+            <dt>Kỹ năng</dt>
+            <dd>@Model.PrimarySkill</dd>
+        </div>
+
+        <div>
+            <dt>Trình độ</dt>
+            <dd>@Model.Level</dd>
+        </div>
+
+        <div>
+            <dt>Độ khó</dt>
+            <dd>@Model.Difficulty</dd>
+        </div>
+
+        <div>
+            <dt>Trạng thái</dt>
+            <dd>@Model.Status</dd>
+        </div>
+    </dl>
+
+    <h2 id="question-content-title">Nội dung</h2>
+
+    @* Razor tự mã hóa nội dung để không thực thi HTML/script được nhập vào. *@
+    <p class="preserve question-bank-content">@Model.Content</p>
+
+    <h2>Các lựa chọn</h2>
+
+    @* Service đã sắp xếp options theo OrderIndex; type A hiển thị ký hiệu A, B, C... *@
+    <ol class="question-bank-options" type="A">
+        @foreach (QuestionOptionItem option in Model.Options)
+        {
+            // Class is-correct chỉ đổi cách hiển thị, không thay đổi đáp án trong dữ liệu.
+            string optionClass = "question-bank-option";
+            if (option.IsCorrect)
+            {
+                optionClass += " is-correct";
+            }
+
+            <li class="@optionClass">
+                <div class="question-bank-option-row">
+                    <span class="preserve question-bank-option-content">@option.Content</span>
+
+                    @* Có cả nhãn chữ để không phải chỉ dựa vào màu sắc nhận biết đáp án. *@
+                    @if (option.IsCorrect)
+                    {
+                        <strong class="question-bank-correct-label">Đáp án đúng</strong>
+                    }
+                </div>
+            </li>
+        }
+    </ol>
+
+    @* Giải thích là thông tin tùy chọn. *@
+    @if (!string.IsNullOrWhiteSpace(Model.Explanation))
+    {
+        <section class="question-bank-explanation" aria-labelledby="question-explanation-title">
+            <h2 id="question-explanation-title">Giải thích</h2>
+            <p class="preserve">@Model.Explanation</p>
+        </section>
+    }
+</section>
+
+@* Chỉ hiển thị passage/audio khi câu hỏi có Stimulus. *@
+@if (Model.Stimulus != null)
+{
+    <section class="panel question-bank-stimulus" aria-labelledby="question-stimulus-title">
+        <h2 id="question-stimulus-title">Passage / Audio</h2>
+
+        <p>
+            <strong>Tiêu đề:</strong>
+            @Model.Stimulus.Title
+        </p>
+
+        @if (Model.Stimulus.StimulusType == StimulusType.Passage)
+        {
+            <p class="preserve">@Model.Stimulus.ContentText</p>
+        }
+        else if (Model.Stimulus.StimulusType == StimulusType.Audio)
+        {
+            @if (!string.IsNullOrWhiteSpace(Model.Stimulus.ResourceUrl))
+            {
+                @* Không tải trước audio; người dùng chủ động bấm phát. *@
+                <audio controls
+                       preload="none"
+                       aria-label="@Model.Stimulus.Title"
+                       src="@Model.Stimulus.ResourceUrl">
+                    Trình duyệt không hỗ trợ phát audio.
+                </audio>
+            }
+            else
+            {
+                <p>Chưa có URL audio.</p>
+            }
+        }
+    </section>
+}
