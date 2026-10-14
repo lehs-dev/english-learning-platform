@@ -79,6 +79,28 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         FinalizationReason = status == AttemptStatus.Graded ? AttemptFinalizationReason.ManualSubmit : null
     };
 
+    [Theory]
+    [InlineData("javascript:alert(1)")]
+    [InlineData("file:///C:/private.mp3")]
+    [InlineData("/relative-audio.mp3")]
+    public async Task TakingSheet_DoesNotExposeUnsafeAudioUrls(string audioUrl)
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var stimulus = await db.Stimuli.SingleAsync(s => s.OwnerTeacherUserId == data.Teacher);
+        stimulus.StimulusType = StimulusType.Audio;
+        stimulus.ResourceUrl = audioUrl;
+        var attempt = AttemptFor(data);
+        db.Attempts.Add(attempt);
+        await db.SaveChangesAsync();
+        var query = new AssessmentQueryService(db, new FixedTimeProvider(Now));
+        var sheet = await query.GetTakingSheetAsync(data.Student, attempt.Id);
+        Assert.NotNull(sheet);
+        Assert.All(sheet.Questions, question => Assert.Null(question.AudioUrl));
+        Assert.Contains(sheet.Questions, question => question.StimulusContent == "Shared passage");
+    }
+
     [Fact]
     public async Task Overview_UsesOnlyOwnedGradedScoresAndCountsExpiredAttemptsWithoutMutating()
     {

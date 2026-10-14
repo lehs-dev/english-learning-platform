@@ -91,12 +91,26 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
                             .Select(answer => (Guid?)answer.SelectedOptionId).SingleOrDefault(),
                         q.Question.Options.OrderBy(option => option.OrderIndex).ThenBy(option => option.Id)
                             .Select(option => new AssessmentOptionTakingModel(option.Id, option.Content, option.OrderIndex))
-                            .ToList()))
+                            .ToList())
+                    {
+                        AudioUrl = q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Audio
+                            ? q.Question.Stimulus.ResourceUrl : null
+                    })
                     .ToList()))
             .SingleOrDefaultAsync(ct);
 
         // A slow read must not return a sheet whose deadline elapsed in flight.
-        return sheet is not null && sheet.DeadlineUtc > timeProvider.GetUtcNow() ? sheet : null;
+        if (sheet is null || sheet.DeadlineUtc <= timeProvider.GetUtcNow()) return null;
+        // Only expose playable HTTP(S) resources; legacy or malformed URLs must not reach the player.
+        return sheet with
+        {
+            Questions = sheet.Questions.Select(question => question with
+            {
+                AudioUrl = Uri.TryCreate(question.AudioUrl, UriKind.Absolute, out var uri) &&
+                    (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
+                    ? question.AudioUrl : null
+            }).ToList()
+        };
     }
 
     public async Task<AssessmentResultView?> GetAttemptResultAsync(

@@ -22,10 +22,19 @@
     </div>
     @if (!string.IsNullOrWhiteSpace(sheet.Description)) { <p class="preserve">@sheet.Description</p> }
     <form asp-action="Submit" asp-route-id="@sheet.AttemptId" method="post" data-assessment-form data-save-url="@Url.Action("Save", new { id = sheet.AttemptId })">
+        <nav class="panel assessment-navigation" aria-label="Điều hướng câu hỏi">
+            <p data-answer-progress role="status">@sheet.Questions.Count(q => q.SelectedOptionId.HasValue)/@sheet.Questions.Count câu đã trả lời</p>
+            <div class="actions">
+                @for (var i = 0; i < sheet.Questions.Count; i++)
+                {
+                    <a class="button secondary" href="#question-@(i + 1)" data-question-link="@(i + 1)" aria-label="Đến câu @(i + 1)">@(i + 1)</a>
+                }
+            </div>
+        </nav>
         @for (var i = 0; i < sheet.Questions.Count; i++)
         {
             var question = sheet.Questions[i];
-            <fieldset class="panel assessment-question">
+            <fieldset class="panel assessment-question" id="question-@(i + 1)" data-question>
                 <legend>Câu @(i + 1) · @question.Points.ToString("0.##") điểm</legend>
                 <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
                 @if (!string.IsNullOrWhiteSpace(question.StimulusContent))
@@ -33,6 +42,11 @@
                     <div class="assessment-stimulus preserve">@question.StimulusContent</div>
                 }
                 <p class="preserve">@question.Content</p>
+                @if (question.AudioUrl is not null)
+                {
+                    <audio controls preload="none" src="@question.AudioUrl" aria-label="Audio câu @(i + 1)">Trình duyệt chưa hỗ trợ audio.</audio>
+                    <p class="muted">Nếu audio không phát, kiểm tra kết nối và dùng nút phát để thử lại.</p>
+                }
                 @foreach (var option in question.Options)
                 {
                     <label class="assessment-option" for="option-@option.Id">
@@ -52,6 +66,15 @@
                 <button class="button" type="submit" data-submit-button>Nộp bài và xem kết quả</button>
             </div>
         </div>
+        <dialog data-submit-dialog aria-labelledby="submit-dialog-title">
+            <h2 id="submit-dialog-title">Xác nhận nộp bài</h2>
+            <p data-submit-summary></p>
+            <p>Sau khi nộp, bạn không thể sửa đáp án của lượt làm này.</p>
+            <div class="actions">
+                <button class="button secondary" type="button" data-cancel-submit>Tiếp tục làm bài</button>
+                <button class="button" type="button" data-confirm-submit>Xác nhận nộp bài</button>
+            </div>
+        </dialog>
     </form>
 }
 else if (overview is not null)

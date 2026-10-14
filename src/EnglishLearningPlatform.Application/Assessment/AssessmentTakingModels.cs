@@ -18,7 +18,10 @@ public sealed record AssessmentQuestionTakingModel(
     decimal Points,
     string? StimulusContent,
     Guid? SelectedOptionId,
-    IReadOnlyList<AssessmentOptionTakingModel> Options);
+    IReadOnlyList<AssessmentOptionTakingModel> Options)
+{
+    public string? AudioUrl { get; init; }
+}
 
 public sealed record AssessmentOptionTakingModel(
     Guid Id,
