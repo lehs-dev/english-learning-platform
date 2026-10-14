@@ -117,4 +117,32 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/learning-commerc
 
 Gate restore/build, khởi động SQL Server 2022 riêng, chạy test focus/unit/integration, migrate database demo, seed bằng mật khẩu ngẫu nhiên chỉ trong environment, mở web và chạy hai suite browser. Report/screenshot/log/TRX nằm trong `artifacts/learning-commerce-week6/final`. Kết thúc gate dừng đúng web process và xóa đúng container do gate tạo; dữ liệu máy của nhóm không nằm trong container này.
 
-Ảnh demo chỉ chứa tài khoản giả. Không đóng gói password, cookie, connection string hoặc chữ ký HMAC. Nếu thiết kế lại FE sau đợt này, chạy lại UAT và thay ảnh minh chứng theo UI mới; các test backend tiếp tục kiểm tra hợp đồng nghiệp vụ.
+Ảnh demo chỉ chứa tài khoản giả. Không đóng gói password, cookie, connection string hoặc chữ ký HMAC. Nếu thiết kế lại FE sau đợt này, chạy lại UAT và thay ảnh minh chứng theo UI mới; các test backend tiếp tục kiểm tra hợp đồng nghiệp vụ. Khi chạy nhiều lần, chọn OutputDirectory riêng cho từng lần để giữ log/report độc lập.
+
+## 9. Minh họa cho báo cáo
+
+Các hình dưới được chụp từ UAT tự động ngày 14/10/2026 trên database demo riêng. [Bộ bằng chứng](../acceptance/evidence/learning-commerce-week6/README.md) có đủ 42 hình và JSON ghi expected/actual của từng hành trình.
+
+**Hình 1.** Guest chỉ xem metadata và giá khóa Paid.
+
+![Metadata công khai](../acceptance/evidence/learning-commerce-week6/browser-learning-commerce/LC-UAT-02-paid-metadata.png)
+
+**Hình 2.** Payment Failed không cấp quyền học; Student tạo đơn mới để thử lại.
+
+![Đơn thất bại](../acceptance/evidence/learning-commerce-week6/browser-learning-commerce/LC-UAT-05-failed-order.png)
+
+**Hình 3.** Payment Success và callback replay giữ quyền học hợp lệ.
+
+![Thanh toán thành công](../acceptance/evidence/learning-commerce-week6/browser-learning-commerce/LC-UAT-05-success-after-replay.png)
+
+**Hình 4.** Thêm bài làm progress hiện tại giảm xuống 66,67%, nhưng mốc hoàn thành lịch sử được giữ.
+
+![Progress động](../acceptance/evidence/learning-commerce-week6/browser-learning-commerce/LC-UAT-07-added-lesson-66-percent.png)
+
+**Hình 5.** Owner report đối chiếu một Enrollment, một lịch sử hoàn thành, hai Order và 199000 VND giao dịch thành công.
+
+![Báo cáo Teacher](../acceptance/evidence/learning-commerce-week6/browser-learning-commerce/LC-UAT-10-owner-commerce-progress-report.png)
+
+**Hình 6.** Course Archived trên mobile giữ nội dung và lịch sử, chặn cập nhật tiến độ.
+
+![Archived trên mobile](../acceptance/evidence/learning-commerce-week6/browser-learning-commerce/LC-UAT-09-mobile-archived.png)

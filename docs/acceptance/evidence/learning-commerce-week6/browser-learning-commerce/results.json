@@ -1,0 +1,202 @@
+{
+  "candidateSha": "ea1e4bb85d3dcc1b62155def6b1717c091f51f88",
+  "branch": "feat/learning-commerce-uat",
+  "workingTreeClean": true,
+  "sourceDigest": "faae0562963c36eb927eef547ed0a7c9203702a0be7a9a957fdb0a66a8527c2c",
+  "startedAtUtc": "2026-10-14T07:42:30.764Z",
+  "finishedAtUtc": "2026-10-14T07:42:58.498Z",
+  "timezone": "Asia/Saigon",
+  "browser": "156.0.8078.4",
+  "viewport": "1440x1000; mobile 390x844",
+  "baseURL": "http://127.0.0.1:5086",
+  "data": {
+    "free": {
+      "title": "Week 6 UAT · Free Learning Commerce",
+      "paid": false,
+      "lessons": [
+        "d119b789-ef30-41e2-baaa-8ea90bca6c6e",
+        "4897ee47-74c3-4fd9-b03c-cbbb4113da6e",
+        "0bbd2f5a-e95c-4fc9-854b-595db9b52ad2"
+      ],
+      "id": "40c47082-9188-4c6a-9a48-1d548cc04f85",
+      "moduleId": "94f01d46-a169-4f8c-af0e-14462984a4d9",
+      "completedAt": "2026-10-14T07:42:49.9967497+00:00"
+    },
+    "paid": {
+      "title": "Week 6 UAT · Paid Learning Commerce",
+      "paid": true,
+      "lessons": [
+        "95aa87a3-1257-4431-b2a3-1148b2b41d59",
+        "c4cbfd3a-bc83-440f-82ef-88f4531884e0",
+        "1a66ec2c-20bb-473c-ab64-8f77433bf2ce"
+      ],
+      "id": "899ae7ea-adec-4fb2-8f7b-2de0ba27b210",
+      "moduleId": "03bab1e8-4835-4e35-afb6-565ab04e2b3f",
+      "completedAt": "2026-10-14T07:42:50.9288455+00:00"
+    },
+    "failedOrder": "d3fb4d69-2161-46a6-8000-5a83e10849de",
+    "successOrder": "8eef7f38-c7b5-4f67-9486-9ac110900d35"
+  },
+  "cases": [
+    {
+      "id": "LC-UAT-01",
+      "actor": "Teacher 1",
+      "expected": "Create Free/Paid courses using forms; Published lessons only.",
+      "actual": "Created two Published courses, each with two Published lessons and one Draft text lesson; paid price 199000 VND.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:33.665Z",
+      "finishedAtUtc": "2026-10-14T07:42:44.677Z",
+      "screenshots": [
+        "LC-UAT-01-teacher-published-paid.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-02",
+      "actor": "Guest",
+      "expected": "Public metadata excludes protected text; learning requires login.",
+      "actual": "Catalog/detail returned metadata only; direct protected lesson redirected to Login.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:44.678Z",
+      "finishedAtUtc": "2026-10-14T07:42:45.689Z",
+      "screenshots": [
+        "LC-UAT-02-catalog.png",
+        "LC-UAT-02-paid-metadata.png",
+        "LC-UAT-02-login-required.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-03",
+      "actor": "Teacher 2",
+      "expected": "Foreign management/report/resource and valid-CSRF mutations denied.",
+      "actual": "Foreign Teacher received 403; course remained public after rejected Archive POST.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:45.690Z",
+      "finishedAtUtc": "2026-10-14T07:42:46.233Z",
+      "screenshots": [
+        "LC-UAT-03-foreign-owner-denied.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-04",
+      "actor": "Student 1",
+      "expected": "Free enrollment requires CSRF; duplicate POST preserves access.",
+      "actual": "CSRF omission returned 400; UI enrollment and repeated valid POST opened the same course at 0/2.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:46.233Z",
+      "finishedAtUtc": "2026-10-14T07:42:47.034Z",
+      "screenshots": [
+        "LC-UAT-04-free-enrolled.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-05",
+      "actor": "Student 2",
+      "expected": "Pending/failure deny content; retry success and replay keep one grant.",
+      "actual": "Pending/failure blocked content; retry created a new order, success opened learning, three replay POSTs preserved success and two-order history.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:47.035Z",
+      "finishedAtUtc": "2026-10-14T07:42:49.336Z",
+      "screenshots": [
+        "LC-UAT-05-pending-order.png",
+        "LC-UAT-05-failed-order.png",
+        "LC-UAT-05-success-after-replay.png",
+        "LC-UAT-05-two-orders.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-06",
+      "actor": "Students 1 and 2",
+      "expected": "Learn in any order; progress 50% then 100%; completion stable.",
+      "actual": "Both courses moved 0/2 → 1/2 → 2/2 while studying lesson 2 first; historical completion timestamps recorded.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:49.336Z",
+      "finishedAtUtc": "2026-10-14T07:42:51.212Z",
+      "screenshots": [
+        "LC-UAT-06-free-50-percent.png",
+        "LC-UAT-06-free-completed.png",
+        "LC-UAT-06-paid-50-percent.png",
+        "LC-UAT-06-paid-completed.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-07",
+      "actor": "Teacher 1 and Student 2",
+      "expected": "Hide/restore/add content changes progress; completion and Continue remain valid.",
+      "actual": "Progress followed 1/1 → 2/2 → 2/3 → 1/3 → empty → 1/3; completion timestamp unchanged and Continue never opened hidden content.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:51.212Z",
+      "finishedAtUtc": "2026-10-14T07:42:54.074Z",
+      "screenshots": [
+        "LC-UAT-07-hidden-lesson-progress.png",
+        "LC-UAT-07-added-lesson-66-percent.png",
+        "LC-UAT-07-empty-effective-lessons.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-08",
+      "actor": "Teacher 1 and both Students",
+      "expected": "Unpublish removes public access/new enrollment; existing students can continue.",
+      "actual": "Both public details returned 404; non-enrolled students remained denied; existing students could read and set Incomplete after Unpublish.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:54.074Z",
+      "finishedAtUtc": "2026-10-14T07:42:55.946Z",
+      "screenshots": [
+        "LC-UAT-08-free-unpublished.png",
+        "LC-UAT-08-paid-unpublished.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-09",
+      "actor": "Teacher 1 and both Students",
+      "expected": "Archive preserves reading/history and denies forged progress writes.",
+      "actual": "Archived courses stayed readable, Completion forms disappeared, valid-CSRF forged POSTs returned 403, progress and timestamps unchanged; mobile had no horizontal overflow.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:55.946Z",
+      "finishedAtUtc": "2026-10-14T07:42:57.618Z",
+      "screenshots": [
+        "LC-UAT-09-free-archived.png",
+        "LC-UAT-09-paid-archived.png",
+        "LC-UAT-09-mobile-archived.png"
+      ]
+    },
+    {
+      "id": "LC-UAT-10",
+      "actor": "Teacher 1",
+      "expected": "Owner report preserves completion history; failed/replayed payments do not inflate revenue.",
+      "actual": "Owner report showed one enrollment, one historical completion, two orders and 199000 VND successful receipts; filtering students left course aggregates unchanged.",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:57.618Z",
+      "finishedAtUtc": "2026-10-14T07:42:58.182Z",
+      "screenshots": [
+        "LC-UAT-10-owner-commerce-progress-report.png"
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "screenshots": [
+    "LC-UAT-01-teacher-published-paid.png",
+    "LC-UAT-02-catalog.png",
+    "LC-UAT-02-paid-metadata.png",
+    "LC-UAT-02-login-required.png",
+    "LC-UAT-03-foreign-owner-denied.png",
+    "LC-UAT-04-free-enrolled.png",
+    "LC-UAT-05-pending-order.png",
+    "LC-UAT-05-failed-order.png",
+    "LC-UAT-05-success-after-replay.png",
+    "LC-UAT-05-two-orders.png",
+    "LC-UAT-06-free-50-percent.png",
+    "LC-UAT-06-free-completed.png",
+    "LC-UAT-06-paid-50-percent.png",
+    "LC-UAT-06-paid-completed.png",
+    "LC-UAT-07-hidden-lesson-progress.png",
+    "LC-UAT-07-added-lesson-66-percent.png",
+    "LC-UAT-07-empty-effective-lessons.png",
+    "LC-UAT-08-free-unpublished.png",
+    "LC-UAT-08-paid-unpublished.png",
+    "LC-UAT-09-free-archived.png",
+    "LC-UAT-09-paid-archived.png",
+    "LC-UAT-09-mobile-archived.png",
+    "LC-UAT-10-owner-commerce-progress-report.png"
+  ],
+  "automated": true
+}
