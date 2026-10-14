@@ -72,6 +72,9 @@ public static class DependencyInjection
         services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IQuestionCreationService, QuestionCreationService>();
         services.Configure<HostedPaymentOptions>(configuration.GetSection("Payments"));
+        // Khi controller yêu cầu IQuestionQueryService,
+        // DI sẽ tạo QuestionQueryService và cung cấp các dependency cần thiết.
+        services.AddScoped<IQuestionQueryService, QuestionQueryService>();
         services.AddSingleton<IPaymentGateway, HostedPaymentGateway>();
         services.AddSingleton<LocalSandboxGateway>();
         services.AddScoped<ICheckoutTransactionFactory, CheckoutTransactionFactory>();

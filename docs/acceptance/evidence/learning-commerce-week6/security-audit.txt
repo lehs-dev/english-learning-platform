@@ -1,0 +1,7 @@
+candidate_sha=8c78d49bd7dea32600533c8e466c61c6b548f2d0
+reachable_commits=101
+historical_blobs=656
+worktree_files=427
+reviewed_placeholder_or_reference_count=31
+findings=0
+limitations=Pattern-based scan of locally reachable history and tracked/unignored files; cannot inspect unreachable or remote-only objects, ignored local secrets or external logs.

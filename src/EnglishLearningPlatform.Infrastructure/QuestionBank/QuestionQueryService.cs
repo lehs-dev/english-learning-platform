@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.QuestionBank;
-public class QuestionQueryService
+public class QuestionQueryService : IQuestionQueryService
 {   
     private readonly AppDbContext _dbContext;
 
@@ -168,6 +168,76 @@ public class QuestionQueryService
         totalCount,
         pageNumber,
         pageSize);
+    }
+    public async Task<QuestionDetail?> GetByIdAsync(Guid actorUserId,Guid questionId, CancellationToken cancellationToken = default)
+    {
+        // Nếu phía gọi đã hủy yêu cầu thì dừng trước khi truy vấn.
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Giữ cách xử lý đã thống nhất:
+        // ID rỗng không tìm được câu hỏi, nên trả null.
+        if (questionId == Guid.Empty)
+        {
+            return null;
+        }
+        if(!await IsActiveTeacherAsync(actorUserId))
+        {
+            return null;
+        }
+        Question? question = await _dbContext.Questions
+            .AsNoTracking()
+            .Include(q => q.Options)
+            .Include(q => q.Stimulus)
+            .FirstOrDefaultAsync(q => q.Id == questionId && q.OwnerTeacherUserId == actorUserId, cancellationToken);
+        if(question == null)
+        {
+            return null;
+        }
+        Stimulus? stimulus = question.Stimulus;
+        if (stimulus != null
+        && stimulus.OwnerTeacherUserId != actorUserId)
+        {
+          return null;
+        }
+        // chuyển đối tượng từ entity sang dto
+        QuestionDetail detail = new QuestionDetail
+        {
+            Id = question.Id,
+            Content = question.Content,
+            Level = question.Level,
+            Difficulty = question.Difficulty,
+            PrimarySkill = question.PrimarySkill,
+            Status = question.Status,
+            Explanation = question.Explanation,
+            CreatedAtUtc = question.CreatedAtUtc,
+            UpdatedAtUtc = question.UpdatedAtUtc,
+        };
+        // sap xếp các option theo OrderIndex tăng dần
+        List<QuestionOptionItem> optionItems = new List<QuestionOptionItem>();
+        foreach (QuestionOption option in question.Options.OrderBy(item => item.OrderIndex))
+        {
+            QuestionOptionItem optionItem = new QuestionOptionItem
+            {
+                Id = option.Id,
+                Content = option.Content,
+                OrderIndex = option.OrderIndex,
+                IsCorrect = option.IsCorrect
+            };
+            optionItems.Add(optionItem);
+        }
+        detail.Options = optionItems;
+        if(stimulus != null)
+        {
+            detail.Stimulus = new QuestionStimulusDetail
+            {
+                Id = stimulus.Id,
+                StimulusType = stimulus.StimulusType,
+                Title = stimulus.Title,
+                ContentText = stimulus.ContentText,
+                ResourceUrl = stimulus.ResourceUrl,
+            };
+        }
+        return detail;
     }
     
 }

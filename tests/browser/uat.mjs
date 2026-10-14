@@ -154,6 +154,11 @@ try {
     assert.equal(await page.locator('[data-assessment-clock]').getAttribute('data-deadline'), deadline, 'Resume keeps the original deadline.');
     for (let i = 0; i < choices.length; i++) assert.ok(await page.locator('fieldset.assessment-question').nth(i).getByLabel(choices[i], { exact: true }).isChecked());
     await page.locator('[data-submit-button]').click();
+    await page.locator('[data-submit-dialog][open]').waitFor();
+    await page.locator('[data-cancel-submit]').click();
+    assert.equal(new URL(page.url()).pathname.includes('/Assessment/Take/'), true);
+    await page.locator('[data-submit-button]').click();
+    await page.locator('[data-confirm-submit]').click();
     await page.waitForURL(/\/Assessment\/Result\//);
     assert.equal((await page.locator('.assessment-score').innerText()).replace(/\s/g, ''), '80/100');
     assert.match(await page.locator('body').innerText(), /Grammar/);

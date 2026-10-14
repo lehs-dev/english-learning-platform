@@ -1,0 +1,53 @@
+{
+  "kind": "Automated browser UAT; not a signed human/team rehearsal",
+  "candidateSha": "ea1e4bb85d3dcc1b62155def6b1717c091f51f88",
+  "workingTreeClean": true,
+  "finishedAtUtc": "2026-10-14T07:42:28.133Z",
+  "timezone": "Asia/Saigon",
+  "baseURL": "http://127.0.0.1:5086",
+  "cases": [
+    {
+      "id": "UAT-01",
+      "actor": "Guest",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:12.377Z",
+      "finishedAtUtc": "2026-10-14T07:42:14.195Z"
+    },
+    {
+      "id": "UAT-02",
+      "actor": "Student 2: paid enrollment",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:14.196Z",
+      "finishedAtUtc": "2026-10-14T07:42:17.737Z"
+    },
+    {
+      "id": "UAT-03",
+      "actor": "Student 1: final and completion",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:17.738Z",
+      "finishedAtUtc": "2026-10-14T07:42:22.657Z"
+    },
+    {
+      "id": "UAT-04",
+      "actor": "Teacher 1: ownership and preview",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:22.657Z",
+      "finishedAtUtc": "2026-10-14T07:42:25.050Z"
+    },
+    {
+      "id": "UAT-05",
+      "actor": "Admin 1: transaction and user lookup",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:25.050Z",
+      "finishedAtUtc": "2026-10-14T07:42:26.591Z"
+    },
+    {
+      "id": "UAT-06",
+      "actor": "Student 2: free enrollment and result privacy",
+      "outcome": "Passed",
+      "startedAtUtc": "2026-10-14T07:42:26.591Z",
+      "finishedAtUtc": "2026-10-14T07:42:28.130Z"
+    }
+  ],
+  "javascriptErrors": []
+}

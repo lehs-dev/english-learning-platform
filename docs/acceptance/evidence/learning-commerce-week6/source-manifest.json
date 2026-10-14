@@ -1,0 +1,1238 @@
+[
+    {
+        "path":  ".github/ISSUE_TEMPLATE/bug.yml",
+        "sha256":  "a5878dc3fd8e36d864eaad2c166158adbf3eb7c37f9aaef3923e7c68a8e6a15d"
+    },
+    {
+        "path":  ".github/ISSUE_TEMPLATE/feature.yml",
+        "sha256":  "bdff5eb759eb4105e8b3c38d45ed74daa4331cc5592f0f0b7c7367ec82ceead3"
+    },
+    {
+        "path":  ".github/pull_request_template.md",
+        "sha256":  "08f31b3b4848fe06fb00b9dcca93cc60f960ccf59d85c7ca563d308a6db7b09b"
+    },
+    {
+        "path":  ".github/workflows/cd.yml",
+        "sha256":  "132eaa9f1ab1517adbe0c53d467f1685993bc8c2f21bcc4f77e0bf14b2ca19f1"
+    },
+    {
+        "path":  ".github/workflows/ci.yml",
+        "sha256":  "ef0fb7f204172ab859057d81d5002f059c44dac46238949a886b4c93658d0f28"
+    },
+    {
+        "path":  "scripts/bootstrap-github.sh",
+        "sha256":  "c43eb3784a908d63796acefd954a41f994117d98780c9f9008fa58d259fcc7d3"
+    },
+    {
+        "path":  "scripts/dev-check.sh",
+        "sha256":  "06893840d53760725ca27c6a6562bc8297339d3b44db6cc1c05091d45d99dd2d"
+    },
+    {
+        "path":  "scripts/fresh-demo.sh",
+        "sha256":  "2dfcc56b509d0ace749ca357cc3d0f7302cb11fbadaa7dc340080171a1a9c316"
+    },
+    {
+        "path":  "scripts/HandoverExport/HandoverExport.csproj",
+        "sha256":  "091184f58af0beb2f404c01705712e4789955b5154f759ac633cc822ba024f3c"
+    },
+    {
+        "path":  "scripts/HandoverExport/Program.cs",
+        "sha256":  "5d1859527b49d026df3f6ef802c5ac50490bb1365562f856b08c1522fd6f3640"
+    },
+    {
+        "path":  "scripts/learning-commerce-evidence.sql",
+        "sha256":  "c42312203bc268565aa2197454161b195d9ccd5238a8f5f16ce1e3951e6a980c"
+    },
+    {
+        "path":  "scripts/learning-commerce-gate.ps1",
+        "sha256":  "1101334d6db7e36d739f1abb9372fcf87cb6ffa6c0387f1ed29cce1db274f90d"
+    },
+    {
+        "path":  "scripts/package-handover.sh",
+        "sha256":  "2ccbdd69181df95e9c7fa9f19b36bd53faddea61a1d73f9f8e7eae481ac16492"
+    },
+    {
+        "path":  "scripts/security-audit.py",
+        "sha256":  "20eab54b307aa1da4293762fc5dab6ce53306c498fdaf11f2194a8934f57b4fa"
+    },
+    {
+        "path":  "scripts/son-release-gate.sh",
+        "sha256":  "3c453ff6047eeec23b12f786b4d0981ed7d99854765f177d476af48a79e315bc"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Administration/IAdminQueryService.cs",
+        "sha256":  "db89d492d36b878b7b1fcebc04d860aa14ad24165e03569e0d7c4191ab2676b1"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/AssessmentTakingModels.cs",
+        "sha256":  "466819ff60ebf93f164a350643dd236f28861353e41eeabe6cb5167927e4ee7d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/AttemptFinalizeResult.cs",
+        "sha256":  "40b9cc6ff9e616f452760dd0852b41557c181c6c0df25387c21faba5773134f3"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/AttemptFinalizeStatus.cs",
+        "sha256":  "4b1cdf25fe538e04bcbf1f73edd00f842644387de32236891c9144f7b4f80cda"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/AttemptSaveStatus.cs",
+        "sha256":  "cabe9a2caced41f14e719311644f0b23c87bf3dbf2b420d326da04ebcddc6723"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/AttemptStartResult.cs",
+        "sha256":  "73a68a193dd13d54a2ccbc15c96cbb6aa79d66bacd143209d0215ec5ef5cdf75"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/AttemptStartStatus.cs",
+        "sha256":  "a46a878a33f512bc50b15192d113074a267a19d95a70e85e2d6c0c60283f97b8"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/ExamScoringService.cs",
+        "sha256":  "4ab2befa7e7f929a2c70c0f66c2e204677a6c73ca08e2302fa5daa97b33e6b1a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/IAssessmentQueryService.cs",
+        "sha256":  "270d2b66ce8299fc434fa059bf75b45c83f8db9b85006d286fa91d4fcbf7418b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/IAttemptService.cs",
+        "sha256":  "b221672664781758b4cbac4a5c24baa8ed046210711fc02d825e73896ee578dd"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/IExamScoringService.cs",
+        "sha256":  "7ab2ae078f66682bede6ea97fca8efdeecc6787ba655d7ccfb30d0a4e16113d9"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Assessment/ScoringModels.cs",
+        "sha256":  "e1d05aad171eaa75edf440a0a0a0cb12fd93271c73d74336db6084b26e8f2be4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Authorization/ActiveRoleRequirement.cs",
+        "sha256":  "44df03136db5690d8823abe723e598617cadd7cab97f0233999b5ec841b6cc80"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Authorization/AuthorizationPolicies.cs",
+        "sha256":  "c27157b504c1a9b8c97bc19d3d12be3a842ce140848c5db1e528e8bb54c6fc3b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Authorization/ResourceOwnerRequirement.cs",
+        "sha256":  "8085a57c1282c207c9201e6a02fa637047e2406f32e116e11177306a73682f6c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Commerce/CheckoutModels.cs",
+        "sha256":  "5c5f7cf2d8f93662f24fe0c6c8826b5ea8df931d7f87bf3bd206ef72c0369725"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Commerce/PaymentModels.cs",
+        "sha256":  "b90315e4b9777188a5e5f9a2052b61a3ee9119580f95a523686dc87e4f977dde"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/DependencyInjection.cs",
+        "sha256":  "3ea4accdaf25a95cb668d9576c80b9b7f2518e519fe0eba2176badda589f2bd1"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/EnglishLearningPlatform.Application.csproj",
+        "sha256":  "0756259d2628c4688c8a99a800413de9cc5159e411a63020849500b27536cb67"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/ILoginService.cs",
+        "sha256":  "7586e3e3c969cc78bff54a7f2f752bbf5392a6e9394897df9fd8669a46ec7afa"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/ILogoutService.cs",
+        "sha256":  "255e6ad20f38123f9a172e9ce53ba8e8e4c5db6d9283abc5b83d201c31b5c8ff"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/IProfileService.cs",
+        "sha256":  "a3143cde5187c7af250923212cf0428b8c04217b4f89090aff9ee2fad7bfc55a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/IRegistrationService.cs",
+        "sha256":  "e4d95f666c7e4b7f6f718bbefaf93207ce8f6cdae017654cabd2d945a7b8074d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/LoginRequest.cs",
+        "sha256":  "b8f2d0ef25d2d14a533390d8497ec3a9232e2fe7bebf83bc550b3a43551d5e29"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/LoginResult.cs",
+        "sha256":  "a64841f561fa2b659da268213b34976ab773d6e22885d895bb95a3e9509e3f15"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/LoginStatus.cs",
+        "sha256":  "e926df67ead53d5ef01f20a3635a0b3d2244290c50ac40bd4818a103ea2afde2"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/RegisterStudentRequest.cs",
+        "sha256":  "4ac806d422e889b00688475d88e9757cd317dba2b7107fa4999e8a15258a060c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/RegisterStudentResult.cs",
+        "sha256":  "085fd2bde06e946930ec30084aa0fb1a9a9e4a7c76d9bf6e9d238ef51b6103ce"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/UpdateProfileResult.cs",
+        "sha256":  "2ce1ae82bc5fdcbd82d4e8f312eb9c20537788d08e0e41c5109db42976e1ed82"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Identity/UserProfile.cs",
+        "sha256":  "e66cd641fc174bd200d97f2c74acc82658717efe3fcdb65a2b7129b70672b539"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Learning/CourseModels.cs",
+        "sha256":  "6acb2cdde14e78e52ffcee1164e9647c81373c35eb01e983109da50e2b05ab85"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Learning/ILearningAccessService.cs",
+        "sha256":  "6389a0efc1d2cf059df0dc663cf7b280619acc75befa2857364e92e03996a4ed"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Learning/LearningAccessModels.cs",
+        "sha256":  "9a93ed1a672e6a04daa98c5d07a259db17741cf6604008008a28821b2cc0c544"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Learning/StudentDashboardModels.cs",
+        "sha256":  "87bc8370d70ee36d7e24b5e85715b1500517511c74fa25720c664514ce33c913"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Learning/TeacherCourseReportModels.cs",
+        "sha256":  "68904323e21e21b7edc9b8ecc8a7784760aee4423c275b25005fdd04412c2448"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/Practice/PracticeModels.cs",
+        "sha256":  "32d01d1f2f998b2a265debdc8eb4312591d2f883b9bf4d7d024fc33a2fde5845"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/CreateQuestionRequest.cs",
+        "sha256":  "47b6cba8c102bdab3ba266251824778aa44428f0ef391b4db5e3195f5d3f34f9"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/CreateQuestionValidator.cs",
+        "sha256":  "c2bf1efb15a3598606038f07b13567f184e597858e4eacbeabf588ee057b9432"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/ICreateQuestionValidator.cs",
+        "sha256":  "80fcd28b881d00ffa16aaac83f1d4d7f54667a6373a89029faf6ff57c6811474"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/IQuestionCreationService.cs",
+        "sha256":  "5c4296a66d5ea169db3c0db60335425b9a15dd1b6be12ebe3c84cc882fbc5e48"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/IQuestionQueryService.cs",
+        "sha256":  "26da4456e45ebc384692e5e679d4bad4713cb9acddb828b19433e59f36d9842c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionDetail.cs",
+        "sha256":  "6264c3e1fd47386c0d992bd1a34f8a18995652f4ade2cb13ac48569e128f01b8"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionError.cs",
+        "sha256":  "bdf37b8df3775ff5fe3d60c165ef5d623e75c9905a1be0a583d1026801af47df"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionListItem.cs",
+        "sha256":  "a662928dac0b61f9dc7b68753451754a4d409b31554a3944ff51c4c34cdad0cb"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionOptionItem.cs",
+        "sha256":  "14a0e5b80c727887541bea0503b418bf46581bf164b427402fa9a6aa2d8b2ad4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionOptionRequest.cs",
+        "sha256":  "5594f768bfa77198b942ae805c9e42ba3315ffcc40993416a4e8c790ac557b05"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionSearchRequest.cs",
+        "sha256":  "fbb698bf12035ae4e11b8b7313c016e54e13aac543ce142ea4cae68b517174a4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionSearchResult.cs",
+        "sha256":  "72047a69525dcdfe97f3d16142b63f63d53cb0a18ec798a25c3d54712f1afcea"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionStimulusDetail.cs",
+        "sha256":  "234c8f9187e7efe43b834172fdce7e6cf22807fd15233ad6a181053a6fe0e055"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Application/QuestionBank/QuestionWriteResult.cs",
+        "sha256":  "7f96e1e5de9fb2794ba1b4ee3e1c653bdacdb98d7c836a3ecc53951384da2b36"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Authorization/IOwnedResource.cs",
+        "sha256":  "5018ae748d0a6808272af410b441a91b8a6f91243c790ebae95d75a4069cf0bb"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Common/BaseEntity.cs",
+        "sha256":  "ee639c8070ff9977472e3ee2679345eed04da505d9eca91137bf3630a05ba737"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/EnglishLearningPlatform.Domain.csproj",
+        "sha256":  "3efbe2df070db4df6eac29aaa2543a88ba18efd448d290156bd668e17b25550d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Assessment.cs",
+        "sha256":  "3c63ef0dfc70bb769249b80dfb3c990a7e2ffa9af36d26983b4752b15c5c7b01"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/AssessmentQuestion.cs",
+        "sha256":  "a66212c29bdfdffd9d6755bf9f5f5394d9d57aab8ec27c81a738ece40badf373"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Attempt.cs",
+        "sha256":  "6676d11614b7aa2adf75237756e293f768ec118f415e33ca4c014ca878418ee2"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/AttemptAnswer.cs",
+        "sha256":  "3f95a46b0a1e1477dba3ac119a6b0dea99a74818cbbeb2ed949542ec3c892ffc"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/AttemptSkillResult.cs",
+        "sha256":  "5e79d66ed4e727047e8b49d1a5859726b892941fadbd4a69de1decabb4e59f69"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/AuditLog.cs",
+        "sha256":  "a2682a5d101e685099caa3291a4a199594308054d215a1194b0bd640535de7e1"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Course.cs",
+        "sha256":  "57dd262fd8b58e4e5a8953b52c020db37b314f9e1d51cac7383233e1cc95ed8f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/CourseRules.cs",
+        "sha256":  "ced5f776888325166a1894122c80477a43d170af62c7ee1294cf33995c753cce"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/CourseSkill.cs",
+        "sha256":  "f1c6af4037410c1cec2e794a6e683f9c617e6aefb6bafa26d0f33c24e078e689"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/CourseTopic.cs",
+        "sha256":  "2abe305a37c1cad4b1ab06bf6ea65ee90f5b7b53bb03672249262fa5f82f874e"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Enrollment.cs",
+        "sha256":  "a99b187f1856a24610786f8902e040311c86ea1ab83f16c1a7a18bdeefd3a237"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Lesson.cs",
+        "sha256":  "45381ee5f8cf974d3dcf32369a3e15c7938057b9cfb74ce358253ad6bd20a819"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/LessonProgress.cs",
+        "sha256":  "441a74cef585d1d2e1181466341ff1b3c2c95a718c739b25e3d01937ef0c599d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/LessonResource.cs",
+        "sha256":  "95192bbb924825bbf6afc9d8d8ca7918935e22ac2a6d4255cec7b933f0fb2f0c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Module.cs",
+        "sha256":  "337e533c829e6b4643ef389b063ccce5ab861af1bead5fb3e29a7ef7375d5e6a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Order.cs",
+        "sha256":  "7efa5f5c812225054202cdf5db7d6f71041f350908ce3f14a882af65523a2d92"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Payment.cs",
+        "sha256":  "ba14942cef1c4adec618189a3c1a93861287732c02ea1c8d0a26e4b7289a20f8"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Practice.cs",
+        "sha256":  "5cc65a56373202cc7827deb3b371e47794e00d43c1361b74963324f4b9ae1e0a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/PracticeAnswer.cs",
+        "sha256":  "15ffa108a61cf14e3cd11f9c89af0500efeb41bcac234042005b9b90cee793d9"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/PracticeQuestion.cs",
+        "sha256":  "810c4d6a067601cd972daf5b415ad2f254823a5d5b56a4f1ae2cc9c70d4fd602"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/PracticeSubmission.cs",
+        "sha256":  "3d1aa3d28403cfc648ea3e37fcb2e480cc23058d06315242bdd00b08bf9c416b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Question.cs",
+        "sha256":  "dc4d06b49fa8dd533eabdfb317c2f5915ce3838272bd0467e76efbd21b1584cd"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/QuestionOption.cs",
+        "sha256":  "9c9e6c824ddf9a668658f203bb89be4834afabe3b30c720e3549ac09febdee78"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Entities/Stimulus.cs",
+        "sha256":  "b8f053b68b1cfe949149a18694be78de7d81fddeda83cb94bf4117b15bd6e65a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/AccountStatus.cs",
+        "sha256":  "52eb88a5c5beb11b560e943fc69ad540f37cacf3929f6f84a9bf7299528462d3"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/AssessmentStatus.cs",
+        "sha256":  "fb4fb17406ea9558e868e14abb94ac79aba0242342abbf4810ce657d6e8a31af"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/AssessmentType.cs",
+        "sha256":  "b2cedf8d6cb503b88739d405dddc9051d4dd2ce75f77e649480071ea13444ef4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/AttemptFinalizationReason.cs",
+        "sha256":  "1230546ff978b8b95780495049212d9347d35681fe6fb8dd4fb5c12cc4e876f4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/AttemptStatus.cs",
+        "sha256":  "7f9863611faf42635ef4ceab35f99425414509003adc3cdd43b8d7538c3b908a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/CourseLevel.cs",
+        "sha256":  "b53b86f09127f38db81118c37efd3ab71884a6c42e6c7f7f848aec03c4ebf7f7"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/CourseStatus.cs",
+        "sha256":  "a605088a236a36f5fea119d57d04b9b468c76cffe0582433b8240cacc474083c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/EnglishSkill.cs",
+        "sha256":  "01f7eb14b447a1b6b7a36fe208adb47f4c2ac6f55efeffd99486d5eb9a3c8ef2"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/LessonResourceType.cs",
+        "sha256":  "ccc376cc3a567c558f5293a9439dc685c105fc8ecb3089023b85cd1b55ada718"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/LessonStatus.cs",
+        "sha256":  "74d7e40ef5082cf99ab284677bbe0e39c2edb9132bab9ee76fd9bf7312c30a34"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/ModuleVisibility.cs",
+        "sha256":  "627a61c8fed2b8112a951a10cf46f94475dd3dce92e03385b240ded1fedb832d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/PaymentStatus.cs",
+        "sha256":  "4e5109dea409ca2d7c0f0410ab27266a3cd983e02a8a0e58d43764d4c14825fd"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/PracticeStatus.cs",
+        "sha256":  "cbb1e0e58f94df502359a2baafba0689d46dd0f8d8fdc73151c6c8f6ab7785a9"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/QuestionStatus.cs",
+        "sha256":  "d1e468401039a20314f863494b8c3ed60fe73bdd04a8798cbe16b3867061858c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Domain/Enums/StimulusType.cs",
+        "sha256":  "da341a943e34664c1d562d09d7cb9ba85062d346595aa968c2c10153814e2b38"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Administration/AdminQueryService.cs",
+        "sha256":  "7d16c096300f443c63363cbe8f1be1d9f64b6ca74f0d87240f27fdff270e6f27"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/AssessmentAttempts/AssessmentAttemptService.cs",
+        "sha256":  "814c81c52ffd5dcd14d7a6d832f83cec53f8c3b337de3c828f1019273349ffe0"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/AssessmentAttempts/AssessmentQueryService.cs",
+        "sha256":  "2cf3826588f9afe20ff1263bd15996185206fd4e289fa8635ba4d3a93dc31fd3"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Authorization/ActiveRoleAuthorizationHandler.cs",
+        "sha256":  "7dcd6cec3ed54fff6afbeeac8745fdc872a72f9b83c5fdecb66bac089c2239f6"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Authorization/AuthorizationServiceCollectionExtensions.cs",
+        "sha256":  "c148155e3bf11cbadef9dbad90fe59dcbf2d2b0c8d0d4e60f3e0f81943e3f8c8"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Authorization/ResourceOwnerAuthorizationHandler.cs",
+        "sha256":  "ac224d39e65e4e3c529f3b447d2788d79fd84c2ac0973b04154a3eababd81943"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Commerce/CheckoutService.cs",
+        "sha256":  "93fd016afcd4c33d19a1d42f799c12c167d110777e6c5fd81eb4be91072ff03a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Commerce/CheckoutTransactions.cs",
+        "sha256":  "37e64d12821fc37457c2afda5a8eaa722568f42852919a4f15da6bf88067e739"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Commerce/HostedPaymentGateway.cs",
+        "sha256":  "f7cb28e56e775d92b8e8583318d1f8c9c92abad6b1c1b179dbdde0d32eadaa45"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Commerce/LocalSandboxGateway.cs",
+        "sha256":  "e408d2255818293318cc11f649eea06dca36c2a3c5cafe0c3d8636686a1c107b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/DependencyInjection.cs",
+        "sha256":  "e93c174ffa092b4213bef60d9791d775c95bb84ef7d297ab721c8291be24ec99"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/EnglishLearningPlatform.Infrastructure.csproj",
+        "sha256":  "aeca3f3626c7f8a671f750d39baacc8fff6a70077b3da1f4e147eeba08abc2d3"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Identity/AccountStatusCookieEvents.cs",
+        "sha256":  "3c7b6626e401e893c2efe9a6033c60d63dc4ec4176701df96ffe82a906c4f273"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Identity/ApplicationUser.cs",
+        "sha256":  "2350e5399084b3bda54a61781170ac1d496c1343d014e6b5c0e1fccddfaae094"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Identity/AppRoles.cs",
+        "sha256":  "71e7fc5cae3cd6c5cb2faf148d6530cdf9d147223f1350e2f58d26b07a399f54"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Identity/IdentityLoginService.cs",
+        "sha256":  "65d7ac1bd47996a97563e2612346ef2f2160eca949a4d3e6457beaebc7408c5e"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Identity/IdentityLogoutService.cs",
+        "sha256":  "89dca046f5d36f81811b09ebc87b3311fd185da97aed5ce0ae5d9730da527dc5"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Identity/IdentityProfileService.cs",
+        "sha256":  "ce4abec1ade9968ca29697121adcc63e2fcfab3ddfbdbd4fe1325d67df357b1c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Identity/IdentityRegistrationService.cs",
+        "sha256":  "15a34a6716f920c91007ea5a0ca53eecc48ea777caab98a25d0a83131c4525e3"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/CourseCompletion.cs",
+        "sha256":  "c952a8720b292f12b757d7a9a60b79326cd5e8dc1b10948093142674000e5fdf"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/CourseProgress.cs",
+        "sha256":  "c96c3196d72a95df7cfd9155860e68386ecb42925e65200ab42e4d93fc6fe991"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/CourseService.cs",
+        "sha256":  "ea277258df977ad95a1b5ffe5a9101c378925bb4bb7533f15ae4e4cc3d7f5030"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/LearningAccessService.cs",
+        "sha256":  "f409745a6e316b74648714b9432793f42d5f7df728a54c12a3695dc006cac051"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/LearningDemoSeeder.cs",
+        "sha256":  "8828828b26133cbec030cb4e0c2558f500eb39b1bad4eee339a4157240028f8d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/LearningQueries.cs",
+        "sha256":  "7c4e8cbfaff9b0c20f8548083ba88d6bc036a1983064a1eadd807f9fd6a15489"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/StudentActivityQueries.cs",
+        "sha256":  "b4d1d03987a016a06451ab27e73f6999bf5f82d70d564099712d8a1fbc63421d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/StudentLearningService.cs",
+        "sha256":  "4a3682c7963c70d5d7466c678b90ee6b393c35678de31126f497c574b6509d23"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Learning/TeacherCourseReportService.cs",
+        "sha256":  "8444d3d2f155e46ad3f59f435a3c39c6ce107e45d0f2ef536e3736ef43e2fc30"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/AppDbContext.cs",
+        "sha256":  "4a1a9a5a78eee54447fe4e04592d371ad63bc8859c8bcd2b6118a3eb399bb8a5"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/ApplicationUserConfiguration.cs",
+        "sha256":  "df163b29c680ffcaec555debd1060ab50f55952754dc4e0bc6148bda1be79e5d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/AssessmentConfiguration.cs",
+        "sha256":  "2849a912f9322cb63eef4b48c1d02d4652b590d48b610094d467ffb6b67a373a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/AssessmentQuestionConfiguration.cs",
+        "sha256":  "43c4fe7e2676a367e18ddaa68e73ef2563cf05473e6abbc85b3d1daac461dbff"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/AttemptAnswerConfiguration.cs",
+        "sha256":  "f23a8420a2ae1cda4f6c6b4e17630f132fee23a5c9cb4aff6e52dfa45374f324"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/AttemptConfiguration.cs",
+        "sha256":  "7b3b56c0b1e5639a059db1350634d2b135a219d7e1cc63efce8764059bdc7718"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/AttemptSkillResultConfiguration.cs",
+        "sha256":  "31efb8da95c6c387ca3be37848e39179f654d2ff987f68f6672feacf799f5b34"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/AuditLogConfiguration.cs",
+        "sha256":  "eb52a6d6af1f121eba7b12d0bb298d2a0bb0d0d2f0d62bbefc56a198f595d483"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/CourseConfiguration.cs",
+        "sha256":  "ad44edc06b19e30730b838a8ebe09c59a543c053db1c9188af28c55754a2c893"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/CourseSkillConfiguration.cs",
+        "sha256":  "2fcca6cc2bcd2566b897706ee53c8b4437551059fc5e4696ada755d7018b0c47"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/CourseTopicConfiguration.cs",
+        "sha256":  "771bb80402de5bfb891c39e309ecb9fa17deb63424d511574f8424db1530625b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/EnrollmentConfiguration.cs",
+        "sha256":  "63310122f8f1fa66b8e2f97dde4ffebda48643d969da667a8f0251da151c31e1"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/IdentityRoleConfiguration.cs",
+        "sha256":  "0a0a9346d2e59a838cce2651e4169612456376bdcb410e3d6ee67cd6a200fd7b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/IdentityUserRoleConfiguration.cs",
+        "sha256":  "a04225a92d07655e62568a47d022cd9c1d7635362ad8d42078fcea384b783d6b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/LessonConfiguration.cs",
+        "sha256":  "be36952c0fae7807d1154cdfba36ccfd9e287e9b3b30bc7018771a1fe7e89480"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/LessonProgressConfiguration.cs",
+        "sha256":  "2079f9cc2064ca1b71d76a7e3d7a1269ccf76e2f5f3b6ba9190f2c513401de14"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/LessonResourceConfiguration.cs",
+        "sha256":  "4f9a0310c77f291c5db27396ed4f6d84133e49bceae1c18b48154531054a5b6e"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/ModuleConfiguration.cs",
+        "sha256":  "349b40af749087a53dd78720c2392c3c76a1b70236ce17e87f8c0a5e817192c8"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/OrderConfiguration.cs",
+        "sha256":  "966a5c919f0e99efbaeee65f6fb3d4cd0c9a0e82eb4fe12bb7a3143e841df75b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/PaymentConfiguration.cs",
+        "sha256":  "c8a3bd98428f53a4ed53c6e980c6810cf4e04142697a2aa885ec858d8a7324ef"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/PracticeAnswerConfiguration.cs",
+        "sha256":  "017b8db09026dae50735727b66b7579bf137acc2dd7169901ad991c89d4dde6c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/PracticeConfiguration.cs",
+        "sha256":  "651bb44e39f9fba5c00597183037b682135ccb2c2e651fce5918db1a3b81769f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/PracticeQuestionConfiguration.cs",
+        "sha256":  "ba975ec0aa4226f881cbe61a062f9405c5491ccf9b0567123f15603616819973"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/PracticeSubmissionConfiguration.cs",
+        "sha256":  "1f9ad00cb9136b24a74af915fd9d391d90bb65d1fd14e3898943871257858ffc"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/QuestionConfiguration.cs",
+        "sha256":  "e83370041038300b62bf670caf8b2f11985ca09e8409eacddd3cc7b1c956dd56"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/QuestionOptionConfiguration.cs",
+        "sha256":  "6aecbb071f0413b32ca18ad152a71f00baed1f3142c5e6fd5058d15cf9231279"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Configurations/StimulusConfiguration.cs",
+        "sha256":  "ede041d6bddd2c60b8466894034211092edabc34fdee49b8b503a94d426a1454"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20260924123837_InitialCreate.cs",
+        "sha256":  "96d9b3bd95a52ddea5d7e3b22fddfd2a254d66e80d1d4e7c61a78690b484ea79"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20260924123837_InitialCreate.Designer.cs",
+        "sha256":  "6a6f6703a8d8d32db9c485633143c687b4c496eefd5e813c358b718be1352c12"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20260924145931_SeedIdentityRoles.cs",
+        "sha256":  "6a07d0652e713666a2381a135b304eb94ec300d447e09c4fd42748a01b0f08e5"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20260924145931_SeedIdentityRoles.Designer.cs",
+        "sha256":  "3743eec401538ab0ad7ad6ccc437168994a56440dc4acb998b5dbaa2c2e50778"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20260930163814_HardenAssessmentSchema.cs",
+        "sha256":  "30a37f350609bcd1d35133c5c27d5a588cff5eb9b882aa8600f9e6db0a88848c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20260930163814_HardenAssessmentSchema.Designer.cs",
+        "sha256":  "cc63c883ca2acbb8d0637cb80da54f2a759b91cd90fad925d4cc464cf47d83e9"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20261003024109_AddCommerce.cs",
+        "sha256":  "37a89149592511f25863ced826a36e7a96d14f4f395e6c1b3b46676f1adae331"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20261003024109_AddCommerce.Designer.cs",
+        "sha256":  "027899d636f6b02006033ce77d4165fafd257b95186931b444097d5cb7e27215"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20261003032336_MakeEnrollmentPaymentIdNullable.cs",
+        "sha256":  "9b7c05388d70cc2c95f909d97612ae6f8f7dcb7c3811d8760e94ede91ecb0cec"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20261003032336_MakeEnrollmentPaymentIdNullable.Designer.cs",
+        "sha256":  "25204a2a935f634563450c7c5af773bdaba0b5b25f1bbeeb0616d1144e3dac41"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20261008035103_AddCheckoutOrderMetadata.cs",
+        "sha256":  "19230fc99310d75fa33f3561f41208f5c79bd54a3286e367ce2c7258931e4bfe"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/20261008035103_AddCheckoutOrderMetadata.Designer.cs",
+        "sha256":  "bfd0ab7b03a5d70966161c921750d9f2f37b4cf4f569f081dcb760aa58d532af"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Persistence/Migrations/AppDbContextModelSnapshot.cs",
+        "sha256":  "abe4809c4362ca78e278dcae0647707c8417de690e414feea6a9d28be980ee9b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/Practices/PracticeService.cs",
+        "sha256":  "20eab2500b2bfc543e7ee70e7f03909accc2a4b9389f121a5be40687e8b05071"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/QuestionBank/QuestionCreationService.cs",
+        "sha256":  "67f8713b6be746d39fb74fa7ad36212196c93e7f6204e238dc45ce93ba781d2f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Infrastructure/QuestionBank/QuestionQueryService.cs",
+        "sha256":  "cf12f7f6d49ef3e40831e4e16229b9458b9190443023eff8b22a853db789e05f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/appsettings.Development.json",
+        "sha256":  "4641d25d57004726b4d44d69d1df6c4b18537f0f4ea78008d2ecdba3ad76b442"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/appsettings.json",
+        "sha256":  "88f870437ea36edea5e9ab0d5cfa2078a3e1c6d9e7eab6beac485ad0b743018a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/AccountController.cs",
+        "sha256":  "5a08535ae6c3e17952b581c8aa492e3c24ba1a53e7cccfd44ec8ca9a114167ba"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/AdminController.cs",
+        "sha256":  "6c2457373076b878f27c5e4f4f4ddf45d67c28881649f7b59e984d1a6c07d9aa"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/ArchitectureProbeController.cs",
+        "sha256":  "3d27014cf2944d23f12aff550f526f73beb933ab4606d596dd2a041f6e6e5e2b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/AssessmentController.cs",
+        "sha256":  "dbdb9266e919affb6a8ac6fa5aaffc29a31a96635b95b6dcbe44e943008ad109"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/CheckoutController.cs",
+        "sha256":  "fd61aaa9334eee4b316f9dab1953ced030931a8e29594a76c868201f59b4739c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/CoursesController.cs",
+        "sha256":  "4ab1e00eeecb5e88797922e5e73a85d7f845e5dcd6e8754de3c20891924b837b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/HomeController.cs",
+        "sha256":  "14308462d6924bc7c8629d5fabc03961d8b9b1915540b0b7882ab6c3de363cd5"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/LearningController.cs",
+        "sha256":  "ad9e54dacb4b29f7d457bdfc27c249ad930f82006ae72f43df633d8e441c9cb4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/PracticeController.cs",
+        "sha256":  "fb438980f691e0aa539b5da3a011a84bd755773a200bf007c138fc7edc89e71d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/ProfileController.cs",
+        "sha256":  "64e657d9af6b4cc9f9d397da5d527fdb46a34fce1c69e427fe5e58d05843214f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Controllers/TeacherCoursesController.cs",
+        "sha256":  "c02f4a7ac03196c399a6f31bd6c768d1fdb6ce72a3cf41bfe848709037801f90"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/EnglishLearningPlatform.Web.csproj",
+        "sha256":  "88232c1e77ed5dc0121c0158b0b63768c4e78a5e348ac5f5afb41faaebdef671"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Models/Account/LoginViewModel.cs",
+        "sha256":  "a794c28d2908781a436bdf54ac51a0ab7f4135e0f5c11f241deda5af10973b93"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Models/Account/ProfileViewModel.cs",
+        "sha256":  "5f06ce6f1d281820090d4bc88474bf666db04bc95e1304d8d952c947452539de"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Models/Account/RegisterViewModel.cs",
+        "sha256":  "7aa27d30172153c638ebd2d74045c577f646102193a9acc88567b0c04dcd4d5a"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Models/Assessment/AssessmentViewModels.cs",
+        "sha256":  "0b568aff3c46896b7507b854d1c440c1af0602aa60f101e3d223c1e4018e7c8c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Models/Courses/AuthoringModels.cs",
+        "sha256":  "aef4bf617b2da93a24113d5532513195d3e896245925eb378f22cf6ac0a833d2"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Models/Practice/PracticeSubmissionInput.cs",
+        "sha256":  "c8b48c98a0a1710f02cdad29ccc13b4a0a599972649f42322ff51ce254991cd4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Program.cs",
+        "sha256":  "05437059267ad468222db8fc0fe2c4949d3771d95e094da21279d240a41dc297"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Properties/launchSettings.json",
+        "sha256":  "a74d1a40da6cfae5ffad9eb33b38b7885e95e6551d44f71da012c1ae8c7a244e"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/ViewComponents/AccountMenuViewComponent.cs",
+        "sha256":  "85b85f949c2ec5eba541038031678a47ced71a8d288299f2048c2edc219491aa"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/_ViewImports.cshtml",
+        "sha256":  "322ff3584045b0b68e1a69d3aa3cc8ab632266ac51e59316af24263fb0947813"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/_ViewStart.cshtml",
+        "sha256":  "1b8496d15708e5d6554b607ecca4e226d9797ffdf6dc97ff10c137ae5f5fccf4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Account/AccessDenied.cshtml",
+        "sha256":  "c6a133790346e4e5fb6471084cdb82836b743d1ab1ce8ae3347c6404ef9a34ab"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Account/Login.cshtml",
+        "sha256":  "1fbcb94368987884b112eb2973d4c9f0d8a874cd9014416470abdf152062a24d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Account/Register.cshtml",
+        "sha256":  "7bc4a40cb9b9c3c1ab4093bcc144528438970b5962dad18c31960538ccf67393"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Admin/Transactions.cshtml",
+        "sha256":  "f83bf4642c67426c2fb06197515d14016e942b88e59dba8ba231055a0f853c92"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Admin/Users.cshtml",
+        "sha256":  "fa466aec819be05ba6c72777bfad2da64a0b8ecb27173f4ef2c3e91487c256c9"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Assessment/Index.cshtml",
+        "sha256":  "1aec73ab7d3327a951569477744207de8ee7cb256061d752cddfdcdbf3c92dcc"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Assessment/Result.cshtml",
+        "sha256":  "a3cdd4edf20c93136fc439feb308d79bc004f5cd550da6bcfd086e9b261f77fe"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Assessment/Take.cshtml",
+        "sha256":  "dc0e7f58b612464a298a342b79ccc5c7b082ce432004668fccde70ec0cd3b598"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Checkout/History.cshtml",
+        "sha256":  "b3180becc9b33807dc5455eef2733a7f46e641d746b7e4b658277ba5f359a0f1"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Checkout/Index.cshtml",
+        "sha256":  "c9206907762ac2a4761b9579e42db7e105d66dcd1c9a94790919251bd9a6d2a4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Checkout/Order.cshtml",
+        "sha256":  "95f6e35f3d4bb03d8eb3f25c9a32e4f653314df169e6282d464a185eb9d2f0fd"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Checkout/Unavailable.cshtml",
+        "sha256":  "df40788eaf11317beabaa797b51147e5f520f31d3bd7508e0cbf421ccd2a1859"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Courses/Details.cshtml",
+        "sha256":  "fc011cb20046aabf51c94c9b6afedd8512bd1bc56f21688d42683c0c14a353d6"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Courses/Index.cshtml",
+        "sha256":  "47f58fed974a4273a0587adbc93dbff48f1395826c30d6cabb744cdfa89f16df"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Home/Error.cshtml",
+        "sha256":  "2ac21c45993370857b09debc2643e1e92c0d986b2c1ebc792a5065c538225193"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Home/Index.cshtml",
+        "sha256":  "e8059080d324bb6a3182ef85747df20ded6c816d6008e00064387d7c3e35543d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Learning/Course.cshtml",
+        "sha256":  "15b6a493265d1d23542034550deb467561b07cc8a86f695a0595adf584b1f334"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Learning/Dashboard.cshtml",
+        "sha256":  "298e339d586d6884ffb533881a410e35e83f26291833c83e81d5fad4c8cf4382"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Learning/Index.cshtml",
+        "sha256":  "4c5c94bdf70fd530f32a2f9480af0c5ab8de26f077f8b10eefd7942f906f947f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Learning/Lesson.cshtml",
+        "sha256":  "2d979b6b01ccd7382776215e4b599eaf894d97d6758e2547a65a82f2d7595f33"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Learning/Module.cshtml",
+        "sha256":  "de1d0cd782417d37a8c80db171e6c01a9a287099cc831e3703a95431fe16df12"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Learning/Resource.cshtml",
+        "sha256":  "1637bdbebd93bbc973c1425288fefadfc123af438762d7ac39e8055737f2c24f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Practice/Result.cshtml",
+        "sha256":  "446c4a4efbacf7ad0e78a3f94e408d473279f4aed400e1e90e349065abc1f1aa"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Practice/Take.cshtml",
+        "sha256":  "e9bd85098b2c437890b85bfdf9c6526d4cebc92315bbfd26e0ced26febcb6c28"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Practice/Unavailable.cshtml",
+        "sha256":  "278a5850813451de5853692022ab9b613bd5f45da3d900648c3a6f1f537a318f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Profile/Index.cshtml",
+        "sha256":  "79eff5a3414b7ed8d5b9cc93a4ea9883873b45e377195a24d0865ca71fcc1ba1"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_AssessmentDetails.cshtml",
+        "sha256":  "44ee570261472ed82e6e5bfc165d905727593c47f1bd8302be69bda38c82f15d"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_AuthAside.cshtml",
+        "sha256":  "0410fe76dcf4e6548d227ea7ceeb9e0af9b7e0c6721401c5fdedcaf702cd003b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_CourseActivities.cshtml",
+        "sha256":  "36bac0589180874956a2dcc4a17c9197d0899a8ad22f9a07e13792d82051cbf4"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_CourseNotice.cshtml",
+        "sha256":  "d5fd0be9f19c0ed0f52c9a9716048df3f2dc8349819b2015d2feab3147446e02"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_CourseOutline.cshtml",
+        "sha256":  "f1d8320c0d7021202d4ed906ce9ea20b08faefa334d644a4b9f3f7254daa3d93"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_CourseSummary.cshtml",
+        "sha256":  "170a06cdd0193e70827fcfbc7885f0b5b87665620c6a09e28e9b9aa64ecceb11"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_Layout.cshtml",
+        "sha256":  "95f8d5ce628316af28018583393f2918b3affda5d46ac2e15667f6ac6b18482c"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_LearningProgress.cshtml",
+        "sha256":  "6a9aab2b4a1044906ad96263a5d0c3441fd546310ede406db9e50312ab101c97"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_OrderButtons.cshtml",
+        "sha256":  "c76c6d8c4507cc18560a982965f7307cf8c766b752846f4a4a5f9c47365f8dc3"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/_ResourceContent.cshtml",
+        "sha256":  "7c0c3fdc592139be6dc51963f2d603404aa093d8036f981804fdeabb2dc44e08"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/Shared/Components/AccountMenu/Default.cshtml",
+        "sha256":  "dc444703079ba2e68183f9cb8eb8347006f7567c5f0ac54ab2c6f9ff1226e2b6"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/TeacherCourses/Content.cshtml",
+        "sha256":  "406ffd8c5669cfef760c408d3504dadd88257295820825d68571dcde5ac267f8"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/TeacherCourses/Edit.cshtml",
+        "sha256":  "19503bc3c8c1cdbfbe3ba36b863ddcfcd561a2673040f40ce502afe15828308b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/TeacherCourses/Index.cshtml",
+        "sha256":  "0604a7c92769b5806d9cdedb1dae7c095d45e05690a9b641f0298bb45cb73092"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/TeacherCourses/Manage.cshtml",
+        "sha256":  "a89475250c5a63df718cb5b5fd16eabefb69a9e8e324133382cc150aeb9032c8"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/Views/TeacherCourses/Students.cshtml",
+        "sha256":  "aeed643cd63e81611b619d3e56c9ebcabe65c41df2533baf28d5b6c7966d3b3f"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/css/account.css",
+        "sha256":  "2c0e999ab38af75e4141ca04244d0caaf72b584c6df32693b90fc79963fe7adc"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/css/admin.css",
+        "sha256":  "5f18b1adc1ca4f45e9926262bfcce7c3dc33e71df44d02860facaa9aea4af518"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/css/assessment.css",
+        "sha256":  "f9862310ed53e7cf4339b6ee438aeab921a4470228d820b50468b09144521338"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/css/checkout.css",
+        "sha256":  "f53006f9668fb47bf457aa82600974186bdb16ca62e7c16aba74788b68ab0769"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/css/courses.css",
+        "sha256":  "ceb02db22d511de5c8bbbbf8b2261c5d30380b2e510ddd21c55c7104d1b68f34"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/css/dashboard.css",
+        "sha256":  "176b3aaff7ddb169126d5f6ee46dc52b361fca4e8f5b978bf4c38d45afe58ad6"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/css/site.css",
+        "sha256":  "51180ec409a38ca1ac6ef3df5d9902f8a751a809c3c516499dbcc6ad7db59356"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/images/icons.svg",
+        "sha256":  "63ba51150361c1edfc1c2015f4de20db4f2e2a671482db026d7df867c20e57a0"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/js/assessment.js",
+        "sha256":  "e0a908ad06beca7bbe08692f4024b13c8e7974939399d583393b018a3a716ed3"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/js/course-editor.js",
+        "sha256":  "f9ca319c6b2829cbfc269f6f7c948622a7b20b240996aaaf9f667ed24650794b"
+    },
+    {
+        "path":  "src/EnglishLearningPlatform.Web/wwwroot/js/site.js",
+        "sha256":  "bcfbff7d99742f0b6aafc47f2906505a634d0de0f5c37cc7b7481ac3366e9498"
+    },
+    {
+        "path":  "tests/browser/learning-commerce-uat.mjs",
+        "sha256":  "4573eb8a49728d5fc532efcadce44e25a36ac0f8c899edda0e955a775b44e093"
+    },
+    {
+        "path":  "tests/browser/package.json",
+        "sha256":  "afc5ffbc9d4ffdd78a8345af28720c7aba307135f7f861cdafce5761f77fc26d"
+    },
+    {
+        "path":  "tests/browser/package-lock.json",
+        "sha256":  "b2ac4927d4c533fd49fcf30be0705c0f382a1a01965f735d050ab93f4ba84414"
+    },
+    {
+        "path":  "tests/browser/README.md",
+        "sha256":  "61a527d8dd68e337ad04c9f34a4d595f037fd70d2813e5bcbba318093cbb0869"
+    },
+    {
+        "path":  "tests/browser/uat.mjs",
+        "sha256":  "3a69fd393829f6a31b5c421fe87d769678f8622f5d351b7af483346c1477d004"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/AccountAuthorizationTests.cs",
+        "sha256":  "d964a7e5a5406b09de02857ed8bfa8b5f5526c71fe68f9eb8c43d672a5972902"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/AdminReadOnlyTests.cs",
+        "sha256":  "69e07e43d3554f95c84eccfad6c2ea6ed3d860acbb3266032d03692ed25864db"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/AssessmentAttemptStartTests.cs",
+        "sha256":  "a8d49ebf282abee778088586d8bd05256229e734d96db6a59b351d5ce7663b11"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/AssessmentLifecycleAcceptanceTests.cs",
+        "sha256":  "1b930a0ec64a12cd8f84e6f379164b58e551c09cdbb495e285db2423c530b2ef"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/AssessmentQueryServiceTests.cs",
+        "sha256":  "a637469c6052083ba6838df8fe1d3897845f39f8499117f3f3eb61991e2b69c4"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/AssessmentUiFlowTests.cs",
+        "sha256":  "f4abbd71e3075778ba3df274cea1b557072c3d24de09ddb6c70bf41419e7b4b9"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/AuthorizationIntegrityAcceptanceTests.cs",
+        "sha256":  "36e1fbd5822c545ea9f44bbaee7d7fdba83b376a55bf812bd2a038e92dc54457"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CheckoutFeatureTests.cs",
+        "sha256":  "c7613a4c1628c4b83a5df704d25235b6c2a62f0b864cfd0f6c003b6021b894c9"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CheckoutFlowTests.cs",
+        "sha256":  "f86da851571208deda0fdf7b5cb9424dd484b0ed27ebaa8f0cca90cfffc5982a"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CheckoutMergeTests.cs",
+        "sha256":  "b65a385b35259e4ea33ddc76b8c60c028cbc1c78403bcaec55a7d846715a7ba3"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CheckoutTestFactory.cs",
+        "sha256":  "32f7a8b5bb4801c70d47e150a16fcfdeef88646130a3c4ec3465f22095fe20be"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CheckoutTransactionFailureTests.cs",
+        "sha256":  "9d64464869d944b850cdcb6925b9e026c25a6661dfb4260902ce7c8c5ad53be3"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CheckoutTransactionFaults.cs",
+        "sha256":  "50864af77e240c8dc3f75d859f81b6adfe1bb17b91c1294ad6269888f3aa50dd"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CommercePaymentTests.cs",
+        "sha256":  "418f0971b2bb9745f4d09c0ee631a5623ea2516072736bdf0b719335f977b6c1"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CourseCompletionIntegrationTests.cs",
+        "sha256":  "0f630c85de8a037170948c4f1f8addd79055689eab7e2f3788fef9e1a5724247"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/CourseFeatureTests.cs",
+        "sha256":  "392c0baaabb6907fe50fd53d83233fe228fb9517885f680a50448209976455de"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/DatabaseFixture.cs",
+        "sha256":  "0eba2722fae7de96f331fb8703d670e3f1480c03f5341a93b20e613884f274a7"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/EnglishLearningPlatform.IntegrationTests.csproj",
+        "sha256":  "6d7750872c811b945906fbecde4deb78c8fbcc9f322932d70b15910fa8db8835"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/EnrollmentProgressTests.cs",
+        "sha256":  "3d5e15912174b272fd74b579d94b401609747cf89881a6ca06270db06eddfc52"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/HealthCheckTests.cs",
+        "sha256":  "430cd6f1170c0df543e50a7289ea933bfd44ac791986166d7ce4771403d72846"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/IdentityTestHelpers.cs",
+        "sha256":  "0c71ec50c9086d2778a0ead3eb1c8489ef4070ce1d96e533950d7108b8482e91"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/IntegrationTestFactory.cs",
+        "sha256":  "afd6a6a4d0ddfb279b08ca3abb19546e247741810d0ffe47e9b62222e4a19d14"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/LearningAccessTests.cs",
+        "sha256":  "1cb9d08da0b7152242247fcccc6605a72dc970f3588c2a3ff9cbc86d1b87a3a2"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/LearningCommerceJourneyTests.cs",
+        "sha256":  "4aa86248b6c437a16948857ddd14de5e906056e369353d01a30d89db8894e876"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/LearningDashboardFeatureTests.cs",
+        "sha256":  "63192f813f8a4a7e1815ab7ad18da46c8ff87ac25d9721967b9ba2c539efee32"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/LearningDemoSeederTests.cs",
+        "sha256":  "6e989461c51e15cf6c253c1b38bd71c9145e0cfe6218c31b0cca32ae84b5f9fc"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/PaidEnrollmentAssessmentAccessTests.cs",
+        "sha256":  "598ec8f8e71f2edeb8f51f96dc5d6dfead21a81f2b333f91861ee6bc87c4e974"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/ProfileAndLoginTests.cs",
+        "sha256":  "d52a17c381b1eedd878ebc4bd2deef3f04585817a40d109f647f2f030c3cd08d"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/QuestionCreationServiceTests.cs",
+        "sha256":  "e585926fd21dd6119a42d608133e1ca6cd3c7e9bedd00d817eb1449037a68021"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/QuestionQueryServiceSearchTests.cs",
+        "sha256":  "1736b48907ec163c0394293feb1d135c9319c828ae13dd6e76d77270810613cc"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/SecurityConfigurationTests.cs",
+        "sha256":  "4b53a6a401ff536c82e566f4850e4b32e94bc9f5be80e4e0dfe30f96fe576eb0"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.IntegrationTests/TransactionHistoryTests.cs",
+        "sha256":  "0484b9dbd19ebbe7fb21374673e19b8410741dc049a07c4dc638d71400fb285c"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/Authorization/ActiveRoleAuthorizationHandlerTests.cs",
+        "sha256":  "dfe3d7571f3f63c00b85cccdd29bb0d7901f40c1d11cdaabff4f528833a801a2"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/Authorization/ResourceOwnerAuthorizationHandlerTests.cs",
+        "sha256":  "4315b0b4b0c7633c296fa2ee1550687f989e91ee706c412f991e8a4a98625b60"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/CourseRulesTests.cs",
+        "sha256":  "eade53249006cea8bd3afbf7f6d7f9ed73c6db0a551ac2e25bcb9068c4507ec9"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/EnglishLearningPlatform.UnitTests.csproj",
+        "sha256":  "2b214bd586f0728f357b13b3a7794aff363a61711719be8bb2570346759e6e29"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/ExamScoringServiceTests.cs",
+        "sha256":  "c35b44dbc5fda198641a42bca8f9c4a47149ec78714128dc977d9be447a134a0"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/CreateQuestionValidatorTests.cs",
+        "sha256":  "49af949b50d949723ff6d0312c98b5d438de26d9a15c75855a7d575f4ec9efa1"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionBankDependencyInjectionTests.cs",
+        "sha256":  "48b09a498e7f7f847fe84ee108b6abff0907de91b6263130e9296d437076c604"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionDetailTests.cs",
+        "sha256":  "307ecec109e3c2fe7da1d56af6131aa3bcf18d2141333660873b833768e4d5a1"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionListItemTests.cs",
+        "sha256":  "bb788005dffb95379e093011636c1c5eb39dcc399e295b8ea2a6d0f309b44bf7"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionOptionItemTests.cs",
+        "sha256":  "6fcb2fad28997f1e83cdba93b88f688a7acce82b1de13d6cac7e951aa928764e"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionQueryServiceTests.cs",
+        "sha256":  "f00a58273e62f42864eb64c72dbd745b8f9a5c4190f32daf08b51adb7310d0ee"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionSearchRequestTests.cs",
+        "sha256":  "29a9cb53cf08ac6c5fa815a6640b46cc21659ecb5b7d59a1fb7a483038d40fd3"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionSearchResultTests.cs",
+        "sha256":  "b47b1c134343eb1172af7d70c0bf6da70f2aadd2098ecc3c8051c47da3056c89"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionStimulusDetailTests.cs",
+        "sha256":  "d55d56b2c3c6323080dddd2014fc349f2a3cc7f5eaf2796de805d05bc26f30c8"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/QuestionBank/QuestionWriteResultTests.cs",
+        "sha256":  "d31cb8edc16c6cd51d03f823c388549ab60ba8b67ac5cf7ca6e3629a1bba5d1e"
+    },
+    {
+        "path":  "tests/EnglishLearningPlatform.UnitTests/SkillAnalysisRulesTests.cs",
+        "sha256":  "3d608a2d4744b11b3803642da0e61b7b439b31560d2343c8b965936c4e7d6a3d"
+    }
+]

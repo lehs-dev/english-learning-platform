@@ -1,0 +1,304 @@
+@using EnglishLearningPlatform.Application.QuestionBank
+@using EnglishLearningPlatform.Web.Models.QuestionBank
+@model QuestionBankIndexModel
+
+@{
+    ViewData["Title"] = "Question Bank của tôi";
+    // Class riêng trên body giúp CSS chỉ tác động tới trang Question Bank.
+    ViewData["PageClass"] = "question-bank-page";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Question Bank của tôi</h1>
+        <p>Danh sách câu hỏi thuộc tài khoản Teacher hiện tại.</p>
+    </div>
+</div>
+<section class="panel question-bank-filters" aria-labelledby="question-filter-title">
+    <h2 id="question-filter-title">Tìm / lọc câu hỏi</h2>
+
+    @* GET dùng để đọc dữ liệu.
+       Các điều kiện tìm kiếm được đưa lên URL, không ghi vào database. *@
+    <form asp-controller="TeacherQuestionBank"
+          asp-action="Index"
+          method="get">
+
+        @* Khi tìm kiếm lại, luôn quay về trang 1.
+           Tránh đang ở trang 3 nhưng kết quả mới chỉ có 1 trang. *@
+        <input type="hidden" name="PageNumber" value="1" />
+
+        @* filter-grid là class CSS đã có trong dự án. *@
+        <div class="filter-grid">
+
+            <div>
+                <label for="Search">Từ khóa trong nội dung</label>
+
+                @* name phải trùng tên Search trong QuestionSearchRequest.
+                   value giữ lại từ khóa sau khi tìm kiếm. *@
+                <input type="search"
+                       id="Search"
+                       name="Search"
+                       value="@Model.Query.Search"
+                       placeholder="Ví dụ: school" />
+            </div>
+
+            <div>
+                <label for="PrimarySkill">Kỹ năng</label>
+
+                <select id="PrimarySkill" name="PrimarySkill">
+                    @* Giá trị rỗng được nhận thành null:
+                       không giới hạn theo kỹ năng. *@
+                    <option value="">Tất cả kỹ năng</option>
+
+                    @* GetValues lấy các kỹ năng đã định nghĩa trong enum.
+                       Không cần tự viết lại danh sách kỹ năng ở đây. *@
+                    @foreach (EnglishSkill skill in
+                        Enum.GetValues(typeof(EnglishSkill)))
+                    {
+                        @* Giữ kỹ năng Teacher đã chọn sau khi tải lại trang. *@
+                        if (Model.Query.PrimarySkill == skill)
+                        {
+                            <option value="@skill" selected>
+                                @skill
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@skill">
+                                @skill
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="Level">Trình độ</label>
+
+                @* Level hiện là chuỗi trong dự án.
+                   Lọc theo giá trị đã lưu, không tự tạo enum mới. *@
+                <input type="text"
+                       id="Level"
+                       name="Level"
+                       value="@Model.Query.Level"
+                       placeholder="Ví dụ: Beginner" />
+            </div>
+
+            <div>
+                <label for="Difficulty">Độ khó</label>
+
+                @* Backend đang lọc theo giá trị độ khó đã lưu. *@
+                <input type="text"
+                       id="Difficulty"
+                       name="Difficulty"
+                       value="@Model.Query.Difficulty"
+                       placeholder="Ví dụ: Easy" />
+            </div>
+
+            <div>
+                <label for="Status">Trạng thái</label>
+
+                <select id="Status" name="Status">
+                    <option value="">Tất cả trạng thái</option>
+
+                    @* Đọc danh sách trạng thái từ enum đang có. *@
+                    @foreach (QuestionStatus status in
+                        Enum.GetValues(typeof(QuestionStatus)))
+                    {
+                        if (Model.Query.Status == status)
+                        {
+                            <option value="@status" selected>
+                                @status
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@status">
+                                @status
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="PageSize">Số câu mỗi trang</label>
+
+                @* Trình duyệt giới hạn từ 1 đến 100.
+                   Controller vẫn kiểm tra lại vì người dùng có thể sửa URL. *@
+                <input type="number"
+                       id="PageSize"
+                       name="PageSize"
+                       min="1"
+                       max="100"
+                       required
+                       value="@Model.Query.PageSize" />
+            </div>
+        </div>
+
+        <p class="actions">
+            <button type="submit" class="button">
+                Tìm / lọc
+            </button>
+
+            @* Mở lại Index không kèm bộ lọc:
+               trở về danh sách mặc định. *@
+            <a class="button secondary"
+               asp-controller="TeacherQuestionBank"
+               asp-action="Index">
+                Xóa bộ lọc
+            </a>
+        </p>
+    </form>
+</section>
+
+<p class="muted">
+    Tổng số câu hỏi phù hợp: @Model.Result.TotalCount
+</p>
+
+@* Danh sách rỗng có thể do không có kết quả hoặc trang vượt giới hạn. *@
+@if (Model.Result.Items.Count == 0)
+{
+    <section class="panel empty">
+        @if (Model.Result.TotalCount == 0)
+        {
+            <p>
+                Chưa có câu hỏi hoặc không có câu hỏi phù hợp
+                với điều kiện tìm kiếm.
+            </p>
+        }
+        else
+        {
+            <p>Trang bạn yêu cầu không có câu hỏi.</p>
+            <p>
+                Kết quả hiện có @Model.Result.TotalPages trang.
+                Hãy chọn số trang phù hợp.
+            </p>
+        }
+    </section>
+}
+else
+{
+
+    @* Lưới giúp các thẻ tận dụng chiều ngang trên desktop, xuống một cột trên mobile. *@
+    <div class="question-bank-list">
+    @foreach (QuestionListItem question in Model.Result.Items)
+    {
+        <article class="panel question-bank-card">
+            @* Razor mã hóa nội dung, không dùng Html.Raw. *@
+            <h2>Nội dung câu hỏi</h2>
+            <p class="preserve question-bank-content">@question.Content</p>
+
+            @* Mỗi div gom một nhãn và giá trị để CSS sắp xếp thành ô thông tin. *@
+            <dl class="question-bank-metadata">
+                <div>
+                    <dt>Kỹ năng</dt>
+                    <dd>@question.PrimarySkill</dd>
+                </div>
+
+                <div>
+                    <dt>Trình độ</dt>
+                    <dd>@question.Level</dd>
+                </div>
+
+                <div>
+                    <dt>Độ khó</dt>
+                    <dd>@question.Difficulty</dd>
+                </div>
+
+                <div>
+                    <dt>Trạng thái</dt>
+                    <dd>@question.Status</dd>
+                </div>
+
+                <div>
+                    <dt>Số lựa chọn</dt>
+                    <dd>@question.OptionCount</dd>
+                </div>
+            </dl>
+
+            <div class="question-bank-card-actions">
+                @* Tag Helper tạo URL tới action Details đang có. *@
+                <a class="button secondary"
+                   asp-controller="TeacherQuestionBank"
+                   asp-action="Details"
+                   asp-route-id="@question.Id">
+                    Xem chi tiết
+                </a>
+            </div>
+        </article>
+    }
+    </div>
+}
+@* Không có kết quả thì không hiện phân trang, tránh hiển thị Trang 1/0. *@
+@if (Model.Result.TotalPages > 0)
+{
+    <nav class="question-bank-pagination"
+         aria-label="Phân trang câu hỏi">
+
+        @* Chỉ cho quay lại khi đang ở một trang hợp lệ và không phải trang đầu. *@
+        @if (Model.Result.PageNumber > 1
+            && Model.Result.PageNumber <= Model.Result.TotalPages)
+        {
+            <a class="button secondary"
+               asp-controller="TeacherQuestionBank"
+               asp-action="Index"
+               asp-route-PageNumber="@(Model.Result.PageNumber - 1)"
+               asp-route-PageSize="@Model.Result.PageSize"
+               asp-route-Search="@Model.Query.Search"
+               asp-route-PrimarySkill="@Model.Query.PrimarySkill"
+               asp-route-Level="@Model.Query.Level"
+               asp-route-Difficulty="@Model.Query.Difficulty"
+               asp-route-Status="@Model.Query.Status">
+                ← Trang trước
+            </a>
+        }
+
+        @* Chỉ hiển thị số trang khi trang đang xem nằm trong kết quả. *@
+        @if (Model.Result.PageNumber <= Model.Result.TotalPages)
+        {
+            <span class="muted">
+                Trang @Model.Result.PageNumber / @Model.Result.TotalPages
+            </span>
+        }
+
+        @* Chưa tới trang cuối thì mới có trang tiếp theo. *@
+        @if (Model.Result.PageNumber < Model.Result.TotalPages)
+        {
+            <a class="button secondary"
+               asp-controller="TeacherQuestionBank"
+               asp-action="Index"
+               asp-route-PageNumber="@(Model.Result.PageNumber + 1)"
+               asp-route-PageSize="@Model.Result.PageSize"
+               asp-route-Search="@Model.Query.Search"
+               asp-route-PrimarySkill="@Model.Query.PrimarySkill"
+               asp-route-Level="@Model.Query.Level"
+               asp-route-Difficulty="@Model.Query.Difficulty"
+               asp-route-Status="@Model.Query.Status">
+                Trang sau →
+            </a>
+        }
+
+        @* Người dùng có thể sửa URL thành PageNumber=99.
+           Nếu trang vượt giới hạn, cho quay về trang 1 với cùng bộ lọc. *@
+        @if (Model.Result.PageNumber > Model.Result.TotalPages)
+        {
+            <a class="button secondary"
+               asp-controller="TeacherQuestionBank"
+               asp-action="Index"
+               asp-route-PageNumber="1"
+               asp-route-PageSize="@Model.Result.PageSize"
+               asp-route-Search="@Model.Query.Search"
+               asp-route-PrimarySkill="@Model.Query.PrimarySkill"
+               asp-route-Level="@Model.Query.Level"
+               asp-route-Difficulty="@Model.Query.Difficulty"
+               asp-route-Status="@Model.Query.Status">
+                Về trang đầu
+            </a>
+        }
+    </nav>
+}

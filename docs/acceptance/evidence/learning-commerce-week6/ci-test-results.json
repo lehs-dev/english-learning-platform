@@ -1,0 +1,2102 @@
+[
+    {
+        "suite":  "unit",
+        "candidateSha":  "8c78d49bd7dea32600533c8e466c61c6b548f2d0",
+        "ciRunUrl":  "https://github.com/lehs-dev/english-learning-platform/actions/runs/38529445056",
+        "rawArtifactFile":  "unit-tests.trx",
+        "rawArtifactSha256":  "9eb9ab9492f70b71a5bbb2bba460e0abe3374c0d8dd5dc2606b0b26c48ce7a04",
+        "startedAtUtc":  "2026-10-14T07:37:20.4117083+00:00",
+        "finishedAtUtc":  "2026-10-14T07:37:21.2899942+00:00",
+        "total":  99,
+        "passed":  99,
+        "failed":  0,
+        "notExecuted":  0,
+        "cases":  [
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.Constructor_ValidArguments_StoresResult",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0005703"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.SkillAnalysisRulesTests.WeakSkill_RequiresEnoughQuestionsAndComparesBeforeRounding(earned: 3, maximum: 5, count: 5, expected: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000043"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_OptionalMetadataNotProvided_ReturnsNoErrors(value: \"\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001672"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_BlankContent_ReturnsRequiredError(content: \"\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002368"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionQueryServiceTests.Constructor_NullDb_ThrowsArgumentNullException",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003479"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.ExternalResources_OnlyAllowAbsoluteHttpUrls(url: \"/relative/path\", valid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000246"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.SkillAnalysisRulesTests.WeakSkill_RequiresEnoughQuestionsAndComparesBeforeRounding(earned: 60, maximum: 100, count: 3, expected: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0004821"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.Constructor_CopiesList_OriginalChangesDoNotAffectResult",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0006225"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionWriteResultTests.Success_ReturnsIdAndNoErrors",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0048548"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.ExternalResources_OnlyAllowAbsoluteHttpUrls(url: \"file:///private.txt\", valid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000128"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionWriteResultTests.Success_RejectsEmptyId",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0011789"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_UndefinedPrimarySkill_ReturnsInvalidError(value: -1)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001770"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionListItemTests.QuestionListItem_WithoutOptionalMetadata_HasNullMetadata",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001607"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.TotalPages_CalculatesCorrectly(totalCount: 0, pageSize: 10, expectedPages: 0)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000034"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionWriteResultTests.Failure_RejectsEmptyCollection",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002554"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_OptionalMetadataNotProvided_ReturnsNoErrors(value: null)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001375"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionWriteResultTests.Failure_RejectsNullEntry",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0012410"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_EnoughOptionsWithOneCorrect_ReturnsNoErrors(optionCount: 2)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002036"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.FinalAssessment_MustMatchOwnerCourseTypePassingScoreAndStatus(type: PracticeExam, passing: 101, status: Published, valid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000357"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.UnknownRoleOnly_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0006577"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.TotalPages_CalculatesCorrectly(totalCount: 25, pageSize: 10, expectedPages: 3)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000033"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.KnownPlusUnknownRole_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0004963"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.FinalAssessment_MustMatchOwnerCourseTypePassingScoreAndStatus(type: PracticeExam, passing: 60, status: Published, valid: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000374"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionWriteResultTests.Failure_KeepsReadOnlySnapshotOfErrors",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0018698"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ResourceOwnerAuthorizationHandlerTests.OwnerUser_Succeeds",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0007671"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.Constructor_NullItems_ThrowsException",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003373"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.SkillAnalysisRulesTests.WeakSkill_RequiresEnoughQuestionsAndComparesBeforeRounding(earned: 59.999, maximum: 100, count: 3, expected: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0005384"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.FinalAssessment_MustMatchOwnerCourseTypePassingScoreAndStatus(type: PracticeExam, passing: null, status: Published, valid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003944"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.FinalAssessment_MustMatchOwnerCourseTypePassingScoreAndStatus(type: PracticeExam, passing: 60, status: Draft, valid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001064"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_DifficultyOverLimit_ReturnsMaxLengthError",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002467"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionOptionItemTests.QuestionOptionItem_WithValues_StoresOption",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0174369"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionWriteResultTests.Failure_ReturnsErrorsAndNoId",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0007954"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.ExactlyOneActiveRole_Succeeds(role: \"Student\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0011486"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_BlankOptionContent_ReturnsRequiredError(content: \"\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000118"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.SkillAnalysisRulesTests.WeakSkill_RequiresEnoughQuestionsAndComparesBeforeRounding(earned: 1, maximum: 100, count: 2, expected: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000076"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionQueryServiceTests.Constructor_NullUserManager_ThrowsArgumentNullException",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1161023"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.Constructor_InvalidPagination_ThrowsException(totalCount: 0, pageNumber: 0, pageSize: 10)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000174"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.TwoActiveRoles_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0090104"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionStimulusDetailTests.QuestionStimulusDetail_WithAudio_StoresValues",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0034118"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_ContentOverLimit_ReturnsMaxLengthError",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002497"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionBankDependencyInjectionTests.AddApplication_RegistersCreateQuestionValidatorAsScoped",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0147157"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionDetailTests.QuestionDetail_NewInstance_HasExpectedDefaults",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0007631"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_EnoughOptionsWithOneCorrect_ReturnsNoErrors(optionCount: 4)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003832"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.TotalPages_CalculatesCorrectly(totalCount: 25, pageSize: 5, expectedPages: 5)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000077"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.Constructor_InvalidPagination_ThrowsException(totalCount: -1, pageNumber: 1, pageSize: 10)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000149"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.ExactlyOneActiveRole_Succeeds(role: \"Admin\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002624"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionListItemTests.QuestionListItem_WithValues_StoresQuestionSummary",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0010258"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_BlankContent_ReturnsRequiredError(content: null)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001366"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_UndefinedPrimarySkill_ReturnsInvalidError(value: 0)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003205"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionWriteResultTests.Failure_RejectsNullCollection",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002730"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.Constructor_InvalidPagination_ThrowsException(totalCount: 0, pageNumber: -1, pageSize: 10)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002508"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_InvalidCorrectCount_ReturnsError(firstCorrect: True, secondCorrect: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002772"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.FinalAssessment_MustMatchOwnerCourseTypePassingScoreAndStatus(type: PlacementTest, passing: null, status: Published, valid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0095260"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.Constructor_InvalidPagination_ThrowsException(totalCount: 0, pageNumber: 1, pageSize: -1)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000188"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.ExternalResources_OnlyAllowAbsoluteHttpUrls(url: \"https://example.test/media.mp4\", valid: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003721"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_NullRequest_ThrowsArgumentNullException",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001876"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.ExactlyOneActiveRole_Succeeds(role: \"Teacher\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000323"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_BlankOptionContent_ReturnsRequiredError(content: null)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0012888"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_InvalidCorrectCount_ReturnsError(firstCorrect: False, secondCorrect: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002663"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.DuplicatedSameRoleClaim_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0004952"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_ValidPrimarySkill_ReturnsNoErrors(skill: Listening)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001728"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_MissingPrimarySkill_ReturnsInvalidError",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002252"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_OptionContentAtLimit_ReturnsNoErrors",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001624"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_ValidPrimarySkill_ReturnsNoErrors(skill: Vocabulary)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000090"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_ContentAtLimit_ReturnsNoErrors",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001460"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionStimulusDetailTests.QuestionStimulusDetail_WithoutOptionalValues_HasNullValues",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001348"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_FewerThanTwoOptions_ReturnsMinCountError(optionCount: 0)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0010646"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.TotalPages_CalculatesCorrectly(totalCount: 10, pageSize: 10, expectedPages: 1)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000047"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_LevelOverLimit_ReturnsMaxLengthError",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0005469"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_InvalidRequest_ReturnsErrors",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0004929"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionDetailTests.QuestionDetail_WithValues_StoresQuestionInformation",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0131471"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.TotalPages_CalculatesCorrectly(totalCount: 1, pageSize: 10, expectedPages: 1)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0008721"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ResourceOwnerAuthorizationHandlerTests.UnauthenticatedUser_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0031342"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_ValidPrimarySkill_ReturnsNoErrors(skill: Reading)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000145"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_OptionContentOverLimit_ReturnsMaxLengthError",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0009988"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ResourceOwnerAuthorizationHandlerTests.DifferentUser_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0006424"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.SkillAnalysisRulesTests.WeakSkill_RequiresEnoughQuestionsAndComparesBeforeRounding(earned: 0, maximum: 0, count: 3, expected: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000043"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionStimulusDetailTests.QuestionStimulusDetail_WithPassage_StoresValues",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002387"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.ExternalResources_OnlyAllowAbsoluteHttpUrls(url: \"http://example.test/media.mp3\", valid: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0007448"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionDetailTests.QuestionDetail_WithOptionsAndStimulus_StoresRelatedData",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0009790"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_ValidRequest_ReturnsNoErrors",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000937"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ResourceOwnerAuthorizationHandlerTests.NonGuidNameIdentifier_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0006292"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_FewerThanTwoOptions_ReturnsMinCountError(optionCount: 1)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0017537"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_BlankOptionContent_ReturnsRequiredError(content: \"   \")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002015"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchRequestTests.QuestionSearchRequest_DefaultValues_ShouldBeNull",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0007249"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.Constructor_InvalidPagination_ThrowsException(totalCount: 0, pageNumber: 1, pageSize: 0)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003418"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.ExamScoringServiceTests.Score_ReturnsFullPoints_WhenSelectedOptionIsCorrect",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0139601"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionOptionItemTests.QuestionOptionItem_NewInstance_HasEmptyContent",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000843"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.QuestionSearchResultTests.TotalPages_CalculatesCorrectly(totalCount: 11, pageSize: 10, expectedPages: 2)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002406"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_BlankContent_ReturnsRequiredError(content: \"   \")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000378"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.UnauthenticatedUser_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0004291"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.ExternalResources_OnlyAllowAbsoluteHttpUrls(url: \"javascript:alert(1)\", valid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000193"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_NullOption_ReturnsRequiredError",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003044"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_UndefinedPrimarySkill_ReturnsInvalidError(value: 999)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000126"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.CourseRulesTests.FinalAssessment_MustMatchOwnerCourseTypePassingScoreAndStatus(type: SkillAssessment, passing: 60, status: Published, valid: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0000329"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_ValidPrimarySkill_ReturnsNoErrors(skill: Grammar)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0030872"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_NullOptions_ReturnsRequiredError",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0002397"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.Authorization.ActiveRoleAuthorizationHandlerTests.NoRoleClaims_Fails",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0006318"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.UnitTests.QuestionBank.CreateQuestionValidatorTests.Validate_MetadataAtLimit_ReturnsNoErrors",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0001350"
+                      }
+                  ]
+    },
+    {
+        "suite":  "integration",
+        "candidateSha":  "8c78d49bd7dea32600533c8e466c61c6b548f2d0",
+        "ciRunUrl":  "https://github.com/lehs-dev/english-learning-platform/actions/runs/38529445056",
+        "rawArtifactFile":  "integration-tests.trx",
+        "rawArtifactSha256":  "a85f3c1e9c8905471b5b7b4b3d9a260682015aa3fb4e457cd56884f559fea061",
+        "startedAtUtc":  "2026-10-14T07:37:22.1965988+00:00",
+        "finishedAtUtc":  "2026-10-14T07:39:39.8741609+00:00",
+        "total":  315,
+        "passed":  315,
+        "failed":  0,
+        "notExecuted":  0,
+        "cases":  [
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.LocalQuoteExpiryStopsSimulationButAllowsReceiptOccurredWithinDeadline",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4996603"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.ManageCourse_RequiresTeacherRoleAndOwnership(role: \"Teacher\", canManage: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7863205"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_NonTeacher_ReturnsForbiddenAndSavesNothing(role: \"Admin\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1883585"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Http_DashboardActivitiesPracticeAndTeacherReportEnforceRoleOwnerAndCsrf",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:02.7861587"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.InvalidFinalDefinition_DoesNotCompleteDespiteExistingPassingResult(invalid: \"wrong-owner\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5744300"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.SubmitPassedFinal_ShowsSkillScoresAndCompletion_PreservesHistoryAfterLessonAddedAndReplay",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8772282"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.DeadlineElapsed_FinalizesSavedAnswersAndCompletionOnce_WithoutSavingLateAnswer",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7326924"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AccountAuthorizationTests.Logout_WithoutLogin_RedirectsToLogin",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0126782"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.CourseChangesAndIncompleteLesson_PreserveHistoricalCompletion",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6620637"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.HttpCheckout_UsesServerBuyerPriceAndCurrency_GetAndRefreshDoNotWrite",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6826804"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_RequiresExactlyStudentRole(replacementRole: \"Admin\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3976798"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.ActiveAttempt_AtMaxAttempts_ReturnsExistingAttempt(expired: False, expectedStatus: Resumed)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3639402"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.BeginCancellation_IsNotConvertedToIntegrationError(webhook: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3711219"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.PostRechecksPriceAndEligibilityAfterGet",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5050120"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: \"Production\", secure: Always)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0074057"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.AlreadyGradedReplay_RepairsMissedCompletionWithoutChangingGradeOrFinalization",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7984838"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.TransactionHistoryTests.History_UsesOrderQuote_ResolvesMultiplePaymentsLikeDetails_AndPaginates",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8475251"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.CreatedOrderKeepsOriginalQuoteAfterPriceChanges",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3782873"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.TeacherReport_SearchPaginationAndHistoricalCompletionStayCorrectWhenContentHidden",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5118587"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.TakingSheet_DoesNotReturnDeadlineThatElapsedDuringRead",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3516213"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Dashboard_WithoutEvidenceDoesNotInventScoresOrRecommendations_AndScopesToStudent",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5025278"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Guest_MustLogin(path: \"/Admin/Users\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0031887"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.SequentialAndConcurrentDuplicateCallbacks_GrantOnce",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5528145"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.AllQueries_RequireExactlyOneStudentRole(replacementRole: null)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3300365"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.AllQueries_RequireExactlyOneStudentRole(replacementRole: \"Teacher\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3080534"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InactiveStudent_CannotPurchase(status: Disabled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3058750"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFeatureTests.WebhookHmac_BindsExactRawBytes_WhenJsonWhitespaceChanges",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3844775"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Result_PreservesOwnersHistoricalGradeAfterWithdrawalAndEnrollmentRevocation",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4797937"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_OtherTeachersStimulus_ReturnsErrorAndSavesNothing(stimulusType: Audio)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7602358"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.SandboxIsBlockedWhenDisabledOrOutsideDevelopment(environment: \"Production\", enabled: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3397954"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.ConcurrentPurchaseClicks_ReuseOneUnprocessedOrder",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.9281062"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Result_DoesNotInventMissingFinalizationMetadata(missing: \"Score\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3785233"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.FinalAssessment_RequiresGradedPassingScoreBeforeHistoricalCompletion",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2734756"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.DisposeFailure_AfterConfirmedCommit_DoesNotUndoConfirmedSuccess",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3120495"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.ConcurrentFinalizationAndLessonWrites_GradeOnceAndPreserveCompletionTimestamp",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5609929"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.InvalidCredentials_RenderValidation_WithoutLoggingIn",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2967632"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Result_DoesNotInventMissingFinalizationMetadata(missing: \"FinalizedAtUtc\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3664551"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.PlacementResultWithoutPassingScore_DoesNotLabelStudentFailed_AndExhaustedAttemptsRetainResultLink",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5399699"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.InactiveAccount_CannotLogin_AndExistingSessionIsRejected(status: Locked)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3631691"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: \"Staging\", secure: Always)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0009399"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingAttempt_ResumesOrFinalizesAfterAssessmentWithdrawn(status: Unpublished, expired: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4029094"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.DisabledOwnerOrInvalidPrice_CannotPurchase",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5893248"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: \"Teacher\", expected: OK)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3117157"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.TakingSheet_OrdersQuestionsAndOptionsIncludesSavedChoiceAndNeverReadsAnswerKey",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5315369"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.AllQueries_RequireActiveStudent(status: Locked)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4842959"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.CallbackWithAnotherOrdersIdAndOriginalAmount_IsRejected",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7239332"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.SaveAnswer_RejectsAnotherAssessmentsQuestion_AndClearIsIdempotent",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.9133124"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: \"/Admin/Users?status=99\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.3958719"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFeatureTests.GatewayDisabled_InvalidRoleAndDisabledOwnerCannotCreateOrder",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3507060"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.VerifiedHostedPaymentThroughLearningAndRealFinal_RecordsCourseCompletion",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6437998"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.HostedOrderCannotBeSettledByLocalSimulatorOrLocalSignature",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5529018"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_CombinedFilters_ReturnsOnlyQuestionMatchingAllConditions",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3630124"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.HighestPassingFinal_CompletesDespiteLaterFailedAttempt",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5183223"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingCourseAttempt_PreservesDeadlineAndCanFinishAfterArchive(status: Archived, expired: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6493225"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.Register_AlwaysCreatesStudent_EvenWhenClientPostsTeacherRole",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2429989"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_OwnStimulus_SavesQuestionWithStimulus(stimulusType: Passage, skill: Reading)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4435189"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Published, canView: True, canRecord: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3359024"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InvalidAuthenticatedOrTamperedCallback_CannotGrantAccess(invalid: \"signature\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3622040"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.CommitFailure_AfterTransactionEnded_DoesNotEscapeRollbackError(webhook: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5958865"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.OtherTeacher_CannotOpenCourseModuleLessonOrManageCourse",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7039987"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.ProfileUpdate_WithoutAntiforgeryToken_IsRejected",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3502146"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Guest_MustLogin(path: \"/Admin/Transactions\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0083166"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.ForeignTeacherMutationWithValidCsrf_CannotAlterCourseOrCommerceOrStudentProgress(action: \"Archive\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.0915527"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.PaymentWithoutVerifiedSuccess_DeniesEnrollmentLearningAndAssessment(state: \"cancelled\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.3391813"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.PassingFinalAfterLessons_CompletesImmediatelyWithoutAnotherLessonRequest",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6667901"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InactiveStudent_CannotPurchase(status: Locked)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2964805"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.InvalidPaidEnrollment_BlocksStartAndLessonProgress(pending: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5334966"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.FinalizedAttempt_ConsumesMaxAttempts",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3933407"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_RejectUnverifiedEnrollmentAndMismatchedCourseOwnership(corruption: \"FailedPayment\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8306203"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.WrappedProviderBeginFailure_IsClassifiedAsDatabaseFailure",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3257865"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFeatureTests.BrowserReturnCannotConfirmPayment_OrdersArePrivate_PostsRequireCsrf_WebhookIsSigned",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.2504429"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.TakingSheet_EnforcesServerDeadlineWithoutFinalizing(secondsRemaining: 0, available: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3761389"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_RejectUnverifiedEnrollmentAndMismatchedCourseOwnership(corruption: \"NoEnrollment\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5151304"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Activities_ListsIndependentAndLinkedAssessments_AndResumesWithdrawalWithoutNewPractice",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5969849"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.FreeEnrollment_IsRequiredIdempotentCsrfProtectedAndScopedToStudentAndCourse",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8924700"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.EnrollmentWriteFailure_RollsBackPreviouslySavedPayment_AndRetryWorks",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4263868"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.BeginCancellation_IsNotConvertedToIntegrationError(webhook: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3329542"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Dashboard_UsesRepresentativeAttemptWithSameSkillDataAndDeterministicTies",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3482498"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Draft, canView: False, canRecord: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3110499"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Unpublished, canView: True, canRecord: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4136580"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterBySkill_ReturnsOnlyMatchingOwnQuestion(selectedSkill: Listening)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3966625"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.ConcurrentSaveAndFinalize_PreservesGradedResult",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.8487909"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.Admin_SearchesTransactionsAndUserStatus_ReadOnlyAndHtmlEncoded",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.0324737"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AdminSurface_IsReadOnly_AndProjectionExcludesIdentitySecretsAndAnswers",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0063540"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.ReservedLocalProviderCannotConfigureHostedCheckout(provider: \"local-sandbox\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2740294"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.WithdrawnAssessment_HidesOverviewButPreservesExistingTakingSheet(status: Archived)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3437033"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.Completion_PostRequiresCsrfAndExplicitState_ModuleAndLessonRenderProgress",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5949775"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.InvalidPaidEnrollment_DeniesResumeAndTakingQueries(invalid: \"failed\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4467172"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_InactiveTeacher_ReturnsForbiddenAndSavesNothing(status: Locked)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1793034"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnenrolledStudent_CannotOpenPublishedContent_AndGuestMustLogin",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6032194"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.FreshSeed_AllActorsAuthenticateAndRepeatWithoutDuplicatesOrPaidGrants",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:03.5147869"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingAttempt_ResumesOrFinalizesAfterAssessmentWithdrawn(status: Archived, expired: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6425260"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.DuplicateEnrollment_IsRejectedByDatabase_AndOriginalEnrollmentPersists",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5330076"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.LostCommitAcknowledgement_Returns503_NoAutomaticRetry_ThenReplayConfirmsPersistedPayment",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3416967"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.LateCallbackCannotOverwriteTerminalStatus(first: Cancelled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3752576"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.ExpiredFinal_GradedFromStartOrLateSave_ReconcilesCompletion(finalizeFromStart: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4344225"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.SandboxIsBlockedWhenDisabledOrOutsideDevelopment(environment: \"Development\", enabled: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4050684"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.PublicDetail_DoesNotLeakResourcesOrHiddenStructure_AndCannotGuessNonPublicIds",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5882849"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.InvalidFinalDefinition_DoesNotCompleteDespiteExistingPassingResult(invalid: \"missing-passing-score\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3928091"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_RejectUnverifiedEnrollmentAndMismatchedCourseOwnership(corruption: \"AmountMismatch\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6550902"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.ForeignAttempt_ResultReadAndSaveSubmitDenied_AndResultSurvivesWithdrawal",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.3558604"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.UpdateProfile_OnlyChangesOwnFullName_IgnoresSensitiveFields",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5575219"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterBySkill_ReturnsOnlyMatchingOwnQuestion(selectedSkill: Grammar)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4536923"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.WithdrawnAssessment_HidesOverviewButPreservesExistingTakingSheet(status: Unpublished)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3687714"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.TeacherReport_ScopesOwnerAndCountsOnlyValidEnrollmentsAndSuccessfulQuotedPayments",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8991830"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableCourse_DoesNotStartNewAttempt(status: Draft)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6845673"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_AllowValidFreeAndPaidEnrollment(paid: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2945794"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Services_RecheckStudentAccountStatusBeforeReadingOrWriting(status: Disabled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3247344"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterByMetadata_ReturnsOnlyMatchingQuestion(filterName: \"Status\", selectSecondQuestion: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1976009"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.HiddenLessonAndModule_ChangeEffectiveProgressAndContinueWithoutErasingHistoricalCompletion(paid: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.6563258"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.HttpSignedCallbackAcceptedAndConflictingReplayRejected",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3836676"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.InvalidPaidEnrollment_DeniesResumeAndTakingQueries(invalid: \"amount\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4678312"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.AllQueries_RequireActiveStudent(status: Disabled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2486998"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.TwoQuotedOrdersPaidConcurrently_DoNotDuplicateEnrollment",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4026541"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Practice_ConcurrentRetakesKeepOneConsistentLatestSubmission",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5095307"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.SuccessCallbackAfterCourseWithdrawal_RecordsReceiptAndReplayButDoesNotGrantLearning(status: Archived)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6449503"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Dashboard_ScoreExactly60IsNotWeak_AndMissingMatchingMetadataShowsEmptyRecommendation",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3912095"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_OwnStimulus_SavesQuestionWithStimulus(stimulusType: Audio, skill: Listening)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1980375"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.FreeEnrollmentAndExistingPaidAccess_ArePreserved",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7513600"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFeatureTests.FailedPaymentAndWithdrawnCourse_DoNotGrantLearningRights",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3969243"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.TakingSheet_EnforcesServerDeadlineWithoutFinalizing(secondsRemaining: -1, available: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3782436"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CommercePaymentTests.DuplicateProviderTransactionId_IsRejected",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3445162"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.BeginFailureAfterAllocation_CleansUpAllocatedEfTransaction(webhook: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1958444"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.InactiveAccountsAndDisabledOwnerCannotEnrollOrAuthor",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3578529"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.InvalidPaidEnrollment_DeniesResumeAndTakingQueries(invalid: \"course\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7328010"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.ForeignTeacherMutationWithValidCsrf_CannotAlterCourseOrCommerceOrStudentProgress(action: \"Reorder\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.9284548"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterByMetadata_ReturnsOnlyMatchingQuestion(filterName: \"Status\", selectSecondQuestion: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1649276"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.ProductionAllowsConfiguredHostedButNeverLocalSimulation",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4161171"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_RejectUnverifiedEnrollmentAndMismatchedCourseOwnership(corruption: \"WrongStudent\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.1669258"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.MatchingReplayRepairsLegacyPaymentWithoutEnrollment",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3872649"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.Authoring_ValidatesOwnershipParentsPricePublishAndResourceData",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7254473"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.EnrolledStudent_AccessFollowsCourseLifecycle(status: Archived, canView: True, canRecord: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3386520"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.WithdrawnCourseRecordsLocalReceiptWithoutIssuingEnrollment",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3773846"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.Catalog_FiltersPaginatesAndOnlyExposesPublishedMetadata",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7354959"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.LateCallbackCannotOverwriteTerminalStatus(first: Success)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4235804"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.InvalidFinalDefinition_DoesNotCompleteDespiteExistingPassingResult(invalid: \"archived\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5086355"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.SuccessCallbackAfterCourseWithdrawal_RecordsReceiptAndReplayButDoesNotGrantLearning(status: Unpublished)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6664463"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.ForeignTeacherMutationWithValidCsrf_CannotAlterCourseOrCommerceOrStudentProgress(action: \"Unpublish\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.9682333"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.GlobalCsrfGate_RejectsPostToActionsWithoutVerbConstraint",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0200079"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.PaymentInvalidatedBeforeFinalize_DoesNotRecordCourseCompletion(pending: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4295447"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.CancellationAfterCommit_DoesNotClaimSuccess_AndReplayRemainsSafe",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5397677"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_BlocksInactiveStudentWithoutMutatingAttempt(status: Disabled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5571570"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.HttpSandboxSuccess_GrantsExactlyOneEnrollmentAndLearningAccess",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8160244"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.IneligibleCourse_CannotCreateOrder(paid: False, status: Published)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5321914"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnavailableLesson_IsBlockedForEnrolledStudent_ButOwnerCanPreview(visibility: Visible, status: Draft)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5834591"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_BlocksInactiveStudentWithoutMutatingAttempt(status: Locked)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4692814"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: \"/Admin/Transactions?status=invalid\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3650925"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InvalidAuthenticatedOrTamperedCallback_CannotGrantAccess(invalid: \"pending\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3004953"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.PaymentInvalidatedBeforeFinalize_DoesNotRecordCourseCompletion(pending: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4628661"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableAssessment_DoesNotStartNewAttempt(status: Archived)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8753188"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.EachRole_CanLogin_ViewOwnProfile_AndLogout(role: \"Student\", roleLabel: \"Học viên\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3418306"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.ForeignTeacherMutationWithValidCsrf_CannotAlterCourseOrCommerceOrStudentProgress(action: \"Content\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.6651377"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Overview_UnavailableCourseOnlyPermitsExistingActiveAttempt(status: Draft)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2905363"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.HiddenLessonAndModule_ChangeEffectiveProgressAndContinueWithoutErasingHistoricalCompletion(paid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.5023451"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InvalidAuthenticatedOrTamperedCallback_CannotGrantAccess(invalid: \"currency\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3090705"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.MigratedDatabase_MatchesEfModel_AndCommerceIntegrityConstraints",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4519199"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableCourse_DoesNotStartNewAttempt(status: Archived)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7299114"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Overview_UsesOnlyOwnedGradedScoresAndCountsExpiredAttemptsWithoutMutating",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5222212"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.AdminQueries_FilterStatusAndClampPagination",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7102853"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.HealthCheckTests.Home_ReturnsSuccess",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7640347"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.InactiveAccount_CannotLogin_AndExistingSessionIsRejected(status: Disabled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6286445"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Start_RechecksAssessmentScopeAfterSnapshotBeforeCreatingAttempt",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.9951239"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.MissingResource_Returns404_AndAccessDeniedPageReturns403",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3704347"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.FailedFinalAfterLessons_DoesNotCompleteCourse",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5475730"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.InvalidPaidEnrollment_DeniesResumeAndTakingQueries(invalid: \"currency\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4106577"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.InvalidFinalDefinition_DoesNotCompleteDespiteExistingPassingResult(invalid: \"placement\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5190201"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.DuplicateTransactionWithDifferentData_IsRejectedAcrossOrders",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6394403"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_RejectUnverifiedEnrollmentAndMismatchedCourseOwnership(corruption: \"OwnerMismatch\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8870892"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InvalidAuthenticatedOrTamperedCallback_CannotGrantAccess(invalid: \"amount\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3702672"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AuthenticationCookie_HasRequiredFlags(environment: \"Development\", secure: SameAsRequest)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0003524"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.SecurityConfigurationTests.AllDeclaredMutationEndpoints_RequireAntiforgery_ExceptBoundedSignedWebhook",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0023514"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.EachRole_CanLogin_ViewOwnProfile_AndLogout(role: \"Teacher\", roleLabel: \"Giáo viên\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3924057"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.ConcurrentEnrollments_CreateExactlyOneEnrollment",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4259675"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.RepeatSeed_PreservesRealGradedHistoryAndCompletedEnrollment",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:02.8723914"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.TeacherForms_EndToEndPublishPreviewAndOtherOwnerMutationDenied",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:03.3269471"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.DatabaseFailure_WithRollbackAndDisposeFailures_PreservesOriginalError(webhook: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4683721"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_InactiveTeacher_ReturnsForbiddenAndSavesNothing(status: Disabled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2378543"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.AllQueries_RequireExactlyOneStudentRole(replacementRole: \"Admin\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3424922"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.InvalidPaidEnrollmentCannotAccessDashboardCourseActivitiesOrPractice",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3414685"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: null, expected: Unauthorized)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0025364"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.ForeignTeacherMutationWithValidCsrf_CannotAlterCourseOrCommerceOrStudentProgress(action: \"Publish\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8638416"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.FinalizedAttempt_ResultReadsPersistedWeightedSkillBreakdown",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4594533"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AccountAuthorizationTests.Guest_AccountForm_HasAntiforgeryToken(path: \"/Account/Register\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0538860"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.InvalidPaidEnrollment_BlocksStartAndLessonProgress(pending: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4385815"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: \"Admin\", expected: Forbidden)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3083915"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.ConcurrentFreeEnrollmentHttpPosts_IgnoreSpoofedIdentityAndCreateOneEnrollmentWithoutCommerceRows",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6349916"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterByMetadata_ReturnsOnlyMatchingQuestion(filterName: \"Level\", selectSecondQuestion: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2029456"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.SandboxIsBlockedWhenDisabledOrOutsideDevelopment(environment: \"Staging\", enabled: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3490527"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.FailureAndCancellation_DoNotGrantAccess_AndRetryCreatesNewOrder(scenario: Cancelled, expected: Cancelled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5942372"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.InvalidPaidEnrollment_DeniesResumeAndTakingQueries(invalid: \"buyer\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7180580"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterBySkill_ReturnsOnlyMatchingOwnQuestion(selectedSkill: Vocabulary)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4661850"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.IneligibleCourse_CannotCreateOrder(paid: True, status: Archived)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3080521"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.PassingFinalWithNoEffectiveLessons_DoesNotCompleteCourse",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4932036"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingCourseAttempt_PreservesDeadlineAndCanFinishAfterArchive(status: Unpublished, expired: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4840482"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.WrappedCancellation_IsPropagatedAsCancellation",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4619620"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Overview_UnavailableCourseOnlyPermitsExistingActiveAttempt(status: Archived)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3264624"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Dashboard_RawWeightedScoreBelow60StillWeakWhenStoredDisplayScoreRoundsTo60",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3380194"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.RoundedDisplayScoreAtPassingBoundary_DoesNotCompleteFailedFinal",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4949779"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingAttempt_ResumesOrFinalizesAfterAssessmentWithdrawn(status: Archived, expired: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4701389"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.ManageCourse_RequiresTeacherRoleAndOwnership(role: \"Student\", canManage: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6054221"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ChangedRole_RejectsStaleCookieImmediately_WithoutSecurityStampChange(originalRole: \"Teacher\", replacementRole: \"Student\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6248466"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InvalidAuthenticatedOrTamperedCallback_CannotGrantAccess(invalid: \"transaction\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2917298"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InactiveAdmin_IsDeniedOnNextRequestAndDirectServiceCall(status: Locked)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5199220"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.ExpiredAttempt_IsGradedOnceBeforeAnotherStart",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6277167"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.EachRole_CanLogin_ViewOwnProfile_AndLogout(role: \"Admin\", roleLabel: \"Quản trị viên\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5171629"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.CommitFailure_AfterTransactionEnded_DoesNotEscapeRollbackError(webhook: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4129667"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.GetOverview_DoesNotConsumeAttempts_AndStartRequiresStudentEnrollmentAndCsrf",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8485614"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.HostedStartDoesNotFallBackToLocalWhenHostedIsDisabled",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4119940"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.PaidFailureThenRetrySuccess_OpensLearningOnceAndPreservesProgressOnCallbackReplay",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.2259875"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.Login_ReturnUrl_AllowsOnlyLocalUrls(returnUrl: \"/Profile\", expected: \"/Profile\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3715151"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.VerifiedPayment_ProgressAndPassingFinal_ReconcileCompletionAndPersistOneResult(weightedVocabulary: False, expectedOverall: 80, expectedVocabulary: 50)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.0262887"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_ValidRequest_SavesQuestionAndOptions",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2310965"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.DependencyInjection_ResolvesQueryAndEmptyHistoryHasNoHighestScore",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3142806"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.FailureAndCancellation_DoNotGrantAccess_AndRetryCreatesNewOrder(scenario: Failed, expected: Failed)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6312657"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.LegacySeed_BackfillsMissingFinalAndAdminWithoutReplacingExistingCourseData",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.6440283"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.BeginFailureAfterAllocation_CleansUpAllocatedEfTransaction(webhook: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2466644"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.ForeignTeacherMutationWithValidCsrf_CannotAlterCourseOrCommerceOrStudentProgress(action: \"Edit\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.6364259"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.ConcurrentStarts_ReuseOneActiveAttempt",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4642912"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_ReturnsOnlyMatchingOwnQuestionsAndPaginates",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5147211"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableAssessment_DoesNotStartNewAttempt(status: Unpublished)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3752657"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.ExistingEnrollmentSurvivesPriceTypeAndLifecycleChanges_PaymentMustMatchOriginalOrder",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8120207"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.TransactionHistoryTests.History_ReturnsEmptyPage_WithoutCreatingCommerceRows",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.8100395"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.SaveAnswer_ValidatesOwnershipOptionAndFinalization",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7001233"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InvalidAuthenticatedOrTamperedCallback_CannotGrantAccess(invalid: \"order\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3454843"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.ExpiredGetNeverGrades_PostStartFinalizesSavedAnswersWithoutCreatingNewAttempt",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5540388"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Overview_DisabledIndependentTeacherOnlyPermitsExistingActiveAttempt",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3777327"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ChangedRole_RejectsStaleCookieImmediately_WithoutSecurityStampChange(originalRole: \"Teacher\", replacementRole: null)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5440361"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseFeatureTests.Reorder_AllThreeLevelsUsesUniqueIndexAndPreservesResourcesAndProgress",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8110257"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Recommendation_UsesMetadataAndExcludesUnenrolledArchivedDraftHiddenOrForeignOwnerContent",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7816991"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.PassingFinalBeforeLessons_CompletesWhenLastEffectiveLessonIsRecorded",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3827299"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.HttpAuthorizationOwnershipAndCsrf_AreEnforced",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.9072395"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingAttempt_ResumesOrFinalizesAfterAssessmentWithdrawn(status: Unpublished, expired: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5111361"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDemoSeederTests.ExistingAdminWithUnexpectedRole_IsRejectedWithoutChangingIdentityOrSeedingData",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.1879503"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Result_DoesNotInventMissingFinalizationMetadata(missing: \"Status\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4395596"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.VerifiedPayment_ProgressAndPassingFinal_ReconcileCompletionAndPersistOneResult(weightedVocabulary: True, expectedOverall: 83.329999999999998, expectedVocabulary: 66.670000000000002)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.8346297"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.TakingSheet_EnforcesServerDeadlineWithoutFinalizing(secondsRemaining: 1, available: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3167063"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.IneligibleCourse_CannotCreateOrder(paid: True, status: Unpublished)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4403242"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterByMetadata_ReturnsOnlyMatchingQuestion(filterName: \"Difficulty\", selectSecondQuestion: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1693967"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.PreCanceledRequest_DoesNotStartTransaction(webhook: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3157127"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_RejectUnverifiedEnrollmentAndMismatchedCourseOwnership(corruption: \"WrongCourse\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6484943"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.LateCallbackCannotOverwriteTerminalStatus(first: Failed)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3377396"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_MissingStimulus_ReturnsErrorAndSavesNothing",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2832633"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InactiveAdmin_IsDeniedOnNextRequestAndDirectServiceCall(status: Disabled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3080126"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_ConcealsAnotherStudentsAttemptAndPreservesResult",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5530237"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InvalidAuthenticatedOrTamperedCallback_CannotGrantAccess(invalid: \"tampered\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3273971"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_InvalidContent_ReturnsErrorsAndSavesNothing",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2403605"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterByMetadata_ReturnsOnlyMatchingQuestion(filterName: \"Difficulty\", selectSecondQuestion: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1746712"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.DatabaseFailure_WithRollbackAndDisposeFailures_PreservesOriginalError(webhook: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5701568"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AccountAuthorizationTests.Guest_AccountForm_HasAntiforgeryToken(path: \"/Account/Login\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.0186259"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ChangedRole_RejectsStaleCookieImmediately_WithoutSecurityStampChange(originalRole: \"Admin\", replacementRole: \"Teacher\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7199681"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.LostOrderCommitAcknowledgement_RepeatedPurchaseReusesPersistedOrder",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6135315"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.InvalidAuthenticatedOrTamperedCallback_CannotGrantAccess(invalid: \"provider\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3308961"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.ForeignTeacherMutationWithValidCsrf_CannotAlterCourseOrCommerceOrStudentProgress(action: \"DeleteResource\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.0345368"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.InvalidFinalDefinition_DoesNotCompleteDespiteExistingPassingResult(invalid: \"wrong-course\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4678407"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.ConcurrentDifferentEvents_FirstTerminalWins",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3082157"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFeatureTests.Receipt_IsBoundToOriginalOrderQuote_TransactionCannotBeReused_ExpiredEventIsRejected",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6259939"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.Progress_FollowsEffectiveLessonsAndPreservesFirstCompletion",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2626064"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterByMetadata_ReturnsOnlyMatchingQuestion(filterName: \"Level\", selectSecondQuestion: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1502229"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.InvalidPaidEnrollment_DeniesResumeAndTakingQueries(invalid: \"cancelled\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5852450"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.Mutations_AreIdempotentConcurrentAndEnforceLifecycleAndOwnership",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7524201"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.InactiveAccount_RejectsExistingCookieImmediately_ForApiAndMvc(status: Disabled)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4668885"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.EnrolledCourse_UnpublishThenArchiveKeepsReadingButBlocksNewEnrollmentAndArchivedProgress(paid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.1887054"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFeatureTests.PaidCheckout_RequiresVerifiedPayment_ReusesPendingOrder_AndConfirmsOnceUnderConcurrency",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8512052"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.ExpiredFinal_GradedFromStartOrLateSave_ReconcilesCompletion(finalizeFromStart: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4412456"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.NonAdmin_CannotReadAdministrationThroughControllerOrService(role: \"Student\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3974083"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.InactiveAccount_RejectsExistingCookieImmediately_ForApiAndMvc(status: Locked)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6481990"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_TeacherWithoutQuestions_ReturnsEmptyResult",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1695106"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.UnavailableAssessment_DoesNotStartNewAttempt(status: Draft)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5530400"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningCommerceJourneyTests.EnrolledCourse_UnpublishThenArchiveKeepsReadingButBlocksNewEnrollmentAndArchivedProgress(paid: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.2277743"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.EnrollmentProgressTests.EmptyEffectiveSet_DoesNotCompleteEnrollment",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1972166"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.PreCanceledRequest_DoesNotStartTransaction(webhook: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3041871"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ChangedRole_RejectsStaleCookieImmediately_WithoutSecurityStampChange(originalRole: \"Student\", replacementRole: \"Admin\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5961124"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnavailableLesson_IsBlockedForEnrolledStudent_ButOwnerCanPreview(visibility: Visible, status: Hidden)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3557931"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Continue_RechecksEffectiveLessonAndEmptyCourse_AndRetainsHistoricalCompletion",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4605936"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Services_RecheckStudentAccountStatusBeforeReadingOrWriting(status: Locked)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3346026"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.ConcurrentFinalization_GradesOnlyOnce",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3822387"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.AllEffectiveLessonsWithoutGradedFinal_DoNotCompleteCourse",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4518596"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.InvalidFinalDefinition_DoesNotCompleteDespiteExistingPassingResult(invalid: \"unpublished\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5239383"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_AllowValidFreeAndPaidEnrollment(paid: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3186753"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.InvalidPaidEnrollment_DeniesResumeAndTakingQueries(invalid: \"pending\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.9286976"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.HttpSimulationFailure_ShowsErrorPreservesOrderAndCanRetry",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5137625"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningDashboardFeatureTests.Practice_RejectsForeignOptionsAndDuplicates_StoresLatestResultAndKeepsHistoricalFeedback",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5593567"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.TakingSheet_HidesSubmittedAndGradedAttempts(status: Submitted)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3348123"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_FilterBySkill_ReturnsOnlyMatchingOwnQuestion(selectedSkill: Reading)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7527391"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.IneligibleCourse_CannotCreateOrder(paid: True, status: Draft)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4759609"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_NonTeacher_ReturnsNull(role: \"Student\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1474491"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AuthorizationIntegrityAcceptanceTests.ApiTeacherPolicy_Returns401ForGuest_403ForWrongRole_200ForTeacher(role: \"Student\", expected: Forbidden)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3184101"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_RequiresExactlyStudentRole(replacementRole: \"Teacher\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4125651"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.TakingSheet_HidesSubmittedAndGradedAttempts(status: AutoSubmitted)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3595310"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.PaymentWithoutVerifiedSuccess_DeniesEnrollmentLearningAndAssessment(state: \"failed\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4222674"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.ProfileAndLoginTests.Login_ReturnUrl_AllowsOnlyLocalUrls(returnUrl: \"https://example.test/steal\", expected: \"/\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3701323"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.InvalidAdminFilters_AreRejected(path: \"/Admin/Transactions?status=99\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3449462"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionQueryServiceSearchTests.SearchAsync_NonTeacher_ReturnsNull(role: \"Admin\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.2371051"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.Finalize_RequiresExactlyStudentRole(replacementRole: null)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3646575"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.PaymentWithoutVerifiedSuccess_DeniesEnrollmentLearningAndAssessment(state: \"unverified\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4053551"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_OtherTeachersStimulus_ReturnsErrorAndSavesNothing(stimulusType: Passage)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5762593"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.LateSave_TriggersAutoFinalizeWithoutSavingAnswer",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.7242371"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.Result_DoesNotInventMissingFinalizationMetadata(missing: \"FinalizationReason\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4600416"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AdminReadOnlyTests.NonAdmin_CannotReadAdministrationThroughControllerOrService(role: \"Teacher\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3330749"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingCourseAttempt_PreservesDeadlineAndCanFinishAfterArchive(status: Archived, expired: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5714371"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentAttemptStartTests.ActiveAttempt_AtMaxAttempts_ReturnsExistingAttempt(expired: True, expectedStatus: ExpiredFinalized)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.5530890"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.TransactionBeginFailure_ReturnsControlledHttpResult(webhook: True)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.8757341"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentLifecycleAcceptanceTests.ExistingCourseAttempt_PreservesDeadlineAndCanFinishAfterArchive(status: Unpublished, expired: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6655187"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.ReservedLocalProviderCannotConfigureHostedCheckout(provider: \"LOCAL-SANDBOX\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3229459"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.Cancellation_DuringCommit_WithCleanupFailures_PropagatesOriginalCancellation",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3016307"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.TakingSheet_HidesSubmittedAndGradedAttempts(status: Graded)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3231198"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.UnavailableLesson_IsBlockedForEnrolledStudent_ButOwnerCanPreview(visibility: Hidden, status: Published)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4488702"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.TransactionHistoryTests.History_IsStudentOwned_AndOrderDetailsStayPrivate",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:01.3223379"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentUiFlowTests.SaveResume_RejectsMalformedForeignAndDuplicateAnswersBeforeWriting_AndEncodesContent",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6158597"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.LearningAccessTests.ManageCourse_RequiresTeacherRoleAndOwnership(role: \"Admin\", canManage: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4605072"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CheckoutFlowTests.TransactionBeginFailure_ReturnsControlledHttpResult(webhook: False)",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6287866"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.QuestionCreationServiceTests.CreateAsync_NonTeacher_ReturnsForbiddenAndSavesNothing(role: \"Student\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.1649000"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.PaidEnrollmentAssessmentAccessTests.PaymentWithoutVerifiedSuccess_DeniesEnrollmentLearningAndAssessment(state: \"pending\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.3834693"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.CourseCompletionIntegrationTests.CompletionUpdateFailure_RollsBackGradeAndCompletion_ThenNewScopeRetrySucceeds",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.4824431"
+                      },
+                      {
+                          "name":  "EnglishLearningPlatform.IntegrationTests.AssessmentQueryServiceTests.OverviewAndTakingSheet_RejectUnverifiedEnrollmentAndMismatchedCourseOwnership(corruption: \"CurrencyMismatch\")",
+                          "outcome":  "Passed",
+                          "duration":  "00:00:00.6123588"
+                      }
+                  ]
+    }
+]
