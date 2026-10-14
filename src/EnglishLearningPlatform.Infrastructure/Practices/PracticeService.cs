@@ -6,24 +6,32 @@ using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Learning;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using EnglishLearningPlatform.Application.QuestionBank;
 
 namespace EnglishLearningPlatform.Infrastructure.Practices;
 
-public sealed class PracticeService(AppDbContext db, TimeProvider time) : IPracticeService
+// Giữ cách khởi tạo đang có của nhóm, chỉ bổ sung validator qua DI.
+public sealed class PracticeService(AppDbContext db, TimeProvider time, IQuestionUsageValidator questionUsageValidator) : IPracticeService
 {
     public async Task<LearningOutcome<PracticeSheet>> GetSheetAsync(Guid studentId, Guid practiceId, CancellationToken ct = default)
     {
         if (!await db.IsStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
         var practice = await db.AvailablePractices(studentId).Where(p => p.Id == practiceId)
             .Select(p => new
-            {
+            {   // Owner lấy từ database, không lấy từ form của Student.
+                p.OwnerTeacherUserId,
                 p.Id, p.Title, p.Description, HasResult = p.Submissions.Any(s => s.StudentUserId == studentId),
                 CourseId = p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
                 CourseTitle = p.LessonId.HasValue ? p.Lesson!.Module.Course.Title : p.Module!.Course.Title
             }).SingleOrDefaultAsync(ct);
         if (practice is null) return new(LearningAccessResult.NotFound);
         var questions = await QuestionsAsync(practiceId, ct);
-        if (!ValidQuestions(questions)) return new(LearningAccessResult.NotFound);
+                // Kiểm tra trước khi trả nội dung đề cho Student.
+        if (!ValidQuestions(practice.OwnerTeacherUserId, questions))
+        {
+            return new LearningOutcome<PracticeSheet>(
+                LearningAccessResult.NotFound);
+        }
         return new(LearningAccessResult.Allowed, new(practice.Id, practice.CourseId, practice.CourseTitle, practice.Title,
             practice.Description, questions.Select(q => new PracticeQuestionSheet(q.Id, q.Question.Content, q.Question.PrimarySkill,
                 q.Question.Stimulus?.ContentText,
@@ -50,7 +58,12 @@ public sealed class PracticeService(AppDbContext db, TimeProvider time) : IPract
         // Recheck the active role inside the transaction before any result write.
         if (!await db.IsStudentAsync(studentId, ct)) return new(PracticeSubmitStatus.Forbidden);
         var questions = await QuestionsAsync(practiceId, ct);
-        if (!ValidQuestions(questions)) return new(PracticeSubmitStatus.Unavailable);
+                // Kiểm tra lại trước khi chấm hoặc thay thế kết quả đã lưu.
+        if (!ValidQuestions(practice.OwnerTeacherUserId, questions))
+        {
+            return new PracticeSubmitResult(
+                PracticeSubmitStatus.Unavailable);
+        }
         if (responses is null || responses.Count != questions.Count ||
             responses.Select(r => r.PracticeQuestionId).Distinct().Count() != responses.Count ||
             responses.Any(r => !questions.Any(q => q.Id == r.PracticeQuestionId &&
@@ -102,9 +115,69 @@ public sealed class PracticeService(AppDbContext db, TimeProvider time) : IPract
         .Where(q => q.PracticeId == id).Include(q => q.Question).ThenInclude(q => q.Options)
         .Include(q => q.Question).ThenInclude(q => q.Stimulus).OrderBy(q => q.OrderIndex).ThenBy(q => q.Id).ToListAsync(ct);
 
-    private static bool ValidQuestions(IReadOnlyList<PracticeQuestion> questions) => questions.Count > 0 &&
-        questions.Select(q => q.QuestionId).Distinct().Count() == questions.Count &&
-        questions.All(q => Enum.IsDefined(q.Question.PrimarySkill) &&
-            (q.Question.Stimulus?.StimulusType != StimulusType.Audio ||
-                CourseRules.ValidResource(LessonResourceType.Audio, null, q.Question.Stimulus.ResourceUrl)));
+    // private static bool ValidQuestions(IReadOnlyList<PracticeQuestion> questions) => questions.Count > 0 &&
+    //     questions.Select(q => q.QuestionId).Distinct().Count() == questions.Count &&
+    //     questions.All(q => Enum.IsDefined(q.Question.PrimarySkill) &&
+    //         (q.Question.Stimulus?.StimulusType != StimulusType.Audio ||
+    //             CourseRules.ValidResource(LessonResourceType.Audio, null, q.Question.Stimulus.ResourceUrl)));
+    // Kiểm tra các câu hỏi đã thuộc Practice có sẵn.
+    // Hàm không sửa câu hỏi hoặc ghi dữ liệu vào database.
+    private bool ValidQuestions(
+        Guid ownerTeacherUserId,
+        IReadOnlyList<PracticeQuestion> questions)
+    {
+        if (ownerTeacherUserId == Guid.Empty)
+        {
+            return false;
+        }
+
+        // Không cho trả đề hoặc chấm một Practice rỗng.
+        if (questions == null || questions.Count == 0)
+        {
+            return false;
+        }
+
+        // HashSet lưu ID không trùng.
+        // Add trả false nếu ID đã xuất hiện trước đó.
+        HashSet<Guid> questionIds = new HashSet<Guid>();
+
+        foreach (PracticeQuestion practiceQuestion in questions)
+        {
+            if (practiceQuestion == null)
+            {
+                return false;
+            }
+
+            // Question đã tải phải khớp với liên kết PracticeQuestion.
+            if (practiceQuestion.QuestionId == Guid.Empty
+                || practiceQuestion.Question == null
+                || practiceQuestion.Question.Id != practiceQuestion.QuestionId)
+            {
+                return false;
+            }
+
+            bool added = questionIds.Add(practiceQuestion.QuestionId);
+
+            if (!added)
+            {
+                return false;
+            }
+
+            // Dùng chế độ ExistingUse vì câu hỏi đã thuộc Practice.
+            // Archived không tự làm hỏng bài cũ.
+            // Ownership, MCQ, skill và Stimulus vẫn được kiểm tra.
+            IReadOnlyList<QuestionError> errors =
+                questionUsageValidator.ValidateForExistingUse(
+                    ownerTeacherUserId,
+                    practiceQuestion.Question);
+
+            if (errors.Count > 0)
+            {
+                // Không gửi lỗi chứa thông tin nội bộ của đề cho Student.
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
