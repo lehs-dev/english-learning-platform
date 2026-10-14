@@ -13,6 +13,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer"
                       Version="10.0.12" />
 
+    <!-- Patch SqlClient's transitive dependency: CVE-2026-70162 and CVE-2026-84008. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs"
+                      Version="10.0.13" />
+
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design"
                       Version="10.0.12">
       <PrivateAssets>all</PrivateAssets>

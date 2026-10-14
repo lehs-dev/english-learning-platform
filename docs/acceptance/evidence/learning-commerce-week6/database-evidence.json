@@ -1,0 +1,36 @@
+[
+    {
+        "CourseId":  "40C47082-9188-4C6A-9A48-1D548CC04F85",
+        "Title":  "Week 6 UAT · Free Learning Commerce",
+        "Status":  "Archived",
+        "IsPaid":  false,
+        "Price":  0.00,
+        "AppliedMigrations":  6,
+        "DemoUsers":  5,
+        "Orders":  0,
+        "FailedPayments":  0,
+        "SuccessfulPayments":  0,
+        "SuccessfulPaymentAmount":  0.00,
+        "Enrollments":  1,
+        "HistoricalCompletions":  1,
+        "EffectiveLessons":  2,
+        "CompletedEffectiveLessons":  1
+    },
+    {
+        "CourseId":  "899AE7EA-ADEC-4FB2-8F7B-2DE0BA27B210",
+        "Title":  "Week 6 UAT · Paid Learning Commerce",
+        "Status":  "Archived",
+        "IsPaid":  true,
+        "Price":  199000.00,
+        "AppliedMigrations":  6,
+        "DemoUsers":  5,
+        "Orders":  2,
+        "FailedPayments":  1,
+        "SuccessfulPayments":  1,
+        "SuccessfulPaymentAmount":  199000.00,
+        "Enrollments":  1,
+        "HistoricalCompletions":  1,
+        "EffectiveLessons":  3,
+        "CompletedEffectiveLessons":  1
+    }
+]

@@ -1,0 +1,84 @@
+{
+    "id":  38529445056,
+    "headSha":  "8c78d49bd7dea32600533c8e466c61c6b548f2d0",
+    "status":  "completed",
+    "conclusion":  "success",
+    "url":  "https://github.com/lehs-dev/english-learning-platform/actions/runs/38529445056",
+    "createdAt":  "2026-10-14T07:36:39Z",
+    "updatedAt":  "2026-10-14T07:39:43Z",
+    "checkedAtUtc":  "2026-10-14T07:42:37.3161375+00:00",
+    "jobs":  [
+                 {
+                     "name":  "Build and test",
+                     "status":  "completed",
+                     "conclusion":  "success",
+                     "steps":  [
+                                   {
+                                       "name":  "Set up job",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Check out repository",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Set up .NET",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Restore dependencies",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Record tested candidate",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Audit repository and reachable history for credentials",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Build solution",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Run unit tests",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Run integration tests",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Upload test results",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Post Set up .NET",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Post Check out repository",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   },
+                                   {
+                                       "name":  "Complete job",
+                                       "status":  "completed",
+                                       "conclusion":  "success"
+                                   }
+                               ]
+                 }
+             ]
+}
