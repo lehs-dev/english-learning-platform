@@ -1,5 +1,13 @@
 # Browser UAT
 
+## Kiểm thử giao diện Attempt riêng
+
+Sau `npm ci` và `npx playwright install chromium`, chạy `npm run test:assessment`.
+Bốn test dùng Chromium thật với HTML fixture và script `assessment.js` của ứng dụng:
+xác nhận/hủy nộp với câu bỏ trống, lưu thủ công, hết deadline khi dialog đang mở,
+và nộp đáp án mới nhất sau lỗi autosave. Các test này không cần database;
+suite `npm test` bên dưới kiểm tra giao diện thực tế cùng backend.
+
 Chạy trên **database demo riêng mới seed**, không dùng database đang có dữ liệu thật. Suite không reset dữ liệu. Bốn nhóm actor, sáu case (hai Student và thêm kiểm tra free enrollment/privacy), 19 ảnh gồm viewport 390px.
 
 ```bash
