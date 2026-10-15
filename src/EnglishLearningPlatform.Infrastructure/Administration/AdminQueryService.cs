@@ -51,13 +51,15 @@ public sealed class AdminQueryService(AppDbContext db) : IAdminQueryService
     }
 
     public async Task<AdminPage<AdminUser>?> UsersAsync(Guid actorId, string? search, AccountStatus? status,
-        int page, CancellationToken ct = default)
+        int page, CancellationToken ct = default, string? role = null)
     {
         if (!await IsAdminAsync(actorId, ct)) return null;
         var term = Search(search);
         var users = db.Users.AsNoTracking();
         if (term.Length > 0) users = users.Where(u => u.FullName.Contains(term) || (u.Email != null && u.Email.Contains(term)));
         if (status.HasValue) users = users.Where(u => u.AccountStatus == status.Value);
+        if (!string.IsNullOrEmpty(role)) users = users.Where(u => db.UserRoles.Any(ur => ur.UserId == u.Id &&
+            db.Roles.Any(r => r.Id == ur.RoleId && r.Name == role)));
         var total = await users.CountAsync(ct);
         var pages = Math.Max(1, (int)Math.Ceiling(total / (double)PageSize));
         page = Math.Clamp(page, 1, pages);

@@ -1,32 +1,57 @@
 @using EnglishLearningPlatform.Application.Administration
 @model AdminPage<AdminUser>
 @{
-    ViewData["Title"] = "Quản trị · Tài khoản";
+    ViewData["Title"] = "Quản lý tài khoản";
     var selected = ViewData["Status"] as AccountStatus?;
+    var selectedRole = ViewData["Role"] as string;
     static string StatusLabel(AccountStatus status) => status switch { AccountStatus.Active => "Đang hoạt động", AccountStatus.Locked => "Đã khóa", _ => "Đã vô hiệu hóa" };
+    static string RoleLabel(string role) => role switch { "Student" => "Học viên", "Teacher" => "Giáo viên", "Admin" => "Quản trị viên", _ => role };
 }
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
-<div class="page-heading"><div><p class="eyebrow">ESTUDY · QUẢN TRỊ</p><h1>Trạng thái tài khoản</h1><p class="muted">Tra cứu tài khoản, vai trò và trạng thái hoạt động.</p></div><a class="button secondary" asp-action="Transactions">Giao dịch thanh toán</a></div>
-<section class="panel">
+<div class="admin-page">
+<header class="admin-heading"><div><p class="eyebrow">KHÔNG GIAN QUẢN TRỊ</p><h1>Quản lý tài khoản</h1><p>Tìm kiếm, phân quyền và quản lý trạng thái người dùng.</p></div><a class="button" asp-action="CreateTeacher">＋ Tạo Teacher</a></header>
+<partial name="_AdminNav" />
+@if (TempData["AdminSuccess"] is string success) { <p class="notice" role="status">@success</p> }
+@if (TempData["AdminError"] is string error) { <p class="notice error" role="alert">@error</p> }
+<section class="admin-surface">
     <form method="get" asp-action="Users" class="admin-filters">
-        <div><label for="search">Họ tên hoặc email</label><input id="search" name="search" value="@Model.Search" maxlength="120" /></div>
-        <div><label for="status">Trạng thái tài khoản</label><select id="status" name="status"><option value="">Tất cả</option>@foreach (var status in Enum.GetValues<AccountStatus>()) { <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option> }</select></div>
-        <button class="button" type="submit">Tra cứu</button><a asp-action="Users">Xóa bộ lọc</a>
+        <div class="admin-search"><label for="search">Tìm tài khoản</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Nhập họ tên hoặc email…" /></div>
+        <div><label for="role">Vai trò</label><select id="role" name="role"><option value="">Tất cả vai trò</option>@foreach (var role in new[] { "Student", "Teacher", "Admin" }) { <option value="@role" selected="@(selectedRole == role)">@RoleLabel(role)</option> }</select></div>
+        <div><label for="status">Trạng thái</label><select id="status" name="status"><option value="">Tất cả trạng thái</option>@foreach (var status in Enum.GetValues<AccountStatus>()) { <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option> }</select></div>
+        <div class="admin-filter-actions"><button class="button" type="submit">Tìm kiếm</button><a asp-action="Users">Đặt lại</a></div>
     </form>
-    <p class="muted">Tìm thấy @Model.Total tài khoản. Thời gian hiển thị theo giờ Việt Nam (UTC+7).</p>
-    @if (Model.Items.Count == 0) { <p class="empty">Không có tài khoản phù hợp.</p> }
-    else
-    {
-        <div class="admin-table-wrap"><table class="admin-table"><caption class="visually-hidden">Trạng thái tài khoản, trang @Model.Page trên @Model.Pages</caption><thead><tr><th scope="col">Họ tên</th><th scope="col">Email</th><th scope="col">Vai trò</th><th scope="col">Trạng thái</th><th scope="col">Ngày tạo</th></tr></thead><tbody>
-        @foreach (var item in Model.Items)
-        {
-            <tr><td>@item.FullName</td><td>@item.Email</td><td>@item.Role</td><td>@StatusLabel(item.Status)</td><td>@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</td></tr>
-        }
-        </tbody></table></div>
+    <div class="admin-list-heading"><h2>Danh sách người dùng <span class="admin-count">@Model.Total</span></h2><span>Ngày tạo theo giờ Việt Nam</span></div>
+    @if (Model.Items.Count == 0) { <div class="admin-empty"><h3>Không tìm thấy tài khoản</h3><p>Thử từ khóa khác hoặc đặt lại bộ lọc.</p><a asp-action="Users">Xem tất cả tài khoản</a></div> }
+    else {
+    <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Danh sách tài khoản</caption><thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead><tbody>
+    @foreach (var item in Model.Items) {
+        <tr>
+            <td data-label="Tài khoản"><div class="admin-identity"><span class="admin-avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(item.FullName) ? "U" : item.FullName.Trim()[..1].ToUpperInvariant())</span><div><strong>@item.FullName</strong><span class="admin-email">@item.Email</span></div></div></td>
+            <td data-label="Vai trò"><span class="admin-role role-@item.Role.ToLowerInvariant()">@RoleLabel(item.Role)</span></td>
+            <td data-label="Trạng thái"><span class="admin-badge status-@item.Status.ToString().ToLowerInvariant()">@StatusLabel(item.Status)</span></td>
+            <td data-label="Ngày tạo" class="admin-date"><span>@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")<small>@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm")</small></span></td>
+            <td data-label="Thao tác"><button class="admin-edit-button" type="button" data-open-admin-dialog="edit-@item.UserId" aria-haspopup="dialog">Chỉnh sửa ↗<span class="visually-hidden"> @item.Email</span></button><noscript>Bật JavaScript để chỉnh sửa tài khoản.</noscript></td>
+        </tr>
     }
-    <nav class="actions admin-pagination" aria-label="Phân trang tài khoản">
-        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)">← Trước</a> }
-        <span aria-current="page">Trang @Model.Page / @Model.Pages</span>
-        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau →</a> }
-    </nav>
+    </tbody></table></div>
+    }
+    <nav class="admin-pagination" aria-label="Phân trang tài khoản"><span>Trang <strong>@Model.Page</strong> / @Model.Pages</span><div>
+        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page - 1)">← Trước</a> }
+        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page + 1)">Sau →</a> }
+    </div></nav>
 </section>
+@foreach (var item in Model.Items) {
+    <dialog id="edit-@item.UserId" class="admin-dialog" aria-labelledby="title-@item.UserId">
+        <div class="admin-dialog-heading"><div><p class="eyebrow">QUẢN LÝ TÀI KHOẢN</p><h2 id="title-@item.UserId">Chỉnh sửa tài khoản</h2></div><button type="button" data-close-admin-dialog class="admin-close" aria-label="Đóng">×</button></div>
+        <p class="admin-dialog-user"><strong>@item.FullName</strong><span>@item.Email</span></p>
+        <form asp-action="UpdateUser" method="post" class="admin-editor">
+            <input type="hidden" name="UserId" value="@item.UserId" />
+            <div><label for="role-@item.UserId">Vai trò</label><select id="role-@item.UserId" name="Role">@foreach (var role in new[] { "Student", "Teacher", "Admin" }) { <option value="@role" selected="@(item.Role == role)">@RoleLabel(role)</option> }</select></div>
+            <div><label for="status-@item.UserId">Trạng thái tài khoản</label><select id="status-@item.UserId" name="Status">@foreach (var status in Enum.GetValues<AccountStatus>()) { <option value="@status" selected="@(item.Status == status)">@StatusLabel(status)</option> }</select></div>
+            <div class="admin-help">Chọn <strong>Đang hoạt động</strong> để mở khóa. Khóa hoặc vô hiệu hóa sẽ chặn đăng nhập. Thay đổi được ghi vào nhật ký quản trị.</div>
+            <div class="admin-form-actions"><button class="button secondary" type="button" data-close-admin-dialog>Hủy</button><button class="button" type="submit">Lưu thay đổi</button></div>
+        </form>
+    </dialog>
+}
+</div>
+@section Scripts { <script src="~/js/admin.js" asp-append-version="true" defer></script> }
