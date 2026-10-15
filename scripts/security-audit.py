@@ -23,12 +23,21 @@ HTML_ENTITY = re.compile(r"&(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);")
 # production defaults: application startup requires externally supplied secrets.
 PLACEHOLDERS = {"Change_this_password_123!", "YourStrong@Passw0rd", "YourStrong@Passw0rd!", "Demo@Password123!", "[REDACTED]", "***", "..."}
 
+# Public synthetic fixture from the Admin PR's reachable history. New tests use
+# TestOnly_ values. Restrict the legacy exception to this exact file and value;
+# the same value in application/configuration sources must still fail the gate.
+LEGACY_TEST_FIXTURES = {
+    "tests/EnglishLearningPlatform.IntegrationTests/AdminManagementTests.cs": {"Teacher!123Abc"},
+}
+
 
 def git(*args):
     return subprocess.check_output(["git", *args])
 
 
 def harmless(value, path):
+    if value in LEGACY_TEST_FIXTURES.get(path, set()):
+        return True
     if value in PLACEHOLDERS or value.startswith(("${", "$", "<", "YOUR_", "your_", "REPLACE_", "replace_")):
         return True
     # References to configuration/test helpers do not contain a credential.
@@ -92,6 +101,10 @@ def self_test():
         ('Password', 'Change_this_password_123!', 'src/config.json', False),
         ('Password', 'TestOnly_123!', 'tests/Fixture.cs', False),
         ('Password', 'TestOnly_123!', 'src/config.json', True),
+        ('Password', 'Teacher!123Abc', 'tests/EnglishLearningPlatform.IntegrationTests/AdminManagementTests.cs', False),
+        ('Password', 'Teacher!123Abc', 'tests/OtherTests.cs', True),
+        ('Password', 'Teacher!123Abc', 'src/config.json', True),
+        ('Password', 'OtherCredential123!', 'tests/EnglishLearningPlatform.IntegrationTests/AdminManagementTests.cs', True),
         ('SigningSecret', 'Secret', 'tests/Fixture.cs', False),
         ('key', '-' * 5 + 'BEGIN PRIVATE KEY' + '-' * 5, 'key.pem', True),
         ('token', 'ghp_' + 'a' * 36, 'config.txt', True),

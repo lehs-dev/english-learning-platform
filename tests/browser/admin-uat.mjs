@@ -9,7 +9,7 @@ const output = 'TestResults/admin-uat';
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const email = `admin-uat-${Date.now()}@example.test`;
-const teacherPassword = 'Teacher!123Abc';
+const teacherPassword = 'TestOnly_Admin123!';
 const results = [];
 try {
   const page = await browser.newPage({ baseURL, viewport: { width: 1440, height: 1000 } });

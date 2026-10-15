@@ -17,7 +17,7 @@ public sealed class AdminManagementTests(IntegrationTestFactory factory) : IClas
     {
         var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
         var email = $"teacher-{Guid.NewGuid():N}@example.test";
-        const string password = "Teacher!123Abc";
+        const string password = "TestOnly_Admin123!";
         using var scope = factory.Services.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<IAdminManagementService>();
         Assert.True((await service.CreateTeacherAsync(admin.Id, "New teacher", email, password)).Success);
@@ -102,7 +102,7 @@ public sealed class AdminManagementTests(IntegrationTestFactory factory) : IClas
         var token = await IdentityTestHelpers.GetTokenAsync(client, "/Admin/CreateTeacher");
         var email = $"ui-teacher-{Guid.NewGuid():N}@example.test";
         using var created = await client.PostAsync("/Admin/CreateTeacher", new FormUrlEncodedContent(new Dictionary<string,string>
-        { ["__RequestVerificationToken"] = token, ["FullName"] = "UI teacher", ["Email"] = email, ["Password"] = "Teacher!123Abc" }));
+        { ["__RequestVerificationToken"] = token, ["FullName"] = "UI teacher", ["Email"] = email, ["Password"] = "TestOnly_Admin123!" }));
         Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
         var html = await client.GetStringAsync($"/Admin/Users?search={email}&role=Teacher");
         Assert.Contains(email, html);
@@ -114,7 +114,7 @@ public sealed class AdminManagementTests(IntegrationTestFactory factory) : IClas
         Assert.Contains("AccessDenied", forbidden.Headers.Location!.ToString());
         using var scope = factory.Services.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<IAdminManagementService>();
-        Assert.False((await service.CreateTeacherAsync(student.Id, "No access", "no@example.test", "Teacher!123Abc")).Success);
+        Assert.False((await service.CreateTeacherAsync(student.Id, "No access", "no@example.test", "TestOnly_Admin123!")).Success);
         Assert.False((await service.UpdateUserAsync(student.Id, admin.Id, AppRoles.Student, AccountStatus.Active)).Success);
         Assert.Null(await service.AuditAsync(student.Id, null, 1));
     }
