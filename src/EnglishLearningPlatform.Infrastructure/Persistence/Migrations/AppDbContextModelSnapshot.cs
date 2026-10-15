@@ -886,6 +886,9 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<DateTimeOffset?>("ContentLockedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
@@ -979,6 +982,9 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("ContentLockedAtUtc")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("ContentText")
                         .HasColumnType("nvarchar(max)");

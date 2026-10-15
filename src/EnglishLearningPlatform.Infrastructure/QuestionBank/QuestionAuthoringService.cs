@@ -244,11 +244,35 @@ public sealed class QuestionAuthoringService(
 
     private async Task<string?> GetLockReasonAsync(Guid questionId, CancellationToken cancellationToken)
     {
-        var questionStatus = await db.Questions
+        // Chỉ đọc hai thông tin cần để xác định câu hỏi có bị khóa không.
+        // new { ... } tạo đối tượng chứa kết quả đọc, không tạo bản ghi database.
+        var questionState = await db.Questions
             .AsNoTracking()
             .Where(q => q.Id == questionId)
-            .Select(q => q.Status)
+            .Select(q => new
+            {
+                q.Status,
+                q.ContentLockedAtUtc
+            })
             .SingleOrDefaultAsync(cancellationToken);
+
+        // Không tìm thấy Question thì không có thông tin khóa.
+        // Quyền sở hữu và sự tồn tại đã được phương thức gọi kiểm tra riêng.
+        if (questionState == null)
+        {
+            return null;
+        }
+
+        // Dấu khóa đã lưu được ưu tiên kiểm tra.
+        // Không mở khóa chỉ vì trạng thái hoặc liên kết hiện tại thay đổi.
+        if (questionState.ContentLockedAtUtc.HasValue)
+        {
+            return "Nội dung chấm của câu hỏi đã bị khóa để bảo toàn "
+                + "nội dung đã công bố và dữ liệu lịch sử.";
+        }
+
+        // Giữ tên biến cũ để các kiểm tra phía dưới tiếp tục hoạt động.
+        QuestionStatus questionStatus = questionState.Status;
 
         if (questionStatus == QuestionStatus.Published)
         {
