@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Application.Identity;
+using EnglishLearningPlatform.Web.Infrastructure;
 using EnglishLearningPlatform.Web.Models.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -81,10 +82,10 @@ public sealed class AccountController : Controller
 
         if (result.Status == LoginStatus.Succeeded)
         {
-            if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-                return LocalRedirect(model.ReturnUrl);
+            if (RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl))
+                return LocalRedirect(model.ReturnUrl!);
 
-            return RedirectToAction("Index", "Home");
+            return this.RedirectToRoleWorkspace(result.Role);
         }
 
         var message = result.Status == LoginStatus.TemporarilyLocked

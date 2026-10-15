@@ -273,6 +273,8 @@ svg {
     border-radius: 14px;
     background: white;
     box-shadow: 0 14px 36px #24487820;
+    max-height: calc(100dvh - 96px);
+    overflow-y: auto;
 }
 
 .account-summary {
@@ -338,6 +340,39 @@ svg {
 
 .page-content:focus {
     outline: none;
+}
+
+.page-content {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.page-content :where(.panel, .actions, .content-row > *, .page-heading > *, .filter-grid > *) {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.page-content :where(input, select, textarea, fieldset) {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.button {
+    max-width: 100%;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
 }
 
 .dashboard-space {
@@ -428,7 +463,7 @@ svg {
     }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
     .container {
         width: calc(100% - 32px);
     }
@@ -448,6 +483,8 @@ svg {
         display: inline-grid;
         order: 3;
         padding: 6px;
+        min-width: 44px;
+        min-height: 44px;
     }
     .header-actions {
         gap: 10px;
@@ -497,6 +534,27 @@ svg {
     }
     .dashboard-space {
         min-height: calc(100vh - 67px);
+    }
+}
+
+@media (max-width: 380px) {
+    .header-inner {
+        gap: 8px;
+    }
+    .brand {
+        font-size: 22px;
+    }
+    .brand-icon {
+        width: 28px;
+        height: 28px;
+    }
+    .guest-actions {
+        gap: 6px;
+        font-size: 11px;
+    }
+    .guest-actions .button-small {
+        padding: 7px 8px;
+        font-size: 11px;
     }
 }
 
