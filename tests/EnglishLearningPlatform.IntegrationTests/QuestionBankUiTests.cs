@@ -21,6 +21,9 @@ public sealed class QuestionBankUiTests
     [InlineData("/TeacherQuestionBank")]
     [InlineData(
         "/TeacherQuestionBank/Details/11111111-1111-1111-1111-111111111111")]
+    [InlineData("/TeacherQuestionBank/Create")]
+    [InlineData(
+        "/TeacherQuestionBank/Edit/11111111-1111-1111-1111-111111111111")]
     public async Task Guest_QuestionBankPage_RedirectsToLogin(
         string path)
     {

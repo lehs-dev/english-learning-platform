@@ -1,14 +1,90 @@
 @model IReadOnlyList<CourseSummary>
-@{ ViewData["Title"] = "Khóa học của tôi"; }
-<div class="page-heading"><div><p class="eyebrow">TEACHER WORKSPACE</p><h1>Khóa học của tôi</h1></div><a class="button" asp-action="Edit">+ Tạo khóa học</a></div>
-@* Chỉ mở form, không tạo Practice khi nhấn link. *@
-<p>
-    <a class="button secondary"
-       asp-controller="TeacherPractices"
-       asp-action="Create">
-        + Tạo Practice Draft
-    </a>
-</p>
+@{
+    ViewData["Title"] = "Khóa học của tôi";
+
+    var totalCourses = Model.Count;
+    var publishedCourses = Model.Count(c => c.Status == CourseStatus.Published);
+    var draftCourses = Model.Count(c => c.Status == CourseStatus.Draft);
+    var totalLessons = Model.Sum(c => c.LessonCount);
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">TEACHER WORKSPACE</p>
+        <h1>Khóa học của tôi</h1>
+    </div>
+    <div class="actions">
+        <a class="button" asp-action="Edit">+ Tạo khóa học</a>
+    </div>
+</div>
+
+@* Studio Quick Stats Cards with Anchor target for Sidebar (#statistics) *@
+<section class="studio-stats-section" id="statistics" aria-label="Thống kê nhanh Teacher Studio">
+    <div class="stat-grid studio-kpi-grid">
+        <div class="panel studio-stat-card">
+            <strong class="stat-value">@totalCourses</strong>
+            <span>Tổng khóa học</span>
+        </div>
+        <div class="panel studio-stat-card">
+            <strong class="stat-value">@publishedCourses</strong>
+            <span>Đang phát hành (Published)</span>
+        </div>
+        <div class="panel studio-stat-card">
+            <strong class="stat-value">@draftCourses</strong>
+            <span>Khóa bản nháp (Draft)</span>
+        </div>
+        <div class="panel studio-stat-card">
+            <strong class="stat-value">@totalLessons</strong>
+            <span>Tổng bài học (Lessons)</span>
+        </div>
+    </div>
+</section>
+
+@* Practice Action Bar with Anchor target for Sidebar (#practices) *@
+@* LƯU Ý SỐNG CÒN: Chỉ mở form, không tạo Practice khi nhấn link. DUY NHẤT 1 link Create Draft trên toàn bộ trang để thỏa mãn TeacherPracticeCreateWebTests *@
+<section class="panel studio-practice-action" id="practices" aria-labelledby="practices-title">
+    <div class="content-row">
+        <div>
+            <h2 id="practices-title">Bài tập luyện tập (Practices)</h2>
+            <p class="muted">Tạo đề luyện tập thực hành độc lập hoặc liên kết vào bài học / module chương trình.</p>
+        </div>
+        <div class="actions">
+            <a class="button secondary"
+               asp-controller="TeacherPractices"
+               asp-action="Create">
+                + Tạo Practice Draft
+            </a>
+        </div>
+    </div>
+</section>
+
 <partial name="_CourseNotice" />
-@if (Model.Count == 0) { <p class="panel empty">Chưa có khóa học. Tạo Draft đầu tiên để bắt đầu.</p> }
-<div class="course-grid">@foreach (var course in Model) { <article class="panel course-card"><h2>@course.Title</h2><span class="badge">@course.Status</span><partial name="_CourseSummary" model="course" /><p>@course.ModuleCount Module · @course.LessonCount Lesson</p><div class="actions"><a asp-action="Edit" asp-route-id="@course.Id">Chỉnh sửa</a><a class="button" asp-action="Manage" asp-route-id="@course.Id">Nội dung</a><a asp-action="Students" asp-route-id="@course.Id">Học viên và thống kê</a><a asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id">Preview</a></div></article> }</div>
+
+<div class="courses-list-header">
+    <h2>Danh sách khóa học giảng dạy (@totalCourses)</h2>
+</div>
+
+@if (Model.Count == 0)
+{
+    <p class="panel empty">Chưa có khóa học. Tạo Draft đầu tiên để bắt đầu.</p>
+}
+else
+{
+    <div class="course-grid">
+    @foreach (var course in Model)
+    {
+        <article class="panel course-card">
+            <h2>@course.Title</h2>
+            <span class="badge">@course.Status</span>
+            <partial name="_CourseSummary" model="course" />
+            <p>@course.ModuleCount Module · @course.LessonCount Lesson</p>
+            <div class="actions">
+                <a asp-action="Edit" asp-route-id="@course.Id">Chỉnh sửa</a>
+                <a class="button" asp-action="Manage" asp-route-id="@course.Id">Nội dung</a>
+                <a asp-action="Students" asp-route-id="@course.Id">Học viên và thống kê</a>
+                <a asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id">Preview</a>
+            </div>
+        </article>
+    }
+    </div>
+}

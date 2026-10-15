@@ -20,7 +20,20 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var login = await IdentityTestHelpers.LoginAsync(client, user);
         Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
 
-        var dashboard = WebUtility.HtmlDecode(await client.GetStringAsync("/"));
+        var expectedWorkspace = role switch
+        {
+            AppRoles.Student => "/Learning/Dashboard",
+            AppRoles.Teacher => "/TeacherCourses",
+            AppRoles.Admin => "/Admin/Transactions",
+            _ => "/"
+        };
+        Assert.Equal(expectedWorkspace, login.Headers.Location!.ToString());
+
+        using var rootRedirect = await client.GetAsync("/");
+        Assert.Equal(HttpStatusCode.Redirect, rootRedirect.StatusCode);
+        Assert.Equal(expectedWorkspace, rootRedirect.Headers.Location!.ToString());
+
+        var dashboard = WebUtility.HtmlDecode(await client.GetStringAsync(expectedWorkspace));
         Assert.Contains("data-account-menu", dashboard);
         Assert.Contains("Xem profile", dashboard);
         Assert.Contains(user.FullName, dashboard);
@@ -29,7 +42,7 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         Assert.Contains(user.Email!, profile);
         Assert.Contains(roleLabel, profile);
 
-        var token = await IdentityTestHelpers.GetTokenAsync(client, "/");
+        var token = await IdentityTestHelpers.GetTokenAsync(client, expectedWorkspace);
         using var logout = await client.PostAsync("/Account/Logout", new FormUrlEncodedContent(
             new Dictionary<string, string> { ["__RequestVerificationToken"] = token }));
         Assert.Equal(HttpStatusCode.Redirect, logout.StatusCode);
@@ -83,7 +96,11 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         Assert.Equal(AccountStatus.Active, updated.AccountStatus);
         Assert.Equal(new[] { AppRoles.Student }, await manager.GetRolesAsync(updated));
         Assert.Equal(other.FullName, (await manager.FindByIdAsync(other.Id.ToString()))!.FullName);
-        Assert.Contains("Nguyễn Khang", WebUtility.HtmlDecode(await client.GetStringAsync("/")));
+
+        using var root = await client.GetAsync("/");
+        Assert.Equal(HttpStatusCode.Redirect, root.StatusCode);
+        Assert.Equal("/Learning/Dashboard", root.Headers.Location!.ToString());
+        Assert.Contains("Nguyễn Khang", WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard")));
     }
 
     [Fact]
@@ -122,7 +139,8 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
 
     [Theory]
     [InlineData("/Profile", "/Profile")]
-    [InlineData("https://example.test/steal", "/")]
+    [InlineData("https://example.test/steal", "/Learning/Dashboard")]
+    [InlineData("/", "/Learning/Dashboard")]
     public async Task Login_ReturnUrl_AllowsOnlyLocalUrls(string returnUrl, string expected)
     {
         var user = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);

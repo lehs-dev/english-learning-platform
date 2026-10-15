@@ -1,0 +1,12 @@
+@using System.Security.Claims
+@using EnglishLearningPlatform.Infrastructure.Identity
+@{
+    var roles = User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray();
+    Layout = roles.Length == 1 ? roles[0] switch
+    {
+        AppRoles.Teacher => "_LayoutTeacher",
+        AppRoles.Admin => "_LayoutAdmin",
+        AppRoles.Student => "_LayoutStudent",
+        _ => "_Layout"
+    } : "_Layout";
+}

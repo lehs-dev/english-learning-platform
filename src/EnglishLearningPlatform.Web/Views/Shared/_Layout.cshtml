@@ -29,9 +29,10 @@
    Controller vẫn kiểm tra quyền khi truy cập trực tiếp. *@
 @if (User.IsInRole("Teacher"))
 {
-    <a class="nav-link"
+    <a class="nav-link @(activeSection == "question-bank" ? "is-active" : "")"
        asp-controller="TeacherQuestionBank"
-       asp-action="Index">
+       asp-action="Index"
+       aria-current="@(activeSection == "question-bank" ? "page" : null)">
         Ngân hàng câu hỏi
     </a>
 }
