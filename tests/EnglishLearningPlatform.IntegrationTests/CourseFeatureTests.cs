@@ -14,6 +14,59 @@ namespace EnglishLearningPlatform.IntegrationTests;
 public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
     [Fact]
+    public async Task CoursePreview_KeepsTeacherStudioChrome_WhileStudentsKeepLearningChrome()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var course = await Seed(teacher.Id);
+        var module = course.Modules.First();
+        var lesson = module.Lessons.First();
+        var resource = lesson.Resources.First();
+        var paths = new[]
+        {
+            $"/Learning/Course/{course.Id}",
+            $"/Learning/Module/{module.Id}",
+            $"/Learning/Lesson/{lesson.Id}",
+            $"/Learning/Resource/{resource.Id}"
+        };
+
+        using var teacherClient = IdentityTestHelpers.CreateClient(factory);
+        using var teacherLogin = await IdentityTestHelpers.LoginAsync(teacherClient, teacher);
+        Assert.Equal(HttpStatusCode.Redirect, teacherLogin.StatusCode);
+        foreach (var path in paths)
+        {
+            using var response = await teacherClient.GetAsync(path);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var html = await response.Content.ReadAsStringAsync();
+            Assert.Contains("teacher-studio", html);
+            Assert.Contains("studio-sidebar", html);
+            Assert.DoesNotContain("student-workspace", html);
+            Assert.DoesNotContain("student-nav", html);
+        }
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var enrolled = await scope.ServiceProvider.GetRequiredService<ICourseService>()
+                .EnrollFreeAsync(student.Id, course.Id);
+            Assert.True(enrolled.Success);
+        }
+
+        using var studentClient = IdentityTestHelpers.CreateClient(factory);
+        using var studentLogin = await IdentityTestHelpers.LoginAsync(studentClient, student);
+        Assert.Equal(HttpStatusCode.Redirect, studentLogin.StatusCode);
+        foreach (var path in paths)
+        {
+            using var response = await studentClient.GetAsync(path);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var html = await response.Content.ReadAsStringAsync();
+            Assert.Contains("student-workspace", html);
+            Assert.Contains("student-nav", html);
+            Assert.DoesNotContain("teacher-studio", html);
+            Assert.DoesNotContain("studio-sidebar", html);
+        }
+    }
+
+    [Fact]
     public async Task TeacherForms_EndToEndPublishPreviewAndOtherOwnerMutationDenied()
     {
         var owner = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
@@ -21,7 +74,9 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         using var client = IdentityTestHelpers.CreateClient(factory); using var login = await IdentityTestHelpers.LoginAsync(client, owner);
         using var mine = await client.GetAsync("/TeacherCourses"); Assert.Equal(HttpStatusCode.OK, mine.StatusCode);
-        using var home = await client.GetAsync("/"); Assert.Contains("href=\"/TeacherCourses\"", await home.Content.ReadAsStringAsync());
+        using var home = await client.GetAsync("/");
+        Assert.Equal(HttpStatusCode.Redirect, home.StatusCode);
+        Assert.Equal("/TeacherCourses", home.Headers.Location!.ToString());
         var token = await IdentityTestHelpers.GetTokenAsync(client, "/TeacherCourses/Edit");
         var title = "UI flow " + Guid.NewGuid().ToString("N");
         using var create = await Post("/TeacherCourses/Edit", new() { ["Input.Title"] = title, ["Input.Level"] = "1", ["Input.Price"] = "0" });

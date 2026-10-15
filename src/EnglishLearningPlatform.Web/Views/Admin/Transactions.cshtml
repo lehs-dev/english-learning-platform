@@ -1,4 +1,5 @@
 @using EnglishLearningPlatform.Application.Administration
+@using EnglishLearningPlatform.Domain.Enums
 @model AdminPage<AdminTransaction>
 @{
     ViewData["Title"] = "Quản trị · Giao dịch";
@@ -10,29 +11,157 @@
         PaymentStatus.Cancelled => "Đã hủy",
         _ => "Chờ thanh toán"
     };
+
+    // KPI Metrics calculation
+    var completedList = Model.Items.Where(i => i.Status == PaymentStatus.Succeeded).ToList();
+    var pendingList = Model.Items.Where(i => i.Status == PaymentStatus.Pending || i.Status == null).ToList();
+
+    var totalRevenue = completedList.Sum(i => i.Amount);
+    var totalOrders = Model.Total;
+    var completedCount = completedList.Count;
+    var pendingCount = pendingList.Count;
+    var aov = completedCount > 0 ? (totalRevenue / completedCount) : 0m;
 }
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
-<div class="page-heading"><div><p class="eyebrow">ESTUDY · QUẢN TRỊ</p><h1>Giao dịch thanh toán</h1><p class="muted">Tra cứu đơn hàng và trạng thái thanh toán.</p></div><a class="button secondary" asp-action="Users">Trạng thái tài khoản</a></div>
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">ESTUDY · QUẢN TRỊ</p>
+        <h1>Giao dịch thanh toán</h1>
+        <p class="muted">Tra cứu đơn hàng, dòng tiền và trạng thái thanh toán hệ thống.</p>
+    </div>
+    <div class="actions">
+        <a class="button secondary" asp-action="Users">Trạng thái tài khoản</a>
+    </div>
+</div>
+
+@* High-Level KPI Summary Cards *@
+<section class="admin-kpi-grid" aria-label="Chỉ số hiệu suất kinh doanh">
+    <article class="admin-kpi-card kpi-success">
+        <div class="admin-kpi-header">
+            <span>Doanh thu hoàn tất</span>
+            <span class="kpi-icon" aria-hidden="true">💰</span>
+        </div>
+        <div class="admin-kpi-value">
+            @totalRevenue.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) ₫
+        </div>
+        <div class="admin-kpi-footer">
+            <span class="kpi-badge badge-success">@completedCount đơn hoàn tất</span>
+            <span class="muted">@(Model.Pages > 1 ? "trên trang này" : "toàn hệ thống")</span>
+        </div>
+    </article>
+
+    <article class="admin-kpi-card kpi-info">
+        <div class="admin-kpi-header">
+            <span>Tổng số đơn hàng</span>
+            <span class="kpi-icon" aria-hidden="true">📦</span>
+        </div>
+        <div class="admin-kpi-value">@totalOrders</div>
+        <div class="admin-kpi-footer">
+            <span class="kpi-badge badge-info">Toàn hệ thống</span>
+            <span class="muted">Khớp bộ lọc</span>
+        </div>
+    </article>
+
+    <article class="admin-kpi-card kpi-warning">
+        <div class="admin-kpi-header">
+            <span>Đơn chờ thanh toán</span>
+            <span class="kpi-icon" aria-hidden="true">⏳</span>
+        </div>
+        <div class="admin-kpi-value">@pendingCount</div>
+        <div class="admin-kpi-footer">
+            <span class="kpi-badge badge-warning">Đang xử lý</span>
+            <span class="muted">Cần theo dõi</span>
+        </div>
+    </article>
+
+    <article class="admin-kpi-card kpi-primary">
+        <div class="admin-kpi-header">
+            <span>Giá trị TB / Đơn (AOV)</span>
+            <span class="kpi-icon" aria-hidden="true">📈</span>
+        </div>
+        <div class="admin-kpi-value">
+            @aov.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) ₫
+        </div>
+        <div class="admin-kpi-footer">
+            <span class="muted">Doanh thu / đơn thành công</span>
+        </div>
+    </article>
+</section>
+
 <section class="panel">
     <form method="get" asp-action="Transactions" class="admin-filters">
-        <div><label for="search">Email học viên, khóa học hoặc mã đơn</label><input id="search" name="search" value="@Model.Search" maxlength="120" /></div>
-        <div><label for="status">Trạng thái thanh toán</label><select id="status" name="status"><option value="">Tất cả</option>@foreach (var status in Enum.GetValues<PaymentStatus>()) { <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option> }</select></div>
-        <button class="button" type="submit">Tra cứu</button><a asp-action="Transactions">Xóa bộ lọc</a>
+        <div>
+            <label for="search">Email học viên, khóa học hoặc mã đơn</label>
+            <input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Tìm theo email, tên khóa học hoặc Order ID..." />
+        </div>
+        <div>
+            <label for="status">Trạng thái thanh toán</label>
+            <select id="status" name="status">
+                <option value="">Tất cả</option>
+                @foreach (var status in Enum.GetValues<PaymentStatus>())
+                {
+                    <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option>
+                }
+            </select>
+        </div>
+        <button class="button" type="submit">Tra cứu</button>
+        <a asp-action="Transactions" class="button secondary">Xóa bộ lọc</a>
     </form>
+
     <p class="muted">Tìm thấy @Model.Total đơn hàng. Thời gian hiển thị theo giờ Việt Nam (UTC+7).</p>
-    @if (Model.Items.Count == 0) { <p class="empty">Không có giao dịch phù hợp.</p> }
+
+    @if (Model.Items.Count == 0)
+    {
+        <p class="empty">Không có giao dịch phù hợp.</p>
+    }
     else
     {
-        <div class="admin-table-wrap"><table class="admin-table"><caption class="visually-hidden">Giao dịch thanh toán, trang @Model.Page trên @Model.Pages</caption><thead><tr><th scope="col">Mã đơn</th><th scope="col">Học viên</th><th scope="col">Khóa học</th><th scope="col">Số tiền</th><th scope="col">Ngày tạo</th><th scope="col">Trạng thái</th><th scope="col">Ngày thanh toán</th></tr></thead><tbody>
-        @foreach (var item in Model.Items)
-        {
-            <tr><td><code>@item.OrderId</code></td><td>@item.StudentEmail</td><td>@item.CourseTitle</td><td>@item.Amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @item.Currency</td><td>@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</td><td>@StatusLabel(item.Status)</td><td>@(item.PaidAtUtc?.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") ?? "—")</td></tr>
-        }
-        </tbody></table></div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <caption class="visually-hidden">Giao dịch thanh toán, trang @Model.Page trên @Model.Pages</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Mã đơn</th>
+                        <th scope="col">Học viên</th>
+                        <th scope="col">Khóa học</th>
+                        <th scope="col">Số tiền</th>
+                        <th scope="col">Ngày tạo</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Ngày thanh toán</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td><code>@item.OrderId</code></td>
+                            <td>@item.StudentEmail</td>
+                            <td>@item.CourseTitle</td>
+                            <td>@item.Amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @item.Currency</td>
+                            <td>@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge @(item.Status == PaymentStatus.Succeeded ? "badge-success" : item.Status == PaymentStatus.Pending ? "badge-warning" : "badge-secondary")">
+                                    @StatusLabel(item.Status)
+                                </span>
+                            </td>
+                            <td>@(item.PaidAtUtc?.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
+
     <nav class="actions admin-pagination" aria-label="Phân trang giao dịch">
-        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)">← Trước</a> }
+        @if (Model.Page > 1)
+        {
+            <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)">← Trước</a>
+        }
         <span aria-current="page">Trang @Model.Page / @Model.Pages</span>
-        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau →</a> }
+        @if (Model.Page < Model.Pages)
+        {
+            <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau →</a>
+        }
     </nav>
 </section>

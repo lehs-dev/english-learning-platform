@@ -1,19 +1,32 @@
+using System.Security.Claims;
+using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Web.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishLearningPlatform.Web.Controllers;
 
-public sealed class HomeController(EnglishLearningPlatform.Application.Learning.ICourseService courses) : Controller
+public sealed class HomeController(ICourseService courses) : Controller
 {
-    public async Task<IActionResult> Index(string section = "courses", CancellationToken ct = default)
+    public async Task<IActionResult> Index(string? section = null, CancellationToken ct = default)
     {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            if (RoleNavigation.HasRoleWorkspace(role))
+                return this.RedirectToRoleWorkspace(role);
+        }
+
         if (section == "courses")
         {
-            ViewData["ActiveSection"] = "courses";
-            return View("~/Views/Courses/Index.cshtml", await courses.CatalogAsync(new(), ct));
+            return RedirectToAction("Index", "Courses");
         }
-        ViewData["ActiveSection"] = section is "courses" or "exams" or "assessment" or "about" or "dictionary"
-            ? section : "courses";
-        return View();
+
+        ViewData["ActiveSection"] = section is "exams" or "assessment" or "about" or "dictionary"
+            ? section : null;
+
+        var catalog = await courses.CatalogAsync(new CatalogQuery { Page = 1 }, ct);
+        return View(catalog);
     }
+
     public IActionResult Error() => View();
 }
