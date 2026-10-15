@@ -1,0 +1,557 @@
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (232ms) [Parameters=[], CommandType='Text', CommandTimeout='60']
+      CREATE DATABASE [EnglishLearningPlatformUat_e6165ed4ff1e4f0886007654425d4c51];
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (122ms) [Parameters=[], CommandType='Text', CommandTimeout='60']
+      IF SERVERPROPERTY('EngineEdition') <> 5
+      BEGIN
+          ALTER DATABASE [EnglishLearningPlatformUat_e6165ed4ff1e4f0886007654425d4c51] SET READ_COMMITTED_SNAPSHOT ON;
+      END;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT 1
+info: Microsoft.EntityFrameworkCore.Migrations[20411]
+      Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (34ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      DECLARE @result int;
+      EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+      SELECT @result
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+      BEGIN
+          CREATE TABLE [__EFMigrationsHistory] (
+              [MigrationId] nvarchar(150) NOT NULL,
+              [ProductVersion] nvarchar(32) NOT NULL,
+              CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+          );
+      END;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT 1
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (17ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT [MigrationId], [ProductVersion]
+      FROM [__EFMigrationsHistory]
+      ORDER BY [MigrationId];
+info: Microsoft.EntityFrameworkCore.Migrations[20402]
+      Applying migration '20260924123837_InitialCreate'.
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AspNetRoles] (
+          [Id] uniqueidentifier NOT NULL,
+          [Name] nvarchar(256) NULL,
+          [NormalizedName] nvarchar(256) NULL,
+          [ConcurrencyStamp] nvarchar(max) NULL,
+          CONSTRAINT [PK_AspNetRoles] PRIMARY KEY ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AspNetUsers] (
+          [Id] uniqueidentifier NOT NULL,
+          [FullName] nvarchar(200) NOT NULL,
+          [AccountStatus] nvarchar(16) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          [UserName] nvarchar(256) NULL,
+          [NormalizedUserName] nvarchar(256) NULL,
+          [Email] nvarchar(256) NULL,
+          [NormalizedEmail] nvarchar(256) NULL,
+          [EmailConfirmed] bit NOT NULL,
+          [PasswordHash] nvarchar(max) NULL,
+          [SecurityStamp] nvarchar(max) NULL,
+          [ConcurrencyStamp] nvarchar(max) NULL,
+          [PhoneNumber] nvarchar(max) NULL,
+          [PhoneNumberConfirmed] bit NOT NULL,
+          [TwoFactorEnabled] bit NOT NULL,
+          [LockoutEnd] datetimeoffset NULL,
+          [LockoutEnabled] bit NOT NULL,
+          [AccessFailedCount] int NOT NULL,
+          CONSTRAINT [PK_AspNetUsers] PRIMARY KEY ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AspNetRoleClaims] (
+          [Id] int NOT NULL IDENTITY,
+          [RoleId] uniqueidentifier NOT NULL,
+          [ClaimType] nvarchar(max) NULL,
+          [ClaimValue] nvarchar(max) NULL,
+          CONSTRAINT [PK_AspNetRoleClaims] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_AspNetRoleClaims_AspNetRoles_RoleId] FOREIGN KEY ([RoleId]) REFERENCES [AspNetRoles] ([Id]) ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AspNetUserClaims] (
+          [Id] int NOT NULL IDENTITY,
+          [UserId] uniqueidentifier NOT NULL,
+          [ClaimType] nvarchar(max) NULL,
+          [ClaimValue] nvarchar(max) NULL,
+          CONSTRAINT [PK_AspNetUserClaims] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_AspNetUserClaims_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AspNetUserLogins] (
+          [LoginProvider] nvarchar(450) NOT NULL,
+          [ProviderKey] nvarchar(450) NOT NULL,
+          [ProviderDisplayName] nvarchar(max) NULL,
+          [UserId] uniqueidentifier NOT NULL,
+          CONSTRAINT [PK_AspNetUserLogins] PRIMARY KEY ([LoginProvider], [ProviderKey]),
+          CONSTRAINT [FK_AspNetUserLogins_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AspNetUserRoles] (
+          [UserId] uniqueidentifier NOT NULL,
+          [RoleId] uniqueidentifier NOT NULL,
+          CONSTRAINT [PK_AspNetUserRoles] PRIMARY KEY ([UserId], [RoleId]),
+          CONSTRAINT [FK_AspNetUserRoles_AspNetRoles_RoleId] FOREIGN KEY ([RoleId]) REFERENCES [AspNetRoles] ([Id]) ON DELETE CASCADE,
+          CONSTRAINT [FK_AspNetUserRoles_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AspNetUserTokens] (
+          [UserId] uniqueidentifier NOT NULL,
+          [LoginProvider] nvarchar(450) NOT NULL,
+          [Name] nvarchar(450) NOT NULL,
+          [Value] nvarchar(max) NULL,
+          CONSTRAINT [PK_AspNetUserTokens] PRIMARY KEY ([UserId], [LoginProvider], [Name]),
+          CONSTRAINT [FK_AspNetUserTokens_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AuditLogs] (
+          [Id] uniqueidentifier NOT NULL,
+          [ActorUserId] uniqueidentifier NULL,
+          [TargetUserId] uniqueidentifier NULL,
+          [ActorSnapshot] nvarchar(500) NOT NULL,
+          [TargetSnapshot] nvarchar(500) NULL,
+          [Action] nvarchar(120) NOT NULL,
+          [BeforeData] nvarchar(max) NULL,
+          [AfterData] nvarchar(max) NULL,
+          [OccurredAtUtc] datetimeoffset NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_AuditLogs] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_AuditLogs_AspNetUsers_ActorUserId] FOREIGN KEY ([ActorUserId]) REFERENCES [AspNetUsers] ([Id]),
+          CONSTRAINT [FK_AuditLogs_AspNetUsers_TargetUserId] FOREIGN KEY ([TargetUserId]) REFERENCES [AspNetUsers] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Stimuli] (
+          [Id] uniqueidentifier NOT NULL,
+          [OwnerTeacherUserId] uniqueidentifier NOT NULL,
+          [StimulusType] nvarchar(16) NOT NULL,
+          [Title] nvarchar(200) NULL,
+          [ContentText] nvarchar(max) NULL,
+          [ResourceUrl] nvarchar(2048) NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Stimuli] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_Stimuli_AspNetUsers_OwnerTeacherUserId] FOREIGN KEY ([OwnerTeacherUserId]) REFERENCES [AspNetUsers] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Questions] (
+          [Id] uniqueidentifier NOT NULL,
+          [OwnerTeacherUserId] uniqueidentifier NOT NULL,
+          [StimulusId] uniqueidentifier NULL,
+          [Content] nvarchar(4000) NOT NULL,
+          [PrimarySkill] nvarchar(24) NOT NULL,
+          [Level] nvarchar(32) NULL,
+          [Difficulty] nvarchar(32) NULL,
+          [Explanation] nvarchar(max) NULL,
+          [Status] nvarchar(16) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Questions] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_Questions_AspNetUsers_OwnerTeacherUserId] FOREIGN KEY ([OwnerTeacherUserId]) REFERENCES [AspNetUsers] ([Id]),
+          CONSTRAINT [FK_Questions_Stimuli_StimulusId] FOREIGN KEY ([StimulusId]) REFERENCES [Stimuli] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (55ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [QuestionOptions] (
+          [Id] uniqueidentifier NOT NULL,
+          [QuestionId] uniqueidentifier NOT NULL,
+          [Content] nvarchar(1000) NOT NULL,
+          [OrderIndex] int NOT NULL,
+          [IsCorrect] bit NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_QuestionOptions] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_QuestionOptions_Questions_QuestionId] FOREIGN KEY ([QuestionId]) REFERENCES [Questions] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AssessmentQuestions] (
+          [Id] uniqueidentifier NOT NULL,
+          [AssessmentId] uniqueidentifier NOT NULL,
+          [QuestionId] uniqueidentifier NOT NULL,
+          [OrderIndex] int NOT NULL,
+          [Points] decimal(8,2) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_AssessmentQuestions] PRIMARY KEY ([Id]),
+          CONSTRAINT [CK_AssessmentQuestions_Points] CHECK ([Points] > 0),
+          CONSTRAINT [FK_AssessmentQuestions_Questions_QuestionId] FOREIGN KEY ([QuestionId]) REFERENCES [Questions] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (16ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Assessments] (
+          [Id] uniqueidentifier NOT NULL,
+          [OwnerTeacherUserId] uniqueidentifier NOT NULL,
+          [CourseId] uniqueidentifier NULL,
+          [Title] nvarchar(200) NOT NULL,
+          [Description] nvarchar(4000) NULL,
+          [AssessmentType] nvarchar(24) NOT NULL,
+          [TargetSkill] nvarchar(24) NULL,
+          [DurationMinutes] int NOT NULL,
+          [MaxAttempts] int NOT NULL,
+          [PassingScore] decimal(5,2) NULL,
+          [Status] nvarchar(16) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Assessments] PRIMARY KEY ([Id]),
+          CONSTRAINT [CK_Assessments_DurationMinutes] CHECK ([DurationMinutes] > 0),
+          CONSTRAINT [CK_Assessments_MaxAttempts] CHECK ([MaxAttempts] > 0),
+          CONSTRAINT [CK_Assessments_PassingScore] CHECK ([PassingScore] IS NULL OR [PassingScore] BETWEEN 0 AND 100),
+          CONSTRAINT [FK_Assessments_AspNetUsers_OwnerTeacherUserId] FOREIGN KEY ([OwnerTeacherUserId]) REFERENCES [AspNetUsers] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Attempts] (
+          [Id] uniqueidentifier NOT NULL,
+          [StudentUserId] uniqueidentifier NOT NULL,
+          [AssessmentId] uniqueidentifier NOT NULL,
+          [Status] nvarchar(16) NOT NULL,
+          [StartedAtUtc] datetimeoffset NOT NULL,
+          [DeadlineUtc] datetimeoffset NOT NULL,
+          [FinalizedAtUtc] datetimeoffset NULL,
+          [FinalizationReason] nvarchar(24) NULL,
+          [OverallScore] decimal(5,2) NULL,
+          [Passed] bit NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Attempts] PRIMARY KEY ([Id]),
+          CONSTRAINT [CK_Attempts_OverallScore] CHECK ([OverallScore] IS NULL OR [OverallScore] BETWEEN 0 AND 100),
+          CONSTRAINT [FK_Attempts_AspNetUsers_StudentUserId] FOREIGN KEY ([StudentUserId]) REFERENCES [AspNetUsers] ([Id]),
+          CONSTRAINT [FK_Attempts_Assessments_AssessmentId] FOREIGN KEY ([AssessmentId]) REFERENCES [Assessments] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Courses] (
+          [Id] uniqueidentifier NOT NULL,
+          [OwnerTeacherUserId] uniqueidentifier NOT NULL,
+          [FinalAssessmentId] uniqueidentifier NULL,
+          [Title] nvarchar(200) NOT NULL,
+          [Description] nvarchar(4000) NULL,
+          [Objectives] nvarchar(4000) NULL,
+          [Level] nvarchar(32) NOT NULL,
+          [Status] nvarchar(16) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Courses] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_Courses_AspNetUsers_OwnerTeacherUserId] FOREIGN KEY ([OwnerTeacherUserId]) REFERENCES [AspNetUsers] ([Id]),
+          CONSTRAINT [FK_Courses_Assessments_FinalAssessmentId] FOREIGN KEY ([FinalAssessmentId]) REFERENCES [Assessments] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AttemptAnswers] (
+          [Id] uniqueidentifier NOT NULL,
+          [AttemptId] uniqueidentifier NOT NULL,
+          [AssessmentQuestionId] uniqueidentifier NOT NULL,
+          [SelectedOptionId] uniqueidentifier NOT NULL,
+          [SavedAtUtc] datetimeoffset NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_AttemptAnswers] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_AttemptAnswers_AssessmentQuestions_AssessmentQuestionId] FOREIGN KEY ([AssessmentQuestionId]) REFERENCES [AssessmentQuestions] ([Id]),
+          CONSTRAINT [FK_AttemptAnswers_Attempts_AttemptId] FOREIGN KEY ([AttemptId]) REFERENCES [Attempts] ([Id]),
+          CONSTRAINT [FK_AttemptAnswers_QuestionOptions_SelectedOptionId] FOREIGN KEY ([SelectedOptionId]) REFERENCES [QuestionOptions] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [AttemptSkillResults] (
+          [Id] uniqueidentifier NOT NULL,
+          [AttemptId] uniqueidentifier NOT NULL,
+          [Skill] nvarchar(24) NOT NULL,
+          [Score] decimal(5,2) NOT NULL,
+          [QuestionCount] int NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_AttemptSkillResults] PRIMARY KEY ([Id]),
+          CONSTRAINT [CK_AttemptSkillResults_Count] CHECK ([QuestionCount] >= 0),
+          CONSTRAINT [CK_AttemptSkillResults_Score] CHECK ([Score] BETWEEN 0 AND 100),
+          CONSTRAINT [FK_AttemptSkillResults_Attempts_AttemptId] FOREIGN KEY ([AttemptId]) REFERENCES [Attempts] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [CourseSkills] (
+          [CourseId] uniqueidentifier NOT NULL,
+          [Skill] nvarchar(24) NOT NULL,
+          CONSTRAINT [PK_CourseSkills] PRIMARY KEY ([CourseId], [Skill]),
+          CONSTRAINT [FK_CourseSkills_Courses_CourseId] FOREIGN KEY ([CourseId]) REFERENCES [Courses] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [CourseTopics] (
+          [Id] uniqueidentifier NOT NULL,
+          [CourseId] uniqueidentifier NOT NULL,
+          [Topic] nvarchar(120) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_CourseTopics] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_CourseTopics_Courses_CourseId] FOREIGN KEY ([CourseId]) REFERENCES [Courses] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Modules] (
+          [Id] uniqueidentifier NOT NULL,
+          [CourseId] uniqueidentifier NOT NULL,
+          [Title] nvarchar(200) NOT NULL,
+          [Description] nvarchar(4000) NULL,
+          [OrderIndex] int NOT NULL,
+          [Visibility] nvarchar(16) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Modules] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_Modules_Courses_CourseId] FOREIGN KEY ([CourseId]) REFERENCES [Courses] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Lessons] (
+          [Id] uniqueidentifier NOT NULL,
+          [ModuleId] uniqueidentifier NOT NULL,
+          [Title] nvarchar(200) NOT NULL,
+          [OrderIndex] int NOT NULL,
+          [Status] nvarchar(16) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Lessons] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_Lessons_Modules_ModuleId] FOREIGN KEY ([ModuleId]) REFERENCES [Modules] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Enrollments] (
+          [Id] uniqueidentifier NOT NULL,
+          [StudentUserId] uniqueidentifier NOT NULL,
+          [CourseId] uniqueidentifier NOT NULL,
+          [LastAccessedLessonId] uniqueidentifier NULL,
+          [EnrolledAtUtc] datetimeoffset NOT NULL,
+          [CompletedAtUtc] datetimeoffset NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Enrollments] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_Enrollments_AspNetUsers_StudentUserId] FOREIGN KEY ([StudentUserId]) REFERENCES [AspNetUsers] ([Id]),
+          CONSTRAINT [FK_Enrollments_Courses_CourseId] FOREIGN KEY ([CourseId]) REFERENCES [Courses] ([Id]),
+          CONSTRAINT [FK_Enrollments_Lessons_LastAccessedLessonId] FOREIGN KEY ([LastAccessedLessonId]) REFERENCES [Lessons] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [LessonResources] (
+          [Id] uniqueidentifier NOT NULL,
+          [LessonId] uniqueidentifier NOT NULL,
+          [ResourceType] nvarchar(16) NOT NULL,
+          [Title] nvarchar(200) NULL,
+          [ContentText] nvarchar(max) NULL,
+          [ResourceUrl] nvarchar(2048) NULL,
+          [OrderIndex] int NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_LessonResources] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_LessonResources_Lessons_LessonId] FOREIGN KEY ([LessonId]) REFERENCES [Lessons] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [Practices] (
+          [Id] uniqueidentifier NOT NULL,
+          [OwnerTeacherUserId] uniqueidentifier NOT NULL,
+          [LessonId] uniqueidentifier NULL,
+          [ModuleId] uniqueidentifier NULL,
+          [Title] nvarchar(200) NOT NULL,
+          [Description] nvarchar(4000) NULL,
+          [Status] nvarchar(16) NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_Practices] PRIMARY KEY ([Id]),
+          CONSTRAINT [CK_Practices_Parent] CHECK (([LessonId] IS NULL OR [ModuleId] IS NULL) AND ([Status] <> N'Published' OR ([LessonId] IS NOT NULL AND [ModuleId] IS NULL) OR ([LessonId] IS NULL AND [ModuleId] IS NOT NULL))),
+          CONSTRAINT [FK_Practices_AspNetUsers_OwnerTeacherUserId] FOREIGN KEY ([OwnerTeacherUserId]) REFERENCES [AspNetUsers] ([Id]),
+          CONSTRAINT [FK_Practices_Lessons_LessonId] FOREIGN KEY ([LessonId]) REFERENCES [Lessons] ([Id]),
+          CONSTRAINT [FK_Practices_Modules_ModuleId] FOREIGN KEY ([ModuleId]) REFERENCES [Modules] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [LessonProgress] (
+          [Id] uniqueidentifier NOT NULL,
+          [EnrollmentId] uniqueidentifier NOT NULL,
+          [LessonId] uniqueidentifier NOT NULL,
+          [IsCompleted] bit NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_LessonProgress] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_LessonProgress_Enrollments_EnrollmentId] FOREIGN KEY ([EnrollmentId]) REFERENCES [Enrollments] ([Id]),
+          CONSTRAINT [FK_LessonProgress_Lessons_LessonId] FOREIGN KEY ([LessonId]) REFERENCES [Lessons] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [PracticeQuestions] (
+          [Id] uniqueidentifier NOT NULL,
+          [PracticeId] uniqueidentifier NOT NULL,
+          [QuestionId] uniqueidentifier NOT NULL,
+          [OrderIndex] int NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_PracticeQuestions] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_PracticeQuestions_Practices_PracticeId] FOREIGN KEY ([PracticeId]) REFERENCES [Practices] ([Id]),
+          CONSTRAINT [FK_PracticeQuestions_Questions_QuestionId] FOREIGN KEY ([QuestionId]) REFERENCES [Questions] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [PracticeSubmissions] (
+          [Id] uniqueidentifier NOT NULL,
+          [StudentUserId] uniqueidentifier NOT NULL,
+          [PracticeId] uniqueidentifier NOT NULL,
+          [Score] decimal(5,2) NOT NULL,
+          [SubmittedAtUtc] datetimeoffset NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_PracticeSubmissions] PRIMARY KEY ([Id]),
+          CONSTRAINT [CK_PracticeSubmissions_Score] CHECK ([Score] BETWEEN 0 AND 100),
+          CONSTRAINT [FK_PracticeSubmissions_AspNetUsers_StudentUserId] FOREIGN KEY ([StudentUserId]) REFERENCES [AspNetUsers] ([Id]),
+          CONSTRAINT [FK_PracticeSubmissions_Practices_PracticeId] FOREIGN KEY ([PracticeId]) REFERENCES [Practices] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE [PracticeAnswers] (
+          [Id] uniqueidentifier NOT NULL,
+          [PracticeSubmissionId] uniqueidentifier NOT NULL,
+          [PracticeQuestionId] uniqueidentifier NOT NULL,
+          [SelectedOptionId] uniqueidentifier NOT NULL,
+          [CreatedAtUtc] datetimeoffset NOT NULL,
+          [UpdatedAtUtc] datetimeoffset NULL,
+          CONSTRAINT [PK_PracticeAnswers] PRIMARY KEY ([Id]),
+          CONSTRAINT [FK_PracticeAnswers_PracticeQuestions_PracticeQuestionId] FOREIGN KEY ([PracticeQuestionId]) REFERENCES [PracticeQuestions] ([Id]),
+          CONSTRAINT [FK_PracticeAnswers_PracticeSubmissions_PracticeSubmissionId] FOREIGN KEY ([PracticeSubmissionId]) REFERENCES [PracticeSubmissions] ([Id]),
+          CONSTRAINT [FK_PracticeAnswers_QuestionOptions_SelectedOptionId] FOREIGN KEY ([SelectedOptionId]) REFERENCES [QuestionOptions] ([Id])
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AspNetRoleClaims_RoleId] ON [AspNetRoleClaims] ([RoleId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [RoleNameIndex] ON [AspNetRoles] ([NormalizedName]) WHERE [NormalizedName] IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AspNetUserClaims_UserId] ON [AspNetUserClaims] ([UserId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AspNetUserLogins_UserId] ON [AspNetUserLogins] ([UserId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AspNetUserRoles_RoleId] ON [AspNetUserRoles] ([RoleId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_AspNetUserRoles_UserId] ON [AspNetUserRoles] ([UserId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [EmailIndex] ON [AspNetUsers] ([NormalizedEmail]) WHERE [NormalizedEmail] IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHERE [NormalizedUserName] IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_AssessmentQuestions_AssessmentId_OrderIndex] ON [AssessmentQuestions] ([AssessmentId], [OrderIndex]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_AssessmentQuestions_AssessmentId_QuestionId] ON [AssessmentQuestions] ([AssessmentId], [QuestionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AssessmentQuestions_QuestionId] ON [AssessmentQuestions] ([QuestionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_Assessments_CourseId] ON [Assessments] ([CourseId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_Assessments_OwnerTeacherUserId] ON [Assessments] ([OwnerTeacherUserId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AttemptAnswers_AssessmentQuestionId] ON [AttemptAnswers] ([AssessmentQuestionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_AttemptAnswers_AttemptId_AssessmentQuestionId] ON [AttemptAnswers] ([AttemptId], [AssessmentQuestionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AttemptAnswers_SelectedOptionId] ON [AttemptAnswers] ([SelectedOptionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_Attempts_AssessmentId] ON [Attempts] ([AssessmentId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_Attempts_StudentUserId_AssessmentId] ON [Attempts] ([StudentUserId], [AssessmentId]) WHERE [Status] = N'InProgress';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_AttemptSkillResults_AttemptId_Skill] ON [AttemptSkillResults] ([AttemptId], [Skill]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AuditLogs_ActorUserId] ON [AuditLogs] ([ActorUserId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_AuditLogs_TargetUserId] ON [AuditLogs] ([TargetUserId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_Courses_FinalAssessmentId] ON [Courses] ([FinalAssessmentId]) WHERE [FinalAssessmentId] IS NOT NULL;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_Courses_OwnerTeacherUserId] ON [Courses] ([OwnerTeacherUserId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_CourseTopics_CourseId_Topic] ON [CourseTopics] ([CourseId], [Topic]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_Enrollments_CourseId] ON [Enrollments] ([CourseId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_Enrollments_LastAccessedLessonId] ON [Enrollments] ([LastAccessedLessonId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_Enrollments_StudentUserId_CourseId] ON [Enrollments] ([StudentUserId], [CourseId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_LessonProgress_EnrollmentId_LessonId] ON [LessonProgress] ([EnrollmentId], [LessonId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_LessonProgress_LessonId] ON [LessonProgress] ([LessonId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_LessonResources_LessonId_OrderIndex] ON [LessonResources] ([LessonId], [OrderIndex]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_Lessons_ModuleId_OrderIndex] ON [Lessons] ([ModuleId], [OrderIndex]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_Modules_CourseId_OrderIndex] ON [Modules] ([CourseId], [OrderIndex]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_PracticeAnswers_PracticeQuestionId] ON [PracticeAnswers] ([PracticeQuestionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_PracticeAnswers_PracticeSubmissionId_PracticeQuestionId] ON [PracticeAnswers] ([PracticeSubmissionId], [PracticeQuestionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_PracticeAnswers_SelectedOptionId] ON [PracticeAnswers] ([SelectedOptionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_PracticeQuestions_PracticeId_OrderIndex] ON [PracticeQuestions] ([PracticeId], [OrderIndex]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX [IX_PracticeQuestions_PracticeId_QuestionId] ON [PracticeQuestions] ([PracticeId], [QuestionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_PracticeQuestions_QuestionId] ON [PracticeQuestions] ([QuestionId]);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX [IX_Practices_LessonId] ON [Practices] ([LessonId]);

@@ -1,0 +1,188 @@
+@model EnglishLearningPlatform.Web.Models.Practice.CreatePracticeViewModel
+
+@{
+    ViewData["Title"] = "Tạo Practice Draft";
+    ViewData["ActiveSection"] = "courses";
+}
+
+<a asp-controller="TeacherCourses" asp-action="Index">
+    ← Khóa học của tôi
+</a>
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">TEACHER WORKSPACE</p>
+        <h1>Tạo Practice Draft</h1>
+        <p class="muted">
+            Lưu bản nháp trước. Chọn câu hỏi và Publish sẽ thực hiện sau.
+        </p>
+    </div>
+</div>
+
+@* Dùng phần thông báo đang có trong dự án. *@
+<partial name="_CourseNotice" />
+
+@* Form GET chỉ chọn Course và tải các parent.
+   Không tạo hoặc lưu Practice. *@
+<form method="get"
+      asp-controller="TeacherPractices"
+      asp-action="Create"
+      class="panel editor-form">
+
+    <h2>1. Chọn khóa học</h2>
+
+    <p class="muted">
+        Chọn khóa học trước khi nhập nội dung bên dưới.
+        Đổi khóa học sẽ tải lại trang và không giữ nội dung chưa lưu.
+    </p>
+
+    <label asp-for="CourseId">Khóa học của bạn</label>
+
+    <select asp-for="CourseId"
+            asp-items="Model.CourseOptions">
+        <option value="">-- Chưa chọn khóa học --</option>
+    </select>
+
+    <span asp-validation-for="CourseId"
+          class="validation"></span>
+
+    @if (Model.CourseOptions.Count == 0)
+    {
+        <p class="notice">
+            Bạn chưa có khóa học. Bạn vẫn có thể tạo Draft chưa gắn parent.
+        </p>
+    }
+
+    <div class="actions">
+        <button type="submit" class="button secondary">
+            Tải Lesson và Module
+        </button>
+    </div>
+</form>
+
+@* Form POST mới thực hiện tạo Draft.
+   Form Tag Helper sinh antiforgery token để controller kiểm tra. *@
+<form method="post"
+      asp-controller="TeacherPractices"
+      asp-action="Create"
+      asp-antiforgery="true"
+      class="panel editor-form">
+
+    <h2>2. Thông tin bài luyện tập</h2>
+
+    @* Giữ Course đang chọn khi POST.
+       Đổi id HTML để không trùng với dropdown CourseId ở form GET.
+       Server vẫn kiểm tra quyền, không tin hidden input. *@
+    <input type="hidden"
+           asp-for="CourseId"
+           id="PracticeCourseId" />
+
+    @* Hiển thị cả lỗi chuyển kiểu và lỗi trả về từ service. *@
+    <div asp-validation-summary="All"
+         class="validation"
+         role="alert"></div>
+
+    <label asp-for="Input.Title">Tên bài luyện tập</label>
+
+    <input asp-for="Input.Title"
+           maxlength="200"
+           required
+           placeholder="Ví dụ: Ôn tập thì hiện tại đơn" />
+
+    <span asp-validation-for="Input.Title"
+          class="validation"></span>
+
+    <label asp-for="Input.Description">Mô tả</label>
+
+    <textarea asp-for="Input.Description"
+              maxlength="4000"
+              rows="4"
+              placeholder="Hướng dẫn hoặc mục tiêu của bài luyện tập"></textarea>
+
+    <span asp-validation-for="Input.Description"
+          class="validation"></span>
+
+    @if (Model.CourseId.HasValue)
+    {
+        <fieldset>
+            <legend>Nơi gắn bài luyện tập</legend>
+
+            <p>
+                Khóa học: <strong>@Model.CourseTitle</strong>
+            </p>
+
+            <p class="muted">
+                Chỉ chọn một Lesson hoặc một Module, không chọn cả hai.
+                Bạn cũng có thể để trống cả hai để lưu Draft chưa gắn parent.
+            </p>
+
+            <label asp-for="Input.ModuleId">Gắn vào Module</label>
+
+            <select asp-for="Input.ModuleId"
+                    asp-items="Model.ModuleOptions">
+                <option value="">-- Không chọn Module --</option>
+            </select>
+
+            <span asp-validation-for="Input.ModuleId"
+                  class="validation"></span>
+
+            <label asp-for="Input.LessonId">Gắn vào Lesson</label>
+
+            <select asp-for="Input.LessonId"
+                    asp-items="Model.LessonOptions">
+                <option value="">-- Không chọn Lesson --</option>
+            </select>
+
+            <span asp-validation-for="Input.LessonId"
+                  class="validation"></span>
+
+            @if (Model.ModuleOptions.Count == 0)
+            {
+                <p class="muted">
+                    Khóa học này chưa có Module.
+                </p>
+            }
+            else if (Model.LessonOptions.Count == 0)
+            {
+                <p class="muted">
+                    Khóa học này chưa có Lesson.
+                    Bạn có thể chọn Module hoặc lưu Draft chưa gắn parent.
+                </p>
+            }
+        </fieldset>
+    }
+    else
+    {
+        <p class="notice">
+            Bạn chưa chọn khóa học. Practice sẽ được lưu thành Draft
+            chưa gắn Lesson hoặc Module.
+        </p>
+    }
+
+    <p class="muted">
+        Lưu Draft không đồng nghĩa với Publish.
+        Student chưa thể làm bài này.
+    </p>
+
+    <div class="actions">
+        <button type="submit" class="button">
+            Lưu Practice Draft
+        </button>
+
+        @if (Model.CourseId.HasValue)
+        {
+            <a asp-controller="TeacherCourses"
+               asp-action="Manage"
+               asp-route-id="@Model.CourseId.Value">
+                Hủy
+            </a>
+        }
+        else
+        {
+            <a asp-controller="TeacherCourses"
+               asp-action="Index">
+                Hủy
+            </a>
+        }
+    </div>
+</form>

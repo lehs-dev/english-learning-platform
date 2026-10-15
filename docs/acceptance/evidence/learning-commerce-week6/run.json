@@ -1,0 +1,49 @@
+{
+    "startedAtUtc":  "2026-10-14T07:40:49.5058661+00:00",
+    "timezone":  "Asia/Saigon",
+    "branch":  "feat/learning-commerce-uat",
+    "candidateSha":  "ea1e4bb85d3dcc1b62155def6b1717c091f51f88",
+    "workingTreeClean":  true,
+    "sdk":  "10.0.401",
+    "databaseIsolation":  "Disposable SQL Server 2022 container; GUID test fixtures; fresh UAT database",
+    "outcome":  "Passed",
+    "webAssemblySha256":  "9ebf820bb2d47665b42bfb2bc151fbaf7c30489d11bbb62521acc3dd0d9a079f",
+    "testAssemblySha256":  "0b2b27ecdce6b4c15d01b6cf67af08a4b1a083546a94b8b6cf8557b8ba2a1ee7",
+    "sqlContainerName":  "elp-learning-commerce-2517188634224a09b0796f058dfd3b9b",
+    "sqlImageId":  "sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090",
+    "demoDatabase":  "EnglishLearningPlatformUat_e6165ed4ff1e4f0886007654425d4c51",
+    "containerCleanupExitCode":  0,
+    "stages":  [
+                   {
+                       "name":  "restore",
+                       "startedAtUtc":  "2026-10-14T07:40:49.8971898+00:00",
+                       "exitCode":  0
+                   },
+                   {
+                       "name":  "build",
+                       "startedAtUtc":  "2026-10-14T07:40:51.4072278+00:00",
+                       "exitCode":  0
+                   },
+                   {
+                       "name":  "journeys",
+                       "startedAtUtc":  "2026-10-14T07:41:11.6800187+00:00",
+                       "exitCode":  0
+                   },
+                   {
+                       "name":  "fresh-migrations",
+                       "startedAtUtc":  "2026-10-14T07:42:01.1122435+00:00",
+                       "exitCode":  0
+                   },
+                   {
+                       "name":  "browser-existing",
+                       "startedAtUtc":  "2026-10-14T07:42:11.3511365+00:00",
+                       "exitCode":  0
+                   },
+                   {
+                       "name":  "browser-learning-commerce",
+                       "startedAtUtc":  "2026-10-14T07:42:29.2991186+00:00",
+                       "exitCode":  0
+                   }
+               ],
+    "finishedAtUtc":  "2026-10-14T07:42:59.7594426+00:00"
+}

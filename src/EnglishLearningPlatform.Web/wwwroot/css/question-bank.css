@@ -1,0 +1,255 @@
+/* Chỉ áp dụng cho các trang Question Bank, không sửa các panel dùng chung. */
+.question-bank-page .page-content {
+    padding-bottom: 32px;
+}
+
+.question-bank-page .page-heading p {
+    margin: 0;
+    color: #62718b;
+    line-height: 1.6;
+}
+
+.question-bank-page .question-bank-filters h2 {
+    margin: 0 0 20px;
+    font-size: 20px;
+}
+
+/* min-width: 0 cho phép ô trong lưới co lại, tránh tràn ngang trên màn hình nhỏ. */
+.question-bank-page .filter-grid > div {
+    min-width: 0;
+}
+
+.question-bank-page .question-bank-filters .actions {
+    margin: 20px 0 0;
+}
+
+/* Hai thẻ mỗi hàng trên desktop; không đặt chiều cao cố định để nội dung dài vẫn đọc được. */
+.question-bank-page .question-bank-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.question-bank-page .question-bank-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0;
+    padding: 24px;
+    box-shadow: 0 2px 12px #244a8708;
+}
+
+.question-bank-page .question-bank-card h2 {
+    margin: 0 0 10px;
+    color: #62718b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.question-bank-page .question-bank-content {
+    margin: 0 0 20px;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* Mỗi ô chứa một cặp dt/dd: nhãn phía trên, giá trị phía dưới. */
+.question-bank-page .question-bank-metadata {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 20px;
+}
+
+.question-bank-page .question-bank-metadata > div {
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f5f8fd;
+}
+
+.question-bank-page .question-bank-metadata dt {
+    margin: 0 0 5px;
+    color: #62718b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.question-bank-page .question-bank-metadata dd {
+    /* Bỏ margin mặc định của dd để giá trị không còn bị thụt vào bên phải. */
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.question-bank-page .question-bank-card-actions {
+    /* Đẩy nút xuống cuối thẻ, giữ vị trí thẳng hàng khi hai câu dài ngắn khác nhau. */
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #e4ecf7;
+}
+
+.question-bank-page .question-bank-card-actions .button {
+    font-size: 14px;
+}
+
+/* Tablet dùng một thẻ mỗi hàng, thông tin vẫn tận dụng chiều ngang. */
+@media (max-width: 900px) {
+    .question-bank-page .question-bank-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .question-bank-page .question-bank-metadata {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+/* Mobile: thông tin chia hai cột, các nút trong form tự xuống hàng. */
+@media (max-width: 640px) {
+    .question-bank-page .question-bank-card {
+        padding: 18px;
+    }
+
+    .question-bank-page .question-bank-content {
+        font-size: 17px;
+    }
+
+    .question-bank-page .question-bank-metadata {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Trang chi tiết giữ chiều rộng vừa phải để nội dung và lựa chọn dễ đọc. */
+.question-bank-detail-page .page-content {
+    max-width: 960px;
+}
+
+.question-bank-detail-page .question-bank-detail,
+.question-bank-detail-page .question-bank-stimulus {
+    min-width: 0;
+    padding: 28px;
+}
+
+.question-bank-detail-page .question-bank-metadata {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 28px;
+}
+
+.question-bank-detail-page .question-bank-detail h2,
+.question-bank-detail-page .question-bank-stimulus h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.question-bank-detail-page .question-bank-content {
+    margin-bottom: 28px;
+    font-size: 20px;
+}
+
+/* Giữ ol/li để trình duyệt và trình đọc màn hình nhận biết đây là danh sách lựa chọn. */
+.question-bank-detail-page .question-bank-options {
+    margin: 0;
+    padding-left: 28px;
+}
+
+.question-bank-detail-page .question-bank-option {
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    border: 1px solid #e4ecf7;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.question-bank-detail-page .question-bank-option::marker {
+    color: #62718b;
+    font-weight: 600;
+}
+
+/* flex-wrap cho phép nhãn đáp án xuống hàng khi màn hình hẹp hoặc nội dung dài. */
+.question-bank-detail-page .question-bank-option-row {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+.question-bank-detail-page .question-bank-option-content {
+    flex: 1 1 180px;
+    min-width: 0;
+}
+
+.question-bank-detail-page .question-bank-option.is-correct {
+    border-color: #86cfa5;
+    background: #f0fdf4;
+}
+
+.question-bank-detail-page .question-bank-correct-label {
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: #166534;
+    background: #dcfce7;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.question-bank-detail-page .question-bank-explanation {
+    margin-top: 24px;
+    padding: 18px 20px;
+    border-left: 4px solid #176bff;
+    border-radius: 0 10px 10px 0;
+    background: #f5f8fd;
+}
+
+.question-bank-detail-page .question-bank-explanation p {
+    margin: 0;
+}
+
+.question-bank-detail-page .question-bank-stimulus p {
+    overflow-wrap: anywhere;
+}
+
+/* Audio không vượt chiều rộng của panel trên điện thoại. */
+.question-bank-detail-page .question-bank-stimulus audio {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+    .question-bank-detail-page .question-bank-detail,
+    .question-bank-detail-page .question-bank-stimulus {
+        padding: 18px;
+    }
+
+    .question-bank-detail-page .question-bank-metadata {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .question-bank-detail-page .question-bank-content {
+        font-size: 18px;
+    }
+
+    .question-bank-detail-page .question-bank-option {
+        padding: 12px;
+    }
+
+    .question-bank-detail-page .question-bank-explanation {
+        padding: 16px;
+    }
+}
+/* Căn giữa thanh phân trang, không ảnh hưởng các trang khác. */
+.question-bank-page .question-bank-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Cho các thành phần xuống hàng khi màn hình điện thoại quá hẹp. */
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 24px 0;
+}
