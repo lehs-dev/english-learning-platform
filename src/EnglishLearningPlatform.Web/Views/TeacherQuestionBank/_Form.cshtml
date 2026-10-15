@@ -1,0 +1,108 @@
+@using EnglishLearningPlatform.Domain.Enums
+@model EnglishLearningPlatform.Web.Models.QuestionBank.QuestionFormViewModel
+
+<form method="post" asp-controller="TeacherQuestionBank" asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" class="panel editor-form question-form">
+    <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
+
+    @if (Model.IsEdit && Model.ScoringContentLocked)
+    {
+        <div class="notice" role="status">
+            <strong>Nội dung chấm đã bị khóa (TBR05):</strong>
+            <span>@Model.LockReason</span>
+            <span>Bạn vẫn có thể cập nhật metadata (Trình độ, Độ khó, Giải thích). Nếu cần thay đổi nội dung chấm, hãy tạo câu hỏi mới.</span>
+        </div>
+    }
+
+    <div class="form-group">
+        <label asp-for="Content">Nội dung câu hỏi <span class="required">*</span></label>
+        <textarea asp-for="Content" maxlength="4000" rows="5" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Nhập nội dung câu hỏi..."></textarea>
+        <span asp-validation-for="Content" class="validation"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="PrimarySkill">Kỹ năng chính (PrimarySkill) <span class="required">*</span></label>
+        <select asp-for="PrimarySkill" asp-items="Html.GetEnumSelectList<EnglishSkill>()" class="form-control" disabled="@(Model.ScoringContentLocked ? "disabled" : null)">
+            <option value="">-- Chọn kỹ năng --</option>
+        </select>
+        @if (Model.ScoringContentLocked)
+        {
+            <input type="hidden" asp-for="PrimarySkill" />
+        }
+        <span asp-validation-for="PrimarySkill" class="validation"></span>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label asp-for="Level">Trình độ (Level - tùy chọn)</label>
+            <input asp-for="Level" maxlength="32" class="form-control" placeholder="Ví dụ: B1, Intermediate" />
+            <span asp-validation-for="Level" class="validation"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Difficulty">Độ khó (Difficulty - tùy chọn)</label>
+            <input asp-for="Difficulty" maxlength="32" class="form-control" placeholder="Ví dụ: Medium, Hard" />
+            <span asp-validation-for="Difficulty" class="validation"></span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="StimulusId">Ngữ liệu đọc/nghe (Stimulus - tùy chọn)</label>
+        <select asp-for="StimulusId" class="form-control" disabled="@(Model.ScoringContentLocked ? "disabled" : null)">
+            <option value="">-- Không gắn Stimulus --</option>
+            @foreach (var stimulus in Model.Stimuli)
+            {
+                <option value="@stimulus.Id" selected="@(Model.StimulusId == stimulus.Id ? "selected" : null)">@stimulus.Label</option>
+            }
+        </select>
+        @if (Model.ScoringContentLocked)
+        {
+            <input type="hidden" asp-for="StimulusId" />
+        }
+        <span asp-validation-for="StimulusId" class="validation"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Explanation">Giải thích đáp án (tùy chọn)</label>
+        <textarea asp-for="Explanation" maxlength="4000" rows="3" class="form-control" placeholder="Giải thích lý do chọn đáp án đúng..."></textarea>
+        <span asp-validation-for="Explanation" class="validation"></span>
+    </div>
+
+    <fieldset class="question-options" data-question-options data-locked="@(Model.ScoringContentLocked ? "true" : "false")">
+        <legend>Lựa chọn và đáp án đúng <span class="required">*</span></legend>
+        <p class="muted">Cần ít nhất 2 lựa chọn không rỗng và chọn đúng 1 đáp án đúng. Thứ tự các lựa chọn sẽ được lưu theo thứ tự hiển thị.</p>
+        <span asp-validation-for="Options" class="validation"></span>
+        <div data-option-list>
+        @for (var index = 0; index < Model.Options.Count; index++)
+        {
+            <div class="question-option-row" data-option-row>
+                <div class="question-option-input">
+                    <label for="Options_@(index)__Content">Lựa chọn @(index + 1)</label>
+                    <input asp-for="Options[index].Content" id="Options_@(index)__Content" maxlength="1000" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Nhập nội dung lựa chọn..." />
+                    <span asp-validation-for="Options[index].Content" class="validation"></span>
+                </div>
+                <label class="check question-correct">
+                    <input type="radio" name="CorrectOptionIndex" value="@index" checked="@(Model.CorrectOptionIndex == index ? "checked" : null)" disabled="@(Model.ScoringContentLocked ? "disabled" : null)" />
+                    <span>Đáp án đúng</span>
+                </label>
+                @if (Model.ScoringContentLocked)
+                {
+                    <input type="hidden" name="Options[@index].Content" value="@Model.Options[index].Content" />
+                }
+            </div>
+        }
+        </div>
+        @if (!Model.ScoringContentLocked)
+        {
+            <button type="button" class="button secondary small" data-add-option>+ Thêm lựa chọn</button>
+        }
+        @if (Model.ScoringContentLocked)
+        {
+            <input type="hidden" name="CorrectOptionIndex" value="@Model.CorrectOptionIndex" />
+        }
+    </fieldset>
+
+    <div class="actions">
+        <button class="button" type="submit">@(Model.IsEdit ? "Lưu thay đổi" : "Tạo câu hỏi")</button>
+        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">Hủy</a>
+    </div>
+</form>

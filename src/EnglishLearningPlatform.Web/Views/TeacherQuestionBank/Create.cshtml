@@ -1,0 +1,23 @@
+@model EnglishLearningPlatform.Web.Models.QuestionBank.QuestionFormViewModel
+@{
+    ViewData["Title"] = "Tạo câu hỏi";
+    ViewData["PageClass"] = "question-bank-page";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Tạo câu hỏi</h1>
+        <p>Tạo câu hỏi trắc nghiệm mới trong Question Bank của bạn.</p>
+    </div>
+    <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">← Quay lại Question Bank</a>
+</div>
+
+<partial name="_Form" model="Model" />
+
+@section Scripts {
+    <script src="~/js/question-bank.js" asp-append-version="true" defer></script>
+}
