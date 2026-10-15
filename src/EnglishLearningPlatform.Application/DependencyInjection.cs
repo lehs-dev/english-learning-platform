@@ -12,6 +12,8 @@ public static class DependencyInjection
         services.AddScoped<ICreateQuestionValidator, CreateQuestionValidator>();
         // Validator chỉ kiểm tra dữ liệu đầu vào, không truy cập database.
         services.AddScoped<ICreatePracticeValidator, CreatePracticeValidator>();
+        // Cung cấp validator kiểm tra câu hỏi trước khi sử dụng.
+        services.AddScoped<IQuestionUsageValidator, QuestionUsageValidator>();
         return services;
     }
 }

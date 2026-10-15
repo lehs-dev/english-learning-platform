@@ -1,0 +1,17 @@
+@model EnglishLearningPlatform.Web.Models.Admin.CreateTeacherInput
+@{ ViewData["Title"] = "Tạo tài khoản Teacher"; }
+@section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
+<div class="admin-page">
+<header class="admin-heading"><div><p class="eyebrow">KHÔNG GIAN QUẢN TRỊ</p><h1>Tạo tài khoản giáo viên</h1><p>Cấp tài khoản để giáo viên quản lý nội dung và khóa học.</p></div><a class="button secondary" asp-action="Users">← Danh sách tài khoản</a></header>
+<partial name="_AdminNav" />
+<div class="admin-create-grid">
+<section class="admin-surface admin-create-form"><div class="admin-list-heading"><h2>Thông tin giáo viên</h2><span>Vui lòng nhập đầy đủ</span></div>
+<form asp-action="CreateTeacher" method="post" class="admin-editor">
+    <div asp-validation-summary="All" class="notice error" role="alert"></div>
+    <div><label asp-for="FullName"></label><input asp-for="FullName" autocomplete="name" placeholder="Ví dụ: Nguyễn Văn An" required /><span asp-validation-for="FullName"></span></div>
+    <div><label asp-for="Email"></label><input asp-for="Email" type="email" autocomplete="off" placeholder="giaovien@example.com" required /><span asp-validation-for="Email"></span></div>
+    <div><label asp-for="Password"></label><input type="password" id="Password" name="Password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="password-help" required /><p id="password-help" class="admin-field-help">Ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p></div>
+    <div class="admin-form-actions"><a class="button secondary" asp-action="Users">Hủy</a><button class="button" type="submit">Tạo Teacher</button></div>
+</form></section>
+<aside class="admin-create-note"><span class="admin-role role-teacher">Vai trò Giáo viên</span><h2>Sẵn sàng giảng dạy</h2><p>Tài khoản mới có thể tạo và quản lý các khóa học, câu hỏi và bài luyện tập thuộc quyền sở hữu của mình.</p><hr /><h3>Sau khi tạo tài khoản</h3><ol><li>Gửi thông tin đăng nhập cho giáo viên qua kênh riêng.</li><li>Kiểm tra lại email và vai trò trong danh sách tài khoản.</li></ol><p class="admin-field-help">Thao tác tạo tài khoản được lưu trong nhật ký quản trị.</p></aside>
+</div></div>

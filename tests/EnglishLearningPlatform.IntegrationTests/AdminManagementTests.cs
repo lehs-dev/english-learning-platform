@@ -1,0 +1,121 @@
+using System.Net;
+using EnglishLearningPlatform.Application.Administration;
+using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Infrastructure.Identity;
+using EnglishLearningPlatform.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+namespace EnglishLearningPlatform.IntegrationTests;
+
+public sealed class AdminManagementTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
+{
+    [Fact]
+    public async Task CreateTeacher_HashesPassword_AssignsOnlyTeacher_AuditsAndRejectsDuplicate()
+    {
+        var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        var email = $"teacher-{Guid.NewGuid():N}@example.test";
+        const string password = "TestOnly_Admin123!";
+        using var scope = factory.Services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IAdminManagementService>();
+        Assert.True((await service.CreateTeacherAsync(admin.Id, "New teacher", email, password)).Success);
+        Assert.False((await service.CreateTeacherAsync(admin.Id, "Duplicate", email, password)).Success);
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var teacher = await users.FindByEmailAsync(email);
+        Assert.NotNull(teacher);
+        Assert.True(await users.CheckPasswordAsync(teacher, password));
+        Assert.Equal(new[] { AppRoles.Teacher }, await users.GetRolesAsync(teacher));
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var audit = await db.AuditLogs.SingleAsync(a => a.TargetUserId == teacher.Id);
+        Assert.Equal("CreateTeacher", audit.Action);
+        Assert.DoesNotContain(password, audit.AfterData!);
+        Assert.DoesNotContain(teacher.PasswordHash!, audit.AfterData!);
+    }
+
+    [Fact]
+    public async Task ChangeRoleAndLock_InvalidateExistingCookie_UnlockClearsIdentityLockout()
+    {
+        var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, student);
+        using var scope = factory.Services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IAdminManagementService>();
+        Assert.True((await service.UpdateUserAsync(admin.Id, student.Id, AppRoles.Teacher, AccountStatus.Locked)).Success);
+        using var denied = await client.GetAsync("/Profile");
+        Assert.Contains("/Account/Login", denied.Headers.Location!.ToString());
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var target = await db.Users.SingleAsync(u => u.Id == student.Id);
+        target.LockoutEnd = DateTimeOffset.UtcNow.AddDays(1); target.AccessFailedCount = 5;
+        await db.SaveChangesAsync();
+        Assert.True((await service.UpdateUserAsync(admin.Id, student.Id, AppRoles.Teacher, AccountStatus.Active)).Success);
+        Assert.Null(target.LockoutEnd); Assert.Equal(0, target.AccessFailedCount);
+        target.LockoutEnd = DateTimeOffset.UtcNow.AddDays(1); target.AccessFailedCount = 5;
+        await db.SaveChangesAsync();
+        Assert.True((await service.UpdateUserAsync(admin.Id, student.Id, AppRoles.Teacher, AccountStatus.Active)).Success);
+        Assert.Null(target.LockoutEnd); Assert.Equal(0, target.AccessFailedCount);
+        Assert.True((await service.UpdateUserAsync(admin.Id, student.Id, AppRoles.Teacher, AccountStatus.Disabled)).Success);
+        Assert.Equal(4, await db.AuditLogs.CountAsync(a => a.TargetUserId == student.Id));
+        Assert.Equal(new[] { AppRoles.Teacher }, await scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>().GetRolesAsync(target));
+    }
+
+    [Fact]
+    public async Task ConcurrentAdminDemotions_LeaveOneActiveAdmin_AndOnlyAuditSuccessfulWrite()
+    {
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Users.ExecuteUpdateAsync(s => s.SetProperty(u => u.AccountStatus, AccountStatus.Disabled));
+        }
+        var first = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        var second = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        async Task<AdminChangeResult> Demote(Guid actor)
+        {
+            using var scope = factory.Services.CreateScope();
+            return await scope.ServiceProvider.GetRequiredService<IAdminManagementService>()
+                .UpdateUserAsync(actor, actor, AppRoles.Student, AccountStatus.Active);
+        }
+        var results = await Task.WhenAll(Demote(first.Id), Demote(second.Id));
+        Assert.Single(results, r => r.Success);
+        using var check = factory.Services.CreateScope();
+        var dbCheck = check.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(1, await dbCheck.UserRoles.CountAsync(ur => (ur.UserId == first.Id || ur.UserId == second.Id) &&
+            dbCheck.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Admin)));
+        Assert.Equal(1, await dbCheck.AuditLogs.CountAsync(a => a.TargetUserId == first.Id || a.TargetUserId == second.Id));
+        var remaining = results[0].Success ? second : first;
+        var service = check.ServiceProvider.GetRequiredService<IAdminManagementService>();
+        Assert.False((await service.UpdateUserAsync(remaining.Id, remaining.Id, AppRoles.Admin, AccountStatus.Locked)).Success);
+        Assert.False((await service.UpdateUserAsync(remaining.Id, remaining.Id, AppRoles.Admin, AccountStatus.Disabled)).Success);
+    }
+
+    [Fact]
+    public async Task Controller_RequiresAdminAndCsrf_ValidatesFormAndSupportsRoleFilter()
+    {
+        var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, admin);
+        using var csrf = await client.PostAsync("/Admin/UpdateUser", new FormUrlEncodedContent([]));
+        Assert.Equal(HttpStatusCode.BadRequest, csrf.StatusCode);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, "/Admin/CreateTeacher");
+        var email = $"ui-teacher-{Guid.NewGuid():N}@example.test";
+        using var created = await client.PostAsync("/Admin/CreateTeacher", new FormUrlEncodedContent(new Dictionary<string,string>
+        { ["__RequestVerificationToken"] = token, ["FullName"] = "UI teacher", ["Email"] = email, ["Password"] = "TestOnly_Admin123!" }));
+        Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
+        var html = await client.GetStringAsync($"/Admin/Users?search={email}&role=Teacher");
+        Assert.Contains(email, html);
+        Assert.DoesNotContain($"<td>{email}</td>", await client.GetStringAsync($"/Admin/Users?search={email}&role=Student"));
+        Assert.Contains(email, await client.GetStringAsync($"/Admin/Audit?search={email}"));
+        using var other = IdentityTestHelpers.CreateClient(factory);
+        using var otherLogin = await IdentityTestHelpers.LoginAsync(other, student);
+        using var forbidden = await other.GetAsync("/Admin/Audit");
+        Assert.Contains("AccessDenied", forbidden.Headers.Location!.ToString());
+        using var scope = factory.Services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IAdminManagementService>();
+        Assert.False((await service.CreateTeacherAsync(student.Id, "No access", "no@example.test", "TestOnly_Admin123!")).Success);
+        Assert.False((await service.UpdateUserAsync(student.Id, admin.Id, AppRoles.Student, AccountStatus.Active)).Success);
+        Assert.Null(await service.AuditAsync(student.Id, null, 1));
+    }
+}

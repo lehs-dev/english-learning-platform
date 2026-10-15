@@ -1,5 +1,24 @@
 # Browser UAT
 
+## Kiểm thử responsive và điều hướng theo vai trò
+
+Sau khi cài dependencies và Chromium như bên dưới, chạy `npm run test:roles`.
+Suite chạy tuần tự, dùng chung một Chromium và đóng từng browser context để giảm RAM.
+Có thể chia nhỏ thêm theo vai trò, ví dụ:
+
+```bash
+node --test --test-concurrency=1 --test-name-pattern='student' role-layouts.test.mjs
+node --test --test-concurrency=1 --test-name-pattern='teacher' role-layouts.test.mjs
+```
+
+Mười test dùng HTML lấy từ bốn Razor layout thật cùng CSS và `site.js` production,
+kiểm tra menu, focus bàn phím, backdrop, Escape, resize và tràn ngang ở
+320/390/768/900/901/1024/1025/1080/1081/1250/1440px cùng drawer ở chiều cao 320px. Fixture bỏ cú pháp
+Razor, lấy đúng nhánh guest/authenticated của AccountMenu thật với tên ổn định,
+giữ notification/chevron và chèn cards/form/table đại diện. Suite không cần database và
+không xác minh việc render Razor, phân quyền hay dữ liệu backend; các phần đó
+được kiểm tra bằng integration tests và UAT với ứng dụng thật.
+
 ## Kiểm thử giao diện Attempt riêng
 
 Sau `npm ci` và `npx playwright install chromium`, chạy `npm run test:assessment`.

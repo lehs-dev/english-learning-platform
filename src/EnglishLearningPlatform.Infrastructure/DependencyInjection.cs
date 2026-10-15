@@ -75,6 +75,7 @@ public static class DependencyInjection
         // Khi controller yêu cầu IQuestionQueryService,
         // DI sẽ tạo QuestionQueryService và cung cấp các dependency cần thiết.
         services.AddScoped<IQuestionQueryService, QuestionQueryService>();
+        services.AddScoped<IQuestionAuthoringService, QuestionAuthoringService>();
         services.AddSingleton<IPaymentGateway, HostedPaymentGateway>();
         services.AddSingleton<LocalSandboxGateway>();
         services.AddScoped<ICheckoutTransactionFactory, CheckoutTransactionFactory>();
@@ -85,6 +86,7 @@ public static class DependencyInjection
         services.AddScoped<IAssessmentQueryService, AssessmentQueryService>();
         services.AddScoped<IExamScoringService, ExamScoringService>();
         services.AddScoped<IAdminQueryService, AdminQueryService>();
+        services.AddScoped<IAdminManagementService, AdminManagementService>();
         services.AddScoped<IStudentLearningService, StudentLearningService>();
         services.AddScoped<ITeacherCourseReportService, TeacherCourseReportService>();
         services.AddScoped<IPracticeService, PracticeService>();

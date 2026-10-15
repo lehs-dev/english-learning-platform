@@ -1,0 +1,132 @@
+@{
+    var activeSection = ViewData["ActiveSection"] as string;
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var isTransactions = string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
+    var isUsers = string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase);
+    var title = ViewData["Title"] as string ?? "Quản trị";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>@title - Estudy Quản trị</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/role-layouts.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="admin-body @ViewData["PageClass"]">
+    <a class="skip-link" href="#main-content">Đến nội dung chính</a>
+    <div class="admin-shell">
+        <aside class="admin-sidebar" id="admin-sidebar" aria-label="Điều hướng quản trị">
+            <div class="admin-sidebar-header">
+                <a class="admin-brand" asp-controller="Admin" asp-action="Transactions" aria-label="Estudy Admin Console">
+                    <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
+                    <span class="admin-brand-text">Estudy</span>
+                </a>
+                <span class="admin-role-badge">Admin</span>
+                <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng thanh điều hướng quản trị">✕</button>
+            </div>
+
+            <div class="admin-system-status" role="status" aria-label="Trạng thái hệ thống: Trực tuyến">
+                <span class="status-dot status-online" aria-hidden="true"></span>
+                <span class="status-text">Hệ thống: Trực tuyến</span>
+            </div>
+
+            <nav class="admin-nav" aria-label="Thực đơn quản trị">
+                <div class="admin-nav-section">
+                    <span class="admin-nav-heading">QUẢN TRỊ NỀN TẢNG</span>
+                    <a class="admin-nav-link @(isTransactions ? "is-active" : "")"
+                       asp-controller="Admin"
+                       asp-action="Transactions"
+                       aria-current="@(isTransactions ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+                        <span>Giao dịch</span>
+                    </a>
+                    <a class="admin-nav-link @(isUsers ? "is-active" : "")"
+                       asp-controller="Admin"
+                       asp-action="Users"
+                       aria-current="@(isUsers ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
+                        <span>Người dùng</span>
+                    </a>
+                </div>
+
+                <div class="admin-nav-section">
+                    <span class="admin-nav-heading">LIÊN KẾT NHANH</span>
+                    <a class="admin-nav-link"
+                       asp-controller="Courses"
+                       asp-action="Index"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       aria-label="Xem danh mục khóa học (mở trong tab mới)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
+                        <span>Xem danh mục khóa học</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                @await Component.InvokeAsync("AccountMenu")
+            </div>
+        </aside>
+
+        <div class="sidebar-backdrop" data-admin-backdrop data-sidebar-backdrop aria-controls="admin-sidebar" hidden></div>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <button class="mobile-sidebar-toggle icon-button" type="button" data-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" aria-label="Mở thanh điều hướng quản trị">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#menu")"></use></svg>
+                </button>
+                <nav class="admin-breadcrumbs" aria-label="Thanh điều hướng phân cấp">
+                    <ol class="breadcrumb-list">
+                        <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Transactions">Quản trị</a></li>
+                        <li class="breadcrumb-separator" aria-hidden="true">/</li>
+                        <li class="breadcrumb-item is-active" aria-current="page">@title</li>
+                    </ol>
+                </nav>
+                <div class="admin-topbar-actions">
+                    <span class="admin-env-badge">Production Console</span>
+                </div>
+            </header>
+
+            @* Notification & Alert Area *@
+            @{
+                var successNotice = TempData["Success"] as string ?? TempData["SuccessMessage"] as string;
+                var errorNotice = TempData["Error"] as string ?? TempData["ErrorMessage"] as string;
+            }
+            @if (!string.IsNullOrWhiteSpace(successNotice) || !string.IsNullOrWhiteSpace(errorNotice))
+            {
+                <div class="admin-notifications" aria-live="polite">
+                    @if (!string.IsNullOrWhiteSpace(successNotice))
+                    {
+                        <div class="alert alert-success" role="status">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+                            <span>@successNotice</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(errorNotice))
+                    {
+                        <div class="alert alert-error" role="alert">
+                            <span>@errorNotice</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            <main class="admin-content" id="main-content" tabindex="-1">
+                @RenderBody()
+            </main>
+
+            <footer class="admin-footer">
+                <span>&copy; @DateTime.UtcNow.Year Estudy Enterprise Console · Clean Architecture Administration</span>
+            </footer>
+        </div>
+    </div>
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

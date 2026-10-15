@@ -1,9 +1,11 @@
 using System.Reflection;
 using EnglishLearningPlatform.Application.Administration;
+using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Infrastructure;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Web.Controllers;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -63,11 +65,30 @@ public sealed class SecurityConfigurationTests
     }
 
     [Fact]
-    public void AdminSurface_IsReadOnly_AndProjectionExcludesIdentitySecretsAndAnswers()
+    public void AdminSurface_OnlyAllowsReviewedAccountMutations_WithAdminPolicyAndAntiforgery()
     {
-        foreach (var action in typeof(AdminController).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-            Assert.Equal(new[] { "GET" }, action.GetCustomAttributes<HttpMethodAttribute>().SelectMany(a => a.HttpMethods));
-        var properties = new[] { typeof(AdminUser), typeof(AdminTransaction) }.SelectMany(t => t.GetProperties()).Select(p => p.Name);
+        var controller = typeof(AdminController);
+        Assert.Equal(AuthorizationPolicies.Admin, controller.GetCustomAttribute<AuthorizeAttribute>()!.Policy);
+        Assert.True(controller.GetCustomAttribute<ResponseCacheAttribute>()!.NoStore);
+        var actions = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        var endpoints = actions.SelectMany(action => action.GetCustomAttributes<HttpMethodAttribute>()
+            .SelectMany(attribute => attribute.HttpMethods.Select(verb => $"{action.Name}:{verb}"))).Order().ToArray();
+        Assert.Equal(new[] { "Audit:GET", "CreateTeacher:GET", "CreateTeacher:POST", "Index:GET",
+            "Transactions:GET", "UpdateUser:POST", "Users:GET" }, endpoints);
+        foreach (var action in actions)
+        {
+            Assert.False(action.IsDefined(typeof(AllowAnonymousAttribute)));
+            Assert.False(action.IsDefined(typeof(IgnoreAntiforgeryTokenAttribute)));
+            if (action.IsDefined(typeof(HttpPostAttribute)))
+                Assert.True(action.IsDefined(typeof(ValidateAntiForgeryTokenAttribute)), $"{action.Name} requires antiforgery.");
+        }
+    }
+
+    [Fact]
+    public void AdminProjections_ExcludeIdentitySecretsAndAssessmentAnswers()
+    {
+        var properties = new[] { typeof(AdminUser), typeof(AdminTransaction), typeof(AdminAudit), typeof(AdminChangeResult) }
+            .SelectMany(t => t.GetProperties()).Select(p => p.Name);
         Assert.DoesNotContain(properties, p => p.Contains("Password", StringComparison.OrdinalIgnoreCase) || p.Contains("Secret", StringComparison.OrdinalIgnoreCase) || p is "IsCorrect" or "SecurityStamp" or "ConcurrencyStamp");
     }
 

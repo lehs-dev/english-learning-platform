@@ -27,7 +27,10 @@ public sealed class IdentityLoginService(
             lockoutOnFailure: true);
 
         if (result.Succeeded)
-            return new LoginResult(LoginStatus.Succeeded);
+        {
+            var roles = await userManager.GetRolesAsync(user);
+            return new LoginResult(LoginStatus.Succeeded, roles.FirstOrDefault());
+        }
 
         if (result.IsLockedOut)
             return new LoginResult(LoginStatus.TemporarilyLocked);

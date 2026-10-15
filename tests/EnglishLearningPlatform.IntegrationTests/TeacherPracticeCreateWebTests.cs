@@ -38,7 +38,14 @@ public sealed class TeacherPracticeCreateWebTests : IClassFixture<IntegrationTes
         using var profile = await client.GetAsync("/Profile");
         Assert.Equal(HttpStatusCode.OK, profile.StatusCode);
         var html = await profile.Content.ReadAsStringAsync();
-        var navigation = Regex.Match(html, "<nav\\b[^>]*\\bid=\"main-nav\"[^>]*>.*?</nav>",
+        var navigationClass = role switch
+        {
+            AppRoles.Teacher => "studio-nav",
+            AppRoles.Student => "student-nav",
+            AppRoles.Admin => "admin-nav",
+            _ => throw new ArgumentOutOfRangeException(nameof(role))
+        };
+        var navigation = Regex.Match(html, $"""<nav\b[^>]*\bclass="[^"]*\b{navigationClass}\b[^"]*"[^>]*>.*?</nav>""",
             RegexOptions.IgnoreCase | RegexOptions.Singleline);
         Assert.True(navigation.Success);
         var questionBankLinks = Regex.Matches(navigation.Value, "<a\\b[^>]*>.*?</a>",

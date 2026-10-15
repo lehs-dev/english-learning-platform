@@ -1,0 +1,7 @@
+@{ var current = ViewContext.RouteData.Values["action"]?.ToString(); }
+<nav class="admin-nav" aria-label="Quản trị">
+    <a asp-action="Index" aria-current="@(current == "Index" ? "page" : null)">Tổng quan</a>
+    <a asp-action="Users" aria-current="@(current is "Users" or "CreateTeacher" ? "page" : null)">Tài khoản</a>
+    <a asp-action="Transactions" aria-current="@(current == "Transactions" ? "page" : null)">Giao dịch</a>
+    <a asp-action="Audit" aria-current="@(current == "Audit" ? "page" : null)">Nhật ký</a>
+</nav>

@@ -9,6 +9,56 @@ using Xunit;
 namespace EnglishLearningPlatform.UnitTests.QuestionBank;
 public sealed class QuestionBankDependencyInjectionTests
 {
+    // Validator mới phải được đăng ký đúng class và đúng lifetime.
+    [Fact]
+    public void AddApplication_RegistersQuestionUsageValidatorAsScoped()
+    {
+        ServiceCollection services = new ServiceCollection();
+        services.AddApplication();
+
+        ServiceDescriptor registration = Assert.Single(
+            services,
+            item => item.ServiceType == typeof(IQuestionUsageValidator));
+
+        Assert.Equal(typeof(QuestionUsageValidator), registration.ImplementationType);
+        Assert.Equal(ServiceLifetime.Scoped, registration.Lifetime);
+    }
+
+    // Resolve thật để phát hiện dependency bị thiếu, không chỉ kiểm tra đăng ký.
+    [Fact]
+    public void AddApplication_ResolvesQuestionUsageValidatorAndKeepsInstancesScoped()
+    {
+        ServiceCollection services = new ServiceCollection();
+        services.AddApplication();
+        using ServiceProvider provider = services.BuildServiceProvider(
+            new ServiceProviderOptions
+            {
+                ValidateScopes = true,
+                ValidateOnBuild = true
+            });
+        using IServiceScope firstScope = provider.CreateScope();
+        using IServiceScope secondScope = provider.CreateScope();
+
+        IQuestionUsageValidator first = firstScope.ServiceProvider
+            .GetRequiredService<IQuestionUsageValidator>();
+        IQuestionUsageValidator firstAgain = firstScope.ServiceProvider
+            .GetRequiredService<IQuestionUsageValidator>();
+        IQuestionUsageValidator second = secondScope.ServiceProvider
+            .GetRequiredService<IQuestionUsageValidator>();
+
+        Assert.IsType<QuestionUsageValidator>(first);
+        Assert.Same(first, firstAgain);
+        Assert.NotSame(first, second);
+        var errors = first.ValidateForNewUse(Guid.NewGuid(), null);
+        Assert.Single(errors);
+        Assert.Equal("not_found", errors[0].Code);
+
+        // Interface đã có hai chế độ; cùng instance DI phải gọi được cả hai.
+        var existingErrors = first.ValidateForExistingUse(Guid.NewGuid(), null);
+        Assert.Single(existingErrors);
+        Assert.Equal("not_found", existingErrors[0].Code);
+    }
+
   [Fact]
   public void AddApplication_RegistersCreateQuestionValidatorAsScoped()
     {

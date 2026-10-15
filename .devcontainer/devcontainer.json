@@ -22,7 +22,6 @@
   "containerEnv": {
     "ASPNETCORE_ENVIRONMENT": "Development",
     "ASPNETCORE_URLS": "http://0.0.0.0:8080",
-    "ConnectionStrings__DefaultConnection": "Server=db,1433;Database=EnglishLearningDb;User Id=sa;Password=Change_this_password_123!;TrustServerCertificate=True;MultipleActiveResultSets=true",
     "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
     "DOTNET_NOLOGO": "1"
   },
@@ -33,13 +32,12 @@
         "ms-dotnettools.csdevkit",
         "ms-dotnettools.csharp",
         "ms-mssql.mssql",
-        "ms-azuretools.vscode-docker",
-        "eamodio.gitlens"
+        "ms-azuretools.vscode-docker"
       ],
       "settings": {
         "dotnet.defaultSolution": "EnglishLearningPlatform.sln",
         "editor.formatOnSave": true,
-        "files.eol": "\\n"
+        "files.eol": "\n"
       }
     }
   },
