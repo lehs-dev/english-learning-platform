@@ -6,7 +6,7 @@ namespace EnglishLearningPlatform.Application.Administration;
 public interface IAdminQueryService
 {
     Task<AdminPage<AdminTransaction>?> TransactionsAsync(Guid actorId, string? search, PaymentStatus? status, int page, CancellationToken ct = default);
-    Task<AdminPage<AdminUser>?> UsersAsync(Guid actorId, string? search, AccountStatus? status, int page, CancellationToken ct = default);
+    Task<AdminPage<AdminUser>?> UsersAsync(Guid actorId, string? search, AccountStatus? status, int page, CancellationToken ct = default, string? role = null);
 }
 
 public sealed record AdminPage<T>(IReadOnlyList<T> Items, string Search, int Page, int Pages, int Total);

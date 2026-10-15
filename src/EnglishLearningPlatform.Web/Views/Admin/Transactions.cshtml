@@ -12,21 +12,23 @@
     };
 }
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
-<div class="page-heading"><div><p class="eyebrow">ESTUDY · QUẢN TRỊ</p><h1>Giao dịch thanh toán</h1><p class="muted">Tra cứu đơn hàng và trạng thái thanh toán.</p></div><a class="button secondary" asp-action="Users">Trạng thái tài khoản</a></div>
-<section class="panel">
+<div class="admin-page">
+<header class="admin-heading"><div><p class="eyebrow">KHÔNG GIAN QUẢN TRỊ</p><h1>Giao dịch thanh toán</h1><p>Tra cứu đơn hàng và đối chiếu trạng thái thanh toán.</p></div></header>
+<partial name="_AdminNav" />
+<section class="admin-surface">
     <form method="get" asp-action="Transactions" class="admin-filters">
-        <div><label for="search">Email học viên, khóa học hoặc mã đơn</label><input id="search" name="search" value="@Model.Search" maxlength="120" /></div>
+        <div class="admin-search"><label for="search">Tìm giao dịch</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Email, khóa học hoặc mã đơn…" /></div>
         <div><label for="status">Trạng thái thanh toán</label><select id="status" name="status"><option value="">Tất cả</option>@foreach (var status in Enum.GetValues<PaymentStatus>()) { <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option> }</select></div>
-        <button class="button" type="submit">Tra cứu</button><a asp-action="Transactions">Xóa bộ lọc</a>
+        <div class="admin-filter-actions"><button class="button" type="submit">Tìm kiếm</button><a asp-action="Transactions">Đặt lại</a></div>
     </form>
-    <p class="muted">Tìm thấy @Model.Total đơn hàng. Thời gian hiển thị theo giờ Việt Nam (UTC+7).</p>
-    @if (Model.Items.Count == 0) { <p class="empty">Không có giao dịch phù hợp.</p> }
+    <div class="admin-list-heading"><h2>Đơn hàng <span class="admin-count">@Model.Total</span></h2><span>Thời gian Việt Nam · UTC+7</span></div>
+    @if (Model.Items.Count == 0) { <div class="admin-empty"><h3>Chưa có giao dịch phù hợp</h3><p>Thử tìm theo email học viên hoặc đặt lại bộ lọc.</p></div> }
     else
     {
-        <div class="admin-table-wrap"><table class="admin-table"><caption class="visually-hidden">Giao dịch thanh toán, trang @Model.Page trên @Model.Pages</caption><thead><tr><th scope="col">Mã đơn</th><th scope="col">Học viên</th><th scope="col">Khóa học</th><th scope="col">Số tiền</th><th scope="col">Ngày tạo</th><th scope="col">Trạng thái</th><th scope="col">Ngày thanh toán</th></tr></thead><tbody>
+        <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Giao dịch thanh toán, trang @Model.Page trên @Model.Pages</caption><thead><tr><th scope="col">Mã đơn</th><th scope="col">Học viên</th><th scope="col">Khóa học</th><th scope="col">Số tiền</th><th scope="col">Ngày tạo</th><th scope="col">Trạng thái</th><th scope="col">Ngày thanh toán</th></tr></thead><tbody>
         @foreach (var item in Model.Items)
         {
-            <tr><td><code>@item.OrderId</code></td><td>@item.StudentEmail</td><td>@item.CourseTitle</td><td>@item.Amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @item.Currency</td><td>@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</td><td>@StatusLabel(item.Status)</td><td>@(item.PaidAtUtc?.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") ?? "—")</td></tr>
+            <tr><td data-label="Mã đơn"><code class="admin-order-id">@item.OrderId</code></td><td data-label="Học viên">@item.StudentEmail</td><td data-label="Khóa học"><strong>@item.CourseTitle</strong></td><td data-label="Số tiền" class="admin-amount">@item.Amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @item.Currency</td><td data-label="Ngày tạo">@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</td><td data-label="Trạng thái"><span class="admin-badge payment-@((item.Status ?? PaymentStatus.Pending).ToString().ToLowerInvariant())">@StatusLabel(item.Status)</span></td><td data-label="Thanh toán lúc">@(item.PaidAtUtc?.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") ?? "—")</td></tr>
         }
         </tbody></table></div>
     }
@@ -36,3 +38,4 @@
         @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau →</a> }
     </nav>
 </section>
+</div>

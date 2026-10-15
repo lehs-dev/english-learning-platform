@@ -1,0 +1,38 @@
+@using EnglishLearningPlatform.Application.Administration
+@using System.Text.Json
+@model AdminPage<AdminAudit>
+@{
+    ViewData["Title"] = "Nhật ký quản trị";
+    static string Snapshot(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "Chưa có tài khoản";
+        try {
+            using var json = JsonDocument.Parse(value);
+            var fields = new List<string>();
+            if (json.RootElement.TryGetProperty("Role", out var role)) fields.Add(role.GetString() switch { "Teacher" => "Giáo viên", "Student" => "Học viên", "Admin" => "Quản trị viên", _ => "Vai trò khác" });
+            if (json.RootElement.TryGetProperty("Status", out var status)) fields.Add(status.GetString() switch { "Active" => "Đang hoạt động", "Locked" => "Đã khóa", "Disabled" => "Đã vô hiệu hóa", _ => "Trạng thái khác" });
+            if (json.RootElement.TryGetProperty("LockoutEnd", out var end) && end.ValueKind != JsonValueKind.Null) fields.Add("Có khóa đăng nhập tạm thời");
+            return fields.Count > 0 ? string.Join(" · ", fields) : "Không có thông tin vai trò/trạng thái";
+        } catch (JsonException) { return value == "Role=Admin;Status=Active" ? "Quản trị viên · Đang hoạt động" : "Dữ liệu lịch sử"; }
+    }
+    static string ActionLabel(string action) => action switch { "CreateTeacher" => "Tạo giáo viên", "UpdateUser" => "Cập nhật tài khoản", "BootstrapLocalAdmin" => "Khởi tạo quản trị viên", _ => action };
+}
+@section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
+<div class="admin-page">
+<header class="admin-heading"><div><p class="eyebrow">KHÔNG GIAN QUẢN TRỊ</p><h1>Nhật ký quản trị</h1><p>Theo dõi người thực hiện và các thay đổi trên tài khoản.</p></div></header>
+<partial name="_AdminNav" />
+<section class="admin-surface">
+<form method="get" class="admin-filters"><div class="admin-search"><label for="search">Tìm trong nhật ký</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Email người thực hiện hoặc tài khoản…" /></div><div class="admin-filter-actions"><button class="button">Tìm kiếm</button><a asp-action="Audit">Đặt lại</a></div></form>
+<div class="admin-list-heading"><h2>Lịch sử thay đổi <span class="admin-count">@Model.Total</span></h2><span>Thời gian Việt Nam · UTC+7</span></div>
+@if (Model.Items.Count == 0) { <div class="admin-empty"><h3>Chưa có thao tác phù hợp</h3><p>Nhật ký sẽ xuất hiện khi tạo hoặc cập nhật tài khoản.</p></div> }
+else {
+<div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Nhật ký quản trị</caption><thead><tr><th>Thời gian</th><th>Người thao tác</th><th>Tài khoản</th><th>Thao tác</th><th>Thay đổi</th></tr></thead><tbody>
+@foreach (var row in Model.Items) {
+<tr><td data-label="Thời gian" class="admin-date">@row.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")<small>@row.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm:ss")</small></td><td data-label="Người thao tác">@row.Actor</td><td data-label="Tài khoản">@row.Target</td><td data-label="Thao tác"><span class="admin-role">@ActionLabel(row.Action)</span></td><td data-label="Thay đổi"><div class="admin-audit-change"><span><small>TRƯỚC</small>@Snapshot(row.Before)</span><span><small>SAU</small>@Snapshot(row.After)</span></div></td></tr>
+}
+</tbody></table></div>
+}
+<nav class="admin-pagination" aria-label="Phân trang nhật ký"><span>Trang <strong>@Model.Page</strong> / @Model.Pages</span><div>
+@if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-page="@(Model.Page - 1)">← Trước</a> }
+@if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-page="@(Model.Page + 1)">Sau →</a> }
+</div></nav></section></div>
