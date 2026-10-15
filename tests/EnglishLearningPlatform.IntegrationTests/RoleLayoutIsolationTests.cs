@@ -107,7 +107,8 @@ public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : I
         foreach (var (path, activeLink) in new[]
         {
             ("/TeacherQuestionBank", "/TeacherQuestionBank"),
-            ("/TeacherPractices/Create", "/TeacherCourses#practices")
+            ("/TeacherPractices", "/TeacherPractices"),
+            ("/TeacherPractices/Create", "/TeacherPractices")
         })
         {
             using var sectionResponse = await client.GetAsync(path);

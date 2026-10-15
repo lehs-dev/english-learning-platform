@@ -6,6 +6,7 @@ using EnglishLearningPlatform.Web.Models.Practice;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using EnglishLearningPlatform.Domain.Enums;
 
 namespace EnglishLearningPlatform.Web.Controllers;
 
@@ -18,23 +19,166 @@ public sealed class TeacherPracticesController : Controller
 {
     private readonly ICourseService _courseService;
     private readonly ITeacherPracticeService _practiceService;
+    private readonly ITeacherPracticeQueryService _practiceQueryService;
 
     public TeacherPracticesController(
         ICourseService courseService,
-        ITeacherPracticeService practiceService)
+        ITeacherPracticeService practiceService,
+        ITeacherPracticeQueryService practiceQueryService)
     {
-        if (courseService is null)
+        if (courseService == null)
         {
             throw new ArgumentNullException(nameof(courseService));
         }
 
-        if (practiceService is null)
+        if (practiceService == null)
         {
             throw new ArgumentNullException(nameof(practiceService));
         }
 
+        if (practiceQueryService == null)
+        {
+            throw new ArgumentNullException(nameof(practiceQueryService));
+        }
+
         _courseService = courseService;
         _practiceService = practiceService;
+        _practiceQueryService = practiceQueryService;
+    }
+    /// <summary>
+    /// Chuẩn bị dữ liệu cho trang danh sách Practice của Teacher.
+    /// GET chỉ đọc, không tạo hoặc cập nhật dữ liệu.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> Index(
+        [FromQuery] TeacherPracticeSearchRequest query,
+        CancellationToken cancellationToken)
+    {
+        Guid actorUserId;
+
+        // Helper đã có trong controller.
+        // ID Teacher lấy từ tài khoản đăng nhập, không lấy từ URL.
+        if (!TryGetActorUserId(out actorUserId))
+        {
+            return Challenge();
+        }
+
+        // ModelState phát hiện lỗi chuyển kiểu từ URL.
+        // Ví dụ: PageNumber=abc hoặc CourseId=abc.
+        if (query == null || !ModelState.IsValid)
+        {
+            return BadRequest("Thông tin tìm kiếm không hợp lệ.");
+        }
+
+        // Kiểm tra ở controller để trả HTTP 400 cho dữ liệu sai.
+        // Service vẫn kiểm tra lại để bảo vệ khi được gọi từ nơi khác.
+        if (query.PageNumber < 1)
+        {
+            return BadRequest("Số trang phải từ 1 trở lên.");
+        }
+
+        if (query.PageSize < 1 || query.PageSize > 100)
+        {
+            return BadRequest(
+                "Số Practice mỗi trang phải từ 1 đến 100.");
+        }
+
+        if (query.Status.HasValue)
+        {
+            bool validStatus = Enum.IsDefined(
+                typeof(PracticeStatus),
+                query.Status.Value);
+
+            if (!validStatus)
+            {
+                return BadRequest("Trạng thái Practice không hợp lệ.");
+            }
+        }
+
+        // Null nghĩa là không lọc Course.
+        // Guid.Empty không phải ID Course hợp lệ.
+        if (query.CourseId == Guid.Empty)
+        {
+            return BadRequest("ID Course không hợp lệ.");
+        }
+
+        // true nghĩa là lấy các Course Teacher đang sở hữu.
+        // Tái sử dụng service của dự án, không truy vấn EF tại controller.
+        var courses = await _courseService.MyCoursesAsync(
+            actorUserId,
+            true,
+            cancellationToken);
+
+        if (courses.Access != LearningAccessResult.Allowed)
+        {
+            return Denied(courses.Access);
+        }
+
+        if (courses.Value == null)
+        {
+            return NotFound();
+        }
+
+        // Nếu Teacher lọc theo một Course cụ thể,
+        // Course đó phải thuộc quyền sở hữu của tài khoản hiện tại.
+        if (query.CourseId.HasValue)
+        {
+            bool ownsSelectedCourse = courses.Value.Any(
+                course =>
+                    course.Id == query.CourseId.Value
+                    && course.OwnerId == actorUserId);
+
+            if (!ownsSelectedCourse)
+            {
+                // Không tiết lộ Course không tồn tại hay của người khác.
+                return NotFound();
+            }
+        }
+
+        // Service tự kiểm tra quyền và lọc owner của Practice.
+        // Không dựa vào việc dropdown chỉ hiển thị Course hợp lệ.
+        var searchResult = await _practiceQueryService.SearchAsync(
+            actorUserId,
+            query,
+            cancellationToken);
+
+        if (searchResult.Access != LearningAccessResult.Allowed)
+        {
+            return Denied(searchResult.Access);
+        }
+
+        if (searchResult.Value == null)
+        {
+            return NotFound();
+        }
+
+        // Gộp bộ lọc và kết quả để chuyển cho View.
+        var model = new TeacherPracticeIndexViewModel(
+            query,
+            searchResult.Value);
+
+        // Tạo dropdown từ dữ liệu server.
+        // Không nhận tên Course hoặc danh sách lựa chọn từ client.
+        var courseOptions = new List<SelectListItem>();
+
+        foreach (var course in courses.Value)
+        {
+            courseOptions.Add(new SelectListItem
+            {
+                Value = course.Id.ToString(),
+                Text = course.Title,
+
+                // Giữ lại Course đã chọn sau khi tìm kiếm.
+                Selected = query.CourseId.HasValue
+                    && course.Id == query.CourseId.Value
+            });
+        }
+
+        model.CourseOptions = courseOptions;
+
+        // MVC sẽ tìm Views/TeacherPractices/Index.cshtml.
+        // Ta sẽ tạo file View đó ở bước 1.2.
+        return View(model);
     }
 
     /// <summary>
