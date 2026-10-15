@@ -1,20 +1,18 @@
 @model EnglishLearningPlatform.Web.Models.Practice.CreatePracticeViewModel
 
 @{
-    ViewData["Title"] = "Tạo Practice Draft";
+    ViewData["Title"] = "Tạo bài luyện tập nháp";
     ViewData["ActiveSection"] = "courses";
 }
 
-<a asp-controller="TeacherCourses" asp-action="Index">
-    ← Khóa học của tôi
-</a>
+<a class="button secondary back-link" asp-controller="TeacherCourses" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học của tôi</a>
 
 <div class="page-heading">
     <div>
-        <p class="eyebrow">TEACHER WORKSPACE</p>
-        <h1>Tạo Practice Draft</h1>
+
+        <h1>Tạo bài luyện tập nháp</h1>
         <p class="muted">
-            Lưu bản nháp trước. Chọn câu hỏi và Publish sẽ thực hiện sau.
+            Lưu bản nháp trước. Chọn câu hỏi và Xuất bản sẽ thực hiện sau.
         </p>
     </div>
 </div>
@@ -49,13 +47,13 @@
     @if (Model.CourseOptions.Count == 0)
     {
         <p class="notice">
-            Bạn chưa có khóa học. Bạn vẫn có thể tạo Draft chưa gắn parent.
+            Bạn chưa có khóa học. Bạn vẫn có thể tạo bản nháp chưa gắn vị trí liên kết.
         </p>
     }
 
     <div class="actions">
         <button type="submit" class="button secondary">
-            Tải Lesson và Module
+            Tải Bài học và Chương học
         </button>
     </div>
 </form>
@@ -112,25 +110,25 @@
             </p>
 
             <p class="muted">
-                Chỉ chọn một Lesson hoặc một Module, không chọn cả hai.
-                Bạn cũng có thể để trống cả hai để lưu Draft chưa gắn parent.
+                Chỉ chọn một Bài học hoặc một Chương học, không chọn cả hai.
+                Bạn cũng có thể để trống cả hai để lưu bản nháp chưa gắn vị trí liên kết.
             </p>
 
-            <label asp-for="Input.ModuleId">Gắn vào Module</label>
+            <label asp-for="Input.ModuleId">Gắn vào Chương học</label>
 
             <select asp-for="Input.ModuleId"
                     asp-items="Model.ModuleOptions">
-                <option value="">-- Không chọn Module --</option>
+                <option value="">-- Không chọn Chương học --</option>
             </select>
 
             <span asp-validation-for="Input.ModuleId"
                   class="validation"></span>
 
-            <label asp-for="Input.LessonId">Gắn vào Lesson</label>
+            <label asp-for="Input.LessonId">Gắn vào Bài học</label>
 
             <select asp-for="Input.LessonId"
                     asp-items="Model.LessonOptions">
-                <option value="">-- Không chọn Lesson --</option>
+                <option value="">-- Không chọn Bài học --</option>
             </select>
 
             <span asp-validation-for="Input.LessonId"
@@ -139,14 +137,14 @@
             @if (Model.ModuleOptions.Count == 0)
             {
                 <p class="muted">
-                    Khóa học này chưa có Module.
+                    Khóa học này chưa có Chương học.
                 </p>
             }
             else if (Model.LessonOptions.Count == 0)
             {
                 <p class="muted">
-                    Khóa học này chưa có Lesson.
-                    Bạn có thể chọn Module hoặc lưu Draft chưa gắn parent.
+                    Khóa học này chưa có Bài học.
+                    Bạn có thể chọn Chương học hoặc lưu bản nháp chưa gắn vị trí liên kết.
                 </p>
             }
         </fieldset>
@@ -154,19 +152,19 @@
     else
     {
         <p class="notice">
-            Bạn chưa chọn khóa học. Practice sẽ được lưu thành Draft
-            chưa gắn Lesson hoặc Module.
+            Bạn chưa chọn khóa học. bài luyện tập sẽ được lưu thành bản nháp
+            chưa gắn Bài học hoặc Chương học.
         </p>
     }
 
     <p class="muted">
-        Lưu Draft không đồng nghĩa với Publish.
-        Student chưa thể làm bài này.
+        Lưu bản nháp không đồng nghĩa với Xuất bản.
+        Học viên chưa thể làm bài này.
     </p>
 
     <div class="actions">
         <button type="submit" class="button">
-            Lưu Practice Draft
+            Lưu bài luyện tập nháp
         </button>
 
         @if (Model.CourseId.HasValue)

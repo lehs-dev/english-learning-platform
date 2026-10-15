@@ -5,8 +5,8 @@
 <div class="course-grid">
 @foreach (var course in Model)
 {
-    <article class="panel course-card">
-        <h2>@course.Title</h2><span class="badge">@course.Status</span>
+    <article class="course-card"><partial name="_CourseCover" model="course" /><div class="course-card-body">
+        <h2>@course.Title</h2><span class="badge"><partial name="_UiText" model="course.Status" /></span>
         <partial name="_CourseSummary" model="course" />
         @if (course.Progress is not null) { <partial name="_LearningProgress" model="course.Progress" /> }
         <div class="actions">
@@ -16,6 +16,6 @@
                 <a class="button" asp-action="Continue" asp-route-id="@course.Id">@(course.Status == CourseStatus.Archived ? "Xem bài học" : "Tiếp tục học")</a>
             }
         </div>
-    </article>
+    </div></article>
 }
 </div>

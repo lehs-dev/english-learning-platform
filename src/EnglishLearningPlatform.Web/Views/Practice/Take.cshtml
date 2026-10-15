@@ -1,24 +1,20 @@
 @model EnglishLearningPlatform.Application.Practice.PracticeSheet
 @{ ViewData["Title"] = Model.Title; }
-<a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">← @Model.CourseTitle</a>
-<div class="page-heading"><h1>@Model.Title</h1>@if (Model.HasResult) { <a asp-action="Result" asp-route-id="@Model.Id">Kết quả gần nhất</a> }</div>
-<p class="preserve">@Model.Description</p>
-<p class="muted">@Model.Questions.Count câu. Mỗi câu có cùng trọng số; câu bỏ trống nhận 0 điểm. Bạn có thể luyện lại và xem giải thích sau khi nộp.</p>
-<form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="editor-form">
+@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+<a class="button secondary back-link" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>@Model.CourseTitle</a>
+<div class="page-heading"><h1>@Model.Title</h1>@if (Model.HasResult) { <a class="button secondary" asp-action="Result" asp-route-id="@Model.Id">Kết quả gần nhất</a> }</div>
+<p class="preserve">@Model.Description</p><p class="muted">@Model.Questions.Count câu · Không giới hạn thời gian. Mỗi câu có cùng trọng số; câu bỏ trống nhận 0 điểm. Bạn có thể luyện lại và xem giải thích sau khi nộp.</p>
+<form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="practice-form" data-practice-form>
+<nav class="assessment-navigation practice-navigation" aria-label="Điều hướng câu hỏi luyện tập"><p data-practice-progress role="status">0/@Model.Questions.Count câu đã trả lời</p><div class="actions">@for (var index = 0; index < Model.Questions.Count; index++) { <a class="button secondary" href="#practice-question-@(index + 1)" data-practice-link="@(index + 1)" aria-label="Đến câu @(index + 1)">@(index + 1)</a> }</div><p class="muted practice-local-note">Đáp án chỉ được gửi khi bạn bấm nộp bài. Rời trang sẽ mất lựa chọn chưa nộp.</p></nav>
 @for (var index = 0; index < Model.Questions.Count; index++)
 {
     var question = Model.Questions[index];
-    <fieldset class="panel"><legend>Câu @(index + 1) · @question.Skill</legend>
-        <input type="hidden" name="Answers[@index].PracticeQuestionId" value="@question.Id" />
-        @if (!string.IsNullOrWhiteSpace(question.Passage)) { <p class="preserve">@question.Passage</p> }
-        @if (question.AudioUrl is not null) { <audio controls preload="none" src="@question.AudioUrl">Trình duyệt chưa hỗ trợ audio.</audio> }
-        <p class="preserve">@question.Content</p>
-        @foreach (var option in question.Options)
-        {
-            <label class="check"><input type="radio" name="Answers[@index].SelectedOptionId" value="@option.Id" /> @option.Content</label>
-        }
-        <label class="check"><input type="radio" name="Answers[@index].SelectedOptionId" value="" checked /> Bỏ trống</label>
-    </fieldset>
+    <fieldset class="panel assessment-question" id="practice-question-@(index + 1)" data-practice-question><legend>Câu @(index + 1) · <partial name="_UiText" model="question.Skill" /></legend><input type="hidden" name="Answers[@index].PracticeQuestionId" value="@question.Id" />
+    @if (!string.IsNullOrWhiteSpace(question.Passage)) { <p class="preserve assessment-stimulus">@question.Passage</p> }
+    @if (question.AudioUrl is not null) { <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(index + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio> }
+    <p class="preserve">@question.Content</p>
+    @foreach (var option in question.Options) { <label class="assessment-option"><input type="radio" name="Answers[@index].SelectedOptionId" value="@option.Id" /><span>@option.Content</span></label> }
+    <label class="assessment-option muted"><input type="radio" name="Answers[@index].SelectedOptionId" value="" checked /><span>Bỏ trống</span></label></fieldset>
 }
-<button class="button">Nộp bài luyện</button>
-</form>
+<div class="assessment-submit"><button class="button" type="submit">Nộp bài và xem giải thích<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button></div></form>
+@section Scripts { <script src="~/js/practice.js" asp-append-version="true" defer></script> }

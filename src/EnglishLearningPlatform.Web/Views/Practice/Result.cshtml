@@ -1,11 +1,7 @@
 @model EnglishLearningPlatform.Application.Practice.PracticeResult
 @{ ViewData["Title"] = "Kết quả · " + Model.Title; }
-<a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">← Khóa học</a>
-<div class="page-heading"><div><h1>@Model.Title</h1><p>Kết quả gần nhất: <strong>@Model.Score.ToString("0.##")%</strong></p><p class="muted">Nộp lúc @Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") (UTC+7)</p></div>
-@if (ViewData["CanRetry"] is true) { <a class="button" asp-action="Take" asp-route-id="@Model.PracticeId">Luyện lại</a> }
-</div>
-@foreach (var question in Model.Questions)
-{
-    <article class="panel"><h2>@question.Content</h2><span class="badge">@(question.IsCorrect ? "Đúng" : "Sai / bỏ trống")</span>
-    <p>Bạn chọn: @(question.SelectedAnswer ?? "Bỏ trống")</p><p>Đáp án đúng: @question.CorrectAnswer</p><p class="preserve">@question.Explanation</p></article>
-}
+@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+<a class="button secondary back-link" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học</a>
+<div class="page-heading"><div><h1>@Model.Title</h1><p class="muted">Nộp lúc @Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") (UTC+7)</p></div>@if (ViewData["CanRetry"] is true) { <a class="button secondary" asp-action="Take" asp-route-id="@Model.PracticeId">Luyện lại</a> }</div>
+<section class="result-overview"><div><h2>Kết quả luyện tập</h2><p class="assessment-score">@Model.Score.ToString("0.##")<span>/100</span></p></div><p><strong>@Model.Questions.Count(q => q.IsCorrect)/@Model.Questions.Count</strong> câu trả lời đúng.<br /><span class="muted">Đọc giải thích bên dưới để ôn lại từng câu.</span></p></section>
+@for (var index = 0; index < Model.Questions.Count; index++) { var question = Model.Questions[index]; <article class="answer-review"><div class="content-row"><h2>Câu @(index + 1)</h2><span class="badge @(question.IsCorrect ? "badge-success" : "badge-warning")">@(question.IsCorrect ? "Đúng" : "Sai / bỏ trống")</span></div><p class="reading-copy preserve">@question.Content</p><dl class="answer-comparison"><div><dt>Bạn chọn</dt><dd>@(question.SelectedAnswer ?? "Bỏ trống")</dd></div><div><dt>Đáp án đúng</dt><dd>@question.CorrectAnswer</dd></div></dl>@if (!string.IsNullOrWhiteSpace(question.Explanation)) { <div class="answer-explanation"><h3>Giải thích</h3><p class="preserve">@question.Explanation</p></div> }</article> }

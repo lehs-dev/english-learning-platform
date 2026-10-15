@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -35,7 +36,11 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
 
         var dashboard = WebUtility.HtmlDecode(await client.GetStringAsync(expectedWorkspace));
         Assert.Contains("data-account-menu", dashboard);
-        Assert.Contains("Xem profile", dashboard);
+        var accountMenu = Regex.Match(dashboard, "<details\\b[^>]*data-account-menu[^>]*>.*?</details>",
+            RegexOptions.Singleline);
+        Assert.True(accountMenu.Success);
+        Assert.Contains("href=\"/Profile\"", accountMenu.Value);
+        Assert.Contains("Hồ sơ cá nhân", accountMenu.Value);
         Assert.Contains(user.FullName, dashboard);
 
         var profile = WebUtility.HtmlDecode(await client.GetStringAsync("/Profile"));

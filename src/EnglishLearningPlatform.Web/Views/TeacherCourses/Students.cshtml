@@ -1,10 +1,10 @@
 @model TeacherCourseReport
 @{ ViewData["Title"] = "Học viên · " + Model.Title; }
 @section Styles { <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" /> }
-<a asp-action="Manage" asp-route-id="@Model.CourseId">← Nội dung khóa học</a>
+<a class="button secondary back-link" asp-action="Manage" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Nội dung khóa học</a>
 <div class="page-heading"><h1>Học viên · @Model.Title</h1></div>
 <div class="stat-grid" aria-label="Thống kê khóa học">
-    <div class="panel"><strong class="stat-value">@Model.Commerce.Enrollments</strong><span>Enrollment hợp lệ</span><p class="muted">@Model.Commerce.FreeEnrollments không qua thanh toán · @Model.Commerce.PaidEnrollments qua thanh toán</p></div>
+    <div class="panel"><strong class="stat-value">@Model.Commerce.Enrollments</strong><span>Lượt tham gia hợp lệ</span><p class="muted">@Model.Commerce.FreeEnrollments không qua thanh toán · @Model.Commerce.PaidEnrollments qua thanh toán</p></div>
     <div class="panel"><strong class="stat-value">@Model.Commerce.CompletedEnrollments</strong><span>Đã ghi nhận hoàn thành</span></div>
     <div class="panel"><strong class="stat-value">@Model.Commerce.Orders</strong><span>Đơn đã tạo</span><p class="muted">@Model.Commerce.SuccessfulOrders đơn có thanh toán thành công</p></div>
     <div class="panel"><strong class="stat-value">@Model.Commerce.SuccessfulPaymentAmount.ToString("N0")</strong><span>Tổng tiền giao dịch thành công (VND)</span></div>
@@ -19,7 +19,7 @@
 @if (Model.Students.Count == 0) { <p class="empty">Không có học viên phù hợp.</p> }
 else
 {
-    <div class="table-scroll"><table class="report-table"><thead><tr><th scope="col">Học viên</th><th scope="col">Ngày tham gia</th><th scope="col">Tiến độ hiện tại và lịch sử</th></tr></thead><tbody>
+    <div class="table-scroll"><table class="report-table"><caption class="visually-hidden">Danh sách và thống kê</caption><thead><tr><th scope="col">Học viên</th><th scope="col">Ngày tham gia</th><th scope="col">Tiến độ hiện tại và lịch sử</th></tr></thead><tbody>
     @foreach (var student in Model.Students)
     {
         <tr><td>@student.Name</td><td><time datetime="@student.EnrolledAtUtc.ToString("O")">@student.EnrolledAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</time></td><td><partial name="_LearningProgress" model="student.Progress" /></td></tr>

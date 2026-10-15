@@ -57,10 +57,10 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         Assert.Equal($"/Assessment/Result/{attemptId}", submitted.Headers.Location!.ToString());
         using var result = await client.GetAsync(submitted.Headers.Location);
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        var resultHtml = await result.Content.ReadAsStringAsync();
+        var resultHtml = WebUtility.HtmlDecode(await result.Content.ReadAsStringAsync());
         Assert.Contains("80", resultHtml);
-        Assert.Contains("Grammar", resultHtml);
-        Assert.Contains("Vocabulary", resultHtml);
+        Assert.Contains("Ngữ pháp", resultHtml);
+        Assert.Contains("Từ vựng", resultHtml);
         Assert.Contains("assessment-passed", resultHtml);
         Assert.DoesNotContain("QUESTION_PRIVATE_EXPLANATION", resultHtml);
         DateTimeOffset completedAt;

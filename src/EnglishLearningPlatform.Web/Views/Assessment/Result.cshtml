@@ -4,7 +4,7 @@
     ViewData["ActiveSection"] = "assessment";
 }
 @section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
-<div class="page-heading"><div><span class="eyebrow">KẾT QUẢ BÀI THI</span><h1>@Model.AssessmentTitle</h1></div></div>
+<div class="page-heading"><div><h1>@Model.AssessmentTitle</h1></div></div>
 <section class="panel">
     <p class="assessment-score">@Model.OverallScore.ToString("0.##")<span>/100</span></p>
     @if (Model.PassingScore is decimal passingScore)
@@ -20,12 +20,12 @@
     { <p class="muted">Lượt làm lịch sử này chưa có dữ liệu điểm theo kỹ năng.</p> }
     else
     {
-        <div class="assessment-table-wrap"><table class="assessment-table">
+        <div class="assessment-table-wrap"><table class="assessment-table"><caption class="visually-hidden">Thông tin bài đánh giá</caption>
             <thead><tr><th scope="col">Kỹ năng</th><th scope="col">Số câu</th><th scope="col">Điểm / 100</th></tr></thead>
             <tbody>
             @foreach (var skill in Model.SkillBreakdowns)
             {
-                <tr><td>@skill.Skill</td><td>@skill.QuestionCount</td><td>@skill.Score.ToString("0.##")</td></tr>
+                <tr><td><partial name="_UiText" model="skill.Skill" /></td><td>@skill.QuestionCount</td><td>@skill.Score.ToString("0.##")</td></tr>
             }
             </tbody>
         </table></div>

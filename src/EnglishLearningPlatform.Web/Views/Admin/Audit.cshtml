@@ -15,11 +15,11 @@
             return fields.Count > 0 ? string.Join(" · ", fields) : "Không có thông tin vai trò/trạng thái";
         } catch (JsonException) { return value == "Role=Admin;Status=Active" ? "Quản trị viên · Đang hoạt động" : "Dữ liệu lịch sử"; }
     }
-    static string ActionLabel(string action) => action switch { "CreateTeacher" => "Tạo giáo viên", "UpdateUser" => "Cập nhật tài khoản", "BootstrapLocalAdmin" => "Khởi tạo quản trị viên", _ => action };
+    static string ActionLabel(string action) => action switch { "CreateTeacher" => "Tạo giáo viên", "UpdateUser" => "Cập nhật tài khoản", "BootstrapLocalAdmin" => "Khởi tạo quản trị viên", "PaymentConfirmed" => "Xác nhận thanh toán", "PaymentFailed" => "Thanh toán thất bại", _ => action };
 }
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
-<header class="admin-heading"><div><p class="eyebrow">KHÔNG GIAN QUẢN TRỊ</p><h1>Nhật ký quản trị</h1><p>Theo dõi người thực hiện và các thay đổi trên tài khoản.</p></div></header>
+<header class="admin-heading"><div><h1>Nhật ký quản trị</h1><p>Theo dõi người thực hiện và các thay đổi trên tài khoản.</p></div></header>
 <partial name="_AdminNav" />
 <section class="admin-surface">
 <form method="get" class="admin-filters"><div class="admin-search"><label for="search">Tìm trong nhật ký</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Email người thực hiện hoặc tài khoản…" /></div><div class="admin-filter-actions"><button class="button">Tìm kiếm</button><a asp-action="Audit">Đặt lại</a></div></form>
@@ -28,11 +28,11 @@
 else {
 <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Nhật ký quản trị</caption><thead><tr><th>Thời gian</th><th>Người thao tác</th><th>Tài khoản</th><th>Thao tác</th><th>Thay đổi</th></tr></thead><tbody>
 @foreach (var row in Model.Items) {
-<tr><td data-label="Thời gian" class="admin-date">@row.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")<small>@row.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm:ss")</small></td><td data-label="Người thao tác">@row.Actor</td><td data-label="Tài khoản">@row.Target</td><td data-label="Thao tác"><span class="admin-role">@ActionLabel(row.Action)</span></td><td data-label="Thay đổi"><div class="admin-audit-change"><span><small>TRƯỚC</small>@Snapshot(row.Before)</span><span><small>SAU</small>@Snapshot(row.After)</span></div></td></tr>
+<tr><td data-label="Thời gian" class="admin-date">@row.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")<small>@row.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm:ss")</small></td><td data-label="Người thao tác">@row.Actor</td><td data-label="Tài khoản">@row.Target</td><td data-label="Thao tác"><span class="admin-role">@ActionLabel(row.Action)</span></td><td data-label="Thay đổi"><div class="admin-audit-change"><span><small>Trước</small>@Snapshot(row.Before)</span><span><small>Sau</small>@Snapshot(row.After)</span></div></td></tr>
 }
 </tbody></table></div>
 }
 <nav class="admin-pagination" aria-label="Phân trang nhật ký"><span>Trang <strong>@Model.Page</strong> / @Model.Pages</span><div>
-@if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-page="@(Model.Page - 1)">← Trước</a> }
-@if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-page="@(Model.Page + 1)">Sau →</a> }
+@if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a> }
+@if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a> }
 </div></nav></section></div>

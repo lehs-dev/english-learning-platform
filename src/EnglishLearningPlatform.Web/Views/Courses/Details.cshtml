@@ -1,20 +1,13 @@
 @model CoursePage
 @{ ViewData["Title"] = Model.Course.Title; }
-<a asp-action="Index">← Danh mục khóa học</a>
+<a class="button secondary back-link" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Danh mục khóa học</a>
 <partial name="_CourseNotice" />
-<section class="panel course-hero"><h1>@Model.Course.Title</h1><partial name="_CourseSummary" model="Model.Course" /><h2>Giới thiệu</h2><p class="preserve">@Model.Course.Description</p>
-@if (!string.IsNullOrWhiteSpace(Model.Course.Objectives))
-{
-    <h2>Mục tiêu</h2><p class="preserve">@Model.Course.Objectives</p>
-}
-<div class="actions">
-@if (Model.IsOwner) { <a class="button" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a> }
-@if (Model.CanLearn) { <a class="button" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Course.Id">@(Model.IsOwner ? "Preview" : "Vào học")</a> }
+<div class="course-detail-grid"><div><header class="course-detail-heading"><div class="course-tags">@foreach (var skill in Model.Course.Skills) { <span class="badge"><partial name="_UiText" model="skill" /></span> }</div><h1>@Model.Course.Title</h1><p class="preserve">@Model.Course.Description</p><p class="muted">Giảng viên @Model.Course.Teacher · <partial name="_UiText" model="Model.Course.Level" /></p></header>
+@if (!string.IsNullOrWhiteSpace(Model.Course.Objectives)) { <section class="course-objectives"><h2>Bạn sẽ học được gì?</h2><p class="preserve">@Model.Course.Objectives</p></section> }
+<section aria-labelledby="outline-title"><div class="section-heading"><div><h2 id="outline-title">Nội dung khóa học</h2><p>@Model.Course.ModuleCount chương · @Model.Course.LessonCount bài học</p></div></div><partial name="_CourseOutline" model="Model" /></section></div>
+<aside class="course-enrollment" aria-label="Thông tin tham gia"><partial name="_CourseCover" model="Model.Course" /><div class="enrollment-body"><partial name="_CourseSummary" model="Model.Course" /><div class="actions">
+@if (Model.IsOwner) { <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a> }
+@if (Model.CanLearn) { <a class="button" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Course.Id">@(Model.IsOwner ? "Xem trước khóa học" : "Vào học")</a> }
 else if (User.Identity?.IsAuthenticated != true) { <a class="button" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Courses", new { id = Model.Course.Id })">Đăng nhập để tham gia</a> }
-else if (User.IsInRole("Student")) {
-    if (!Model.Course.IsPaid) { <form method="post" asp-action="EnrollFree" asp-route-id="@Model.Course.Id"><button class="button">Tham gia miễn phí</button></form> }
-    else { <a class="button" asp-controller="Checkout" asp-action="Index" asp-route-courseId="@Model.Course.Id">Mua khóa học</a> }
-}
-</div></section>
-<h2>Nội dung khóa học</h2><p class="muted">Bạn có thể xem cấu trúc trước khi tham gia. Nội dung bài học dành cho người đã tham gia khóa học.</p>
-<partial name="_CourseOutline" model="Model" />
+else if (User.IsInRole("Student")) { if (!Model.Course.IsPaid) { <form method="post" asp-action="EnrollFree" asp-route-id="@Model.Course.Id"><button class="button">Tham gia miễn phí</button></form> } else { <a class="button" asp-controller="Checkout" asp-action="Index" asp-route-courseId="@Model.Course.Id">Xem thông tin thanh toán</a> } }
+</div><p class="muted enrollment-note">Bạn có thể xem đề cương trước khi tham gia. Nội dung bài học dành cho người đã tham gia khóa học.</p></div></aside></div>

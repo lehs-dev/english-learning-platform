@@ -129,6 +129,8 @@ dotnet run --project src/EnglishLearningPlatform.Web --launch-profile LocalSqlSe
 
 Mở **http://localhost:5098**. Profile `LocalSqlServer` trỏ tới database **EnglishLearningDb** trên instance mặc định; chọn profile này khi chạy Windows local. Nếu dùng named instance hoặc SQL Authentication, đặt connection string phù hợp và chạy profile `http` để giữ cấu hình bạn đã đặt.
 
+Trang đăng nhập có ba nút Student/Teacher/Admin để chọn tài khoản demo. Trong Development, các nút tự điền cả mật khẩu từ `LearningDemo:Password` trong user-secrets hoặc biến môi trường `LearningDemo__Password`; giá trị này phải trùng mật khẩu của các tài khoản đã seed. User-secrets chỉ lưu trên máy local. Trang Production không xuất mật khẩu demo.
+
 `dotnet ef` không đọc `launchSettings.json` hay profile `LocalSqlServer`. Vì vậy, phải đặt biến `ConnectionStrings__DefaultConnection` trước lệnh EF trong cùng terminal, hoặc dùng user-secrets. `appsettings.json` không chứa connection string hoặc mật khẩu mặc định; bỏ bước cấu hình sẽ không thể kết nối database.
 
 Trước khi build hoặc cập nhật database trên Windows, dừng ứng dụng đang chạy bằng **Ctrl+C** trong terminal của `dotnet run` hoặc Stop Debugging trong VS Code. Nếu app đang giữ DLL, EF có thể báo `Build failed` và build báo MSB3021/MSB3027. Khi đã build thành công, có thể thêm `--no-build` cho lệnh `dotnet ef database update`; chạy web sau khi cập nhật database xong.

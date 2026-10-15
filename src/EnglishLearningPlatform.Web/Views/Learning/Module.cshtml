@@ -1,6 +1,6 @@
 @model ModulePage
 @{ ViewData["Title"] = Model.Title; }
-<a asp-action="Course" asp-route-id="@Model.CourseId">← @Model.CourseTitle</a>
+<a class="button secondary back-link" asp-action="Course" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>@Model.CourseTitle</a>
 <h1>@Model.Title</h1><p class="preserve">@Model.Description</p>
 @if (Model.CourseStatus == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Nội dung và tiến độ chỉ được xem.</p> }
 @if (Model.Progress is not null) { <partial name="_LearningProgress" model="Model.Progress" /> }
@@ -9,7 +9,7 @@
 @foreach (var lesson in Model.Lessons)
 {
     <li><a asp-action="Lesson" asp-route-id="@lesson.Id">@lesson.Title</a>
-        <span class="badge">@(Model.IsOwner ? lesson.Status.ToString() : lesson.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành")</span>
+        <span class="badge">@if (Model.IsOwner) { <partial name="_UiText" model="lesson.Status" /> } else { @(lesson.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành") }</span>
     </li>
 }
 </ul>

@@ -9,7 +9,7 @@
 }
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
-<header class="admin-heading"><div><p class="eyebrow">KHÔNG GIAN QUẢN TRỊ</p><h1>Quản lý tài khoản</h1><p>Tìm kiếm, phân quyền và quản lý trạng thái người dùng.</p></div><a class="button" asp-action="CreateTeacher">＋ Tạo Teacher</a></header>
+<header class="admin-heading"><div><h1>Quản lý tài khoản</h1><p>Tìm kiếm, phân quyền và quản lý trạng thái người dùng.</p></div><a class="button" asp-action="CreateTeacher">Tạo giảng viên</a></header>
 <partial name="_AdminNav" />
 @if (TempData["AdminSuccess"] is string success) { <p class="notice" role="status">@success</p> }
 @if (TempData["AdminError"] is string error) { <p class="notice error" role="alert">@error</p> }
@@ -30,19 +30,19 @@
             <td data-label="Vai trò"><span class="admin-role role-@item.Role.ToLowerInvariant()">@RoleLabel(item.Role)</span></td>
             <td data-label="Trạng thái"><span class="admin-badge status-@item.Status.ToString().ToLowerInvariant()">@StatusLabel(item.Status)</span></td>
             <td data-label="Ngày tạo" class="admin-date"><span>@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")<small>@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm")</small></span></td>
-            <td data-label="Thao tác"><button class="admin-edit-button" type="button" data-open-admin-dialog="edit-@item.UserId" aria-haspopup="dialog">Chỉnh sửa ↗<span class="visually-hidden"> @item.Email</span></button><noscript>Bật JavaScript để chỉnh sửa tài khoản.</noscript></td>
+            <td data-label="Thao tác"><button class="admin-edit-button" type="button" data-open-admin-dialog="edit-@item.UserId" aria-haspopup="dialog">Chỉnh sửa<span class="visually-hidden"> @item.Email</span></button><noscript>Bật JavaScript để chỉnh sửa tài khoản.</noscript></td>
         </tr>
     }
     </tbody></table></div>
     }
     <nav class="admin-pagination" aria-label="Phân trang tài khoản"><span>Trang <strong>@Model.Page</strong> / @Model.Pages</span><div>
-        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page - 1)">← Trước</a> }
-        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page + 1)">Sau →</a> }
+        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a> }
+        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a> }
     </div></nav>
 </section>
 @foreach (var item in Model.Items) {
     <dialog id="edit-@item.UserId" class="admin-dialog" aria-labelledby="title-@item.UserId">
-        <div class="admin-dialog-heading"><div><p class="eyebrow">QUẢN LÝ TÀI KHOẢN</p><h2 id="title-@item.UserId">Chỉnh sửa tài khoản</h2></div><button type="button" data-close-admin-dialog class="admin-close" aria-label="Đóng">×</button></div>
+        <div class="admin-dialog-heading"><div><h2 id="title-@item.UserId">Chỉnh sửa tài khoản</h2></div><button type="button" data-close-admin-dialog class="admin-close" aria-label="Đóng"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button></div>
         <p class="admin-dialog-user"><strong>@item.FullName</strong><span>@item.Email</span></p>
         <form asp-action="UpdateUser" method="post" class="admin-editor">
             <input type="hidden" name="UserId" value="@item.UserId" />

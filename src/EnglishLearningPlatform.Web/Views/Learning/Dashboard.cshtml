@@ -1,46 +1,8 @@
 @model StudentDashboard
-@using System.Security.Claims
-@inject EnglishLearningPlatform.Application.Identity.IProfileService ProfileService
 
 @{
     ViewData["Title"] = "Tiến độ học tập";
     ViewData["ActiveSection"] = "dashboard";
-
-    // 1. Resolve Student's Full Name
-    var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    var studentName = User.Identity?.Name ?? "Học viên";
-    if (Guid.TryParse(userIdClaim, out var studentGuid))
-    {
-        var profile = await ProfileService.GetProfileAsync(studentGuid);
-        if (profile is not null && !string.IsNullOrWhiteSpace(profile.FullName))
-        {
-            studentName = profile.FullName;
-        }
-    }
-
-    // 2. Calculate Learning Streak (Dynamic consecutive days with motivating default)
-    var activityDates = Model.PracticeResults.Select(p => p.SubmittedAtUtc.Date)
-        .Concat(Model.Results.Select(r => r.FinalizedAtUtc.Date))
-        .Concat(Model.Courses.Where(c => c.Progress?.CompletedAtUtc.HasValue == true).Select(c => c.Progress!.CompletedAtUtc!.Value.Date))
-        .Distinct()
-        .OrderByDescending(d => d)
-        .ToList();
-
-    int streakDays = 0;
-    var today = DateTime.UtcNow.Date;
-    if (activityDates.Contains(today) || activityDates.Contains(today.AddDays(-1)))
-    {
-        var checkDate = activityDates.Contains(today) ? today : today.AddDays(-1);
-        while (activityDates.Contains(checkDate))
-        {
-            streakDays++;
-            checkDate = checkDate.AddDays(-1);
-        }
-    }
-    if (streakDays == 0 && (Model.Courses.Count > 0 || Model.PracticeResults.Count > 0 || Model.Results.Count > 0))
-    {
-        streakDays = 3; // Motivating baseline streak for active enrolled learners
-    }
 
     // 3. Find target course for 1-Click Continue Learning
     var inProgressCourses = Model.Courses
@@ -57,7 +19,7 @@
 
 <div class="page-heading">
     <div>
-        <p class="eyebrow">KHU HỌC TẬP</p>
+
         <h1>Tiến độ học tập</h1>
     </div>
     <div class="actions">
@@ -66,26 +28,6 @@
     </div>
 </div>
 
-@* Welcome Greeting & Streak Badge Banner *@
-<div class="panel dashboard-welcome-banner">
-    <div class="welcome-content">
-        <span class="eyebrow">KHÔNG GIAN HỌC VIÊN</span>
-        <h2 class="welcome-heading">Chào mừng trở lại, @studentName! 👋</h2>
-        <p class="welcome-subtext muted">Hôm nay là một ngày tuyệt vời để tiếp tục trau dồi vốn tiếng Anh của bạn.</p>
-    </div>
-    <div class="welcome-badge-wrapper">
-        <div class="streak-badge" aria-label="Chuỗi ngày học liên tiếp">
-            <span class="badge badge-streak">🔥 Chuỗi ngày học liên tiếp: @(streakDays > 0 ? streakDays : 1) ngày</span>
-        </div>
-    </div>
-</div>
-
-@* High-Level Statistics Grid (Preserved) *@
-<div class="stat-grid" aria-label="Tổng quan học tập">
-    <div class="panel"><strong class="stat-value">@Model.Courses.Count</strong><span>Khóa đã tham gia</span></div>
-    <div class="panel"><strong class="stat-value">@Model.CompletedCourses</strong><span>Khóa đã ghi nhận hoàn thành</span></div>
-    <div class="panel"><strong class="stat-value">@Model.Results.Count</strong><span>Bài đánh giá có kết quả</span></div>
-</div>
 
 @* 1-Click Continue Learning Card *@
 @if (continueCourse != null)
@@ -93,9 +35,9 @@
     <section class="panel continue-learning-hero" aria-labelledby="continue-hero-title">
         <div class="content-row">
             <div>
-                <p class="eyebrow">BÀI HỌC GẦN NHẤT</p>
+
                 <h2 id="continue-hero-title">@continueCourse.Title</h2>
-                <p class="muted">Giảng viên: @continueCourse.Teacher · Trình độ: @continueCourse.Level · @continueCourse.LessonCount bài học</p>
+                <p class="muted">Giảng viên: @continueCourse.Teacher · Trình độ: <partial name="_UiText" model="continueCourse.Level" /> · @continueCourse.LessonCount bài học</p>
                 @if (continueCourse.Progress is not null)
                 {
                     <partial name="_LearningProgress" model="continueCourse.Progress" />
@@ -111,6 +53,13 @@
     </section>
 }
 
+
+<div class="stat-grid" aria-label="Tổng quan học tập">
+    <div class="panel"><strong class="stat-value">@Model.Courses.Count</strong><span>Khóa đã tham gia</span></div>
+    <div class="panel"><strong class="stat-value">@Model.CompletedCourses</strong><span>Khóa đã ghi nhận hoàn thành</span></div>
+    <div class="panel"><strong class="stat-value">@Model.Results.Count</strong><span>Bài đánh giá có kết quả</span></div>
+</div>
+
 @* Enrolled Courses Grid (Preserved) *@
 <h2>Tiếp tục học</h2>
 @if (Model.Courses.Count == 0)
@@ -123,9 +72,9 @@
 <div class="course-grid">
 @foreach (var course in Model.Courses)
 {
-    <article class="panel course-card">
+    <article class="course-card"><partial name="_CourseCover" model="course" /><div class="course-card-body">
         <h3>@course.Title</h3>
-        <span class="badge">@course.Status</span>
+        <span class="badge"><partial name="_UiText" model="course.Status" /></span>
         @if (course.Progress is not null)
         {
             <partial name="_LearningProgress" model="course.Progress" />
@@ -137,7 +86,7 @@
                 <a class="button" asp-action="Continue" asp-route-id="@course.Id">@(course.Status == CourseStatus.Archived ? "Xem lại bài học" : "Tiếp tục học")</a>
             }
         </div>
-    </article>
+    </div></article>
 }
 </div>
 
@@ -161,7 +110,7 @@
             <ul>
                 @foreach (var skill in result.Skills)
                 {
-                    <li>@skill.Skill: @skill.Score.ToString("0.##")% (@skill.QuestionCount câu) @if (skill.IsWeak) { <span class="badge">Cần ôn tập</span> }</li>
+                    <li><partial name="_UiText" model="skill.Skill" />: @skill.Score.ToString("0.##")% (@skill.QuestionCount câu) @if (skill.IsWeak) { <span class="badge">Cần ôn tập</span> }</li>
                 }
             </ul>
         </article>
@@ -187,7 +136,7 @@
 @* Recommendations Section (Preserved) *@
 <section aria-labelledby="recommendations-title">
     <h2 id="recommendations-title">Gợi ý ôn tập</h2>
-    <p class="muted">Gợi ý dựa trên kỹ năng dưới 60% trước khi làm tròn, metadata nội dung và quyền học của bạn.</p>
+    <p class="muted">Gợi ý dựa trên kỹ năng dưới 60% trước khi làm tròn, thông tin bổ sung nội dung và quyền học của bạn.</p>
     @if (Model.Recommendations.Count == 0)
     {
         <p class="panel">Chưa xác định nội dung cần ôn tập từ kết quả hiện có.</p>
@@ -195,7 +144,7 @@
     @foreach (var recommendation in Model.Recommendations)
     {
         <article class="panel">
-            <h3>@recommendation.Skill · @recommendation.Score.ToString("0.##")%</h3>
+            <h3><partial name="_UiText" model="recommendation.Skill" /> · @recommendation.Score.ToString("0.##")%</h3>
             <p class="muted">Căn cứ: <a asp-controller="Assessment" asp-action="Result" asp-route-id="@recommendation.AttemptId">@recommendation.AssessmentTitle</a>.</p>
             @if (recommendation.Contents.Count == 0)
             {

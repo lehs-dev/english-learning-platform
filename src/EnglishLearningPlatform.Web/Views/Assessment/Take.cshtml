@@ -8,9 +8,9 @@
 @section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
 @if (overview?.CourseId is Guid courseId)
 {
-    <a asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">← Về khóa học</a>
+    <a class="button secondary back-link" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Về khóa học</a>
 }
-<div class="page-heading"><div><span class="eyebrow">ĐÁNH GIÁ NĂNG LỰC</span><h1>@ViewData["Title"]</h1></div></div>
+<div class="page-heading"><div><h1>@ViewData["Title"]</h1></div></div>
 @if (TempData["AssessmentError"] is string error) { <p class="notice error" role="alert">@error</p> }
 @if (TempData["AssessmentSuccess"] is string success) { <p class="notice" role="status">@success</p> }
 @if (Model.Sheet is { } sheet)
@@ -44,7 +44,7 @@
                 <p class="preserve">@question.Content</p>
                 @if (question.AudioUrl is not null)
                 {
-                    <audio controls preload="none" src="@question.AudioUrl" aria-label="Audio câu @(i + 1)">Trình duyệt chưa hỗ trợ audio.</audio>
+                    <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
                     <p class="muted">Nếu audio không phát, kiểm tra kết nối và dùng nút phát để thử lại.</p>
                 }
                 @foreach (var option in question.Options)
@@ -100,7 +100,7 @@ else if (overview is not null)
 {
     <section class="panel" aria-labelledby="attempt-history-title">
         <h2 id="attempt-history-title">Lịch sử làm bài</h2>
-        <div class="assessment-table-wrap"><table class="assessment-table">
+        <div class="assessment-table-wrap"><table class="assessment-table"><caption class="visually-hidden">Thông tin bài đánh giá</caption>
             <thead><tr><th scope="col">Bắt đầu (UTC+7)</th><th scope="col">Trạng thái</th><th scope="col">Điểm</th><th scope="col">Kết quả</th></tr></thead>
             <tbody>
             @foreach (var attempt in overview.AttemptHistory)

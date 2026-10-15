@@ -1,4 +1,4 @@
-﻿@model EnglishLearningPlatform.Web.Models.Account.RegisterViewModel
+@model EnglishLearningPlatform.Web.Models.Account.RegisterViewModel
 @{
     ViewData["Title"] = "Đăng ký";
     ViewData["PageClass"] = "auth-page";
@@ -10,13 +10,13 @@
     <partial name="_AuthAside" />
     <div class="auth-form-panel">
         <div class="auth-heading">
-            <span class="section-kicker">BẮT ĐẦU HÀNH TRÌNH CỦA BẠN</span>
+
             <h1 id="auth-title">Tạo tài khoản</h1>
             <p>Tham gia Estudy với tài khoản học viên miễn phí.</p>
         </div>
         @if (ViewBag.SuccessMessage is not null)
         {
-            <div class="notice notice-success" role="status">@ViewBag.SuccessMessage <a asp-action="Login">Đăng nhập ngay →</a></div>
+            <div class="notice notice-success" role="status">@ViewBag.SuccessMessage <a asp-action="Login">Đăng nhập ngay<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></div>
         }
         <form class="account-form" asp-controller="Account" asp-action="Register" method="post">
             <div class="validation-summary" asp-validation-summary="ModelOnly" role="alert"></div>

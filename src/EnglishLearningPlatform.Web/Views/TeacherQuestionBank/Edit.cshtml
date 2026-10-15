@@ -11,11 +11,11 @@
 <div class="page-heading">
     <div>
         <h1>Chỉnh sửa câu hỏi</h1>
-        <p>Trạng thái: <strong>@Model.Status</strong></p>
+        <p>Trạng thái: <strong><partial name="_UiText" model="Model.Status" /></strong></p>
     </div>
     <div class="actions">
         <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Details" asp-route-id="@Model.Id">Xem chi tiết</a>
-        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">← Quay lại Question Bank</a>
+        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Quay lại ngân hàng câu hỏi</a>
     </div>
 </div>
 
