@@ -20,6 +20,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#176bff" />
     <title>@currentTitle - Estudy Học viên</title>
+    <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
@@ -77,10 +78,13 @@
             </nav>
 
             <div class="header-actions">
-                <div class="header-search">
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
-                    <input type="search" placeholder="Tìm bài học, bài tập..." aria-label="Tìm kiếm nội dung học tập" disabled />
-                </div>
+                <form class="header-search" asp-controller="Courses" asp-action="Index" method="get" role="search">
+                    <label class="visually-hidden" for="header-course-search">Tìm khóa học</label>
+                    <input id="header-course-search" type="search" name="Search" value="@(Context.Request.Query["Search"].ToString())" maxlength="200" placeholder="Tìm khóa học..." />
+                    <button class="icon-button" type="submit" aria-label="Tìm khóa học">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                    </button>
+                </form>
                 @await Component.InvokeAsync("AccountMenu")
             </div>
         </div>
@@ -125,16 +129,7 @@
         @RenderBody()
     </main>
 
-    @* Distraction-free minimal student footer *@
-    <footer class="student-footer">
-        <div class="container footer-inner">
-            <p class="muted">&copy; @DateTime.UtcNow.Year Estudy Learning Platform. Không gian học tập tập trung.</p>
-            <div class="footer-links">
-                <a asp-controller="Profile" asp-action="Index">Hồ sơ cá nhân</a>
-                <a asp-controller="Courses" asp-action="Index">Khám phá thêm khóa học</a>
-            </div>
-        </div>
-    </footer>
+    <partial name="_SiteFooter" />
 
     <script src="~/js/site.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)

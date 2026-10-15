@@ -10,11 +10,11 @@
 
 <div class="page-heading">
     <div>
-        <p class="eyebrow">TEACHER WORKSPACE</p>
+
         <h1>Khóa học của tôi</h1>
     </div>
     <div class="actions">
-        <a class="button" asp-action="Edit">+ Tạo khóa học</a>
+        <a class="button" asp-action="Edit">Tạo khóa học</a>
     </div>
 </div>
 
@@ -27,15 +27,15 @@
         </div>
         <div class="panel studio-stat-card">
             <strong class="stat-value">@publishedCourses</strong>
-            <span>Đang phát hành (Published)</span>
+            <span>Đã xuất bản</span>
         </div>
         <div class="panel studio-stat-card">
             <strong class="stat-value">@draftCourses</strong>
-            <span>Khóa bản nháp (Draft)</span>
+            <span>Bản nháp</span>
         </div>
         <div class="panel studio-stat-card">
             <strong class="stat-value">@totalLessons</strong>
-            <span>Tổng bài học (Lessons)</span>
+            <span>Tổng bài học</span>
         </div>
     </div>
 </section>
@@ -45,14 +45,14 @@
 <section class="panel studio-practice-action" id="practices" aria-labelledby="practices-title">
     <div class="content-row">
         <div>
-            <h2 id="practices-title">Bài tập luyện tập (Practices)</h2>
-            <p class="muted">Tạo đề luyện tập thực hành độc lập hoặc liên kết vào bài học / module chương trình.</p>
+            <h2 id="practices-title">Bài luyện tập</h2>
+            <p class="muted">Tạo đề luyện tập thực hành độc lập hoặc liên kết vào bài học hoặc chương học.</p>
         </div>
         <div class="actions">
             <a class="button secondary"
                asp-controller="TeacherPractices"
                asp-action="Create">
-                + Tạo Practice Draft
+                Tạo bài luyện tập nháp
             </a>
         </div>
     </div>
@@ -66,25 +66,24 @@
 
 @if (Model.Count == 0)
 {
-    <p class="panel empty">Chưa có khóa học. Tạo Draft đầu tiên để bắt đầu.</p>
+    <p class="panel empty">Chưa có khóa học. Tạo bản nháp đầu tiên để bắt đầu.</p>
 }
 else
 {
     <div class="course-grid">
     @foreach (var course in Model)
     {
-        <article class="panel course-card">
+        <article class="course-card"><partial name="_CourseCover" model="course" /><div class="course-card-body">
             <h2>@course.Title</h2>
-            <span class="badge">@course.Status</span>
+            <span class="badge"><partial name="_UiText" model="course.Status" /></span>
             <partial name="_CourseSummary" model="course" />
-            <p>@course.ModuleCount Module · @course.LessonCount Lesson</p>
             <div class="actions">
                 <a asp-action="Edit" asp-route-id="@course.Id">Chỉnh sửa</a>
                 <a class="button" asp-action="Manage" asp-route-id="@course.Id">Nội dung</a>
                 <a asp-action="Students" asp-route-id="@course.Id">Học viên và thống kê</a>
-                <a asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id">Preview</a>
+                <a asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id">Xem trước</a>
             </div>
-        </article>
+        </div></article>
     }
     </div>
 }

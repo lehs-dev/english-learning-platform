@@ -16,7 +16,7 @@
 <div class="transaction-history-page">
     <div class="page-heading">
         <div>
-            <p class="eyebrow">ESTUDY · TÀI KHOẢN</p>
+
             <h1>Lịch sử giao dịch</h1>
             <p class="muted">Các đơn mua khóa học của bạn</p>
         </div>
@@ -68,12 +68,12 @@
             <nav class="actions pagination transaction-history-pagination" aria-label="Phân trang lịch sử giao dịch">
                 @if (Model.Page > 1)
                 {
-                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page - 1)">← Trước</a>
+                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a>
                 }
                 <span class="muted" aria-current="page">Trang @Model.Page / @Model.Pages</span>
                 @if (Model.Page < Model.Pages)
                 {
-                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page + 1)">Sau →</a>
+                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
                 }
             </nav>
         }

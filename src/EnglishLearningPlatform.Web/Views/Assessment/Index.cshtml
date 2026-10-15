@@ -1,4 +1,5 @@
 @model IReadOnlyList<AssessmentLink>
+@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
 @{ ViewData["Title"] = "Bài đánh giá"; ViewData["ActiveSection"] = "assessment"; }
 <div class="page-heading"><h1>Bài đánh giá</h1><a class="button secondary" asp-controller="Learning" asp-action="Dashboard">Tiến độ học tập</a></div>
 <p class="muted">Bài đánh giá độc lập và bài trong các khóa bạn đã tham gia. Mở hướng dẫn để xem thời lượng, số lượt và lịch sử trước khi bắt đầu.</p>
@@ -7,8 +8,8 @@
 @foreach (var assessment in Model)
 {
     <article class="panel course-card"><h2>@assessment.Title</h2>
-        <p>@assessment.Type · @assessment.QuestionCount câu · @assessment.DurationMinutes phút</p>
-        <p class="muted">Kỹ năng: @string.Join(", ", assessment.Skills)</p>
+        <p><partial name="_UiText" model="assessment.Type" /> · @assessment.QuestionCount câu · @assessment.DurationMinutes phút</p>
+        <p class="muted">Kỹ năng: @foreach (var assessedSkill in assessment.Skills) { <span class="badge"><partial name="_UiText" model="assessedSkill" /></span> }</p>
         @if (assessment.CourseId.HasValue) { <a asp-controller="Learning" asp-action="Course" asp-route-id="@assessment.CourseId">Trong khóa đã tham gia</a> }
         else { <span class="badge">Bài đánh giá độc lập</span> }
         <a class="button" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">@(assessment.ActiveAttemptId.HasValue ? "Tiếp tục làm bài" : "Hướng dẫn và lịch sử")</a>

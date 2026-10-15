@@ -3,14 +3,14 @@
 @{ ViewData["Title"] = "Thanh toán khóa học"; }
 @section Styles { <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" /> }
 <div class="checkout-page">
-    <a class="checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId">← Chi tiết khóa học</a>
+    <a class="button secondary back-link checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Chi tiết khóa học</a>
     <header class="checkout-heading">
         <h1>Thanh toán khóa học</h1>
-        @if (Model.IsSandbox) { <p class="checkout-test-label">Thanh toán thử nghiệm — không thu tiền thật.</p> }
+        @if (Model.IsSandbox) { <p class="checkout-test-label">Thanh toán mô phỏng — không thu tiền thật.</p> }
     </header>
     <partial name="_CourseNotice" />
     <section class="panel checkout-card" aria-labelledby="checkout-course-title">
-        <p class="eyebrow">KHÓA HỌC CỦA BẠN</p>
+
         <h2 class="checkout-course-title" id="checkout-course-title">@Model.Title</h2>
         <p class="muted checkout-teacher">Giảng viên: @Model.Teacher</p>
         <p class="checkout-order-id">Mã đơn: <span>@Model.Id</span></p>

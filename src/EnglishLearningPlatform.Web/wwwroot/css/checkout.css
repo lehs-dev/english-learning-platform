@@ -22,7 +22,7 @@
 
 .checkout-page .checkout-test-label {
     margin: 0;
-    color: var(--muted);
+    color: var(--text-secondary);
     font-size: 14px;
     line-height: 1.5;
 }
@@ -34,7 +34,7 @@
 
 .checkout-page .checkout-card .eyebrow {
     margin: 0 0 10px;
-    font-size: 11px;
+    font-size: var(--text-small);
     letter-spacing: 1.2px;
 }
 
@@ -52,8 +52,8 @@
 
 .checkout-page .checkout-order-id {
     margin: 8px 0 0;
-    color: var(--muted);
-    font-size: 12px;
+    color: var(--text-secondary);
+    font-size: var(--text-small);
     line-height: 1.6;
     overflow-wrap: anywhere;
 }
@@ -84,7 +84,7 @@
 .checkout-page .checkout-status {
     padding: 16px 18px;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius-control);
     line-height: 1.6;
 }
 
@@ -99,20 +99,20 @@
 }
 
 .checkout-page .checkout-status--success {
-    color: #17643f;
-    background: #effaf3;
-    border-color: #bde4cf;
+    color: var(--success);
+    background: var(--success-soft);
+    border-color: var(--border-success);
 }
 
 .checkout-page .checkout-status--error {
-    color: #ad2626;
-    background: #fff3f3;
-    border-color: #ecc7c7;
+    color: var(--danger);
+    background: var(--danger-soft);
+    border-color: var(--border-danger);
 }
 
 .checkout-page .checkout-status--neutral {
     color: var(--ink);
-    background: #f5f7fb;
+    background: var(--surface-subtle);
 }
 
 .checkout-page .checkout-actions {
@@ -120,22 +120,22 @@
 }
 
 .checkout-page .checkout-start {
-    background: #17643f;
-    border-color: #17643f;
+    background: var(--success);
+    border-color: var(--success);
     min-width: 160px;
 }
 
 .checkout-page .checkout-start:hover {
-    background: #105033;
-    border-color: #105033;
+    background: var(--success);
+    border-color: var(--success);
 }
 
 .checkout-page .checkout-tools {
     margin-top: 20px;
     padding: 18px;
-    border: 1px dashed #cdd8e6;
-    border-radius: 10px;
-    background: #f8faff;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-control);
+    background: var(--primary-soft);
 }
 
 .checkout-page .checkout-tools h3 {
@@ -211,8 +211,8 @@
 }
 
 .transaction-history-table th {
-    color: var(--muted);
-    font-size: 12px;
+    color: var(--text-secondary);
+    font-size: var(--text-small);
     font-weight: 700;
     white-space: nowrap;
 }
@@ -224,9 +224,9 @@
 .transaction-order-id {
     display: inline-block;
     max-width: 150px;
-    color: var(--muted);
+    color: var(--text-secondary);
     font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    font-size: 12px;
+    font-size: var(--text-small);
     overflow-wrap: anywhere;
 }
 
@@ -239,25 +239,25 @@
     display: inline-block;
     padding: 5px 10px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: var(--text-small);
     font-weight: 700;
     white-space: nowrap;
 }
 
 .transaction-status--succeeded {
-    color: #17643f;
-    background: #effaf3;
+    color: var(--success);
+    background: var(--success-soft);
 }
 
 .transaction-status--failed {
-    color: #ad2626;
-    background: #fff3f3;
+    color: var(--danger);
+    background: var(--danger-soft);
 }
 
 .transaction-status--cancelled,
 .transaction-status--pending {
     color: var(--ink);
-    background: #f1f4f8;
+    background: var(--surface-subtle);
 }
 
 .visually-hidden {
@@ -312,8 +312,8 @@
 
     .transaction-history-table td::before {
         content: attr(data-label);
-        color: var(--muted);
-        font-size: 12px;
+        color: var(--text-secondary);
+        font-size: var(--text-small);
         font-weight: 700;
     }
 
@@ -321,3 +321,7 @@
         padding-top: 10px;
     }
 }
+
+.checkout-test-label { display:inline-flex; padding:var(--space-3) var(--space-4); background:var(--warning-soft); color:var(--warning); border-radius:var(--radius-control); font-size:var(--text-small); }.checkout-card { box-shadow:none; }.checkout-tools { border:0; border-top:1px solid var(--border); border-radius:0; background:transparent; padding:var(--space-6) 0 0; }.checkout-status { border-left-width:1px; }.checkout-order-id { overflow-wrap:anywhere; }.checkout-actions { gap:var(--space-3); }
+
+.checkout-page .checkout-tools,.checkout-page .checkout-status { background:transparent; border:0; border-top:1px solid var(--border); border-radius:0; padding:var(--space-5) 0; }.checkout-page .checkout-test-label { color:var(--warning); }.checkout-page .checkout-tools { padding-bottom:0; }.checkout-page .checkout-back { display:inline-flex; align-items:center; gap:var(--space-2); }

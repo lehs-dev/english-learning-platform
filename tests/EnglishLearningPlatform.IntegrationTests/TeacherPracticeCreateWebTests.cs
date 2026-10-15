@@ -100,7 +100,8 @@ public sealed class TeacherPracticeCreateWebTests : IClassFixture<IntegrationTes
         using var bank = await client.GetAsync(link);
 
         Assert.Equal(HttpStatusCode.OK, bank.StatusCode);
-        Assert.Contains("Question Bank của tôi", WebUtility.HtmlDecode(await bank.Content.ReadAsStringAsync()));
+        Assert.Matches("<h1\\b[^>]*>\\s*Ngân hàng câu hỏi\\s*</h1>",
+            WebUtility.HtmlDecode(await bank.Content.ReadAsStringAsync()));
         await AssertNoPracticeAsync(own.Teacher.Id);
     }
 

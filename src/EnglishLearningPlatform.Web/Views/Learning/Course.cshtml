@@ -1,14 +1,14 @@
 @model CoursePage
 @{ ViewData["Title"] = Model.Course.Title; }
 @section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
-<a asp-action="Index">← Khu học tập</a><div class="page-heading"><div><h1>@Model.Course.Title</h1><span class="badge">@Model.Course.Status</span>
+<a class="button secondary back-link" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khu học tập</a><div class="page-heading"><div><h1>@Model.Course.Title</h1><span class="badge"><partial name="_UiText" model="Model.Course.Status" /></span>
 @if (Model.Progress?.CompletedAtUtc is DateTimeOffset completedAt)
 {
     <span class="badge course-completed">Đã hoàn thành khóa học</span>
     <p class="muted">Ngày hoàn thành: <time datetime="@completedAt.ToString("O")">@completedAt.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") (UTC+7)</time></p>
 }</div>
 @if (Model.IsOwner) { <a class="button" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a> }</div>
-@if (Model.Course.Status == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Bạn vẫn được đọc nội dung; không ghi progress mới.</p> }
+@if (Model.Course.Status == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Bạn vẫn được đọc nội dung; không ghi tiến độ mới.</p> }
 @if (Model.Course.Status == CourseStatus.Unpublished) { <p class="notice">Khóa học đã ngừng nhận học viên mới. Bạn vẫn có thể tiếp tục học.</p> }
 @if (Model.Progress is not null) { <partial name="_LearningProgress" model="Model.Progress" /> }
 <p class="muted">Chọn bất kỳ bài học khả dụng nào để bắt đầu.</p><partial name="_CourseOutline" model="Model" />

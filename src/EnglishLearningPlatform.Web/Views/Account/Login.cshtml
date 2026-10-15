@@ -1,4 +1,4 @@
-﻿@model EnglishLearningPlatform.Web.Models.Account.LoginViewModel
+@model EnglishLearningPlatform.Web.Models.Account.LoginViewModel
 @{
     ViewData["Title"] = "Đăng nhập";
     ViewData["PageClass"] = "auth-page";
@@ -10,9 +10,20 @@
     <partial name="_AuthAside" />
     <div class="auth-form-panel">
         <div class="auth-heading">
-            <span class="section-kicker">CHÀO MỪNG TRỞ LẠI</span>
+
             <h1 id="auth-title">Đăng nhập</h1>
             <p>Tiếp tục hành trình học tiếng Anh của bạn.</p>
+        </div>
+        <div class="demo-account-shortcuts" aria-label="Chọn tài khoản demo">
+            <span class="demo-account-label">Chuyển nhanh tài khoản demo</span>
+            <div class="demo-account-buttons">
+                <button type="button" class="demo-account-button" data-demo-email="student1@demo.example.test" aria-pressed="false">Học viên</button>
+                <button type="button" class="demo-account-button" data-demo-email="teacher1@demo.example.test" aria-pressed="false">Giảng viên</button>
+                <button type="button" class="demo-account-button" data-demo-email="admin1@demo.example.test" aria-pressed="false">Quản trị</button>
+            </div>
+            <span class="field-hint">@(string.IsNullOrWhiteSpace(Model.DemoPassword)
+                ? "Chọn vai trò để điền email, sau đó nhập mật khẩu demo."
+                : "Chọn vai trò để tự động điền email và mật khẩu demo.")</span>
         </div>
         <form class="account-form" asp-controller="Account" asp-action="Login" method="post">
             <input asp-for="ReturnUrl" type="hidden" />
@@ -36,7 +47,31 @@
             <button class="button button-primary button-full" type="submit">Đăng nhập <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
         </form>
         <p class="auth-switch">Bạn chưa có tài khoản? <a asp-controller="Account" asp-action="Register">Đăng ký ngay</a></p>
-        <a class="back-home" asp-controller="Home" asp-action="Index">← Về trang chủ</a>
+        <a class="back-home" asp-controller="Home" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Về trang chủ</a>
     </div>
 </section>
 <p class="auth-copyright">© 2026 Estudy. Cùng bạn chinh phục tiếng Anh.</p>
+@section Scripts {
+    <script>
+        const demoPassword = "@Model.DemoPassword";
+        document.querySelectorAll("[data-demo-email]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const emailInput = document.getElementById("Email");
+                const passwordInput = document.getElementById("Password");
+                emailInput.value = button.dataset.demoEmail;
+                passwordInput.value = demoPassword || "";
+                [emailInput, passwordInput].forEach((input) => {
+                    input.dispatchEvent(new Event("input", { bubbles: true }));
+                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                });
+                if (passwordInput.value) {
+                    document.querySelector(".account-form button[type='submit']").focus();
+                } else {
+                    passwordInput.focus();
+                }
+                document.querySelectorAll("[data-demo-email]").forEach((item) => item.setAttribute("aria-pressed", "false"));
+                button.setAttribute("aria-pressed", "true");
+            });
+        });
+    </script>
+}

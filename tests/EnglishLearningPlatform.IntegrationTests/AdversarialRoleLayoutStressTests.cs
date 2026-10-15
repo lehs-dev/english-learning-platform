@@ -45,7 +45,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         // Negative assertions: Strict segregation - No teacher or admin links/chrome
         Assert.DoesNotContain("studio-sidebar", html);
         Assert.DoesNotContain("teacher-sidebar", html);
-        Assert.DoesNotContain("Teacher Studio", html);
+        Assert.DoesNotContain("Không gian giảng dạy", html);
         Assert.DoesNotContain("/TeacherCourses", html);
         Assert.DoesNotContain("/TeacherQuestionBank", html);
         Assert.DoesNotContain("Ngân hàng câu hỏi", html);
@@ -75,7 +75,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.Contains("studio-shell", html);
         Assert.Contains("studio-sidebar", html);
         Assert.Contains("teacher-sidebar", html);
-        Assert.Contains("Teacher Studio", html);
+        Assert.Contains("Không gian giảng dạy", html);
         Assert.Contains("studio-topbar", html);
         Assert.Contains("/TeacherCourses", html);
         Assert.Contains("/TeacherQuestionBank", html);
@@ -112,8 +112,10 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.Contains("admin-body", html);
         Assert.Contains("admin-shell", html);
         Assert.Contains("admin-sidebar", html);
-        Assert.Contains("Hệ thống: Trực tuyến", html);
-        Assert.Contains("Production Console", html);
+        Assert.Contains("Không gian quản trị", html);
+        Assert.Contains("admin-topbar", html);
+        Assert.DoesNotContain("Hệ thống: Trực tuyến", html);
+        Assert.DoesNotContain("Production Console", html);
         Assert.Contains("/Admin/Transactions", html);
         Assert.Contains("/Admin/Users", html);
         Assert.Contains("Giao dịch", html);
@@ -127,7 +129,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.DoesNotContain("Bàn học", html);
         Assert.DoesNotContain("studio-sidebar", html);
         Assert.DoesNotContain("teacher-sidebar", html);
-        Assert.DoesNotContain("Teacher Studio", html);
+        Assert.DoesNotContain("Không gian giảng dạy", html);
         Assert.DoesNotContain("/TeacherCourses", html);
         Assert.DoesNotContain("/TeacherQuestionBank", html);
         Assert.DoesNotContain("Ngân hàng câu hỏi", html);

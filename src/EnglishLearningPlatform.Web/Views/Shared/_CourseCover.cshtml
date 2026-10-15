@@ -1,0 +1,15 @@
+@model CourseSummary
+@{
+    var skill = Model.Skills.FirstOrDefault();
+    var (theme, title, icon, word) = skill switch
+    {
+        EnglishSkill.Listening => ("listening", "Nghe hiểu", "graduation", "Listen."),
+        EnglishSkill.Reading => ("reading", "Đọc hiểu", "eye", "Read."),
+        EnglishSkill.Grammar => ("grammar", "Ngữ pháp", "check-circle", "Connect."),
+        _ => ("vocabulary", "Từ vựng", "search", "Discover.")
+    };
+}
+<div class="course-cover cover-@theme" aria-hidden="true">
+    <span class="cover-brand">Estudy <svg class="icon"><use href="@Url.Content("~/images/icons.svg#" + icon)"></use></svg></span>
+    <strong>@word</strong><span class="cover-caption">@title · <partial name="_UiText" model="Model.Level" /></span>
+</div>

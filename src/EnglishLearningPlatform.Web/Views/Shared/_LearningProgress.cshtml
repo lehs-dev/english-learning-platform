@@ -11,6 +11,6 @@
     }
     @if (Model.CompletedAtUtc is DateTimeOffset completedAt)
     {
-        <p class="muted">Đã hoàn thành khóa học vào <time datetime="@completedAt.ToString("O")" data-local-date>@completedAt.ToString("dd/MM/yyyy")</time></p>
+        <p class="muted">Đã hoàn thành khóa học vào <time datetime="@completedAt.ToString("O")" data-local-date>@completedAt.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</time></p>
     }
 </div>

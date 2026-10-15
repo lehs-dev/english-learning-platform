@@ -1,4 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <UserSecretsId>17304558-7c76-4a84-89cd-fba1a60f51ed</UserSecretsId>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\EnglishLearningPlatform.Application\EnglishLearningPlatform.Application.csproj" />
     <ProjectReference Include="..\EnglishLearningPlatform.Infrastructure\EnglishLearningPlatform.Infrastructure.csproj" />

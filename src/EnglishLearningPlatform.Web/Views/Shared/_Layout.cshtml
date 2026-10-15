@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#176bff" />
     <title>@ViewData["Title"] - Estudy</title>
+    <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
@@ -38,21 +39,22 @@
 }
 @if (User.IsInRole("Admin")) { <a class="nav-link" asp-controller="Admin" asp-action="Index">Quản trị</a> }
                 <a class="nav-link @(activeSection == "courses" ? "is-active" : "")" asp-controller="Courses" asp-action="Index" aria-current="@(activeSection == "courses" ? "page" : null)">Khóa học</a>
-                <a class="nav-link @(activeSection == "exams" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="exams" aria-current="@(activeSection == "exams" ? "page" : null)">Đề thi</a>
-                <a class="nav-link @(activeSection == "assessment" ? "is-active" : "")" asp-controller="@(User.IsInRole("Student") ? "Assessment" : "Home")" asp-action="Index" asp-route-section="@(User.IsInRole("Student") ? null : "assessment")" aria-current="@(activeSection == "assessment" ? "page" : null)">Đánh giá năng lực</a>
-                <a class="nav-link @(activeSection == "about" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="about" aria-current="@(activeSection == "about" ? "page" : null)">Giới thiệu</a>
-                <a class="nav-link @(activeSection == "dictionary" ? "is-active" : "")" asp-controller="Home" asp-action="Index" asp-route-section="dictionary" aria-current="@(activeSection == "dictionary" ? "page" : null)">Dịch từ</a>
+                <a class="nav-link @(activeSection == "exams" ? "is-active" : "")" asp-controller="Assessment" asp-action="Index" aria-current="@(activeSection == "exams" ? "page" : null)">Đề thi</a>
             </nav>
             <div class="header-actions">
-                <div class="header-search">
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
-                    <input type="search" placeholder="Tìm kiếm khóa học, đề thi, từ vựng..." aria-label="Tìm kiếm khóa học, đề thi, từ vựng" disabled />
-                </div>
+                <form class="header-search" asp-controller="Courses" asp-action="Index" method="get" role="search">
+                    <label class="visually-hidden" for="header-course-search">Tìm khóa học</label>
+                    <input id="header-course-search" type="search" name="Search" value="@(Context.Request.Query["Search"].ToString())" maxlength="200" placeholder="Tìm khóa học..." />
+                    <button class="icon-button" type="submit" aria-label="Tìm khóa học">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                    </button>
+                </form>
                 @await Component.InvokeAsync("AccountMenu")
             </div>
         </div>
     </header>
     <main class="container page-content" id="main-content" tabindex="-1">@RenderBody()</main>
+    <partial name="_SiteFooter" />
     <script src="~/js/site.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

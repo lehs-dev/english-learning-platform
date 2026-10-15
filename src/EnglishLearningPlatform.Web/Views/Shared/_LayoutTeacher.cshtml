@@ -9,15 +9,16 @@
         "teachercourses" or "learning" => ViewData["ActiveSection"] as string ?? "courses",
         _ => ViewData["ActiveSection"] as string ?? ""
     };
-    var currentTitle = ViewData["Title"] as string ?? "Studio Giảng viên";
+    var currentTitle = ViewData["Title"] as string ?? "Không gian giảng dạy";
 }
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#1e293b" />
-    <title>@currentTitle - Estudy Studio</title>
+    <meta name="theme-color" content="#176bff" />
+    <title>@currentTitle - Estudy Giảng viên</title>
+    <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
@@ -30,19 +31,19 @@
 
     <div class="studio-shell">
         @* Teacher Studio Sidebar *@
-        <aside class="studio-sidebar teacher-sidebar" id="studio-sidebar" aria-label="Thanh điều hướng Teacher Studio">
+        <aside class="studio-sidebar teacher-sidebar" id="studio-sidebar" aria-label="Điều hướng giảng viên">
             <div class="studio-sidebar-header">
-                <a class="brand studio-brand" asp-controller="TeacherCourses" asp-action="Index" aria-label="Estudy Teacher Studio">
+                <a class="brand studio-brand" asp-controller="TeacherCourses" asp-action="Index" aria-label="Estudy - Không gian giảng dạy">
                     <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
                     <span>Estudy</span>
-                    <span class="role-badge studio-badge">Studio</span>
                 </a>
-                <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng menu Studio">✕</button>
+                <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng thanh điều hướng giảng viên"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
             </div>
 
+            <p class="workspace-caption">Không gian giảng dạy</p>
             <nav class="studio-nav" aria-label="Menu chức năng giảng viên">
                 <div class="studio-nav-group">
-                    <span class="studio-nav-label">QUẢN LÝ NỘI DUNG</span>
+                    <span class="studio-nav-label">Quản lý nội dung</span>
                     <a class="studio-nav-link @(activeSection is "courses" or "teachercourses" ? "is-active" : "")"
                        asp-controller="TeacherCourses"
                        asp-action="Index"
@@ -54,7 +55,7 @@
                        asp-controller="TeacherQuestionBank"
                        asp-action="Index"
                        aria-current="@(activeSection is "questionbank" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
                         <span>Ngân hàng câu hỏi</span>
                     </a>
                     <a class="studio-nav-link @(activeSection is "practices" or "teacherpractices" ? "is-active" : "")"
@@ -68,19 +69,19 @@
                 </div>
 
                 <div class="studio-nav-group">
-                    <span class="studio-nav-label">HỌC VIÊN & BÁO CÁO</span>
+                    <span class="studio-nav-label">Học viên và báo cáo</span>
                     <a class="studio-nav-link @(activeSection == "analytics" ? "is-active" : "")"
                        asp-controller="TeacherCourses"
                        asp-action="Index"
                        asp-fragment="statistics"
                        aria-current="@(activeSection == "analytics" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
-                        <span>Thống kê & Học viên</span>
+                        <span>Học viên và thống kê</span>
                     </a>
                 </div>
 
                 <div class="studio-nav-group studio-nav-group--bottom">
-                    <span class="studio-nav-label">LIÊN KẾT NHANH</span>
+                    <span class="studio-nav-label">Liên kết nhanh</span>
                     <a class="studio-nav-link" asp-controller="Courses" asp-action="Index">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                         <span>Xem danh mục khóa học</span>
@@ -99,17 +100,18 @@
         <div class="studio-main-wrapper">
             <header class="studio-topbar">
                 <div class="studio-topbar-left">
-                    <button class="mobile-sidebar-toggle icon-button" type="button" data-sidebar-toggle aria-controls="studio-sidebar" aria-expanded="false" aria-label="Mở menu Studio">
+                    <button class="mobile-sidebar-toggle icon-button" type="button" data-sidebar-toggle aria-controls="studio-sidebar" aria-expanded="false" aria-label="Mở thanh điều hướng giảng viên">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#menu")"></use></svg>
                     </button>
-                    <span class="studio-topbar-title">Teacher Studio</span>
+                    <span class="studio-topbar-title">Không gian giảng dạy</span>
                 </div>
 
                 <div class="studio-topbar-actions">
                     <a class="button button-primary button-small studio-create-cta"
                        asp-controller="TeacherCourses"
                        asp-action="Edit">
-                        + Tạo khóa học
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
+                        Tạo khóa học
                     </a>
                     @await Component.InvokeAsync("AccountMenu")
                 </div>
@@ -151,6 +153,7 @@
             <main class="studio-main page-content" id="main-content" tabindex="-1">
                 @RenderBody()
             </main>
+            <partial name="_SiteFooter" />
         </div>
     </div>
 
