@@ -10,6 +10,8 @@ public static class DependencyInjection
     {
         services.AddScoped<IExamScoringService, ExamScoringService>();
         services.AddScoped<ICreateQuestionValidator, CreateQuestionValidator>();
+        // Cung cấp validator kiểm tra câu hỏi trước khi sử dụng.
+        services.AddScoped<IQuestionUsageValidator, QuestionUsageValidator>();
         return services;
     }
 }
