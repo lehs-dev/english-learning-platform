@@ -91,6 +91,8 @@ public static class DependencyInjection
         services.AddScoped<ITeacherCourseReportService, TeacherCourseReportService>();
         services.AddScoped<IPracticeService, PracticeService>();
         services.AddScoped<ITeacherPracticeService, TeacherPracticeService>();
+        // Service đọc danh sách Practice dành cho Teacher.
+        services.AddScoped<ITeacherPracticeQueryService,TeacherPracticeQueryService>();
         return services;
     }
 }

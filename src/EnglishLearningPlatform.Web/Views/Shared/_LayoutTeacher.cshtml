@@ -58,13 +58,16 @@
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
                         <span>Ngân hàng câu hỏi</span>
                     </a>
+                    @* Mở danh sách Practice của Teacher.
+                    Trong trang danh sách đã có nút tạo Practice Draft. *@
                     <a class="studio-nav-link @(activeSection is "practices" or "teacherpractices" ? "is-active" : "")"
-                       asp-controller="TeacherCourses"
-                       asp-action="Index"
-                       asp-fragment="practices"
-                       aria-current="@(activeSection is "practices" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
-                        <span>Tạo bài tập</span>
+                    asp-controller="TeacherPractices"
+                    asp-action="Index"
+                    aria-current="@(activeSection is "practices" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true">
+                            <use href="@Url.Content("~/images/icons.svg#check-circle")"></use>
+                        </svg>
+                        <span>Bài luyện tập</span>
                     </a>
                 </div>
 
