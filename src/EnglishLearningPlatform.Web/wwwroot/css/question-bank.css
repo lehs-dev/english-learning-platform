@@ -253,3 +253,80 @@
     gap: 12px;
     margin: 24px 0;
 }
+
+/* Question Form Editor Styling */
+.question-form {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.question-form .notice {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 14px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #92400e;
+}
+
+.question-options {
+    border: 1px solid #dce4ee;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+.question-options legend {
+    font-weight: 700;
+    padding: 0 6px;
+}
+
+.question-option-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    border-top: 1px solid #edf0f6;
+    padding: 14px 0;
+}
+
+.question-option-row:first-child {
+    border-top: 0;
+    padding-top: 4px;
+}
+
+.question-option-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.question-correct {
+    white-space: nowrap;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.question-option-row input[readonly],
+.question-form textarea[readonly] {
+    background: #edf1f6;
+    cursor: not-allowed;
+}
+
+.question-options .button {
+    margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+    .question-option-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .question-correct {
+        margin-top: 0;
+    }
+}

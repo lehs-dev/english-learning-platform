@@ -17,7 +17,19 @@
         <h1>Question Bank của tôi</h1>
         <p>Danh sách câu hỏi thuộc tài khoản Teacher hiện tại.</p>
     </div>
+    <a class="button"
+       asp-controller="TeacherQuestionBank"
+       asp-action="Create">
+        + Tạo câu hỏi
+    </a>
 </div>
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert alert-success" role="status" style="margin-bottom: 20px; padding: 12px 16px; background: #e6f9ed; border-left: 4px solid #10b981; color: #065f46; border-radius: 6px;">
+        @successMessage
+    </div>
+}
 <section class="panel question-bank-filters" aria-labelledby="question-filter-title">
     <h2 id="question-filter-title">Tìm / lọc câu hỏi</h2>
 
@@ -221,13 +233,19 @@ else
                 </div>
             </dl>
 
-            <div class="question-bank-card-actions">
+            <div class="question-bank-card-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
                 @* Tag Helper tạo URL tới action Details đang có. *@
                 <a class="button secondary"
                    asp-controller="TeacherQuestionBank"
                    asp-action="Details"
                    asp-route-id="@question.Id">
                     Xem chi tiết
+                </a>
+                <a class="button secondary"
+                   asp-controller="TeacherQuestionBank"
+                   asp-action="Edit"
+                   asp-route-id="@question.Id">
+                    Chỉnh sửa
                 </a>
             </div>
         </article>

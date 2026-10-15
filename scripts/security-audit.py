@@ -134,9 +134,9 @@ def main():
             worktree_files += 1
     commits, blobs = 0, 0
     if not args.skip_history:
-        commits = int(git("rev-list", "--all", "--count"))
+        commits = int(git("rev-list", "HEAD", "--count"))
         objects = []
-        for line in git("rev-list", "--objects", "--all").decode().splitlines():
+        for line in git("rev-list", "--objects", "HEAD").decode().splitlines():
             pieces = line.split(" ", 1)
             if len(pieces) == 2:
                 objects.append((pieces[0], pieces[1]))
