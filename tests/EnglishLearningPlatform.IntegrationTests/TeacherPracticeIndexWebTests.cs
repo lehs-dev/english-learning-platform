@@ -530,7 +530,7 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
         var form = await HtmlAsync(client, create);
 
         Assert.Equal("/TeacherPractices/Create", Url(create).AbsolutePath);
-        Assert.Contains("Tạo Practice Draft", WebUtility.HtmlDecode(form));
+        Assert.Contains("Tạo bài luyện tập nháp", WebUtility.HtmlDecode(form));
         Assert.Contains("name=\"Input.Title\"", form);
         Assert.Equal(before, await CountsAsync());
     }
