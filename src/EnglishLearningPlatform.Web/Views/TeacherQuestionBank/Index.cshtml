@@ -17,11 +17,17 @@
         <h1>Ngân hàng câu hỏi</h1>
         <p>Danh sách câu hỏi thuộc tài khoản Giảng viên hiện tại.</p>
     </div>
-    <a class="button"
-       asp-controller="TeacherQuestionBank"
-       asp-action="Create">
-        Tạo câu hỏi
-    </a>
+    <div class="actions">
+        <a class="button"
+           asp-controller="TeacherQuestionBank"
+           asp-action="Create">
+            Tạo câu hỏi
+        </a>
+        @* Tạo ngữ liệu trước khi mở form câu hỏi, không làm mất nội dung đang soạn. *@
+        <a class="button secondary" asp-controller="TeacherStimuli" asp-action="Create">
+            Tạo ngữ liệu đọc/nghe
+        </a>
+    </div>
 </div>
 
 @if (TempData["Success"] is string successMessage)
