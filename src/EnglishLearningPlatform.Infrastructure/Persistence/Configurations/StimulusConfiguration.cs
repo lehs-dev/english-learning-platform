@@ -13,6 +13,10 @@ public sealed class StimulusConfiguration : IEntityTypeConfiguration<Stimulus>
         e.Property(x => x.StimulusType).HasConversion<string>().HasMaxLength(16);
         e.Property(x => x.Title).HasMaxLength(200);
         e.Property(x => x.ResourceUrl).HasMaxLength(2048);
+        // Stimulus chưa bị khóa thì thời điểm khóa vẫn là NULL.
+        e.Property(x => x.ContentLockedAtUtc)
+            .HasColumnType("datetimeoffset")
+            .IsRequired(false);
         e.HasOne<ApplicationUser>().WithMany()
             .HasForeignKey(x => x.OwnerTeacherUserId).OnDelete(DeleteBehavior.NoAction);
     }
