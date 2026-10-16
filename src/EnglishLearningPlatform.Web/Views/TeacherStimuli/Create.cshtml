@@ -1,0 +1,53 @@
+@model EnglishLearningPlatform.Application.Stimuli.CreateStimulusRequest
+@{
+    ViewData["Title"] = "Tạo ngữ liệu đọc/nghe";
+    ViewData["ActiveSection"] = "questionbank";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Tạo ngữ liệu đọc/nghe</h1>
+        <p class="muted">Lưu đoạn đọc hoặc URL âm thanh trước, sau đó chọn khi soạn câu hỏi.</p>
+    </div>
+    <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">
+        Quay lại ngân hàng câu hỏi
+    </a>
+</div>
+
+@* Dùng lại CSS form hiện có; không thay đổi layout hoặc CSS dùng chung của nhóm. *@
+<form asp-controller="TeacherStimuli" asp-action="Create" method="post"
+      asp-antiforgery="true" class="panel editor-form">
+    <div asp-validation-summary="All" class="validation" role="alert"></div>
+
+    <label asp-for="StimulusType">Loại ngữ liệu</label>
+    <select asp-for="StimulusType" required>
+        <option value="">-- Chọn loại ngữ liệu --</option>
+        <option value="@((int)StimulusType.Passage)">Đoạn đọc (Passage)</option>
+        <option value="@((int)StimulusType.Audio)">Âm thanh (Audio)</option>
+    </select>
+    <span asp-validation-for="StimulusType" class="validation"></span>
+
+    <label asp-for="Title">Tiêu đề (tùy chọn)</label>
+    <input asp-for="Title" maxlength="200" placeholder="Ví dụ: Reading - A day at school" />
+    <span asp-validation-for="Title" class="validation"></span>
+    <p class="muted">Nên đặt tiêu đề để dễ nhận biết trong danh sách ngữ liệu của câu hỏi.</p>
+
+    <label asp-for="ContentText">Nội dung đoạn đọc — chỉ điền khi chọn Passage</label>
+    <textarea asp-for="ContentText" rows="8" placeholder="Nhập đoạn văn để học viên đọc..."></textarea>
+    <span asp-validation-for="ContentText" class="validation"></span>
+
+    <label asp-for="ResourceUrl">URL âm thanh — chỉ điền khi chọn Audio</label>
+    <input asp-for="ResourceUrl" type="url" maxlength="2048" placeholder="https://example.com/audio.mp3" />
+    <span asp-validation-for="ResourceUrl" class="validation"></span>
+
+    <p class="muted">
+        Passage: nhập nội dung và để trống URL. Audio: nhập URL trực tiếp đến tài nguyên âm thanh
+        và để trống nội dung đoạn đọc. URL chỉ được kiểm tra định dạng HTTP/HTTPS;
+        hệ thống chưa tải file hoặc xác nhận tài nguyên có phát được tại bước này.
+    </p>
+
+    <div class="actions">
+        <button type="submit" class="button">Lưu ngữ liệu và tiếp tục tạo câu hỏi</button>
+        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">Hủy</a>
+    </div>
+</form>

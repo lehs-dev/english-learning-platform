@@ -19,6 +19,8 @@ using EnglishLearningPlatform.Application.Administration;
 using EnglishLearningPlatform.Infrastructure.Administration;
 using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Infrastructure.Practices;
+using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Infrastructure.Stimuli;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
@@ -93,6 +95,8 @@ public static class DependencyInjection
         services.AddScoped<ITeacherPracticeService, TeacherPracticeService>();
         // Service đọc danh sách Practice dành cho Teacher.
         services.AddScoped<ITeacherPracticeQueryService,TeacherPracticeQueryService>();
+        // Tạo ngữ liệu riêng của Teacher, không dùng service chấm bài của Student.
+        services.AddScoped<IStimulusCreationService, StimulusCreationService>();
         return services;
     }
 }
