@@ -2,6 +2,6 @@
   "name": "english-learning-platform-browser-uat",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node uat.mjs", "test:assessment": "node --test assessment-ui.test.mjs", "test:admin": "node admin-uat.mjs" },
+  "scripts": { "test": "node uat.mjs", "test:assessment": "node --test assessment-ui.test.mjs", "test:admin": "node admin-uat.mjs", "test:roles": "node --test --test-concurrency=1 role-layouts.test.mjs" },
   "devDependencies": { "playwright": "1.64.0" }
 }
