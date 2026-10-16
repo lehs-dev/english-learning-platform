@@ -107,6 +107,106 @@ public sealed class QuestionAuthoringService(
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Chuyển câu hỏi sang Archived.
+    /// Chỉ đổi trạng thái, không xóa hoặc sửa nội dung chấm.
+    /// </summary>
+    public async Task<QuestionWriteResult> ArchiveAsync(
+        Guid actorUserId,
+        Guid questionId,
+        CancellationToken cancellationToken = default)
+    {
+        // Nếu request đã bị hủy thì dừng trước khi xử lý database.
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            // Gom việc kiểm tra quyền và cập nhật vào cùng transaction.
+            // Serializable giữ dữ liệu đã đọc ổn định trong quá trình xử lý.
+            // await using bảo đảm transaction được giải phóng khi thoát hàm.
+            await using var transaction =
+                await db.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable,
+                    cancellationToken);
+
+            // Dùng lại helper đã có trong file:
+            // tài khoản phải đang hoạt động và có đúng role Teacher.
+            if (!await IsActiveTeacherAsync(actorUserId))
+            {
+                return QuestionWriteResult.Failure(new[]
+                {
+                    new QuestionError(
+                        string.Empty,
+                        "forbidden",
+                        "Bạn không có quyền lưu trữ câu hỏi.")
+                });
+            }
+
+            // Kiểm tra cả ID câu hỏi và owner ngay trong truy vấn.
+            // Không cho Teacher lưu trữ câu hỏi của người khác.
+            var question = await db.Questions.SingleOrDefaultAsync(
+                q => q.Id == questionId
+                    && q.OwnerTeacherUserId == actorUserId,
+                cancellationToken);
+
+            if (question == null)
+            {
+                // Dùng chung thông báo cho câu hỏi không tồn tại
+                // và câu hỏi thuộc Teacher khác để tránh lộ dữ liệu.
+                return QuestionWriteResult.Failure(new[]
+                {
+                    new QuestionError(
+                        string.Empty,
+                        "not_found",
+                        "Câu hỏi không tồn tại.")
+                });
+            }
+
+            // Đã lưu trữ thì xem như thành công.
+            // Gửi lại request không làm thay đổi thời gian cập nhật.
+            if (question.Status == QuestionStatus.Archived)
+            {
+                return QuestionWriteResult.Success(question.Id);
+            }
+
+            // Chỉ thay đổi hai trường này.
+            // Không đụng tới nội dung, Option, Stimulus hoặc bài làm.
+            question.Status = QuestionStatus.Archived;
+            question.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+            await db.SaveChangesAsync(cancellationToken);
+
+            // Chỉ xác nhận transaction sau khi lưu thành công.
+            await transaction.CommitAsync(cancellationToken);
+
+            return QuestionWriteResult.Success(question.Id);
+        }
+        catch (OperationCanceledException)
+            when (cancellationToken.IsCancellationRequested)
+        {
+            // Request bị hủy không được coi là lỗi lưu database thông thường.
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Ghi chi tiết lỗi cho người phát triển tra cứu.
+            // Không ghi nội dung câu hỏi hoặc đáp án vào log.
+            logger.LogError(
+                ex,
+                "Question archive failed for {QuestionId}.",
+                questionId);
+
+            // Người dùng chỉ nhận thông báo chung, không nhận lỗi nội bộ.
+            return QuestionWriteResult.Failure(new[]
+            {
+                new QuestionError(
+                    string.Empty,
+                    "integration_error",
+                    "Chưa thể lưu trữ câu hỏi. Vui lòng thử lại sau.")
+            });
+        }
+    }
+
     public async Task<QuestionWriteResult> UpdateAsync(
         Guid actorUserId,
         Guid questionId,

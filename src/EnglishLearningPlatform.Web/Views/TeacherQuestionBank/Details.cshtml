@@ -38,6 +38,14 @@
     </div>
 }
 
+@* Hiển thị lỗi được Controller gửi qua lần chuyển trang. *@
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert alert-error" role="alert">
+        @errorMessage
+    </div>
+}
+
 <section class="panel question-bank-detail" aria-labelledby="question-content-title">
 
     @* Gom từng nhãn và giá trị thành một ô, không dùng thụt lề mặc định của dd. *@
@@ -139,3 +147,36 @@
         }
     </section>
 }
+
+@* Archive chỉ đổi trạng thái, không xóa câu hỏi hoặc bài làm cũ. *@
+<section class="panel" aria-labelledby="question-archive-title">
+    <h2 id="question-archive-title">Lưu trữ câu hỏi</h2>
+
+    @if (Model.Status == QuestionStatus.Archived)
+    {
+        <p>
+            Câu hỏi đã được lưu trữ.
+            Nội dung và dữ liệu lịch sử vẫn được giữ nguyên.
+        </p>
+    }
+    else
+    {
+        <p>
+            Sau khi lưu trữ, câu hỏi không được chọn cho
+            Practice/Assessment mới.
+            Câu hỏi, các lựa chọn và dữ liệu làm bài đã có không bị xóa.
+        </p>
+
+        @* Tag Helper tạo URL gửi đến action Archive.
+           asp-antiforgery tạo token để Controller kiểm tra. *@
+        <form asp-controller="TeacherQuestionBank"
+              asp-action="Archive"
+              asp-route-id="@Model.Id"
+              method="post"
+              asp-antiforgery="true">
+            <button type="submit" class="button secondary">
+                Lưu trữ câu hỏi
+            </button>
+        </form>
+    }
+</section>

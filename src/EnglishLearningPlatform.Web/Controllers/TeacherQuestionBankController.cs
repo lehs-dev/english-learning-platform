@@ -57,6 +57,66 @@ public sealed class TeacherQuestionBankController : Controller
         return View(detail);
     }
 
+    /// <summary>
+    /// Nhận yêu cầu lưu trữ câu hỏi.
+    /// Chỉ cho phép POST và phải có antiforgery token hợp lệ.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Archive(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        // Lấy người thực hiện từ thông tin đăng nhập.
+        // Không nhận actorUserId hoặc owner từ form.
+        Guid? actorUserId = CurrentUserId;
+
+        if (!actorUserId.HasValue || actorUserId.Value == Guid.Empty)
+        {
+            return Challenge();
+        }
+
+        // ModelState phát hiện ID không chuyển được thành Guid.
+        if (!ModelState.IsValid || id == Guid.Empty)
+        {
+            return NotFound();
+        }
+
+        // Service kiểm tra lại tài khoản, role và quyền sở hữu.
+        var result = await _questionAuthoringService.ArchiveAsync(
+            actorUserId.Value,
+            id,
+            cancellationToken);
+
+        // Any trả về true nếu danh sách có ít nhất một lỗi phù hợp.
+        if (result.Errors.Any(error => error.Code == "forbidden"))
+        {
+            return Forbid();
+        }
+
+        // Không phân biệt câu hỏi không tồn tại hay thuộc Teacher khác.
+        if (result.Errors.Any(error => error.Code == "not_found"))
+        {
+            return NotFound();
+        }
+
+        if (result.Succeeded)
+        {
+            // TempData giữ thông báo qua lần chuyển trang kế tiếp.
+            TempData["Success"] =
+                "Đã lưu trữ câu hỏi. Nội dung và dữ liệu lịch sử vẫn được giữ nguyên.";
+        }
+        else
+        {
+            TempData["Error"] =
+                "Chưa thể lưu trữ câu hỏi. Vui lòng thử lại sau.";
+        }
+
+        // Chuyển về trang chi tiết sau POST.
+        // Refresh trang chi tiết sẽ không gửi lại thao tác lưu trữ.
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
     // Hiển thị danh sách câu hỏi thuộc Teacher đang đăng nhập.
     [HttpGet]
     public async Task<IActionResult> Index(
