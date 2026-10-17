@@ -10,14 +10,17 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-// An explicit deployment mode applies migrations and exits before serving requests.
-// Normal startup never changes production schema implicitly.
-if (args.Contains("--migrate", StringComparer.Ordinal))
+// Development upgrades its local database before queries or demo seeding use the model.
+// Production still requires the explicit deployment mode; it never migrates implicitly.
+var migrateOnly = args.Contains("--migrate", StringComparer.Ordinal);
+var migrateOnStartup = app.Environment.IsDevelopment() &&
+    builder.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup");
+if (migrateOnly || migrateOnStartup)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<EnglishLearningPlatform.Infrastructure.Persistence.AppDbContext>();
     await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.MigrateAsync(db.Database);
-    return;
+    if (migrateOnly) return;
 }
 
 if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("LearningDemo:Enabled"))

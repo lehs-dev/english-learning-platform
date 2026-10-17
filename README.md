@@ -52,11 +52,13 @@ CD hiện chỉ build/push image lên **GitHub Container Registry**, chưa tự 
 
 ## Bắt đầu sau khi clone hoặc pull repo
 
-Cần Git và Docker có Docker Compose. Nếu chạy ứng dụng trên máy host, cài thêm .NET 10 SDK. Repo dùng SQL Server 2022; các migration khởi tạo schema và seed ba role (**Student**, **Teacher**, **Admin**) đã được commit. Mỗi database local mới cần áp dụng migration một lần. Sau khi pull migration mới, chạy lại lệnh cập nhật schema trong cách chạy tương ứng; EF Core chỉ áp dụng migration còn thiếu.
+Cần Git và Docker có Docker Compose. Nếu chạy ứng dụng trên máy host, cài thêm .NET 10 SDK. Repo dùng SQL Server 2022; các migration khởi tạo schema và seed ba role (**Student**, **Teacher**, **Admin**) đã được commit. Database cần áp dụng migration khi tạo mới hoặc khi code có migration mới; EF Core chỉ áp dụng migration còn thiếu.
+
+Khi chạy với `ASPNETCORE_ENVIRONMENT=Development`, web mặc định tự áp dụng migration còn thiếu **trước khi seed dữ liệu hoặc nhận request**. Cơ chế này dùng chung cho Windows local, Linux/macOS, Dev Container và Compose Development, nên sau khi pull code mới, chỉ cần khởi động lại web với đúng connection string. Database phải sẵn sàng; nếu cập nhật thất bại, web dừng khởi động để tránh lỗi thiếu cột khi đang làm bài. Đặt `Database__ApplyMigrationsOnStartup=false` nếu muốn tự quản lý migration bằng các lệnh bên dưới. Production luôn dùng bước `--migrate` riêng, kể cả khi cờ này được bật.
 
 ### Cách A: VS Code Dev Container
 
-Cần VS Code và extension Dev Containers. Mở repo trong VS Code, chọn **Dev Containers: Reopen in Container**. VS Code khởi động môi trường .NET và SQL Server riêng cho Dev Container; chờ SQL Server sẵn sàng trước khi chạy migration. Có thể xem log từ terminal trên máy host:
+Cần VS Code và extension Dev Containers. Mở repo trong VS Code, chọn **Dev Containers: Reopen in Container**. Compose chờ SQL Server healthy trước khi mở môi trường .NET. Có thể xem log từ terminal trên máy host:
 
     docker compose -f .devcontainer/docker-compose.yml logs -f db
 
@@ -65,7 +67,9 @@ Nhấn **Ctrl+C** để thoát xem log, không dừng database. Mở terminal t�
     dotnet ef database update --project src/EnglishLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
     dotnet run --project src/EnglishLearningPlatform.Web
 
-Trong Dev Container, hostname database là **db**. Mở **http://localhost:8080** trên máy host. Database được lưu trong volume **sqlserver-dev-data**; lần sau mở lại container thì không cần tạo lại, nhưng sau khi pull migration mới vẫn chạy lại lệnh **dotnet ef database update**.
+Trong Dev Container, hostname database là **db**. Mở **http://localhost:8080** trên máy host. Database được lưu trong volume **sqlserver-dev-data**; lần sau mở lại container thì không cần tạo lại. Sau khi pull migration mới, khởi động lại web để cập nhật schema.
+
+Lệnh EF ở trên là bước cập nhật thủ công tùy chọn trong Development; `dotnet run` cũng tự cập nhật schema khi khởi động. Nếu host đã dùng cổng 1433, đặt `ELP_SQL_PORT` thành cổng trống trước khi mở Dev Container; kết nối bên trong container vẫn dùng `db,1433`.
 
 ### Cách B: Ứng dụng local, SQL Server trong Docker
 
@@ -88,11 +92,11 @@ Chờ log SQL Server báo đã sẵn sàng rồi nhấn **Ctrl+C** để thoát 
 
 Linux/macOS, Git Bash hoặc WSL:
 
-    export ConnectionStrings__DefaultConnection='Server=localhost,1433;Database=EnglishLearningDb;User Id=sa;Password=YOUR_MSSQL_SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true'
+    export ConnectionStrings__DefaultConnection='Server=127.0.0.1,1433;Database=EnglishLearningDb;User Id=sa;Password=YOUR_MSSQL_SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true'
 
 PowerShell:
 
-    $env:ConnectionStrings__DefaultConnection = 'Server=localhost,1433;Database=EnglishLearningDb;User Id=sa;Password=YOUR_MSSQL_SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true'
+    $env:ConnectionStrings__DefaultConnection = 'Server=127.0.0.1,1433;Database=EnglishLearningDb;User Id=sa;Password=YOUR_MSSQL_SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true'
 
 Áp dụng các migration đã có trong repo:
 
@@ -103,11 +107,11 @@ Chạy lệnh này khi tạo database local mới và sau khi pull thay đổi c
     dotnet restore EnglishLearningPlatform.sln
     dotnet run --project src/EnglishLearningPlatform.Web
 
-Mở URL được in trong terminal. Ứng dụng local kết nối tới **localhost,1433**.
+Mở URL được in trong terminal. Ứng dụng local kết nối tới **127.0.0.1,1433**, khớp địa chỉ IPv4 Compose đã bind và tránh timeout khi `localhost` được phân giải thành IPv6. Nếu đặt `ELP_SQL_PORT` khác 1433, đổi cổng trong connection string cho khớp.
 
 ### Cách C: Ứng dụng và database cùng chạy trong Docker Compose
 
-Thực hiện Cách B từ bước tạo **.env** đến hết lệnh **dotnet ef database update**; không chạy **dotnet run** trên host. Lệnh EF dùng **localhost,1433**, còn web trong Compose tự dùng hostname **db**. Sau đó chạy:
+Thực hiện Cách B từ bước tạo **.env** đến hết lệnh **dotnet ef database update**; không chạy **dotnet run** trên host. Lệnh EF dùng **127.0.0.1,1433**, còn web trong Compose tự dùng hostname **db**. Sau đó chạy:
 
     docker compose up --build -d
 
@@ -119,15 +123,16 @@ Dừng container nhưng giữ dữ liệu bằng **docker compose down** hoặc 
 
 ### Cách D: SQL Server cài trực tiếp trên Windows
 
-Cần .NET 10 SDK và SQL Server local. Nếu dùng instance mặc định `localhost` với Windows Authentication, đặt connection string rồi áp dụng migration:
+Cần .NET 10 SDK và SQL Server local. Nếu dùng instance mặc định `localhost` với Windows Authentication, dùng cùng profile `LocalSqlServer` để cập nhật database rồi chạy web:
 
 ```powershell
-$env:ConnectionStrings__DefaultConnection = 'Server=localhost;Database=EnglishLearningDb;Integrated Security=True;TrustServerCertificate=True;MultipleActiveResultSets=true'
-dotnet ef database update --project src/EnglishLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
+dotnet run --project src/EnglishLearningPlatform.Web --launch-profile LocalSqlServer -- --migrate
 dotnet run --project src/EnglishLearningPlatform.Web --launch-profile LocalSqlServer
 ```
 
 Mở **http://localhost:5098**. Profile `LocalSqlServer` trỏ tới database **EnglishLearningDb** trên instance mặc định; chọn profile này khi chạy Windows local. Nếu dùng named instance hoặc SQL Authentication, đặt connection string phù hợp và chạy profile `http` để giữ cấu hình bạn đã đặt.
+
+Có thể chạy riêng lệnh `--migrate` sau khi pull code có migration mới. Lệnh chỉ áp dụng migration còn thiếu rồi thoát; không mở web và không cần cài `dotnet-ef`. Nếu nộp bài hoặc bấm **Hoàn tất lượt đã hết giờ** báo `Invalid column name 'ContentLockedAtUtc'`, database còn thiếu migration `20261015181741_AddQuestionAndStimulusContentLocks`. Khởi động lại web Development để tự cập nhật, hoặc chạy lệnh cập nhật ở trên nếu đã tắt migration khi khởi động; migration thêm cột cho `Questions` và `Stimuli`, ghi nhận khóa nội dung cũ và giữ nguyên bài làm, đáp án, điểm số. Không cần tạo lại database.
 
 Trang đăng nhập có ba nút Student/Teacher/Admin để chọn tài khoản demo. Trong Development, các nút tự điền cả mật khẩu từ `LearningDemo:Password` trong user-secrets hoặc biến môi trường `LearningDemo__Password`; giá trị này phải trùng mật khẩu của các tài khoản đã seed. User-secrets chỉ lưu trên máy local. Trang Production không xuất mật khẩu demo.
 
