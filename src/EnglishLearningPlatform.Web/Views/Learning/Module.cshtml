@@ -1,16 +1,104 @@
+@using EnglishLearningPlatform.Domain.Enums
 @model ModulePage
-@{ ViewData["Title"] = Model.Title; }
-<a class="button secondary back-link" asp-action="Course" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>@Model.CourseTitle</a>
-<h1>@Model.Title</h1><p class="preserve">@Model.Description</p>
-@if (Model.CourseStatus == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Nội dung và tiến độ chỉ được xem.</p> }
-@if (Model.Progress is not null) { <partial name="_LearningProgress" model="Model.Progress" /> }
-@if (Model.Lessons.Count == 0) { <p class="panel empty">Chưa có nội dung khả dụng</p> }
-<ul class="lesson-list">
-@foreach (var lesson in Model.Lessons)
-{
-    <li><a asp-action="Lesson" asp-route-id="@lesson.Id">@lesson.Title</a>
-        <span class="badge">@if (Model.IsOwner) { <partial name="_UiText" model="lesson.Status" /> } else { @(lesson.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành") }</span>
-    </li>
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["ActiveSection"] = "courses";
 }
-</ul>
-@if (ViewData["Activities"] is CourseActivities activities) { <partial name="_CourseActivities" model="activities" /> }
+@section Styles {
+    <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
+}
+
+<div class="module-page-container">
+    <div style="margin-bottom: 20px;">
+        <a class="button secondary exam-back-btn" asp-action="Course" asp-route-id="@Model.CourseId">
+            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+            <span>Về khóa học: @Model.CourseTitle</span>
+        </a>
+    </div>
+
+    <!-- Module Header Card -->
+    <div class="card-v2" style="padding: 32px; margin-bottom: 24px; background: linear-gradient(135deg, #FAF9FE 0%, #FFFFFF 100%);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span class="v2-pill-tag">Chương học</span>
+            <span class="v2-pill-tag" style="background: var(--v2-pastel-periwinkle); color: var(--v2-dark);">@Model.Lessons.Count bài học</span>
+        </div>
+        <h1 style="font-size: 26px; font-weight: 800; color: var(--v2-dark); margin: 0 0 10px; letter-spacing: -0.3px;">@Model.Title</h1>
+        
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="preserve" style="color: var(--v2-text-secondary); margin: 0 0 16px; font-size: 14.5px;">@Model.Description</p>
+        }
+
+        @if (Model.CourseStatus == CourseStatus.Archived)
+        {
+            <div class="notice" style="margin-top: 14px;">Khóa học đã lưu trữ. Nội dung và tiến độ chỉ được xem.</div>
+        }
+
+        @if (Model.Progress is not null)
+        {
+            <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--v2-border-light);">
+                <partial name="_LearningProgress" model="Model.Progress" />
+            </div>
+        }
+    </div>
+
+    <!-- Lessons List -->
+    <section class="card-v2" style="padding: 28px 32px;" aria-label="Danh sách bài học trong chương">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="v2-pill-tag">Danh sách bài</span>
+                <h2 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--v2-dark);">Các bài học trong chương</h2>
+            </div>
+        </div>
+
+        @if (Model.Lessons.Count == 0)
+        {
+            <div class="empty">Chưa có nội dung bài học khả dụng trong chương này.</div>
+        }
+        else
+        {
+            <ul class="lesson-list" style="margin: 0;">
+            @foreach (var lesson in Model.Lessons)
+            {
+                <li>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        @if (lesson.IsCompleted)
+                        {
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: #DEF7EC; color: #03543F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: #F1F4FA; color: var(--v2-text-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg class="icon icon-sm" aria-hidden="true" style="width: 15px; height: 15px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                            </div>
+                        }
+                        <div>
+                            <a asp-action="Lesson" asp-route-id="@lesson.Id">@lesson.Title</a>
+                            <span class="v2-pill-tag" style="font-size: 11px; margin-left: 8px; @(lesson.IsCompleted ? "background: #DEF7EC; color: #03543F;" : "")">
+                                @if (Model.IsOwner)
+                                {
+                                    <partial name="_UiText" model="lesson.Status" />
+                                }
+                                else
+                                {
+                                    @(lesson.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành")
+                                }
+                            </span>
+                        </div>
+                    </div>
+                    <a class="button secondary" style="padding: 6px 14px; font-size: 12px;" asp-action="Lesson" asp-route-id="@lesson.Id">
+                        @(lesson.IsCompleted ? "Xem lại" : "Học ngay") &rarr;
+                    </a>
+                </li>
+            }
+            </ul>
+        }
+    </section>
+
+    @if (ViewData["Activities"] is CourseActivities activities)
+    {
+        <partial name="_CourseActivities" model="activities" />
+    }
+</div>

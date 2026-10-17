@@ -1,20 +1,148 @@
 @model EnglishLearningPlatform.Application.Practice.PracticeSheet
-@{ ViewData["Title"] = Model.Title; }
-@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
-<a class="button secondary back-link" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>@Model.CourseTitle</a>
-<div class="page-heading"><h1>@Model.Title</h1>@if (Model.HasResult) { <a class="button secondary" asp-action="Result" asp-route-id="@Model.Id">Kết quả gần nhất</a> }</div>
-<p class="preserve">@Model.Description</p><p class="muted">@Model.Questions.Count câu · Không giới hạn thời gian. Mỗi câu có cùng trọng số; câu bỏ trống nhận 0 điểm. Bạn có thể luyện lại và xem giải thích sau khi nộp.</p>
-<form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="practice-form" data-practice-form>
-<nav class="assessment-navigation practice-navigation" aria-label="Điều hướng câu hỏi luyện tập"><p data-practice-progress role="status">0/@Model.Questions.Count câu đã trả lời</p><div class="actions">@for (var index = 0; index < Model.Questions.Count; index++) { <a class="button secondary" href="#practice-question-@(index + 1)" data-practice-link="@(index + 1)" aria-label="Đến câu @(index + 1)">@(index + 1)</a> }</div><p class="muted practice-local-note">Đáp án chỉ được gửi khi bạn bấm nộp bài. Rời trang sẽ mất lựa chọn chưa nộp.</p></nav>
-@for (var index = 0; index < Model.Questions.Count; index++)
-{
-    var question = Model.Questions[index];
-    <fieldset class="panel assessment-question" id="practice-question-@(index + 1)" data-practice-question><legend>Câu @(index + 1) · <partial name="_UiText" model="question.Skill" /></legend><input type="hidden" name="Answers[@index].PracticeQuestionId" value="@question.Id" />
-    @if (!string.IsNullOrWhiteSpace(question.Passage)) { <p class="preserve assessment-stimulus">@question.Passage</p> }
-    @if (question.AudioUrl is not null) { <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(index + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio> }
-    <p class="preserve">@question.Content</p>
-    @foreach (var option in question.Options) { <label class="assessment-option"><input type="radio" name="Answers[@index].SelectedOptionId" value="@option.Id" /><span>@option.Content</span></label> }
-    <label class="assessment-option muted"><input type="radio" name="Answers[@index].SelectedOptionId" value="" checked /><span>Bỏ trống</span></label></fieldset>
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["ActiveSection"] = "practice";
 }
-<div class="assessment-submit"><button class="button" type="submit">Nộp bài và xem giải thích<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button></div></form>
+@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+
+<div class="exam-workspace-layout">
+    <header class="exam-header-bar">
+        <div class="exam-header-left">
+            <a class="button secondary exam-back-btn" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                <span>@Model.CourseTitle</span>
+            </a>
+            <div class="exam-title-group">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="v2-pill-tag">Bài luyện tập</span>
+                    @if (Model.HasResult)
+                    {
+                        <a class="v2-pill-tag" style="background: #EAE8FB; color: var(--v2-dark); text-decoration: none;" asp-action="Result" asp-route-id="@Model.Id">
+                            Xem kết quả gần nhất &rarr;
+                        </a>
+                    }
+                </div>
+                <h1 class="exam-title">@Model.Title</h1>
+            </div>
+        </div>
+    </header>
+
+    <form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="exam-form-grid" data-practice-form>
+        <!-- LEFT: Questions Column -->
+        <div class="exam-questions-column">
+            <div class="exam-intro-card">
+                <div class="exam-intro-icon">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                </div>
+                <div class="exam-intro-text">
+                    <strong>Thông tin luyện tập</strong>
+                    <p class="preserve">@(string.IsNullOrWhiteSpace(Model.Description) ? "Luyện tập không giới hạn thời gian. Bạn có thể làm lại nhiều lần và xem giải thích chi tiết sau khi nộp." : Model.Description)</p>
+                </div>
+            </div>
+
+            @for (var index = 0; index < Model.Questions.Count; index++)
+            {
+                var question = Model.Questions[index];
+                <fieldset class="exam-question-card" id="practice-question-@(index + 1)" data-practice-question>
+                    <input type="hidden" name="Answers[@index].PracticeQuestionId" value="@question.Id" />
+                    
+                    <div class="exam-question-header">
+                        <span class="v2-pill-tag exam-q-badge">Câu @(index + 1) · <partial name="_UiText" model="question.Skill" /></span>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(question.Passage))
+                    {
+                        <div class="exam-stimulus-box">
+                            <div class="stimulus-label">
+                                <svg class="icon icon-sm" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                                <span>Bài đọc / Ngữ cảnh:</span>
+                            </div>
+                            <div class="preserve">@question.Passage</div>
+                        </div>
+                    }
+
+                    <div class="exam-question-content preserve">@question.Content</div>
+
+                    @if (question.AudioUrl is not null)
+                    {
+                        <div class="exam-audio-box">
+                            <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(index + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
+                        </div>
+                    }
+
+                    <div class="exam-options-list" role="radiogroup" aria-label="Đáp án câu @(index + 1)">
+                        @for (var optIdx = 0; optIdx < question.Options.Count; optIdx++)
+                        {
+                            var option = question.Options[optIdx];
+                            var optionLetter = (char)('A' + optIdx);
+                            <label class="exam-option-card" for="opt-@(question.Id)-@option.Id">
+                                <input type="radio" id="opt-@(question.Id)-@option.Id" class="exam-option-radio" name="Answers[@index].SelectedOptionId" value="@option.Id" />
+                                <span class="exam-option-badge">@optionLetter</span>
+                                <span class="exam-option-text preserve">@option.Content</span>
+                            </label>
+                        }
+                    </div>
+
+                    <div class="exam-question-footer">
+                        <label class="exam-clear-selection" for="clear-practice-@(index + 1)">
+                            <input type="radio" id="clear-practice-@(index + 1)" class="exam-option-radio visually-hidden" name="Answers[@index].SelectedOptionId" value="" checked />
+                            <span class="exam-clear-text">
+                                <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#rotate-ccw")"></use></svg>
+                                <span>Bỏ trống câu này</span>
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
+            }
+        </div>
+
+        <!-- RIGHT: Sticky Sidebar Console -->
+        <aside class="exam-sidebar-column" aria-label="Bảng điều khiển luyện tập">
+            <div class="exam-sticky-console">
+                
+                <!-- Practice Mode Card -->
+                <div class="exam-timer-card">
+                    <div class="exam-timer-header">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+                        <span>Chế độ luyện tập</span>
+                    </div>
+                    <div class="exam-timer-display" style="font-size: 26px;">Tự do</div>
+                    <p class="exam-timer-note">Không giới hạn thời gian. Bạn có thể suy nghĩ kỹ trước khi nộp.</p>
+                </div>
+
+                <!-- Practice Palette Card -->
+                <nav class="exam-palette-card" aria-label="Điều hướng câu hỏi">
+                    <div class="exam-palette-header">
+                        <h3>Danh sách câu hỏi</h3>
+                        <p class="exam-timer-note" data-practice-progress role="status">0/@Model.Questions.Count câu đã trả lời</p>
+                    </div>
+                    <div class="exam-palette-grid">
+                        @for (var index = 0; index < Model.Questions.Count; index++)
+                        {
+                            <a class="exam-palette-btn" href="#practice-question-@(index + 1)" data-practice-link="@(index + 1)" aria-label="Đến câu @(index + 1)">@(index + 1)</a>
+                        }
+                    </div>
+                    <div class="exam-palette-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot is-answered"></span>
+                            <span>Đã trả lời</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot"></span>
+                            <span>Chưa trả lời</span>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Actions Card -->
+                <div class="exam-actions-card">
+                    <button class="button exam-submit-btn" type="submit">Nộp bài &amp; Xem giải thích</button>
+                    <p class="exam-timer-note" style="text-align: center; margin: 4px 0 0;">Đáp án chỉ lưu khi bạn nộp bài.</p>
+                </div>
+
+            </div>
+        </aside>
+    </form>
+</div>
+
 @section Scripts { <script src="~/js/practice.js" asp-append-version="true" defer></script> }

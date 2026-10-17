@@ -207,6 +207,6 @@ public sealed class TransactionHistoryTests(IntegrationTestFactory factory) : IC
         using var response = await client.GetAsync("/Checkout/History");
         var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Bạn chưa có giao dịch nào.", html);
+        Assert.Contains("Bạn chưa có giao dịch nào", html);
     }
 }

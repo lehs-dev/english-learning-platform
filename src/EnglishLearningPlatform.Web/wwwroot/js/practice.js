@@ -10,6 +10,10 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
             if (complete) answered++;
             links[index]?.classList.toggle('is-answered', complete);
             links[index]?.setAttribute('aria-label', `Đến câu ${index + 1}: ${complete ? 'đã trả lời' : 'chưa trả lời'}`);
+            question.querySelectorAll('.exam-option-card').forEach(card => {
+                const radio = card.querySelector('input[type="radio"]');
+                card.classList.toggle('is-selected', Boolean(radio && radio.checked));
+            });
         });
         if (progress) progress.textContent = `${answered}/${questions.length} câu đã trả lời`;
     }

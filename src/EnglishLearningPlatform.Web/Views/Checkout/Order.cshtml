@@ -1,89 +1,134 @@
 @using EnglishLearningPlatform.Application.Commerce
 @model OrderCheckout
-@{ ViewData["Title"] = "Thanh toán khóa học"; }
-@section Styles { <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" /> }
-<div class="checkout-page">
-    <a class="button secondary back-link checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Chi tiết khóa học</a>
-    <header class="checkout-heading">
-        <h1>Thanh toán khóa học</h1>
-        @if (Model.IsSandbox) { <p class="checkout-test-label">Thanh toán mô phỏng — không thu tiền thật.</p> }
-    </header>
-    <partial name="_CourseNotice" />
-    <section class="panel checkout-card" aria-labelledby="checkout-course-title">
+@{
+    ViewData["Title"] = "Thanh toán khóa học";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+}
 
-        <h2 class="checkout-course-title" id="checkout-course-title">@Model.Title</h2>
-        <p class="muted checkout-teacher">Giảng viên: @Model.Teacher</p>
-        <p class="checkout-order-id">Mã đơn: <span>@Model.Id</span></p>
-        <div class="checkout-total">
-            <span>Tổng thanh toán</span>
-            <strong>@Model.Amount.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @Model.Currency</strong>
+<div class="checkout-page">
+    <div style="margin-bottom: 20px;">
+        <a class="button secondary exam-back-btn checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId">
+            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+            <span>Chi tiết khóa học</span>
+        </a>
+    </div>
+
+    <header class="checkout-heading">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span class="v2-pill-tag">Đơn hàng</span>
+            @if (Model.IsSandbox)
+            {
+                <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Thử nghiệm (Sandbox)</span>
+            }
         </div>
+        <h1 style="font-size: 28px; font-weight: 800; color: var(--v2-dark); margin: 0;">Trạng thái thanh toán</h1>
+    </header>
+
+    <partial name="_CourseNotice" />
+
+    <section class="card-v2 checkout-card" style="padding: 32px;" aria-labelledby="checkout-course-title">
+        <h2 class="checkout-course-title" id="checkout-course-title" style="font-size: 22px; font-weight: 800; color: var(--v2-dark); margin: 0 0 6px;">
+            @Model.Title
+        </h2>
+        <p class="muted checkout-teacher" style="margin: 0 0 4px;">Giảng viên: <strong>@Model.Teacher</strong></p>
+        <p class="checkout-order-id" style="font-size: 12.5px; color: var(--v2-text-muted); margin: 0 0 16px;">
+            Mã đơn hàng: <code style="font-family: monospace; background: #FAF9FE; padding: 2px 6px; border-radius: 6px;">@Model.Id</code>
+        </p>
+
+        <div class="checkout-total" style="display: flex; align-items: baseline; justify-content: space-between; padding: 20px 0; border-block: 1px solid var(--v2-border-light); margin: 20px 0;">
+            <span style="font-size: 15px; font-weight: 600; color: var(--v2-text-secondary);">Học phí thanh toán:</span>
+            <strong style="font-size: 28px; font-weight: 800; color: var(--v2-dark);">
+                @Model.Amount.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @Model.Currency
+            </strong>
+        </div>
+
         @if (Model.Status == PaymentStatus.Succeeded)
         {
-            <div class="checkout-status checkout-status--success" role="status">
-                <strong>Thành công</strong>
-                <p>@(Model.IsSandbox ? "Thanh toán thử nghiệm thành công." : "Thanh toán thành công.")@if (Model.CanLearn) { <text> Bạn đã có thể bắt đầu học.</text> }</p>
+            <div class="checkout-status checkout-status--success" role="status" style="background: #DEF7EC; border: 1px solid #BBF7D0; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
+                <strong style="color: #03543F; font-size: 16px; display: block; margin-bottom: 4px;">✓ Thanh toán thành công</strong>
+                <p style="margin: 0; color: #047857; font-size: 14px;">
+                    @(Model.IsSandbox ? "Thanh toán mô phỏng thành công." : "Giao dịch đã được hệ thống xác nhận thành công.")
+                    @if (Model.CanLearn)
+                    {
+                        <text> Khóa học đã mở, bạn có thể bắt đầu học ngay bây giờ!</text>
+                    }
+                </p>
             </div>
         }
         else if (Model.Status == PaymentStatus.Failed)
         {
-            <div class="checkout-status checkout-status--error" role="alert">
-                <strong>Thanh toán thất bại</strong>
-                <p>Thanh toán chưa thành công. Vui lòng thử lại.</p>
+            <div class="checkout-status checkout-status--error" role="alert" style="background: #FEE2E2; border: 1px solid #FECACA; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
+                <strong style="color: #991B1B; font-size: 16px; display: block; margin-bottom: 4px;">✗ Giao dịch thất bại</strong>
+                <p style="margin: 0; color: #B91C1C; font-size: 14px;">Thanh toán chưa hoàn tất. Vui lòng kiểm tra lại tài khoản hoặc phương thức thanh toán.</p>
             </div>
         }
         else if (Model.Status == PaymentStatus.Cancelled)
         {
-            <div class="checkout-status checkout-status--neutral" role="status">
-                <strong>Đã hủy thanh toán</strong>
-                <p>Bạn đã hủy thanh toán. Có thể thử lại khi sẵn sàng.</p>
+            <div class="checkout-status checkout-status--neutral" role="status" style="background: #FAF9FE; border: 1px solid #EAE8FB; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
+                <strong style="color: var(--v2-dark); font-size: 16px; display: block; margin-bottom: 4px;">Đã hủy giao dịch</strong>
+                <p style="margin: 0; color: var(--v2-text-secondary); font-size: 14px;">Bạn đã hủy giao dịch này. Bạn có thể đăng ký lại bất cứ khi nào sẵn sàng.</p>
             </div>
         }
         else
         {
-            <div class="checkout-status checkout-status--neutral" role="status">
-                <strong>Chờ thanh toán</strong>
-                <p>Đơn hàng chưa được thanh toán.</p>
+            <div class="checkout-status checkout-status--neutral" role="status" style="background: #FFFDF5; border: 1px solid #FEF3C7; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
+                <strong style="color: #92400E; font-size: 16px; display: block; margin-bottom: 4px;">Đang chờ xử lý thanh toán</strong>
+                <p style="margin: 0; color: #B45309; font-size: 14px;">Hệ thống đang chờ phản hồi từ cổng thanh toán.</p>
             </div>
         }
+
         @if (Model.CanLearn)
         {
-            <div class="actions checkout-actions"><a class="button checkout-start" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">Vào học</a></div>
+            <div class="actions checkout-actions" style="margin-top: 20px;">
+                <a class="button" style="padding: 12px 28px; font-size: 15px;" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">
+                    Vào phòng học ngay &rarr;
+                </a>
+            </div>
         }
         else if (Model.Status == PaymentStatus.Succeeded)
         {
             @if (Model.IsSandbox)
-            { <p class="notice" role="status">Khóa học hiện chưa thể mở. Vui lòng thử lại sau.</p> }
+            {
+                <div class="notice" role="status">Khóa học hiện chưa thể mở. Vui lòng thử lại sau.</div>
+            }
             else
-            { <p class="notice error" role="alert">Thanh toán đã được xác nhận nhưng khóa học hoặc tài khoản chưa đủ điều kiện tham gia. Vui lòng liên hệ hỗ trợ kèm mã đơn hàng.</p> }
+            {
+                <div class="notice error" role="alert">Thanh toán đã được xác nhận nhưng khóa học hoặc tài khoản chưa đủ điều kiện tham gia. Vui lòng liên hệ hỗ trợ kèm mã đơn hàng.</div>
+            }
         }
         else if (!Model.IsSandbox && !Model.Status.HasValue)
         {
-            <div class="actions checkout-actions">
-                @if (Model.CheckoutUrl is not null) { <a class="button" href="@Model.CheckoutUrl">Đến trang thanh toán</a> }
-                else { <p class="muted">Đơn hàng đã hết hạn hoặc thanh toán hiện không khả dụng.</p> }
+            <div class="actions checkout-actions" style="display: flex; gap: 12px; margin-top: 20px;">
+                @if (Model.CheckoutUrl is not null)
+                {
+                    <a class="button" style="padding: 12px 24px;" href="@Model.CheckoutUrl">Đến trang thanh toán &rarr;</a>
+                }
+                else
+                {
+                    <p class="muted">Đơn hàng đã hết hạn hoặc thanh toán hiện không khả dụng.</p>
+                }
                 <a class="button secondary" asp-action="Result" asp-route-id="@Model.Id">Kiểm tra trạng thái</a>
             </div>
         }
         else if (!Model.Status.HasValue && Model.SandboxEnabled && Model.CanCheckout)
         {
-            <section class="checkout-tools" aria-labelledby="checkout-tools-title">
-                <h3 id="checkout-tools-title">Công cụ thử nghiệm</h3>
-                <p class="muted">Chọn một tình huống để thử trải nghiệm thanh toán.</p>
-                <form method="post" asp-action="Simulate" asp-route-id="@Model.Id" class="actions">
-                    <button class="button secondary" type="submit" name="scenario" value="success">Mô phỏng thành công</button>
-                    <button class="button secondary" type="submit" name="scenario" value="failed">Mô phỏng thất bại</button>
-                    <button class="button secondary" type="submit" name="scenario" value="cancelled">Mô phỏng hủy</button>
+            <section class="checkout-tools" aria-labelledby="checkout-tools-title" style="background: #FAF9FE; border: 1px dashed var(--v2-border-light); border-radius: 16px; padding: 20px; margin-top: 20px;">
+                <h3 id="checkout-tools-title" style="margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--v2-dark);">Công cụ kiểm thử Sandbox</h3>
+                <p class="muted" style="margin: 0 0 14px; font-size: 13px;">Chọn một kịch bản để thử nghiệm luồng thanh toán:</p>
+                <form method="post" asp-action="Simulate" asp-route-id="@Model.Id" class="actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="button secondary" style="font-size: 13px;" type="submit" name="scenario" value="success">✓ Mô phỏng thành công</button>
+                    <button class="button secondary" style="font-size: 13px;" type="submit" name="scenario" value="failed">✗ Mô phỏng thất bại</button>
+                    <button class="button secondary" style="font-size: 13px;" type="submit" name="scenario" value="cancelled">Mô phỏng hủy</button>
                 </form>
             </section>
         }
         else if (Model.Status is PaymentStatus.Failed or PaymentStatus.Cancelled)
         {
-            <div class="actions checkout-actions"><a class="button" asp-action="Index" asp-route-courseId="@Model.CourseId">Thử lại</a></div>
-        }
-        @if (Model.IsSandbox && (!Model.SandboxEnabled || (!Model.Status.HasValue && !Model.CanCheckout)))
-        {
-            <p class="notice" role="status">Thanh toán thử nghiệm hiện chưa khả dụng.</p>
+            <div class="actions checkout-actions" style="margin-top: 20px;">
+                <a class="button" style="padding: 12px 24px;" asp-action="Index" asp-route-courseId="@Model.CourseId">Thử thanh toán lại &rarr;</a>
+            </div>
         }
     </section>
 </div>

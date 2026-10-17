@@ -1,4 +1,5 @@
 @using EnglishLearningPlatform.Web.Models.Assessment
+@using EnglishLearningPlatform.Domain.Enums
 @model AssessmentTakePage
 @{
     ViewData["Title"] = Model.Sheet?.Title ?? Model.Overview!.Title;
@@ -6,118 +7,249 @@
     var overview = Model.Overview;
 }
 @section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
-@if (overview?.CourseId is Guid courseId)
-{
-    <a class="button secondary back-link" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Về khóa học</a>
-}
-<div class="page-heading"><div><h1>@ViewData["Title"]</h1></div></div>
-@if (TempData["AssessmentError"] is string error) { <p class="notice error" role="alert">@error</p> }
-@if (TempData["AssessmentSuccess"] is string success) { <p class="notice" role="status">@success</p> }
-@if (Model.Sheet is { } sheet)
-{
-    <div class="assessment-clock panel" data-assessment-clock data-deadline="@sheet.DeadlineUtc.ToString("O")" data-server-now="@DateTimeOffset.UtcNow.ToString("O")">
-        <strong>Thời gian còn lại: <span data-time-remaining aria-live="off">Đang tính…</span></strong>
-        <p class="muted">Hết giờ, bài được tự động nộp. Hệ thống chỉ tính các đáp án đã lưu trước thời hạn.</p>
-        <noscript><p>JavaScript đang tắt. Thời hạn nộp bài: <time datetime="@sheet.DeadlineUtc.ToString("O")">@sheet.DeadlineUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm:ss dd/MM/yyyy") (UTC+7)</time>. Dùng nút lưu thường xuyên; hệ thống vẫn kiểm tra thời hạn khi lưu hoặc nộp.</p></noscript>
-    </div>
-    @if (!string.IsNullOrWhiteSpace(sheet.Description)) { <p class="preserve">@sheet.Description</p> }
-    <form asp-action="Submit" asp-route-id="@sheet.AttemptId" method="post" data-assessment-form data-save-url="@Url.Action("Save", new { id = sheet.AttemptId })">
-        <nav class="panel assessment-navigation" aria-label="Điều hướng câu hỏi">
-            <p data-answer-progress role="status">@sheet.Questions.Count(q => q.SelectedOptionId.HasValue)/@sheet.Questions.Count câu đã trả lời</p>
-            <div class="actions">
-                @for (var i = 0; i < sheet.Questions.Count; i++)
-                {
-                    <a class="button secondary" href="#question-@(i + 1)" data-question-link="@(i + 1)" aria-label="Đến câu @(i + 1)">@(i + 1)</a>
-                }
-            </div>
-        </nav>
-        @for (var i = 0; i < sheet.Questions.Count; i++)
-        {
-            var question = sheet.Questions[i];
-            <fieldset class="panel assessment-question" id="question-@(i + 1)" data-question>
-                <legend>Câu @(i + 1) · @question.Points.ToString("0.##") điểm</legend>
-                <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
-                @if (!string.IsNullOrWhiteSpace(question.StimulusContent))
-                {
-                    <div class="assessment-stimulus preserve">@question.StimulusContent</div>
-                }
-                <p class="preserve">@question.Content</p>
-                @if (question.AudioUrl is not null)
-                {
-                    <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
-                    <p class="muted">Nếu audio không phát, kiểm tra kết nối và dùng nút phát để thử lại.</p>
-                }
-                @foreach (var option in question.Options)
-                {
-                    <label class="assessment-option" for="option-@option.Id">
-                        <input type="radio" id="option-@option.Id" name="Answers[@i].SelectedOptionId" value="@option.Id" checked="@(question.SelectedOptionId == option.Id)" />
-                        <span class="preserve">@option.Content</span>
-                    </label>
-                }
-                <label class="assessment-option muted">
-                    <input type="radio" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" /> Bỏ chọn / chưa trả lời
-                </label>
-            </fieldset>
-        }
-        <div class="panel assessment-submit">
-            <p class="muted" data-save-status role="status">Đáp án được tự động lưu khi chọn. Bạn cũng có thể lưu bằng nút bên dưới.</p>
-            <div class="actions">
-                <button class="button secondary" type="submit" asp-action="Save" asp-route-id="@sheet.AttemptId" data-save-button>Lưu đáp án</button>
-                <button class="button" type="submit" data-submit-button>Nộp bài và xem kết quả</button>
+
+<div class="exam-workspace-layout">
+    <header class="exam-header-bar">
+        <div class="exam-header-left">
+            @if (overview?.CourseId is Guid courseId)
+            {
+                <a class="button secondary exam-back-btn" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    <span>Về khóa học</span>
+                </a>
+            }
+            <div class="exam-title-group">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="v2-pill-tag">Bài kiểm tra</span>
+                    @if (Model.Sheet is not null)
+                    {
+                        <span class="v2-pill-tag" style="background: #E0F2FE; color: #0369A1;">Đang làm bài</span>
+                    }
+                </div>
+                <h1 class="exam-title">@ViewData["Title"]</h1>
             </div>
         </div>
-        <dialog data-submit-dialog aria-labelledby="submit-dialog-title">
-            <h2 id="submit-dialog-title">Xác nhận nộp bài</h2>
-            <p data-submit-summary></p>
-            <p>Sau khi nộp, bạn không thể sửa đáp án của lượt làm này.</p>
-            <div class="actions">
-                <button class="button secondary" type="button" data-cancel-submit>Tiếp tục làm bài</button>
-                <button class="button" type="button" data-confirm-submit>Xác nhận nộp bài</button>
+    </header>
+
+    @if (TempData["AssessmentError"] is string error) { <p class="notice error" role="alert">@error</p> }
+    @if (TempData["AssessmentSuccess"] is string success) { <p class="notice" role="status">@success</p> }
+
+    @if (Model.Sheet is { } sheet)
+    {
+        <form class="exam-form-grid" asp-action="Submit" asp-route-id="@sheet.AttemptId" method="post" data-assessment-form data-save-url="@Url.Action("Save", new { id = sheet.AttemptId })">
+            
+            <!-- LEFT: Questions Column -->
+            <div class="exam-questions-column">
+                @if (!string.IsNullOrWhiteSpace(sheet.Description))
+                {
+                    <div class="exam-intro-card">
+                        <div class="exam-intro-icon">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+                        </div>
+                        <div class="exam-intro-text">
+                            <strong>Hướng dẫn bài thi</strong>
+                            <p class="preserve">@sheet.Description</p>
+                        </div>
+                    </div>
+                }
+
+                @for (var i = 0; i < sheet.Questions.Count; i++)
+                {
+                    var question = sheet.Questions[i];
+                    <fieldset class="exam-question-card" id="question-@(i + 1)" data-question>
+                        <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
+                        
+                        <div class="exam-question-header">
+                            <span class="v2-pill-tag exam-q-badge">Câu @(i + 1)</span>
+                            <span class="exam-q-points">@question.Points.ToString("0.##") điểm</span>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(question.StimulusContent))
+                        {
+                            <div class="exam-stimulus-box">
+                                <div class="stimulus-label">
+                                    <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                                    <span>Bài đọc / Ngữ cảnh:</span>
+                                </div>
+                                <div class="preserve">@question.StimulusContent</div>
+                            </div>
+                        }
+
+                        <div class="exam-question-content preserve">@question.Content</div>
+
+                        @if (question.AudioUrl is not null)
+                        {
+                            <div class="exam-audio-box">
+                                <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
+                                <p class="exam-timer-note" style="margin-top: 6px;">Nếu audio không phát, kiểm tra kết nối và dùng nút phát để thử lại.</p>
+                            </div>
+                        }
+
+                        <div class="exam-options-list" role="radiogroup" aria-label="Đáp án câu @(i + 1)">
+                            @for (var optIdx = 0; optIdx < question.Options.Count; optIdx++)
+                            {
+                                var option = question.Options[optIdx];
+                                var optionLetter = (char)('A' + optIdx);
+                                var isChecked = question.SelectedOptionId == option.Id;
+                                <label class="exam-option-card @(isChecked ? "is-selected" : "")" for="option-@option.Id">
+                                    <input type="radio" id="option-@option.Id" class="exam-option-radio" name="Answers[@i].SelectedOptionId" value="@option.Id" checked="@isChecked" />
+                                    <span class="exam-option-badge">@optionLetter</span>
+                                    <span class="exam-option-text preserve">@option.Content</span>
+                                </label>
+                            }
+                        </div>
+
+                        <div class="exam-question-footer">
+                            <label class="exam-clear-selection" for="clear-q-@(i + 1)">
+                                <input type="radio" id="clear-q-@(i + 1)" class="exam-option-radio visually-hidden" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" />
+                                <span class="exam-clear-text">
+                                    <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#rotate-ccw")"></use></svg>
+                                    <span>Bỏ chọn đáp án</span>
+                                </span>
+                            </label>
+                        </div>
+                    </fieldset>
+                }
             </div>
-        </dialog>
-    </form>
-}
-else if (overview is not null)
-{
-    <section class="panel" aria-labelledby="assessment-overview-title">
-        <h2 id="assessment-overview-title">Thông tin bài thi</h2>
-        @if (!string.IsNullOrWhiteSpace(overview.Description)) { <p class="preserve">@overview.Description</p> }
-        <partial name="_AssessmentDetails" model="overview" />
-        @if (overview.AttemptHistory.Any(a => a.Status == AttemptStatus.InProgress))
-        {
-            <p class="notice">Lượt làm trước đã hết giờ. Hoàn tất chấm điểm để xem kết quả trước khi bắt đầu lượt mới.</p>
-            <form asp-action="Start" asp-route-id="@overview.AssessmentId" method="post"><button class="button" type="submit">Hoàn tất lượt đã hết giờ</button></form>
-        }
-        else if (overview.UsedAttempts < overview.MaxAttempts)
-        {
-            <p class="muted">Thời gian được tính ngay khi bấm bắt đầu. Bạn có thể quay lại tiếp tục trong thời gian còn lại.</p>
-            <form asp-action="Start" asp-route-id="@overview.AssessmentId" method="post"><button class="button" type="submit">Bắt đầu làm bài</button></form>
-        }
-        else { <p class="notice">Bạn đã sử dụng hết lượt làm bài.</p> }
-    </section>
-}
-@if (overview?.AttemptHistory.Count > 0)
-{
-    <section class="panel" aria-labelledby="attempt-history-title">
-        <h2 id="attempt-history-title">Lịch sử làm bài</h2>
-        <div class="assessment-table-wrap"><table class="assessment-table"><caption class="visually-hidden">Thông tin bài đánh giá</caption>
-            <thead><tr><th scope="col">Bắt đầu (UTC+7)</th><th scope="col">Trạng thái</th><th scope="col">Điểm</th><th scope="col">Kết quả</th></tr></thead>
-            <tbody>
-            @foreach (var attempt in overview.AttemptHistory)
-            {
-                <tr>
-                    <td><time datetime="@attempt.StartedAtUtc.ToString("O")">@attempt.StartedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time></td>
-                    <td>@(attempt.Status == AttemptStatus.Graded ? "Đã chấm" : "Đang làm / chờ chấm")</td>
-                    <td>@(attempt.OverallScore?.ToString("0.##") ?? "—")</td>
-                    <td>@if (attempt.Status == AttemptStatus.Graded && attempt.FinalizedAtUtc.HasValue)
-                        { <a asp-action="Result" asp-route-id="@attempt.AttemptId">Xem kết quả</a> }
-                        else if (attempt.AttemptId == overview.ActiveAttemptId)
-                        { <a asp-action="Take" asp-route-id="@overview.AssessmentId" asp-route-attemptId="@attempt.AttemptId">Tiếp tục</a> }
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table></div>
-    </section>
-}
+
+            <!-- RIGHT: Sticky Sidebar Console -->
+            <aside class="exam-sidebar-column" aria-label="Bảng điều khiển bài thi">
+                <div class="exam-sticky-console">
+                    
+                    <!-- Countdown Timer Card -->
+                    <div class="exam-timer-card" data-assessment-clock data-deadline="@sheet.DeadlineUtc.ToString("O")" data-server-now="@DateTimeOffset.UtcNow.ToString("O")">
+                        <div class="exam-timer-header">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg>
+                            <span>Thời gian còn lại</span>
+                        </div>
+                        <div class="exam-timer-display" data-time-remaining aria-live="off">Đang tính…</div>
+                        <p class="exam-timer-note">Hết giờ, bài sẽ tự động nộp với các đáp án đã lưu.</p>
+                        <noscript><p class="exam-timer-note" style="margin-top: 6px; color: #DC2626;">JS đang tắt. Hạn nộp: <time datetime="@sheet.DeadlineUtc.ToString("O")">@sheet.DeadlineUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm:ss dd/MM/yyyy")</time></p></noscript>
+                    </div>
+
+                    <!-- Question Palette Card -->
+                    <nav class="exam-palette-card" aria-label="Danh sách câu hỏi">
+                        <div class="exam-palette-header">
+                            <h3>Danh sách câu hỏi</h3>
+                            <p class="exam-timer-note" data-answer-progress role="status">@sheet.Questions.Count(q => q.SelectedOptionId.HasValue)/@sheet.Questions.Count câu đã trả lời</p>
+                        </div>
+                        <div class="exam-palette-grid">
+                            @for (var i = 0; i < sheet.Questions.Count; i++)
+                            {
+                                <a class="exam-palette-btn" href="#question-@(i + 1)" data-question-link="@(i + 1)" aria-label="Đến câu @(i + 1)">@(i + 1)</a>
+                            }
+                        </div>
+                        <div class="exam-palette-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot is-answered"></span>
+                                <span>Đã trả lời</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot"></span>
+                                <span>Chưa trả lời</span>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <!-- Actions Card -->
+                    <div class="exam-actions-card">
+                        <button class="button exam-submit-btn" type="submit" data-submit-button>Nộp bài thi</button>
+                        <button class="button secondary exam-save-btn" type="submit" asp-action="Save" asp-route-id="@sheet.AttemptId" data-save-button>Lưu đáp án</button>
+                        <p class="exam-save-status" data-save-status role="status">Tự động lưu khi bạn chọn đáp án</p>
+                    </div>
+
+                </div>
+            </aside>
+
+            <!-- Submission Confirmation Dialog -->
+            <dialog class="exam-confirm-dialog" data-submit-dialog aria-labelledby="submit-dialog-title">
+                <h2 id="submit-dialog-title">Xác nhận nộp bài</h2>
+                <p data-submit-summary></p>
+                <p>Sau khi nộp, bạn không thể thay đổi đáp án của lượt thi này.</p>
+                <div class="actions">
+                    <button class="button secondary" type="button" data-cancel-submit>Tiếp tục làm bài</button>
+                    <button class="button" type="button" data-confirm-submit>Xác nhận nộp bài</button>
+                </div>
+            </dialog>
+        </form>
+    }
+    else if (overview is not null)
+    {
+        <!-- Overview / Not Started View -->
+        <section class="card-v2" aria-labelledby="assessment-overview-title" style="padding: 32px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <span class="v2-pill-tag">Tổng quan</span>
+                <h2 id="assessment-overview-title" style="margin: 0; font-size: 20px;">Thông tin bài thi</h2>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(overview.Description)) { <p class="preserve" style="color: var(--v2-text-secondary); margin-bottom: 20px;">@overview.Description</p> }
+            <partial name="_AssessmentDetails" model="overview" />
+            <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--v2-border-light);">
+                @if (overview.AttemptHistory.Any(a => a.Status == AttemptStatus.InProgress))
+                {
+                    <div class="notice" style="margin-bottom: 16px;">Lượt làm trước đã hết giờ. Hoàn tất chấm điểm để xem kết quả trước khi bắt đầu lượt mới.</div>
+                    <form asp-action="Start" asp-route-id="@overview.AssessmentId" method="post"><button class="button" type="submit">Hoàn tất lượt đã hết giờ</button></form>
+                }
+                else if (overview.UsedAttempts < overview.MaxAttempts)
+                {
+                    <p class="muted" style="margin-bottom: 16px;">Thời gian được tính ngay khi bấm bắt đầu. Bạn có thể quay lại tiếp tục trong thời gian còn lại.</p>
+                    <form asp-action="Start" asp-route-id="@overview.AssessmentId" method="post"><button class="button" type="submit" style="padding: 12px 28px; font-size: 15px;">Bắt đầu làm bài</button></form>
+                }
+                else { <div class="notice">Bạn đã sử dụng hết lượt làm bài.</div> }
+            </div>
+        </section>
+    }
+
+    <!-- Attempt History Table (Displayed in Overview mode) -->
+    @if (overview?.AttemptHistory.Count > 0 && Model.Sheet == null)
+    {
+        <section class="card-v2" aria-labelledby="attempt-history-title" style="padding: 32px; margin-top: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+                <h2 id="attempt-history-title" style="margin: 0; font-size: 18px; font-weight: 700;">Lịch sử làm bài (@overview.AttemptHistory.Count lượt)</h2>
+            </div>
+            <div class="assessment-table-wrap">
+                <table class="assessment-table">
+                    <caption class="visually-hidden">Lịch sử bài đánh giá</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Bắt đầu (UTC+7)</th>
+                            <th scope="col">Trạng thái</th>
+                            <th scope="col">Điểm số</th>
+                            <th scope="col">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var attempt in overview.AttemptHistory)
+                    {
+                        <tr>
+                            <td><time datetime="@attempt.StartedAtUtc.ToString("O")">@attempt.StartedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time></td>
+                            <td>
+                                @if (attempt.Status == AttemptStatus.Graded)
+                                {
+                                    <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;">Đã chấm</span>
+                                }
+                                else
+                                {
+                                    <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Đang làm</span>
+                                }
+                            </td>
+                            <td style="font-weight: 700; font-size: 15px;">@(attempt.OverallScore?.ToString("0.##") ?? "—")</td>
+                            <td>
+                                @if (attempt.Status == AttemptStatus.Graded && attempt.FinalizedAtUtc.HasValue)
+                                {
+                                    <a class="button secondary" style="padding: 6px 14px; font-size: 12px;" asp-action="Result" asp-route-id="@attempt.AttemptId">Xem kết quả</a>
+                                }
+                                else if (attempt.AttemptId == overview.ActiveAttemptId)
+                                {
+                                    <a class="button" style="padding: 6px 14px; font-size: 12px;" asp-action="Take" asp-route-id="@overview.AssessmentId" asp-route-attemptId="@attempt.AttemptId">Tiếp tục</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+
 @section Scripts { <script src="~/js/assessment.js" asp-append-version="true" defer></script> }

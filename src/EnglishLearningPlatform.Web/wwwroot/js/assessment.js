@@ -14,12 +14,19 @@
     const answeredCount = () => questions.filter(question =>
         question.querySelector('input[type="radio"]:checked')?.value).length;
     const updateProgress = () => {
-        form.querySelector('[data-answer-progress]').textContent = `${answeredCount()}/${questions.length} câu đã trả lời`;
+        const progressEl = form.querySelector('[data-answer-progress]');
+        if (progressEl) progressEl.textContent = `${answeredCount()}/${questions.length} câu đã trả lời`;
         questions.forEach((question, index) => {
             const answered = Boolean(question.querySelector('input[type="radio"]:checked')?.value);
             const link = form.querySelector(`[data-question-link="${index + 1}"]`);
-            link.classList.toggle('is-answered', answered);
-            link.setAttribute('aria-label', `Đến câu ${index + 1}, ${answered ? 'đã trả lời' : 'chưa trả lời'}`);
+            if (link) {
+                link.classList.toggle('is-answered', answered);
+                link.setAttribute('aria-label', `Đến câu ${index + 1}, ${answered ? 'đã trả lời' : 'chưa trả lời'}`);
+            }
+            question.querySelectorAll('.exam-option-card').forEach(card => {
+                const radio = card.querySelector('input[type="radio"]');
+                card.classList.toggle('is-selected', Boolean(radio && radio.checked));
+            });
         });
     };
     const send = saveOnly => {

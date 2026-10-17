@@ -41,7 +41,7 @@ public sealed class TeacherPracticeCreateWebTests : IClassFixture<IntegrationTes
         var navigationClass = role switch
         {
             AppRoles.Teacher => "studio-nav",
-            AppRoles.Student => "student-nav",
+            AppRoles.Student => "rail-nav-group",
             AppRoles.Admin => "admin-nav",
             _ => throw new ArgumentOutOfRangeException(nameof(role))
         };

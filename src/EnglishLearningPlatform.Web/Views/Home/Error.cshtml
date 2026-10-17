@@ -1,3 +1,20 @@
-@{ ViewData["Title"] = "Lỗi"; }
-<h1>Đã xảy ra lỗi.</h1>
-<p>Hệ thống đã ghi nhận lỗi. Hãy thử lại hoặc kiểm tra log.</p>
+@{
+    ViewData["Title"] = "Đã xảy ra lỗi";
+}
+
+<div class="v2-card" style="max-width: 580px; margin: 48px auto; text-align: center; padding: 48px 32px; background: #FFFFFF; border: 1px solid var(--v2-border, #E4E4EE); border-radius: 28px; box-shadow: var(--v2-shadow-card, 0 10px 30px rgba(25, 26, 35, 0.05));">
+    <div style="width: 72px; height: 72px; border-radius: 20px; background: #FFF1F2; color: #E11D48; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <svg class="icon" style="width: 36px; height: 36px;" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#sparkles")"></use></svg>
+    </div>
+    <h1 style="font-size: 26px; font-weight: 800; color: #191A23; margin: 0 0 12px; letter-spacing: -0.02em;">Đã xảy ra sự cố</h1>
+    <p style="font-size: 15px; color: #64748B; margin: 0 0 28px; line-height: 1.6;">
+        Hệ thống vừa ghi nhận một lỗi ngoài ý muốn. Đừng lo lắng, dữ liệu của bạn vẫn an toàn. Hãy thử tải lại trang hoặc quay lại sau ít phút.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a class="button button-primary" asp-controller="Home" asp-action="Index" style="border-radius: 14px; padding: 12px 24px; font-weight: 700;">Về trang chủ</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="button button-secondary" asp-controller="Learning" asp-action="Dashboard" style="border-radius: 14px; padding: 12px 24px; font-weight: 700;">Về bàn học</a>
+        }
+    </div>
+</div>

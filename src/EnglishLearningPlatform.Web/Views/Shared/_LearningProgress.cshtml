@@ -3,7 +3,10 @@
     @if (Model.Percentage is decimal percentage)
     {
         <p>@Model.CompletedLessons / @Model.TotalLessons bài học hoàn thành · <strong>@percentage.ToString("0.##")%</strong></p>
-        <progress value="@Model.CompletedLessons" max="@Model.TotalLessons" aria-label="Tiến độ học tập"></progress>
+        <div class="progress-track-clean" style="width: 100%; background: rgba(25, 26, 35, 0.14); height: 5px; border-radius: 3px; overflow: hidden; margin: 8px 0 6px;" aria-hidden="true">
+            <div class="progress-fill-clean" style="width: @percentage.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%; background: #191A23; height: 100%; border-radius: 3px; transition: width 0.5s ease;"></div>
+        </div>
+        <progress class="visually-hidden" value="@Model.CompletedLessons" max="@Model.TotalLessons" aria-label="Tiến độ học tập"></progress>
     }
     else
     {

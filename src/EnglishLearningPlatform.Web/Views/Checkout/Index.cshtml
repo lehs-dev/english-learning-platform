@@ -1,33 +1,57 @@
 @using EnglishLearningPlatform.Application.Commerce
 @model CourseCheckout
-@{ ViewData["Title"] = "Xác nhận mua khóa học"; }
-@section Styles { <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" /> }
-<div class="checkout-page">
-    <a class="button secondary back-link checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Chi tiết khóa học</a>
-    <header class="checkout-heading">
-        <h1>Xác nhận mua khóa học</h1>
-        @if (Model.SandboxEnabled && !Model.HostedEnabled) { <p class="checkout-test-label">Thanh toán mô phỏng — không thu tiền thật.</p> }
-    </header>
-    <partial name="_CourseNotice" />
-    <section class="panel checkout-card" aria-labelledby="checkout-course-title">
+@{
+    ViewData["Title"] = "Xác nhận mua khóa học";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+}
 
-        <h2 class="checkout-course-title" id="checkout-course-title">@Model.Title</h2>
-        <p class="muted checkout-teacher">Giảng viên: @Model.Teacher</p>
-        <div class="checkout-total">
-            <span>Tổng thanh toán</span>
-            <strong>@Model.Amount.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @Model.Currency</strong>
+<div class="checkout-page">
+    <div style="margin-bottom: 20px;">
+        <a class="button secondary exam-back-btn checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId">
+            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+            <span>Chi tiết khóa học</span>
+        </a>
+    </div>
+
+    <header class="checkout-heading">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span class="v2-pill-tag">Đăng ký khóa học</span>
+            @if (Model.SandboxEnabled && !Model.HostedEnabled)
+            {
+                <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Thử nghiệm (Sandbox)</span>
+            }
         </div>
+        <h1 style="font-size: 28px; font-weight: 800; color: var(--v2-dark); margin: 0;">Xác nhận mua khóa học</h1>
+    </header>
+
+    <partial name="_CourseNotice" />
+
+    <section class="card-v2 checkout-card" style="padding: 32px;" aria-labelledby="checkout-course-title">
+        <h2 class="checkout-course-title" id="checkout-course-title" style="font-size: 22px; font-weight: 800; color: var(--v2-dark); margin: 0 0 6px;">
+            @Model.Title
+        </h2>
+        <p class="muted checkout-teacher" style="margin: 0 0 16px;">Giảng viên: <strong>@Model.Teacher</strong></p>
+
+        <div class="checkout-total" style="display: flex; align-items: baseline; justify-content: space-between; padding: 20px 0; border-block: 1px solid var(--v2-border-light); margin: 20px 0;">
+            <span style="font-size: 15px; font-weight: 600; color: var(--v2-text-secondary);">Học phí thanh toán:</span>
+            <strong style="font-size: 28px; font-weight: 800; color: var(--v2-dark);">
+                @Model.Amount.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @Model.Currency
+            </strong>
+        </div>
+
         @if (Model.HostedEnabled || Model.SandboxEnabled)
         {
-            <form method="post" asp-action="CreateOrder" class="actions checkout-actions">
+            <form method="post" asp-action="CreateOrder" class="actions checkout-actions" style="margin-top: 24px; display: flex; align-items: center; gap: 12px;">
                 <input type="hidden" name="CourseId" value="@Model.CourseId" />
-                <button class="button" type="submit">Tiếp tục thanh toán</button>
-                <a asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId">Quay lại</a>
+                <button class="button" type="submit" style="padding: 12px 28px; font-size: 15px;">Tiếp tục thanh toán &rarr;</button>
+                <a class="button secondary" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId">Quay lại</a>
             </form>
         }
         else
         {
-            <p class="notice" role="status">Thanh toán hiện chưa khả dụng. Vui lòng thử lại sau.</p>
+            <div class="notice" role="status">Cổng thanh toán hiện đang được bảo trì. Vui lòng quay lại sau ít phút.</div>
         }
     </section>
 </div>

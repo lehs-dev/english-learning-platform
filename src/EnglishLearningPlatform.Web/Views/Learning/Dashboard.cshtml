@@ -1,172 +1,430 @@
 @model StudentDashboard
 
 @{
-    ViewData["Title"] = "Tiến độ học tập";
+    ViewData["Title"] = "Bàn học — Tiến độ học tập";
     ViewData["ActiveSection"] = "dashboard";
 
-    // 3. Find target course for 1-Click Continue Learning
+    // 1. Find target course for 1-Click Continue Learning
     var inProgressCourses = Model.Courses
         .Where(c => c.Progress?.ContinueLessonId.HasValue == true && c.Status != CourseStatus.Archived)
         .ToList();
     var continueCourse = inProgressCourses.FirstOrDefault()
         ?? Model.Courses.FirstOrDefault(c => c.Progress is not null && c.Progress.Percentage < 100)
         ?? Model.Courses.FirstOrDefault();
+
+    // 2. Dynamic Calendar Week Strip based on Today
+    var today = DateTime.Today;
+    var currentDayOfWeek = (int)today.DayOfWeek; // 0 = Sunday, 1 = Monday, ...
+    var mondayOffset = currentDayOfWeek == 0 ? -6 : 1 - currentDayOfWeek;
+    var monday = today.AddDays(mondayOffset);
+    var weekDays = Enumerable.Range(0, 7).Select(i => monday.AddDays(i)).ToList();
+    string[] dayNamesVi = { "T2", "T3", "T4", "T5", "T6", "T7", "CN" };
+
+    // 3. Pastel Card Theme Classes
+    string[] pastelCardThemes = { "progress-card-lavender", "progress-card-peach", "progress-card-pink" };
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
 }
 
-<div class="page-heading">
-    <div>
-
-        <h1>Tiến độ học tập</h1>
-    </div>
-    <div class="actions">
-        <a class="button secondary" asp-action="Index">Khóa đã tham gia</a>
-        <a class="button" asp-controller="Assessment" asp-action="Index">Bài đánh giá</a>
-    </div>
-</div>
-
-
-@* 1-Click Continue Learning Card *@
-@if (continueCourse != null)
-{
-    <section class="panel continue-learning-hero" aria-labelledby="continue-hero-title">
-        <div class="content-row">
-            <div>
-
-                <h2 id="continue-hero-title">@continueCourse.Title</h2>
-                <p class="muted">Giảng viên: @continueCourse.Teacher · Trình độ: <partial name="_UiText" model="continueCourse.Level" /> · @continueCourse.LessonCount bài học</p>
-                @if (continueCourse.Progress is not null)
+<div class="dashboard-columns-grid">
+    @* =========================================================================
+       LEFT COLUMN (~66%): Hero Promo Banner + Your Progress + Top Recommendations
+       ========================================================================= *@
+    <div class="col-main-content">
+        @* 1. Hero Promo Banner (Pastel Periwinkle with Vector Illustration) *@
+        <section class="hero-promo-banner" aria-label="Học tiếp 1-click">
+            <div class="hero-promo-content">
+                @if (continueCourse != null)
                 {
-                    <partial name="_LearningProgress" model="continueCourse.Progress" />
+                    <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <span>📖 Khóa học đang diễn ra</span>
+                    </div>
+                    <h1 class="hero-promo-title">
+                        Bạn đã sẵn sàng tiếp tục học "@continueCourse.Title" chưa?
+                    </h1>
+                    <p class="hero-promo-desc">
+                        Giảng viên: @continueCourse.Teacher · Trình độ: <partial name="_UiText" model="continueCourse.Level" /> · @continueCourse.LessonCount bài học
+                    </p>
+                    <a asp-action="Continue" asp-route-id="@continueCourse.Id" class="btn-dark">
+                        <span>Tiếp tục học ngay</span>
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    </a>
+                }
+                else
+                {
+                    <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <span>✨ Chào mừng bạn đến với Estudy V2</span>
+                    </div>
+                    <h1 class="hero-promo-title">
+                        Bắt đầu lộ trình học tiếng Anh chuẩn hóa của bạn ngay hôm nay!
+                    </h1>
+                    <p class="hero-promo-desc">
+                        Khám phá các khóa học thực tế, bài tập có giải thích chi tiết và các bài kiểm tra chẩn đoán năng lực 15 phút.
+                    </p>
+                    <a asp-controller="Courses" asp-action="Index" class="btn-dark">
+                        <span>Khám phá khóa học</span>
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    </a>
                 }
             </div>
-            <div class="actions">
-                <a class="button continue-cta-btn" asp-action="Continue" asp-route-id="@continueCourse.Id">
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                    <span>Tiếp tục học ngay</span>
+
+            @* Line Art Illustration of Student on Stack of Books *@
+            <div class="hero-promo-art" aria-hidden="true">
+                <svg viewBox="0 0 220 150" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto;">
+                    <path d="M15 65 Q 40 45, 65 60 T 115 35" stroke="#191A23" stroke-width="1.8" stroke-dasharray="3 3"/>
+                    <circle cx="15" cy="65" r="3.5" fill="#FF71CE"/>
+                    <circle cx="65" cy="60" r="3.5" fill="#FF71CE"/>
+                    <circle cx="115" cy="35" r="4.5" fill="#191A23"/>
+
+                    <rect x="75" y="10" width="40" height="26" rx="4" fill="#FFFFFF" stroke="#191A23" stroke-width="1.5"/>
+                    <circle cx="85" cy="23" r="4" fill="#FF71CE" opacity="0.3"/>
+                    <polyline points="83 23, 85 25, 88 21" stroke="#191A23" stroke-width="1.5" stroke-linecap="round"/>
+                    <line x1="93" y1="23" x2="108" y2="23" stroke="#191A23" stroke-width="1.5" stroke-linecap="round"/>
+
+                    <rect x="70" y="128" width="130" height="14" rx="3" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
+                    <line x1="80" y1="135" x2="190" y2="135" stroke="#191A23" stroke-width="1.5"/>
+
+                    <rect x="76" y="112" width="120" height="16" rx="3" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
+                    <rect x="80" y="115" width="20" height="10" rx="2" fill="#FF71CE"/>
+                    <line x1="106" y1="120" x2="185" y2="120" stroke="#191A23" stroke-width="1.5"/>
+
+                    <rect x="82" y="96" width="110" height="16" rx="3" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
+                    <line x1="90" y1="104" x2="180" y2="104" stroke="#191A23" stroke-width="1.5"/>
+
+                    <path d="M125 75 L115 110 L135 125" stroke="#191A23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <path d="M132 80 L140 105 L155 122" stroke="#191A23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <path d="M120 72 C115 90, 110 108, 128 126 C136 126, 142 110, 136 90 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="1.8"/>
+                    <path d="M130 75 C136 90, 142 108, 155 122 C162 120, 156 102, 145 80 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="1.8"/>
+
+                    <path d="M135 48 C125 56, 126 74, 136 78 C148 78, 156 65, 150 48 Z" fill="#191A23"/>
+
+                    <path d="M138 52 C146 56, 155 60, 150 72" stroke="#191A23" stroke-width="2" stroke-linecap="round" fill="none"/>
+                    <rect x="136" y="58" width="22" height="14" rx="2" fill="#FFFFFF" stroke="#191A23" stroke-width="1.5" transform="rotate(-12 136 58)"/>
+
+                    <circle cx="148" cy="38" r="8" fill="#FEE2E2" stroke="#191A23" stroke-width="1.5"/>
+                    <path d="M142 34 C138 24, 156 18, 160 26 C168 28, 168 40, 158 40 C154 40, 150 44, 144 38 Z" fill="#191A23"/>
+                    <circle cx="160" cy="28" r="6" fill="#191A23"/>
+                    <circle cx="152" cy="22" r="7" fill="#191A23"/>
+
+                    <path d="M60 40 L63 46 L70 48 L63 50 L60 56 L57 50 L50 48 L57 46 Z" fill="#FF71CE"/>
+                    <polygon points="175,20 177,24 182,25 177,26 175,30 173,26 168,25 173,24" fill="#191A23"/>
+                </svg>
+            </div>
+        </section>
+
+        @* 2. "Your progress" Section (3 Pastel Cards in a Row) *@
+        <div class="clean-section-header" id="your-progress">
+            <h2 class="clean-section-title">Tiến độ học tập</h2>
+            <a asp-action="Index" class="btn-outline-dark" style="padding: 6px 14px; font-size: 12px;">
+                Tất cả khóa đã tham gia (@Model.Courses.Count)
+            </a>
+        </div>
+
+        @if (Model.Courses.Count > 0)
+        {
+            <div class="progress-cards-row">
+                @{
+                    var displayCourses = Model.Courses.Take(3).ToList();
+                    for (int i = 0; i < displayCourses.Count; i++)
+                    {
+                        var c = displayCourses[i];
+                        var themeClass = pastelCardThemes[i % pastelCardThemes.Length];
+                        var pct = c.Progress?.Percentage ?? 0m;
+                        var pctStr = pct.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+                        <div class="progress-pastel-card @themeClass">
+                            <div class="progress-card-top">
+                                <div class="progress-icon-circle">
+                                    <svg viewBox="0 0 24 24" style="width:18px; height:18px;" fill="none" stroke="#191A23" stroke-width="2.4" aria-hidden="true">
+                                        <polygon points="12 2 2 22 22 22"></polygon>
+                                    </svg>
+                                </div>
+                                <span class="pill-tag pill-tag-purple" style="background:rgba(255,255,255,0.7);">
+                                    <partial name="_UiText" model="c.Level" />
+                                </span>
+                            </div>
+
+                            <div>
+                                <h3 class="progress-card-title">
+                                    <a asp-action="Course" asp-route-id="@c.Id" style="color:inherit; text-decoration:none;">@c.Title</a>
+                                </h3>
+                                <div class="progress-track-clean">
+                                    <div class="progress-fill-clean" style="width: @pctStr%;"></div>
+                                </div>
+                                <div class="progress-card-footer">
+                                    <span>@(c.Progress?.CompletedLessons ?? 0)/@c.LessonCount bài</span>
+                                    <strong>@pct.ToString("0.##")%</strong>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div class="panel empty" style="border-radius: 20px; padding: 32px; text-align: center; background: #FFFFFF; border: 1px solid var(--v2-border-light);">
+                <p style="font-weight: 600; color: var(--v2-dark); margin-bottom: 8px;">Bạn chưa tham gia khóa học nào.</p>
+                <p class="section-subtitle-clean" style="margin-bottom: 16px;">Hãy khám phá danh mục khóa học để bắt đầu lộ trình của mình.</p>
+                <a asp-controller="Courses" asp-action="Index" class="btn-dark-sm">Khám phá khóa học ngay</a>
+            </div>
+        }
+
+        @* 3. Gợi ý ôn tập & Luyện tập thông minh (Top articles / recommendations for you) *@
+        <div class="clean-section-header" style="margin-top:32px;">
+            <h2 class="clean-section-title">Gợi ý ôn tập & Phương pháp học</h2>
+        </div>
+
+        <div class="articles-cards-row">
+            @if (Model.Recommendations.Count > 0)
+            {
+                var rec = Model.Recommendations.First();
+                var firstContent = rec.Contents.FirstOrDefault();
+
+                <article class="article-clean-card">
+                    <div class="article-art-box" aria-hidden="true">
+                        <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+                            <circle cx="130" cy="70" r="54" fill="#FFD2E8"/>
+                            <path d="M60 45 C60 30, 95 30, 105 45 C115 60, 95 75, 80 75 L70 85 L73 75 C60 72, 60 55, 60 45 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
+                            <text x="82" y="60" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="800" fill="#FF71CE" text-anchor="middle">!</text>
+                            <path d="M125 105 C135 90, 150 82, 175 88 L190 135 L120 135 Z" fill="#191A23"/>
+                            <path d="M150 95 C135 90, 100 88, 88 78 L80 84 C95 98, 130 102, 145 104" stroke="#191A23" stroke-width="2" fill="#FFFFFF"/>
+                            <circle cx="168" cy="74" r="9" fill="#FEE2E2" stroke="#191A23" stroke-width="1.5"/>
+                            <path d="M162 70 C160 62, 174 62, 176 68 C180 72, 174 78, 166 78 Z" fill="#191A23"/>
+                        </svg>
+                    </div>
+
+                    <h3 class="article-clean-title">
+                        Cải thiện <partial name="_UiText" model="rec.Skill" />: Điểm đạt @rec.Score.ToString("0.##")%
+                    </h3>
+                    <p class="section-subtitle-clean" style="margin-bottom: 12px;">
+                        Căn cứ từ bài: @rec.AssessmentTitle
+                    </p>
+
+                    @if (firstContent != null)
+                    {
+                        <div class="article-clean-meta" style="margin-top: auto;">
+                            @switch (firstContent.Kind)
+                            {
+                                case RecommendedContentKind.Course:
+                                    <a asp-action="Course" asp-route-id="@firstContent.Id" class="btn-dark-sm">Học tiếp: @firstContent.Title</a>
+                                    break;
+                                case RecommendedContentKind.Practice:
+                                    <a asp-controller="Practice" asp-action="Take" asp-route-id="@firstContent.Id" class="btn-dark-sm">Luyện tập: @firstContent.Title</a>
+                                    break;
+                                case RecommendedContentKind.Assessment:
+                                    <a asp-controller="Assessment" asp-action="Take" asp-route-id="@firstContent.Id" class="btn-dark-sm">Đánh giá: @firstContent.Title</a>
+                                    break;
+                            }
+                        </div>
+                    }
+                </article>
+            }
+            else
+            {
+                <article class="article-clean-card">
+                    <div class="article-art-box" aria-hidden="true">
+                        <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+                            <circle cx="130" cy="70" r="54" fill="#FFD2E8"/>
+                            <path d="M60 45 C60 30, 95 30, 105 45 C115 60, 95 75, 80 75 L70 85 L73 75 C60 72, 60 55, 60 45 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
+                            <text x="82" y="60" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="800" fill="#FF71CE" text-anchor="middle">?</text>
+                            <path d="M125 105 C135 90, 150 82, 175 88 L190 135 L120 135 Z" fill="#191A23"/>
+                        </svg>
+                    </div>
+                    <h3 class="article-clean-title">Mastering Vocabulary: Chiến lược nạp 30 từ mới mỗi ngày không quên</h3>
+                    <div class="article-clean-meta">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                        <span>Kỹ thuật • 5 phút đọc</span>
+                    </div>
+                </article>
+            }
+
+            @if (Model.PracticeResults.Count > 0)
+            {
+                var practice = Model.PracticeResults.First();
+                <article class="article-clean-card" id="dashboard-practice-results">
+                    <div class="article-art-box" aria-hidden="true">
+                        <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+                            <circle cx="130" cy="70" r="54" fill="#DDD9FC"/>
+                            <g transform="translate(170, 75) scale(0.7)" stroke="#191A23" stroke-width="2" fill="#191A23">
+                                <circle cx="20" cy="20" r="16" fill="none"/>
+                                <circle cx="20" cy="20" r="6" fill="#DDD9FC"/>
+                                <rect x="17" y="0" width="6" height="40" rx="2"/>
+                                <rect x="0" y="17" width="40" height="6" rx="2"/>
+                            </g>
+                            <path d="M100 135 C100 105, 115 90, 140 92 C160 92, 170 105, 170 135 Z" fill="#191A23"/>
+                            <circle cx="132" cy="72" r="9" fill="#FEE2E2" stroke="#191A23" stroke-width="1.5"/>
+                            <path d="M112 85 L130 92 L148 85 L148 110 L130 117 L112 110 Z" fill="#FF71CE" stroke="#191A23" stroke-width="1.8"/>
+                        </svg>
+                    </div>
+                    <h3 class="article-clean-title">Bài luyện gần đây: @practice.Title</h3>
+                    <p class="section-subtitle-clean" style="margin-bottom: 12px;">
+                        Điểm đạt: <strong>@practice.Score.ToString("0.##")%</strong>
+                    </p>
+                    <div class="article-clean-meta" style="margin-top: auto;">
+                        <a asp-controller="Practice" asp-action="Result" asp-route-id="@practice.PracticeId" class="btn-dark-sm">
+                            Xem lại bài giải
+                        </a>
+                    </div>
+                </article>
+            }
+            else
+            {
+                <article class="article-clean-card">
+                    <div class="article-art-box" aria-hidden="true">
+                        <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+                            <circle cx="130" cy="70" r="54" fill="#DDD9FC"/>
+                            <g transform="translate(170, 75) scale(0.7)" stroke="#191A23" stroke-width="2" fill="#191A23">
+                                <circle cx="20" cy="20" r="16" fill="none"/>
+                                <circle cx="20" cy="20" r="6" fill="#DDD9FC"/>
+                            </g>
+                            <path d="M100 135 C100 105, 115 90, 140 92 C160 92, 170 105, 170 135 Z" fill="#191A23"/>
+                        </svg>
+                    </div>
+                    <h3 class="article-clean-title">Embarking on English: Sơ đồ tư duy 12 thì trong 1 trang duy nhất</h3>
+                    <div class="article-clean-meta">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                        <span>Chuyên đề • 6 phút đọc</span>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+
+    @* =========================================================================
+       RIGHT COLUMN (~34%): Dynamic Calendar Strip + Courses + Assessment Results
+       ========================================================================= *@
+    <div class="col-secondary-content">
+        @* 1. Calendar / Date Strip Widget (Dynamic Current Week) *@
+        <div class="calendar-date-card" id="calendar-widget">
+            <div class="calendar-header-row">
+                <span class="calendar-month-label">Tháng @today.ToString("MM / yyyy")</span>
+                <span class="pill-tag pill-tag-purple">Hôm nay</span>
+            </div>
+
+            <div class="calendar-strip-row" role="region" aria-label="Lịch tuần này">
+                @for (int i = 0; i < weekDays.Count; i++)
+                {
+                    var d = weekDays[i];
+                    var isToday = d.Date == today.Date;
+                    var activeClass = isToday ? "active" : "";
+
+                    <div class="calendar-day-col @activeClass" tabindex="0" title="@d.ToString("dd/MM/yyyy")">
+                        <span class="calendar-day-name">@dayNamesVi[i]</span>
+                        <span class="calendar-day-num">@d.Day</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* 2. Enrolled & Completed Courses KPI *@
+        <div class="upcoming-courses-card">
+            <div class="clean-section-header" style="margin-top:0; margin-bottom:14px;">
+                <h2 class="clean-section-title" style="font-size:16px;">Khóa học của bạn</h2>
+                <span class="pill-tag pill-tag-mint">@Model.CompletedCourses hoàn thành</span>
+            </div>
+
+            <div class="upcoming-courses-list">
+                @if (Model.Courses.Count > 0)
+                {
+                    @foreach (var course in Model.Courses.Skip(1).Take(3))
+                    {
+                        var cSkill = course.Skills.FirstOrDefault();
+                        <div class="upcoming-course-item">
+                            <div class="upcoming-tags-row">
+                                <span class="pill-tag pill-tag-purple"><partial name="_UiText" model="course.Level" /></span>
+                                <span class="pill-tag pill-tag-orange"><partial name="_UiText" model="cSkill" /></span>
+                            </div>
+
+                            <div class="upcoming-title-price">
+                                <h3 class="upcoming-course-name">
+                                    <a asp-action="Course" asp-route-id="@course.Id">@course.Title</a>
+                                </h3>
+                            </div>
+
+                            <div class="upcoming-meta-row">
+                                <span class="upcoming-meta-item">
+                                    <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
+                                    <span>@course.Teacher</span>
+                                </span>
+                                <span class="upcoming-meta-item">
+                                    <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                                    <span>@course.LessonCount bài</span>
+                                </span>
+                            </div>
+
+                            <div class="upcoming-bottom-row">
+                                <span class="pill-tag pill-tag-dark"><partial name="_UiText" model="course.Status" /></span>
+                                <a asp-action="Course" asp-route-id="@course.Id" class="btn-dark-sm">Xem khóa</a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="section-subtitle-clean">Chưa có khóa học bổ sung nào.</p>
+                }
+            </div>
+        </div>
+
+        @* 3. Assessment Results Clean Card *@
+        <div class="assessment-results-card" id="dashboard-results">
+            <div class="clean-section-header" style="margin-top:0; margin-bottom:14px;">
+                <h2 class="clean-section-title" style="font-size:16px;">Kết quả đánh giá</h2>
+                <a asp-controller="Assessment" asp-action="Index" class="btn-outline-dark" style="padding:4px 10px; font-size:11px;">
+                    Thi đánh giá
                 </a>
             </div>
-        </div>
-    </section>
-}
 
-
-<div class="stat-grid" aria-label="Tổng quan học tập">
-    <div class="panel"><strong class="stat-value">@Model.Courses.Count</strong><span>Khóa đã tham gia</span></div>
-    <div class="panel"><strong class="stat-value">@Model.CompletedCourses</strong><span>Khóa đã ghi nhận hoàn thành</span></div>
-    <div class="panel"><strong class="stat-value">@Model.Results.Count</strong><span>Bài đánh giá có kết quả</span></div>
-</div>
-
-@* Enrolled Courses Grid (Preserved) *@
-<h2>Tiếp tục học</h2>
-@if (Model.Courses.Count == 0)
-{
-    <div class="panel empty">
-        <p>Bạn chưa tham gia khóa học nào.</p>
-        <a class="button" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a>
-    </div>
-}
-<div class="course-grid">
-@foreach (var course in Model.Courses)
-{
-    <article class="course-card"><partial name="_CourseCover" model="course" /><div class="course-card-body">
-        <h3>@course.Title</h3>
-        <span class="badge"><partial name="_UiText" model="course.Status" /></span>
-        @if (course.Progress is not null)
-        {
-            <partial name="_LearningProgress" model="course.Progress" />
-        }
-        <div class="actions">
-            <a asp-action="Course" asp-route-id="@course.Id">Xem khóa học</a>
-            @if (course.Progress?.ContinueLessonId.HasValue == true)
+            @if (Model.Results.Count > 0)
             {
-                <a class="button" asp-action="Continue" asp-route-id="@course.Id">@(course.Status == CourseStatus.Archived ? "Xem lại bài học" : "Tiếp tục học")</a>
-            }
-        </div>
-    </div></article>
-}
-</div>
-
-@* Assessment Results Section (Preserved) *@
-<section class="panel" aria-labelledby="dashboard-results">
-    <h2 id="dashboard-results">Kết quả đánh giá</h2>
-    <p class="muted">Mỗi bài hiển thị lượt có điểm tổng cao nhất; khi đồng điểm, chọn lượt hoàn thành gần nhất. Điểm kỹ năng lấy từ cùng lượt đó. Chỉ phân tích kỹ năng có ít nhất 3 câu hỏi.</p>
-    @if (Model.Results.Count == 0)
-    {
-        <p>Chưa có kết quả đánh giá đã chấm.</p>
-    }
-    @foreach (var result in Model.Results)
-    {
-        <article class="result-summary">
-            <h3><a asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">@result.Title</a></h3>
-            <p>Điểm tổng: <strong>@result.OverallScore.ToString("0.##")%</strong></p>
-            @if (result.Skills.Count == 0)
-            {
-                <p class="muted">Chưa có nhóm kỹ năng đủ dữ liệu để phân tích.</p>
-            }
-            <ul>
-                @foreach (var skill in result.Skills)
+                @foreach (var res in Model.Results.Take(2))
                 {
-                    <li><partial name="_UiText" model="skill.Skill" />: @skill.Score.ToString("0.##")% (@skill.QuestionCount câu) @if (skill.IsWeak) { <span class="badge">Cần ôn tập</span> }</li>
+                    <div class="result-item-row">
+                        <div class="upcoming-title-price">
+                            <h3 class="upcoming-course-name">
+                                <a asp-controller="Assessment" asp-action="Result" asp-route-id="@res.AttemptId">@res.Title</a>
+                            </h3>
+                            <span class="upcoming-course-price" style="color:var(--v2-dark);">@res.OverallScore.ToString("0.##")%</span>
+                        </div>
+
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+                            @foreach (var sk in res.Skills.Take(3))
+                            {
+                                <span class="pill-tag @(sk.IsWeak ? "pill-tag-orange" : "pill-tag-purple")">
+                                    <partial name="_UiText" model="sk.Skill" />: @sk.Score.ToString("0.##")%
+                                </span>
+                            }
+                        </div>
+                    </div>
                 }
-            </ul>
-        </article>
-    }
-</section>
-
-@* Practice Results Section (Preserved with exact ID) *@
-<section class="panel" aria-labelledby="dashboard-practice-results">
-    <h2 id="dashboard-practice-results">Kết quả luyện tập gần đây</h2>
-    <p class="muted">Tối đa 20 bài luyện đã nộp gần đây, mỗi bài giữ kết quả lần nộp gần nhất.</p>
-    @if (Model.PracticeResults.Count == 0)
-    {
-        <p>Chưa có kết quả luyện tập.</p>
-    }
-    <ul class="lesson-list">
-    @foreach (var result in Model.PracticeResults)
-    {
-        <li><a asp-controller="Practice" asp-action="Result" asp-route-id="@result.PracticeId">@result.Title</a> · @result.Score.ToString("0.##")%</li>
-    }
-    </ul>
-</section>
-
-@* Recommendations Section (Preserved) *@
-<section aria-labelledby="recommendations-title">
-    <h2 id="recommendations-title">Gợi ý ôn tập</h2>
-    <p class="muted">Gợi ý dựa trên kỹ năng dưới 60% trước khi làm tròn, thông tin bổ sung nội dung và quyền học của bạn.</p>
-    @if (Model.Recommendations.Count == 0)
-    {
-        <p class="panel">Chưa xác định nội dung cần ôn tập từ kết quả hiện có.</p>
-    }
-    @foreach (var recommendation in Model.Recommendations)
-    {
-        <article class="panel">
-            <h3><partial name="_UiText" model="recommendation.Skill" /> · @recommendation.Score.ToString("0.##")%</h3>
-            <p class="muted">Căn cứ: <a asp-controller="Assessment" asp-action="Result" asp-route-id="@recommendation.AttemptId">@recommendation.AssessmentTitle</a>.</p>
-            @if (recommendation.Contents.Count == 0)
-            {
-                <p>Chưa có nội dung khả dụng phù hợp với kỹ năng này.</p>
             }
-            <ul class="lesson-list">
-            @foreach (var content in recommendation.Contents)
+            else
             {
-                <li>@switch (content.Kind)
-                {
-                    case RecommendedContentKind.Course:
-                        <a asp-action="Course" asp-route-id="@content.Id">Khóa học: @content.Title</a>
-                        break;
-                    case RecommendedContentKind.Practice:
-                        <a asp-controller="Practice" asp-action="Take" asp-route-id="@content.Id">Luyện tập: @content.Title</a>
-                        break;
-                    case RecommendedContentKind.Assessment:
-                        <a asp-controller="Assessment" asp-action="Take" asp-route-id="@content.Id">Đánh giá: @content.Title</a>
-                        break;
-                }</li>
+                <p class="section-subtitle-clean">Chưa có kết quả bài kiểm tra năng lực.</p>
+                <div style="margin-top:12px;">
+                    <a asp-controller="Assessment" asp-action="Index" class="btn-dark-sm">
+                        Làm bài kiểm tra đầu vào
+                    </a>
+                </div>
             }
-            </ul>
-        </article>
-    }
-</section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Interactive calendar day selection
+            var dayCols = document.querySelectorAll('.calendar-day-col');
+            dayCols.forEach(function (col) {
+                col.addEventListener('click', function () {
+                    dayCols.forEach(function (c) { c.classList.remove('active'); });
+                    col.classList.add('active');
+                });
+            });
+        });
+    </script>
+}
