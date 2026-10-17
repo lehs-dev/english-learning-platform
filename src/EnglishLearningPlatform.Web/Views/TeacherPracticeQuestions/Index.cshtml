@@ -1,0 +1,518 @@
+@model EnglishLearningPlatform.Web.Models.Practice.TeacherPracticeQuestionsViewModel
+
+@{
+    // Dùng giao diện chung dành cho Teacher.
+    // Layout này đã tải các file CSS cần thiết.
+    Layout = "_LayoutTeacher";
+
+    ViewData["Title"] = "Câu hỏi của bài luyện tập";
+
+    // Đánh dấu mục Bài luyện tập trên menu.
+    ViewData["ActiveSection"] = "practices";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Câu hỏi của bài luyện tập</h1>
+        <p class="muted">@Model.Editor.Title</p>
+    </div>
+
+    <a class="button secondary"
+       asp-controller="TeacherPractices"
+       asp-action="Index">
+        Quay lại danh sách Practice
+    </a>
+</div>
+
+<section class="panel" aria-labelledby="practice-info-title">
+    <h2 id="practice-info-title">Thông tin bài luyện tập</h2>
+
+    <p>
+        Trạng thái:
+        <span class="badge">@Model.Editor.Status</span>
+    </p>
+
+    <p>
+        Số câu hỏi đã lưu: @Model.Editor.Questions.Count
+    </p>
+
+    @if (!Model.Editor.CanEditQuestions)
+    {
+        <p class="notice">
+            Bài luyện tập này không cho phép sửa danh sách câu hỏi.
+            Bạn vẫn có thể xem các câu hỏi đã lưu.
+        </p>
+    }
+    else
+    {
+        <p class="muted">
+            Bài luyện tập còn ở trạng thái nháp.
+            Học viên chưa thể làm bài này.
+        </p>
+    }
+</section>
+<section class="panel" aria-labelledby="selected-questions-title">
+    <h2 id="selected-questions-title">Câu hỏi đã chọn</h2>
+
+    <p class="muted">
+        Danh sách này là toàn bộ câu hỏi của Practice,
+        không phụ thuộc trang tìm kiếm hiện tại.
+    </p>
+
+    <form id="practice-question-form"
+          method="post"
+          asp-controller="TeacherPracticeQuestions"
+          asp-action="Save"
+          asp-route-id="@Model.Editor.PracticeId"
+          asp-antiforgery="true"
+          data-editable="@(Model.Editor.CanEditQuestions ? "true" : "false")">
+
+        <input type="hidden"
+               name="ExpectedUpdatedAtUtc"
+               value="@(Model.Editor.UpdatedAtUtc?.ToString("O"))" />
+
+        @* Các input cùng tên QuestionIds được gửi thành List<Guid>.
+           Thứ tự input trong danh sách chính là thứ tự câu hỏi. *@
+        <ol data-selected-question-list>
+            @foreach (var question in Model.Editor.Questions)
+            {
+                <li data-selected-question>
+                    <span data-question-number></span>
+                    <input type="hidden" name="QuestionIds" value="@question.Id" />
+                    <p class="preserve" data-question-text>@question.Content</p>
+
+                    @if (Model.Editor.CanEditQuestions)
+                    {
+                        <div class="actions">
+                            <button type="button" class="button secondary"
+                                    data-question-action="up" disabled>Lên</button>
+                            <button type="button" class="button secondary"
+                                    data-question-action="down" disabled>Xuống</button>
+                            <button type="button" class="button secondary"
+                                    data-question-action="remove" disabled>
+                                Bỏ khỏi Practice
+                            </button>
+                        </div>
+                    }
+                </li>
+            }
+        </ol>
+
+        <p class="muted" data-empty-list
+           hidden="@(Model.Editor.Questions.Count > 0)">
+            Chưa chọn câu hỏi nào.
+        </p>
+
+        <p class="notice" data-save-notice role="status" tabindex="-1"></p>
+
+        @if (Model.Editor.CanEditQuestions)
+        {
+            <button type="submit" class="button" data-save-button disabled>
+                Lưu danh sách câu hỏi
+            </button>
+            <noscript>
+                <p>Bạn cần bật JavaScript để chọn và sắp xếp câu hỏi.</p>
+            </noscript>
+        }
+    </form>
+</section>
+<section class="panel" aria-labelledby="question-filter-title">
+    <h2 id="question-filter-title">
+        Tìm câu hỏi trong Question Bank
+    </h2>
+
+    @* GET chỉ tìm kiếm, không ghi dữ liệu.
+       Tên trường phải khớp QuestionSearchRequest. *@
+    <form method="get"
+          asp-controller="TeacherPracticeQuestions"
+          asp-action="Index"
+          data-editor-navigation>
+
+        @* Giữ Practice đang mở khi gửi bộ lọc.
+           Service vẫn kiểm tra quyền sở hữu ID này. *@
+        <input type="hidden"
+               name="id"
+               value="@Model.Editor.PracticeId" />
+
+        @* Mỗi lần đổi bộ lọc, bắt đầu lại từ trang 1. *@
+        <input type="hidden"
+               name="PageNumber"
+               value="1" />
+
+        <div class="filter-grid">
+            <div>
+                <label for="Search">Nội dung câu hỏi</label>
+
+                <input type="search"
+                       id="Search"
+                       name="Search"
+                       value="@Model.Query.Search"
+                       placeholder="Ví dụ: school" />
+            </div>
+
+            <div>
+                <label for="PrimarySkill">Kỹ năng</label>
+
+                <select id="PrimarySkill" name="PrimarySkill">
+                    <option value="">Tất cả kỹ năng</option>
+
+                    @* Lấy các kỹ năng từ enum đang có trong dự án. *@
+                    @foreach (EnglishSkill skill in
+                        Enum.GetValues(typeof(EnglishSkill)))
+                    {
+                        if (Model.Query.PrimarySkill == skill)
+                        {
+                            <option value="@skill" selected>
+                                @skill
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@skill">
+                                @skill
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="Level">Trình độ</label>
+
+                <input type="text"
+                       id="Level"
+                       name="Level"
+                       value="@Model.Query.Level"
+                       placeholder="Ví dụ: Beginner" />
+            </div>
+
+            <div>
+                <label for="Difficulty">Độ khó</label>
+
+                <input type="text"
+                       id="Difficulty"
+                       name="Difficulty"
+                       value="@Model.Query.Difficulty"
+                       placeholder="Ví dụ: Easy" />
+            </div>
+
+            <div>
+                <label for="Status">Trạng thái câu hỏi</label>
+
+                <select id="Status" name="Status">
+                    <option value="">Tất cả trạng thái</option>
+
+                    @foreach (QuestionStatus status in
+                        Enum.GetValues(typeof(QuestionStatus)))
+                    {
+                        if (Model.Query.Status == status)
+                        {
+                            <option value="@status" selected>
+                                @status
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@status">
+                                @status
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="PageSize">Số câu mỗi trang</label>
+
+                <input type="number"
+                       id="PageSize"
+                       name="PageSize"
+                       min="1"
+                       max="100"
+                       required
+                       value="@Model.Query.PageSize" />
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="button">
+                Tìm / lọc
+            </button>
+
+            @* Xóa bộ lọc nhưng vẫn mở đúng Practice hiện tại. *@
+            <a class="button secondary"
+               asp-controller="TeacherPracticeQuestions"
+               asp-action="Index"
+               asp-route-id="@Model.Editor.PracticeId">
+                Xóa bộ lọc
+            </a>
+        </div>
+    </form>
+</section>
+<section class="panel" aria-labelledby="question-results-title">
+    <h2 id="question-results-title">Kết quả tìm kiếm</h2>
+
+    <p class="muted">
+        Tổng số câu hỏi phù hợp: @Model.Result.TotalCount
+    </p>
+
+    <p class="muted">
+        Câu hỏi Archived không được thêm mới vào Practice.
+    </p>
+
+    @if (Model.Result.Items.Count == 0)
+    {
+        if (Model.Result.TotalCount == 0)
+        {
+            <p>Không có câu hỏi phù hợp với bộ lọc.</p>
+        }
+        else
+        {
+            <p>
+                Trang bạn yêu cầu không có dữ liệu.
+                Hãy quay về trang đầu.
+            </p>
+        }
+    }
+    else
+    {
+        @* Wrapper cho phép cuộn ngang bảng trên màn hình nhỏ. *@
+        <div class="table-scroll"
+             role="region"
+             aria-label="Kết quả tìm kiếm câu hỏi"
+             tabindex="0">
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Nội dung</th>
+                        <th scope="col">Kỹ năng</th>
+                        <th scope="col">Trình độ</th>
+                        <th scope="col">Độ khó</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Số lựa chọn</th>
+                        <th scope="col">Chi tiết</th>
+                        <th scope="col">Chọn</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var question in Model.Result.Items)
+                    {
+                        <tr>
+                            <td class="preserve" data-question-content>@question.Content</td>
+                            <td>@question.PrimarySkill</td>
+                            <td>@question.Level</td>
+                            <td>@question.Difficulty</td>
+                            <td>@question.Status</td>
+                            <td>@question.OptionCount</td>
+
+                            <td>
+                                <a asp-controller="TeacherQuestionBank"
+                                   asp-action="Details"
+                                   asp-route-id="@question.Id">
+                                    Xem chi tiết
+                                </a>
+                            </td>
+                            <td>
+                                @if (Model.Editor.CanEditQuestions
+                                    && question.Status != QuestionStatus.Archived)
+                                {
+                                    <button type="button"
+                                            class="button secondary"
+                                            data-add-question
+                                            data-question-id="@question.Id"
+                                            disabled>
+                                        Thêm
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="muted">
+                                        @(question.Status == QuestionStatus.Archived
+                                            ? "Đã Archived"
+                                            : "Chỉ xem")
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+@* Không có kết quả thì không hiển thị Trang 1/0. *@
+@if (Model.Result.TotalPages > 0)
+{
+    <nav aria-label="Phân trang câu hỏi">
+
+        @* Form GET riêng cho phân trang.
+           Hidden input giữ lại bộ lọc và Practice đang mở. *@
+        <form method="get"
+              asp-controller="TeacherPracticeQuestions"
+              asp-action="Index"
+              class="actions"
+              data-editor-navigation>
+
+            <input type="hidden" name="id"
+                   value="@Model.Editor.PracticeId" />
+
+            <input type="hidden" name="Search"
+                   value="@Model.Query.Search" />
+
+            <input type="hidden" name="PrimarySkill"
+                   value="@Model.Query.PrimarySkill" />
+
+            <input type="hidden" name="Level"
+                   value="@Model.Query.Level" />
+
+            <input type="hidden" name="Difficulty"
+                   value="@Model.Query.Difficulty" />
+
+            <input type="hidden" name="Status"
+                   value="@Model.Query.Status" />
+
+            <input type="hidden" name="PageSize"
+                   value="@Model.Result.PageSize" />
+
+            @if (Model.Result.PageNumber > Model.Result.TotalPages)
+            {
+                <button type="submit"
+                        class="button secondary"
+                        name="PageNumber"
+                        value="1">
+                    Về trang đầu
+                </button>
+            }
+            else
+            {
+                @if (Model.Result.PageNumber > 1)
+                {
+                    @* Nút được bấm gửi PageNumber của trang trước. *@
+                    <button type="submit"
+                            class="button secondary"
+                            name="PageNumber"
+                            value="@(Model.Result.PageNumber - 1)">
+                        Trang trước
+                    </button>
+                }
+
+                <span class="muted">
+                    Trang @Model.Result.PageNumber
+                    / @Model.Result.TotalPages
+                </span>
+
+                @if (Model.Result.PageNumber < Model.Result.TotalPages)
+                {
+                    <button type="submit"
+                            class="button secondary"
+                            name="PageNumber"
+                            value="@(Model.Result.PageNumber + 1)">
+                        Trang sau
+                    </button>
+                }
+            }
+        </form>
+    </nav>
+}
+
+<section class="panel" aria-labelledby="publication-title">
+    <h2 id="publication-title">Xuất bản Practice</h2>
+
+    <p>Nơi gắn hiện tại: @Model.Editor.ParentTitle</p>
+
+    @if (Model.Editor.CanEditQuestions
+        || Model.Editor.Status == PracticeStatus.Unpublished)
+    {
+        <form method="post"
+              asp-controller="TeacherPracticeQuestions"
+              asp-action="Publish"
+              asp-route-id="@Model.Editor.PracticeId"
+              asp-antiforgery="true"
+              data-publication-form>
+
+            <input type="hidden"
+                   name="ExpectedUpdatedAtUtc"
+                   value="@(Model.Editor.UpdatedAtUtc?.ToString("O"))" />
+
+            @if (Model.Editor.CanEditQuestions)
+            {
+                <p class="muted">
+                    Lưu câu hỏi trước, rồi chọn đúng một Lesson
+                    hoặc một Module để Publish.
+                    Parent được lưu khi Publish thành công.
+                </p>
+
+                <div class="filter-grid">
+                    <div>
+                        <label for="PublishLessonId">Lesson</label>
+                        <select id="PublishLessonId" name="lessonId">
+                            <option value="">-- Không chọn Lesson --</option>
+                            @foreach (var option in Model.Editor.LessonOptions)
+                            {
+                                <option value="@option.Id"
+                                        selected="@(Model.Editor.LessonId == option.Id)">
+                                    @option.Title
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label for="PublishModuleId">Module</label>
+                        <select id="PublishModuleId" name="moduleId">
+                            <option value="">-- Không chọn Module --</option>
+                            @foreach (var option in Model.Editor.ModuleOptions)
+                            {
+                                <option value="@option.Id"
+                                        selected="@(Model.Editor.ModuleId == option.Id)">
+                                    @option.Title
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @* Publish lại phải giữ nguyên parent đã bị khóa. *@
+                <input type="hidden" name="lessonId" value="@Model.Editor.LessonId" />
+                <input type="hidden" name="moduleId" value="@Model.Editor.ModuleId" />
+                <p class="muted">
+                    Practice đã từng Publish.
+                    Câu hỏi, thứ tự và parent vẫn bị khóa.
+                </p>
+            }
+
+            <div class="actions">
+                <button type="submit" class="button">Publish Practice</button>
+            </div>
+        </form>
+    }
+
+    @if (Model.Editor.Status == PracticeStatus.Published)
+    {
+        <p class="muted">
+            Muốn thay đổi đề hoặc parent, hãy tạo Practice mới.
+            Unpublish không mở khóa nội dung đã công bố.
+        </p>
+        <form method="post"
+              asp-controller="TeacherPracticeQuestions"
+              asp-action="Unpublish"
+              asp-route-id="@Model.Editor.PracticeId"
+              asp-antiforgery="true"
+              data-publication-form>
+            <input type="hidden" name="expectedUpdatedAtUtc"
+                   value="@(Model.Editor.UpdatedAtUtc?.ToString("O"))" />
+            <button type="submit" class="button secondary">
+                Unpublish Practice
+            </button>
+        </form>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/teacher-practice-questions.js"
+            asp-append-version="true"
+            defer></script>
+}
