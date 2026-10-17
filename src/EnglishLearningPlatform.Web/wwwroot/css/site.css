@@ -55,6 +55,11 @@
     --focus-shadow: 0 0 0 3px rgb(var(--primary-rgb) / 15%);
     --content-max: 1280px;
     --reading-max: 72ch;
+
+    /* Độ rộng sidebar cho layout Teacher/Admin trên màn hình lớn.
+    Layout dùng biến này để chia cột sidebar và nội dung. */
+    --sidebar-width: 240px;
+
     --motion-fast: 160ms;
 
     /* Estudy V2 — Friendly & Engaging Design Tokens */

@@ -93,6 +93,10 @@ public static class DependencyInjection
         services.AddScoped<ITeacherCourseReportService, TeacherCourseReportService>();
         services.AddScoped<IPracticeService, PracticeService>();
         services.AddScoped<ITeacherPracticeService, TeacherPracticeService>();
+        // Service riêng để lưu danh sách câu hỏi của Practice Draft.
+        services.AddScoped<
+            ITeacherPracticeQuestionService,
+            TeacherPracticeQuestionService>();
         // Service đọc danh sách Practice dành cho Teacher.
         services.AddScoped<ITeacherPracticeQueryService,TeacherPracticeQueryService>();
         // Tạo ngữ liệu riêng của Teacher, không dùng service chấm bài của Student.
