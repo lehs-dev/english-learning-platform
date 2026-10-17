@@ -162,6 +162,50 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         }
     }
 
+    [Theory]
+    [InlineData("Submit")]
+    [InlineData("Save")]
+    public async Task ExpiredPost_GradesSavedAnswersOnceAndIgnoresLateChanges(string action)
+    {
+        var data = await SeedAsync();
+        using var client = await StudentClient(data.Student);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        var attemptId = await Start(client, data, token);
+        using var saved = await Post(client, $"/Assessment/Save/{attemptId}", token, Answers(data, 4));
+        Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
+        using (var scope = factory.Services.CreateScope())
+            await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.Where(a => a.Id == attemptId)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.DeadlineUtc, DateTimeOffset.UtcNow.AddSeconds(-1)));
+
+        using var late = await Post(client, $"/Assessment/{action}/{attemptId}", token, Answers(data, 5));
+        Assert.Equal(HttpStatusCode.Redirect, late.StatusCode);
+        Assert.Equal($"/Assessment/Result/{attemptId}", late.Headers.Location!.ToString());
+        using var result = await client.GetAsync(late.Headers.Location);
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+
+        DateTimeOffset? finalizedAt;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var attempt = await db.Attempts.SingleAsync(a => a.Id == attemptId);
+            Assert.Equal(80m, attempt.OverallScore);
+            Assert.Equal(AttemptFinalizationReason.DeadlineElapsed, attempt.FinalizationReason);
+            finalizedAt = attempt.FinalizedAtUtc;
+            Assert.NotNull(finalizedAt);
+        }
+        using var replay = await Post(client, $"/Assessment/{action}/{attemptId}", token, Answers(data, 0));
+        Assert.Equal(HttpStatusCode.Redirect, replay.StatusCode);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var attempt = await db.Attempts.SingleAsync(a => a.Id == attemptId);
+            Assert.Equal(80m, attempt.OverallScore);
+            Assert.Equal(finalizedAt, attempt.FinalizedAtUtc);
+            Assert.Equal(2, await db.AttemptSkillResults.CountAsync(s => s.AttemptId == attemptId));
+            Assert.Equal(1, await db.Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
+        }
+    }
+
     [Fact]
     public async Task ForeignAttempt_ResultReadAndSaveSubmitDenied_AndResultSurvivesWithdrawal()
     {
