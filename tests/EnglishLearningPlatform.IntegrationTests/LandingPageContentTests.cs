@@ -117,8 +117,8 @@ public sealed class LandingPageContentTests(IntegrationTestFactory factory) : IC
         var populatedSection = Regex.Match(populatedHtml, "<section\\b[^>]*aria-labelledby=\"courses-heading\"[^>]*>.*?</section>",
             RegexOptions.Singleline);
         Assert.True(populatedSection.Success);
-        Assert.Contains("class=\"course-grid\"", populatedSection.Value);
-        Assert.Contains("class=\"course-card\"", populatedSection.Value);
+        Assert.Contains("class=\"homepage-courses-grid\"", populatedSection.Value);
+        Assert.Contains("class=\"course-item-card\"", populatedSection.Value);
         Assert.Contains(course.Title, populatedSection.Value);
         Assert.Contains($"/Courses/Details/{course.Id}", populatedSection.Value);
         Assert.DoesNotContain("Khóa học đang được chuẩn bị", populatedSection.Value);
