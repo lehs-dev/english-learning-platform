@@ -78,7 +78,7 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         Assert.Equal(HttpStatusCode.Redirect, replay.StatusCode);
         using var course = await client.GetAsync($"/Learning/Course/{data.Course.Id}");
         var courseHtml = await course.Content.ReadAsStringAsync();
-        Assert.Contains("course-completed", courseHtml);
+        Assert.Contains("Đã hoàn thành khóa học", courseHtml);
         Assert.Contains("assessment-details", courseHtml);
         Assert.Contains("50%", courseHtml);
         using var overview = await client.GetAsync($"/Assessment/Take/{data.Assessment.Id}");
