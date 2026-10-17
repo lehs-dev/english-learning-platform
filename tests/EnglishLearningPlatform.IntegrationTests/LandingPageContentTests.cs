@@ -72,6 +72,7 @@ public sealed class LandingPageContentTests(IntegrationTestFactory factory) : IC
             html.Contains("highlight", StringComparison.OrdinalIgnoreCase) ||
             html.Contains("feature", StringComparison.OrdinalIgnoreCase) ||
             html.Contains("điểm nổi bật", StringComparison.OrdinalIgnoreCase) ||
+            html.Contains("lộ trình", StringComparison.OrdinalIgnoreCase) ||
             html.Contains("tại sao", StringComparison.OrdinalIgnoreCase) ||
             html.Contains("lợi ích", StringComparison.OrdinalIgnoreCase),
             "Landing page must showcase key platform highlights / feature cards.");
@@ -88,7 +89,7 @@ public sealed class LandingPageContentTests(IntegrationTestFactory factory) : IC
         var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
 
         // An empty catalog must offer discovery without inventing course cards.
-        var section = Regex.Match(html, "<section\\b[^>]*aria-labelledby=\"featured-title\"[^>]*>.*?</section>",
+        var section = Regex.Match(html, "<section\\b[^>]*aria-labelledby=\"courses-heading\"[^>]*>.*?</section>",
             RegexOptions.Singleline);
         Assert.True(section.Success, "Landing page must contain its course discovery section.");
         Assert.Contains("href=\"/Courses\"", section.Value);
@@ -113,7 +114,7 @@ public sealed class LandingPageContentTests(IntegrationTestFactory factory) : IC
         using var populatedResponse = await client.GetAsync("/");
         Assert.Equal(HttpStatusCode.OK, populatedResponse.StatusCode);
         var populatedHtml = WebUtility.HtmlDecode(await populatedResponse.Content.ReadAsStringAsync());
-        var populatedSection = Regex.Match(populatedHtml, "<section\\b[^>]*aria-labelledby=\"featured-title\"[^>]*>.*?</section>",
+        var populatedSection = Regex.Match(populatedHtml, "<section\\b[^>]*aria-labelledby=\"courses-heading\"[^>]*>.*?</section>",
             RegexOptions.Singleline);
         Assert.True(populatedSection.Success);
         Assert.Contains("class=\"course-grid\"", populatedSection.Value);
