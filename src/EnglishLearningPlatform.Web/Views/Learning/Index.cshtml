@@ -1,21 +1,80 @@
+@using EnglishLearningPlatform.Domain.Enums
 @model IReadOnlyList<CourseSummary>
-@{ ViewData["Title"] = "Khóa đã tham gia"; }
-<div class="page-heading"><h1>Khóa đã tham gia</h1><div class="actions"><a class="button" asp-action="Dashboard">Tiến độ học tập</a><a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a></div></div>
-@if (Model.Count == 0) { <p class="panel empty">Bạn chưa tham gia khóa học nào.</p> }
-<div class="course-grid">
-@foreach (var course in Model)
-{
-    <article class="course-card"><partial name="_CourseCover" model="course" /><div class="course-card-body">
-        <h2>@course.Title</h2><span class="badge"><partial name="_UiText" model="course.Status" /></span>
-        <partial name="_CourseSummary" model="course" />
-        @if (course.Progress is not null) { <partial name="_LearningProgress" model="course.Progress" /> }
+@{
+    ViewData["Title"] = "Khóa học của tôi";
+    ViewData["ActiveSection"] = "courses";
+}
+
+<div class="learning-index-layout">
+    <div class="page-heading" style="margin-bottom: 24px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="v2-pill-tag">Không gian học viên</span>
+                <span class="v2-pill-tag" style="background: #FAF9FE; color: var(--v2-text-muted);">@Model.Count khóa học</span>
+            </div>
+            <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: var(--v2-dark);">Khóa đã tham gia</h1>
+        </div>
         <div class="actions">
-            <a class="button secondary" asp-action="Course" asp-route-id="@course.Id">Xem khóa học</a>
-            @if (course.Progress?.ContinueLessonId is Guid lessonId)
+            <a class="btn-dark" style="padding: 10px 18px; font-size: 13.5px;" asp-action="Dashboard">
+                <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#dashboard")"></use></svg>
+                <span>Bàn học &amp; Tiến độ</span>
+            </a>
+            <a class="btn-outline-dark" style="padding: 10px 18px; font-size: 13.5px;" asp-controller="Courses" asp-action="Index">
+                <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                <span>Khám phá thêm khóa học</span>
+            </a>
+        </div>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="card-v2" style="padding: 48px 32px; text-align: center; margin-top: 16px;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--v2-pastel-periwinkle); color: var(--v2-dark); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <svg class="icon" aria-hidden="true" style="width: 28px; height: 28px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+            </div>
+            <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px; color: var(--v2-dark);">Bạn chưa đăng ký khóa học nào</h2>
+            <p style="color: var(--v2-text-secondary); max-width: 460px; margin: 0 auto 20px; font-size: 14px;">Hãy bắt đầu hành trình nâng cao trình độ tiếng Anh bằng cách khám phá các khóa học từ cơ bản đến nâng cao trên Estudy.</p>
+            <a class="button" style="padding: 12px 28px;" asp-controller="Courses" asp-action="Index">Khám phá khóa học ngay &rarr;</a>
+        </div>
+    }
+    else
+    {
+        <div class="course-grid">
+            @foreach (var course in Model)
             {
-                <a class="button" asp-action="Continue" asp-route-id="@course.Id">@(course.Status == CourseStatus.Archived ? "Xem bài học" : "Tiếp tục học")</a>
+                <article class="course-card">
+                    <partial name="_CourseCover" model="course" />
+                    <div class="course-card-body">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <span class="v2-pill-tag" style="font-size: 11px;">
+                                <partial name="_UiText" model="course.Status" />
+                            </span>
+                        </div>
+                        <h2>
+                            <a asp-action="Course" asp-route-id="@course.Id">@course.Title</a>
+                        </h2>
+                        
+                        <partial name="_CourseSummary" model="course" />
+
+                        @if (course.Progress is not null)
+                        {
+                            <div style="margin-top: 4px;">
+                                <partial name="_LearningProgress" model="course.Progress" />
+                            </div>
+                        }
+
+                        <div class="actions" style="margin-top: auto; padding-top: 12px; display: flex; gap: 8px;">
+                            <a class="button secondary" style="flex: 1; justify-content: center; font-size: 13px;" asp-action="Course" asp-route-id="@course.Id">Vào học</a>
+                            @if (course.Progress?.ContinueLessonId is Guid lessonId)
+                            {
+                                <a class="button" style="flex: 1.2; justify-content: center; font-size: 13px;" asp-action="Continue" asp-route-id="@course.Id">
+                                    @(course.Status == CourseStatus.Archived ? "Xem bài học" : "Học tiếp") &rarr;
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </article>
             }
         </div>
-    </div></article>
-}
+    }
 </div>

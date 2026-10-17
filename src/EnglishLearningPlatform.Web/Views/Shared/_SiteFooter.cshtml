@@ -1,8 +1,9 @@
 <footer class="site-footer">
     <div class="container footer-inner">
-        <p>&copy; @DateTime.UtcNow.Year Estudy. Cùng bạn học tiếng Anh mỗi ngày.</p>
+        <p>&copy; @DateTime.UtcNow.Year Estudy — Cùng bạn học tiếng Anh mỗi ngày.</p>
         <nav class="footer-links" aria-label="Liên kết cuối trang">
             <a asp-controller="Courses" asp-action="Index">Khám phá khóa học</a>
+            <a asp-controller="Assessment" asp-action="Index">Đánh giá năng lực</a>
             @if (User.Identity?.IsAuthenticated == true)
             {
                 <a asp-controller="Profile" asp-action="Index">Hồ sơ cá nhân</a>

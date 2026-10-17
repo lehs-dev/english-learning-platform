@@ -36,7 +36,10 @@
     min-width: 0;
     margin: 0;
     padding: 24px;
-    box-shadow: 0 2px 12px rgb(var(--ink-rgb) / 3%);
+    border-radius: 20px;
+    border: 1px solid var(--v2-border-light);
+    box-shadow: var(--v2-shadow-card);
+    background: #FFFFFF;
 }
 
 .question-bank-page .question-bank-card h2 {
@@ -64,9 +67,10 @@
 
 .question-bank-page .question-bank-metadata > div {
     min-width: 0;
-    padding: 10px 12px;
-    border-radius: var(--radius-control);
-    background: var(--surface-subtle);
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #FAF9FE;
+    border: 1px solid #EAE8FB;
 }
 
 .question-bank-page .question-bank-metadata dt {

@@ -1,39 +1,146 @@
+@using EnglishLearningPlatform.Domain.Enums
 @model EnglishLearningPlatform.Application.Assessment.AssessmentResultView
 @{
     ViewData["Title"] = "Kết quả: " + Model.AssessmentTitle;
     ViewData["ActiveSection"] = "assessment";
 }
-@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
-<div class="page-heading"><div><h1>@Model.AssessmentTitle</h1></div></div>
-<section class="panel">
-    <p class="assessment-score">@Model.OverallScore.ToString("0.##")<span>/100</span></p>
-    @if (Model.PassingScore is decimal passingScore)
-    {
-        <p><span class="badge @(Model.Passed ? "assessment-passed" : "assessment-failed")">@(Model.Passed ? "Đạt" : "Chưa đạt")</span> · Điểm đạt: @passingScore.ToString("0.##")/100</p>
-    }
-    else { <p class="notice">Bài đánh giá này không áp dụng ngưỡng đạt / trượt.</p> }
-    <p class="muted">Đã chấm lúc <time datetime="@Model.FinalizedAtUtc.ToString("O")">@Model.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy") (UTC+7)</time> · @(Model.FinalizationReason == AttemptFinalizationReason.DeadlineElapsed ? "Tự nộp khi hết giờ" : "Nộp bài chủ động")</p>
-</section>
-<section class="panel" aria-labelledby="skills-title">
-    <h2 id="skills-title">Điểm theo kỹ năng</h2>
-    @if (Model.SkillBreakdowns.Count == 0)
-    { <p class="muted">Lượt làm lịch sử này chưa có dữ liệu điểm theo kỹ năng.</p> }
-    else
-    {
-        <div class="assessment-table-wrap"><table class="assessment-table"><caption class="visually-hidden">Thông tin bài đánh giá</caption>
-            <thead><tr><th scope="col">Kỹ năng</th><th scope="col">Số câu</th><th scope="col">Điểm / 100</th></tr></thead>
-            <tbody>
-            @foreach (var skill in Model.SkillBreakdowns)
+@section Styles {
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+}
+
+<div class="exam-workspace-layout">
+    <header class="exam-header-bar">
+        <div class="exam-header-left">
+            @if (Model.CourseId is Guid courseId)
             {
-                <tr><td><partial name="_UiText" model="skill.Skill" /></td><td>@skill.QuestionCount</td><td>@skill.Score.ToString("0.##")</td></tr>
+                <a class="button secondary exam-back-btn" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">
+                    <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    <span>Về khóa học</span>
+                </a>
             }
-            </tbody>
-        </table></div>
-    }
-</section>
-<div class="actions">
-    <a class="button secondary" asp-controller="Learning" asp-action="Dashboard" asp-fragment="recommendations-title">Xem gợi ý ôn tập theo kỹ năng</a>
-    @if (Model.CourseId is Guid courseId) { <a class="button" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">Về khóa học và tiến độ</a> }
-    <a class="button secondary" asp-action="Take" asp-route-id="@Model.AssessmentId">Thông tin bài thi và lịch sử</a>
-    <a asp-controller="Learning" asp-action="Index">Khu học tập</a>
+            else
+            {
+                <a class="button secondary exam-back-btn" asp-action="Index">
+                    <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    <span>Danh sách bài đánh giá</span>
+                </a>
+            }
+            <div class="exam-title-group">
+                <span class="v2-pill-tag">Kết quả đánh giá</span>
+                <h1 class="exam-title">@Model.AssessmentTitle</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Score Overview Banner -->
+    <div class="result-overview" style="@(Model.Passed ? "background: #F0FDF4; border: 1.5px solid #BBF7D0;" : "background: #FAF9FE; border: 1.5px solid #EAE8FB;")">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span class="v2-pill-tag">Điểm tổng kết</span>
+                @if (Model.PassingScore is decimal passingScore)
+                {
+                    <span class="badge @(Model.Passed ? "assessment-passed" : "assessment-failed")">
+                        @(Model.Passed ? "Đạt chuẩn yêu cầu" : "Chưa đạt ngưỡng yêu cầu")
+                    </span>
+                }
+            </div>
+            
+            <div class="assessment-score" style="margin: 6px 0; color: var(--v2-dark);">
+                @Model.OverallScore.ToString("0.##")<span style="font-size: 24px; font-weight: 600; color: var(--v2-text-muted);">/100</span>
+            </div>
+
+            @if (Model.PassingScore is decimal passScore)
+            {
+                <p style="margin: 0; font-size: 13.5px; color: var(--v2-text-secondary);">
+                    Điểm đạt yêu cầu: <strong>@passScore.ToString("0.##")/100</strong>
+                </p>
+            }
+            else
+            {
+                <p style="margin: 0; font-size: 13.5px; color: var(--v2-text-secondary);">
+                    Bài đánh giá này ghi nhận điểm năng lực, không áp dụng ngưỡng đạt / trượt.
+                </p>
+            }
+
+            <p class="exam-timer-note" style="margin-top: 10px;">
+                Đã chấm lúc <time datetime="@Model.FinalizedAtUtc.ToString("O")">@Model.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy") (UTC+7)</time> · @(Model.FinalizationReason == AttemptFinalizationReason.DeadlineElapsed ? "Tự nộp khi hết giờ" : "Nộp bài chủ động")
+            </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            @if (Model.CourseId is Guid cId)
+            {
+                <a class="button" style="padding: 12px 24px; justify-content: center;" asp-controller="Learning" asp-action="Course" asp-route-id="@cId">
+                    Về phòng học &amp; Tiến độ &rarr;
+                </a>
+            }
+            <a class="button secondary" style="padding: 10px 20px; justify-content: center;" asp-controller="Learning" asp-action="Dashboard" asp-fragment="recommendations-title">
+                Xem gợi ý ôn tập theo kỹ năng
+            </a>
+            <a class="button secondary" style="padding: 10px 20px; justify-content: center;" asp-action="Take" asp-route-id="@Model.AssessmentId">
+                Thông tin bài thi &amp; Lịch sử
+            </a>
+        </div>
+    </div>
+
+    <!-- Skills Breakdown Section -->
+    <section class="card-v2" aria-labelledby="skills-title" style="padding: 32px; margin-top: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="v2-pill-tag">Phân tích</span>
+                <h2 id="skills-title" style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Điểm số theo kỹ năng</h2>
+            </div>
+        </div>
+
+        @if (Model.SkillBreakdowns.Count == 0)
+        {
+            <p class="muted" style="margin: 0;">Lượt làm lịch sử này chưa có dữ liệu phân rã điểm theo kỹ năng.</p>
+        }
+        else
+        {
+            <div class="assessment-table-wrap">
+                <table class="assessment-table">
+                    <caption class="visually-hidden">Điểm kỹ năng chi tiết</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Kỹ năng</th>
+                            <th scope="col">Số câu hỏi</th>
+                            <th scope="col">Điểm số / 100</th>
+                            <th scope="col">Đánh giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var skill in Model.SkillBreakdowns)
+                    {
+                        var isStrong = skill.Score >= 80;
+                        var isModerate = skill.Score >= 50 && skill.Score < 80;
+                        <tr>
+                            <td style="font-weight: 700; color: var(--v2-dark);">
+                                <partial name="_UiText" model="skill.Skill" />
+                            </td>
+                            <td>@skill.QuestionCount câu</td>
+                            <td style="font-weight: 800; font-size: 16px; color: var(--v2-dark);">
+                                @skill.Score.ToString("0.##")
+                            </td>
+                            <td>
+                                @if (isStrong)
+                                {
+                                    <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;">Thành thạo</span>
+                                }
+                                else if (isModerate)
+                                {
+                                    <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Cần củng cố</span>
+                                }
+                                else
+                                {
+                                    <span class="v2-pill-tag" style="background: #FEE2E2; color: #991B1B;">Cần luyện thêm</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
 </div>

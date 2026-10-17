@@ -1,9 +1,24 @@
 @{
     ViewData["Title"] = "Không có quyền truy cập";
 }
-<section class="message-page">
 
-    <h1>Bạn không có quyền truy cập.</h1>
-    <p>Tài khoản của bạn không có quyền sử dụng nội dung này.</p>
-    <a class="button button-primary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
-</section>
+<div class="v2-card" style="max-width: 580px; margin: 48px auto; text-align: center; padding: 48px 32px; background: #FFFFFF; border: 1px solid var(--v2-border, #E4E4EE); border-radius: 28px; box-shadow: var(--v2-shadow-card, 0 10px 30px rgba(25, 26, 35, 0.05));">
+    <div style="width: 72px; height: 72px; border-radius: 20px; background: #FFFBEB; color: #D97706; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <svg class="icon" style="width: 36px; height: 36px;" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+    </div>
+    <h1 style="font-size: 26px; font-weight: 800; color: #191A23; margin: 0 0 12px; letter-spacing: -0.02em;">Không có quyền truy cập</h1>
+    <p style="font-size: 15px; color: #64748B; margin: 0 0 28px; line-height: 1.6;">
+        Tài khoản của bạn không có quyền sử dụng nội dung hoặc trang này. Vui lòng quay lại trang chủ hoặc đăng nhập bằng tài khoản có thẩm quyền.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a class="button button-primary" asp-controller="Home" asp-action="Index" style="border-radius: 14px; padding: 12px 24px; font-weight: 700;">Về trang chủ</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="button button-secondary" asp-controller="Learning" asp-action="Dashboard" style="border-radius: 14px; padding: 12px 24px; font-weight: 700;">Về bàn học</a>
+        }
+        else
+        {
+            <a class="button button-secondary" asp-controller="Account" asp-action="Login" style="border-radius: 14px; padding: 12px 24px; font-weight: 700;">Đăng nhập lại</a>
+        }
+    </div>
+</div>

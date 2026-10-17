@@ -1,17 +1,57 @@
 @model CourseActivities
-<section class="panel" aria-labelledby="course-activities-title">
-    <h2 id="course-activities-title">Luyện tập và đánh giá</h2>
-    @if (Model.Practices.Count == 0 && Model.Assessments.Count == 0) { <p class="muted">Chưa có bài luyện hoặc bài đánh giá khả dụng tại đây.</p> }
-    <ul class="lesson-list">
-    @foreach (var practice in Model.Practices)
+<section class="card-v2" aria-labelledby="course-activities-title" style="padding: 28px 32px; margin-top: 24px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="v2-pill-tag">Hoạt động</span>
+            <h2 id="course-activities-title" style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Luyện tập &amp; Đánh giá</h2>
+        </div>
+    </div>
+    
+    @if (Model.Practices.Count == 0 && Model.Assessments.Count == 0)
     {
-        <li><a asp-controller="Practice" asp-action="Take" asp-route-id="@practice.Id">@practice.Title</a> <span class="badge">Luyện tập · @practice.QuestionCount câu</span></li>
+        <p class="muted" style="margin: 0;">Chưa có bài luyện hoặc bài đánh giá khả dụng tại đây.</p>
     }
-    @foreach (var assessment in Model.Assessments)
+    else
     {
-        <li><a asp-controller="Assessment" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">@assessment.Title</a>
-            <span class="badge">Đánh giá · @assessment.QuestionCount câu</span>
-            @if (assessment.ActiveAttemptId.HasValue) { <span class="muted">Có lượt đang làm</span> }</li>
+        <ul class="lesson-list" style="margin: 0;">
+        @foreach (var practice in Model.Practices)
+        {
+            <li>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--v2-pastel-mint); color: var(--v2-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+                    </div>
+                    <div>
+                        <a asp-controller="Practice" asp-action="Take" asp-route-id="@practice.Id">@practice.Title</a>
+                        <span class="v2-pill-tag" style="font-size: 11px; margin-left: 8px;">Luyện tập · @practice.QuestionCount câu</span>
+                    </div>
+                </div>
+                <a class="button secondary" style="padding: 6px 14px; font-size: 12px;" asp-controller="Practice" asp-action="Take" asp-route-id="@practice.Id">
+                    Luyện ngay &rarr;
+                </a>
+            </li>
+        }
+        @foreach (var assessment in Model.Assessments)
+        {
+            <li>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--v2-pastel-periwinkle); color: var(--v2-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+                    </div>
+                    <div>
+                        <a asp-controller="Assessment" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">@assessment.Title</a>
+                        <span class="v2-pill-tag" style="font-size: 11px; margin-left: 8px;">Đánh giá · @assessment.QuestionCount câu</span>
+                        @if (assessment.ActiveAttemptId.HasValue)
+                        {
+                            <span class="v2-pill-tag" style="font-size: 11px; background: #FEF3C7; color: #92400E; margin-left: 4px;">Có lượt đang làm</span>
+                        }
+                    </div>
+                </div>
+                <a class="button" style="padding: 6px 14px; font-size: 12px;" asp-controller="Assessment" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">
+                    @(assessment.ActiveAttemptId.HasValue ? "Tiếp tục" : "Làm bài") &rarr;
+                </a>
+            </li>
+        }
+        </ul>
     }
-    </ul>
 </section>

@@ -1,17 +1,345 @@
 @model CatalogPage
-@{ ViewData["Title"] = "Học tiếng Anh theo cách của bạn"; }
-@section Styles { <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" /> }
+@{
+    ViewData["Title"] = "Học tiếng Anh thật vui, tiến bộ mỗi ngày";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+}
+
 <div class="landing-page">
-<section class="landing-hero" aria-labelledby="hero-heading">
-    <div class="hero-copy"><h1 id="hero-heading">Một bài học nhỏ.<br /><span>Một bước tiến xa.</span></h1>
-    <p>Học tiếng Anh với bài học rõ ràng, bài luyện có giải thích và kết quả giúp bạn biết cần ôn tập điều gì.</p>
-    <div class="actions"><a class="button accent" asp-controller="Courses" asp-action="Index">Tìm khóa học phù hợp <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a><a class="button ghost" href="#placement-test">Khám phá bài đánh giá</a></div></div>
-    <div class="hero-editorial" aria-hidden="true"><div class="editorial-word">Hello<span>cho những điều mới.</span></div><div class="editorial-foot"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg><span>Học. Thực hành. Tiến bộ.</span></div></div>
-</section>
-<section aria-labelledby="featured-title"><div class="section-heading"><div><h2 id="featured-title">Bắt đầu từ điều bạn muốn học</h2><p>Khám phá các khóa học hiện có trên Estudy.</p></div><a class="text-action" asp-controller="Courses" asp-action="Index">Tất cả khóa học <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></div>
-@if (Model.Courses.Count > 0) { <div class="course-grid">@foreach (var course in Model.Courses.Take(6)) { <article class="course-card"><partial name="_CourseCover" model="course" /><div class="course-card-body"><h3><a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">@course.Title</a></h3><p class="excerpt">@course.Description</p><partial name="_CourseSummary" model="course" /><a class="button secondary" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">Khám phá khóa học</a></div></article> }</div> }
-else { <div class="empty panel"><h3>Khóa học đang được chuẩn bị</h3><p>Danh mục sẽ cập nhật khi giảng viên xuất bản nội dung mới.</p></div> }
-</section>
-<section class="learning-path" aria-labelledby="path-title"><div><h2 id="path-title">Học có nhịp.<br />Ôn tập có hướng.</h2><p>Từ bài học đầu tiên đến lần đánh giá tiếp theo, mọi thứ cùng ở một nơi.</p></div><ol><li><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg><div><h3>Chọn điều muốn cải thiện</h3><p>Lọc khóa học theo trình độ, kỹ năng và chủ đề.</p></div></li><li><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg><div><h3>Học rồi thực hành</h3><p>Theo dõi bài đã hoàn thành, luyện tập và đọc giải thích đáp án.</p></div></li><li><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><div><h3>Nhìn lại kết quả</h3><p>Xem điểm đánh giá và gợi ý ôn tập từ kết quả của bạn.</p></div></li></ol></section>
-<section class="placement-section" id="placement-test" aria-labelledby="placement-title"><div><h2 id="placement-title">Dành một chút thời gian<br />để hiểu mình hơn.</h2><p>Xem các bài đánh giá khả dụng, đọc hướng dẫn và chọn thời điểm sẵn sàng để bắt đầu.</p></div><a class="button" asp-controller="Assessment" asp-action="Index">Xem bài đánh giá <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></section>
+    @* 1. HERO CARD (Pastel Periwinkle Card with Playful Line-Art) *@
+    <section class="homepage-hero-card" aria-labelledby="hero-title">
+        <div class="homepage-hero-content">
+            <div class="pill-tag-dark" style="margin-bottom: 14px;">
+                <span>✨</span>
+                <span>Phương pháp EdTech thế hệ mới</span>
+            </div>
+
+            <h1 class="homepage-hero-title" id="hero-title">
+                Học tiếng Anh thật vui,<br />tiến bộ mỗi ngày cùng Estudy.
+            </h1>
+
+            <p class="homepage-hero-desc">
+                Xóa bỏ áp lực học dồn. Chỉ 15 phút mỗi ngày với bài học nhịp nhàng, bài tập có giải thích chi tiết và gợi ý cải thiện kỹ năng thông minh chuẩn CEFR.
+            </p>
+
+            <div class="homepage-hero-cta-group">
+                <a asp-controller="Assessment" asp-action="Index" class="btn-dark" style="font-size:14px; padding:12px 26px;">
+                    <span>Làm bài kiểm tra năng lực (15p)</span>
+                    <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                </a>
+                <a href="#courses" class="btn-outline-dark">
+                    Khám phá khóa học
+                </a>
+            </div>
+
+            <div class="homepage-hero-trust">
+                <span>✓ 100% bài học có giải thích</span>
+                <span>✓ Chuẩn hóa CEFR A1-C1</span>
+                <span>✓ Không quảng cáo gây xao nhãng</span>
+            </div>
+        </div>
+
+        @* Playful Vector Illustration *@
+        <div class="homepage-hero-art" aria-hidden="true">
+            <svg viewBox="0 0 260 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:320px; height:auto;">
+                <path d="M20 90 Q 60 60, 95 80 T 170 45" stroke="#191A23" stroke-width="2" stroke-dasharray="4 4"/>
+                <circle cx="20" cy="90" r="4.5" fill="#FF71CE"/>
+                <circle cx="95" cy="80" r="4.5" fill="#FF71CE"/>
+                <circle cx="170" cy="45" r="5.5" fill="#191A23"/>
+
+                <rect x="50" y="165" width="160" height="18" rx="4" fill="#FFFFFF" stroke="#191A23" stroke-width="2.2"/>
+                <line x1="65" y1="174" x2="195" y2="174" stroke="#191A23" stroke-width="1.8"/>
+
+                <rect x="60" y="145" width="145" height="20" rx="4" fill="#FFFFFF" stroke="#191A23" stroke-width="2.2"/>
+                <rect x="65" y="149" width="24" height="12" rx="2" fill="#FF71CE"/>
+                <line x1="98" y1="155" x2="190" y2="155" stroke="#191A23" stroke-width="1.8"/>
+
+                <rect x="70" y="125" width="130" height="20" rx="4" fill="#FFFFFF" stroke="#191A23" stroke-width="2.2"/>
+                <line x1="80" y1="135" x2="185" y2="135" stroke="#191A23" stroke-width="1.8"/>
+
+                <path d="M125 95 C118 115, 112 135, 134 158 C144 158, 150 138, 142 115 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
+                <path d="M136 100 C144 118, 152 138, 168 154 C176 150, 168 130, 154 105 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
+
+                <path d="M140 68 C128 78, 130 98, 142 104 C156 104, 166 88, 158 68 Z" fill="#191A23"/>
+
+                <path d="M144 72 C154 78, 165 82, 158 98" stroke="#191A23" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                <rect x="142" y="80" width="28" height="18" rx="3" fill="#FFFFFF" stroke="#191A23" stroke-width="1.8" transform="rotate(-12 142 80)"/>
+
+                <circle cx="156" cy="54" r="11" fill="#FEE2E2" stroke="#191A23" stroke-width="2"/>
+                <path d="M148 50 C142 36, 166 30, 172 40 C182 44, 180 58, 168 58 C164 58, 158 62, 150 54 Z" fill="#191A23"/>
+                <circle cx="172" cy="42" r="8" fill="#191A23"/>
+                <circle cx="162" cy="34" r="9" fill="#191A23"/>
+
+                <path d="M40 50 L44 58 L54 60 L44 63 L40 71 L36 63 L26 60 L36 58 Z" fill="#FF71CE"/>
+                <polygon points="215,35 218,40 224,42 218,44 215,49 212,44 206,42 212,40" fill="#191A23"/>
+            </svg>
+        </div>
+    </section>
+
+    @* 2. FEATURED COURSES SECTION *@
+    <section class="homepage-section" id="courses" aria-labelledby="courses-heading">
+        <div class="homepage-section-header">
+            <div>
+                <h2 class="section-title-large" id="courses-heading">Khám phá khóa học</h2>
+                <p class="section-subtitle-clean">Nội dung thực tế, ngắn gọn, học đến đâu thực hành ngay đến đó</p>
+            </div>
+
+            <div class="filter-pills-row" role="tablist" aria-label="Bộ lọc danh mục khóa học">
+                <button class="filter-pill-item active" type="button" data-filter="all">Tất cả khóa học</button>
+                <button class="filter-pill-item" type="button" data-filter="Grammar">Ngữ pháp cốt lõi</button>
+                <button class="filter-pill-item" type="button" data-filter="Vocabulary">Từ vựng & Phát âm</button>
+                <button class="filter-pill-item" type="button" data-filter="Reading">Đọc hiểu</button>
+                <button class="filter-pill-item" type="button" data-filter="Listening">Nghe hiểu</button>
+            </div>
+        </div>
+
+        @if (Model.Courses.Count > 0)
+        {
+            <div class="homepage-courses-grid">
+                @foreach (var course in Model.Courses.Take(6))
+                {
+                    var skill = course.Skills.FirstOrDefault();
+                    var skillClass = skill switch
+                    {
+                        EnglishSkill.Listening => "pill-tag-purple",
+                        EnglishSkill.Reading => "pill-tag-mint",
+                        EnglishSkill.Grammar => "pill-tag-orange",
+                        _ => "pill-tag-pink"
+                    };
+
+                    <article class="course-item-card" data-skill="@skill.ToString()">
+                        <div>
+                            <div class="upcoming-tags-row">
+                                <span class="pill-tag pill-tag-purple"><partial name="_UiText" model="course.Level" /></span>
+                                <span class="pill-tag @skillClass"><partial name="_UiText" model="skill" /></span>
+                            </div>
+
+                            <div class="upcoming-title-price">
+                                <h3 class="upcoming-course-name">
+                                    <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">@course.Title</a>
+                                </h3>
+                                <span class="upcoming-course-price">
+                                    @(course.IsPaid ? course.Price.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " ₫" : "Miễn phí")
+                                </span>
+                            </div>
+
+                            <p class="upcoming-course-desc">
+                                @course.Description
+                            </p>
+
+                            <div class="upcoming-meta-row">
+                                <span class="upcoming-meta-item">
+                                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
+                                    <span>@course.Teacher</span>
+                                </span>
+                                <span class="upcoming-meta-item">
+                                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                                    <span>@course.LessonCount bài học</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="upcoming-bottom-row">
+                            <span class="course-teacher-label">
+                                <span>@course.ModuleCount chương học</span>
+                            </span>
+                            <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id" class="btn-dark-sm">
+                                Khám phá khóa học
+                            </a>
+                        </div>
+                    </article>
+                }
+            </div>
+
+            <div style="text-align: center; margin-top: 8px;">
+                <a asp-controller="Courses" asp-action="Index" class="btn-outline-dark">
+                    <span>Xem tất cả khóa học trên Estudy</span>
+                    <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="panel empty" style="border-radius: 22px; padding: 36px; text-align: center; background: #FFFFFF; border: 1px solid var(--v2-border-light);">
+                <h3>Khóa học đang được chuẩn bị</h3>
+                <p class="section-subtitle-clean">Danh mục sẽ cập nhật ngay khi giảng viên xuất bản nội dung mới.</p>
+            </div>
+        }
+    </section>
+
+    @* 3. LEARNING JOURNEY 4-STEP PASTEL CARDS *@
+    <section class="homepage-section" id="journey" aria-labelledby="journey-heading">
+        <div class="homepage-section-header">
+            <div>
+                <h2 class="section-title-large" id="journey-heading">Lộ trình học tập cá nhân hóa</h2>
+                <p class="section-subtitle-clean">4 bước bài bản giúp bạn tiến bộ bền vững mỗi ngày mà không mệt mỏi</p>
+            </div>
+        </div>
+
+        <div class="journey-steps-grid">
+            <div class="journey-pastel-card" style="background:#DDD9FC;">
+                <div class="journey-top-row">
+                    <div class="progress-icon-circle">
+                        <svg viewBox="0 0 24 24" style="width:18px; height:18px;" fill="none" stroke="#191A23" stroke-width="2.4" aria-hidden="true">
+                            <polygon points="12 2 2 22 22 22"></polygon>
+                        </svg>
+                    </div>
+                    <span class="journey-num">01</span>
+                </div>
+                <div>
+                    <h3 class="journey-title">Đánh giá năng lực</h3>
+                    <p class="journey-desc">Bài thi chẩn đoán 15 phút xác định chuẩn CEFR A1-C1 và tìm ra kỹ năng còn yếu.</p>
+                </div>
+            </div>
+
+            <div class="journey-pastel-card" style="background:#FED7AA;">
+                <div class="journey-top-row">
+                    <div class="progress-icon-circle">
+                        <svg viewBox="0 0 24 24" style="width:18px; height:18px;" fill="none" stroke="#191A23" stroke-width="2.2" aria-hidden="true">
+                            <circle cx="9" cy="9" r="4"></circle>
+                            <circle cx="15" cy="9" r="4"></circle>
+                            <circle cx="12" cy="15" r="4"></circle>
+                        </svg>
+                    </div>
+                    <span class="journey-num">02</span>
+                </div>
+                <div>
+                    <h3 class="journey-title">Lộ trình riêng biệt</h3>
+                    <p class="journey-desc">Hệ thống đề xuất khóa học và bài tập tập trung đúng lỗ hổng kiến thức của bạn.</p>
+                </div>
+            </div>
+
+            <div class="journey-pastel-card" style="background:#FFC5E3;">
+                <div class="journey-top-row">
+                    <div class="progress-icon-circle">
+                        <svg viewBox="0 0 24 24" style="width:18px; height:18px;" fill="none" stroke="#191A23" stroke-width="2.2" aria-hidden="true">
+                            <rect x="5" y="4" width="14" height="16" rx="2"></rect>
+                            <line x1="9" y1="8" x2="15" y2="8"></line>
+                            <line x1="9" y1="12" x2="15" y2="12"></line>
+                        </svg>
+                    </div>
+                    <span class="journey-num">03</span>
+                </div>
+                <div>
+                    <h3 class="journey-title">15 phút mỗi ngày</h3>
+                    <p class="journey-desc">Bài học tinh gọn, dễ dàng duy trì thói quen học đều đặn mỗi ngày.</p>
+                </div>
+            </div>
+
+            <div class="journey-pastel-card" style="background:#D1F5EA;">
+                <div class="journey-top-row">
+                    <div class="progress-icon-circle">
+                        <svg viewBox="0 0 24 24" style="width:18px; height:18px;" fill="none" stroke="#191A23" stroke-width="2.2" aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <span class="journey-num">04</span>
+                </div>
+                <div>
+                    <h3 class="journey-title">Giải thích cặn kẽ</h3>
+                    <p class="journey-desc">100% câu hỏi có lời giải thích chi tiết, giúp bạn hiểu bản chất và không lặp lại lỗi.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* 4. METHODOLOGY & ARTICLES SECTION *@
+    <section class="homepage-section" id="articles" aria-labelledby="articles-heading">
+        <div class="homepage-section-header">
+            <div>
+                <h2 class="section-title-large" id="articles-heading">Phương pháp & Tài liệu cốt lõi</h2>
+                <p class="section-subtitle-clean">Chiến lược học từ vựng và ngữ pháp đã được chứng minh hiệu quả</p>
+            </div>
+        </div>
+
+        <div class="articles-cards-row">
+            <article class="article-clean-card">
+                <div class="article-art-box" aria-hidden="true">
+                    <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+                        <circle cx="130" cy="70" r="54" fill="#FFD2E8"/>
+                        <path d="M60 45 C60 30, 95 30, 105 45 C115 60, 95 75, 80 75 L70 85 L73 75 C60 72, 60 55, 60 45 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
+                        <text x="82" y="60" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="800" fill="#FF71CE" text-anchor="middle">?</text>
+                        <path d="M102 30 C102 20, 128 20, 134 30 C140 40, 128 50, 116 50 L110 58 L112 50 C102 48, 102 36, 102 30 Z" fill="#FF71CE" stroke="#191A23" stroke-width="1.8"/>
+                        <text x="118" y="42" font-family="'Plus Jakarta Sans', sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" text-anchor="middle">!</text>
+                        <path d="M125 105 C135 90, 150 82, 175 88 L190 135 L120 135 Z" fill="#191A23"/>
+                        <path d="M150 95 C135 90, 100 88, 88 78 L80 84 C95 98, 130 102, 145 104" stroke="#191A23" stroke-width="2" fill="#FFFFFF"/>
+                        <circle cx="168" cy="74" r="9" fill="#FEE2E2" stroke="#191A23" stroke-width="1.5"/>
+                        <path d="M162 70 C160 62, 174 62, 176 68 C180 72, 174 78, 166 78 Z" fill="#191A23"/>
+                        <polygon points="190,40 192,43 196,44 192,45 190,48 188,45 184,44 188,43" fill="#191A23"/>
+                    </svg>
+                </div>
+                <h3 class="article-clean-title">Mastering Vocabulary: Chiến lược nạp 30 từ mới mỗi ngày không quên</h3>
+                <div class="article-clean-meta">
+                    <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                    <span>Kỹ thuật ghi nhớ • 5 phút đọc</span>
+                </div>
+            </article>
+
+            <article class="article-clean-card">
+                <div class="article-art-box" aria-hidden="true">
+                    <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+                        <circle cx="130" cy="70" r="54" fill="#DDD9FC"/>
+                        <g transform="translate(170, 75) scale(0.7)" stroke="#191A23" stroke-width="2" fill="#191A23">
+                            <circle cx="20" cy="20" r="16" fill="none"/>
+                            <circle cx="20" cy="20" r="6" fill="#DDD9FC"/>
+                            <rect x="17" y="0" width="6" height="40" rx="2"/>
+                            <rect x="0" y="17" width="40" height="6" rx="2"/>
+                        </g>
+                        <path d="M100 135 C100 105, 115 90, 140 92 C160 92, 170 105, 170 135 Z" fill="#191A23"/>
+                        <circle cx="132" cy="72" r="9" fill="#FEE2E2" stroke="#191A23" stroke-width="1.5"/>
+                        <path d="M126 68 C124 60, 138 60, 140 66 C144 70, 138 76, 130 76 Z" fill="#191A23"/>
+                        <path d="M112 85 L130 92 L148 85 L148 110 L130 117 L112 110 Z" fill="#FF71CE" stroke="#191A23" stroke-width="1.8"/>
+                        <line x1="130" y1="92" x2="130" y2="117" stroke="#191A23" stroke-width="1.5"/>
+                        <circle cx="85" cy="45" r="4" fill="#FF71CE"/>
+                        <polygon points="195,30 197,34 202,35 197,36 195,40 193,36 188,35 193,34" fill="#FF71CE"/>
+                    </svg>
+                </div>
+                <h3 class="article-clean-title">Embarking on English: Sơ đồ tư duy 12 thì trong 1 trang duy nhất</h3>
+                <div class="article-clean-meta">
+                    <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                    <span>Ngữ pháp cốt lõi • 6 phút đọc</span>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    @* 5. CALL TO ACTION SECTION *@
+    <section class="homepage-cta-card" aria-labelledby="cta-heading">
+        <h2 class="homepage-cta-title" id="cta-heading">Sẵn sàng nâng tầm tiếng Anh của bạn?</h2>
+        <p class="homepage-cta-desc">
+            Bắt đầu bài kiểm tra năng lực 15 phút ngay hôm nay để nhận lộ trình học tập cá nhân hóa hoàn toàn miễn phí.
+        </p>
+        <a asp-controller="Assessment" asp-action="Index" class="btn-dark" style="font-size:14px; padding:12px 28px;">
+            <span>Làm bài kiểm tra ngay</span>
+            <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+        </a>
+    </section>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var filterBtns = document.querySelectorAll('.filter-pill-item');
+            var courseCards = document.querySelectorAll('.course-item-card');
+
+            filterBtns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    filterBtns.forEach(function (b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+
+                    var filter = btn.getAttribute('data-filter');
+                    courseCards.forEach(function (card) {
+                        var cardSkill = card.getAttribute('data-skill');
+                        if (filter === 'all' || cardSkill === filter) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}

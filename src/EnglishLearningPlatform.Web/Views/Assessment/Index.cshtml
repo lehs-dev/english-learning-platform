@@ -1,18 +1,95 @@
 @model IReadOnlyList<AssessmentLink>
-@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
-@{ ViewData["Title"] = "Bài đánh giá"; ViewData["ActiveSection"] = "assessment"; }
-<div class="page-heading"><h1>Bài đánh giá</h1><a class="button secondary" asp-controller="Learning" asp-action="Dashboard">Tiến độ học tập</a></div>
-<p class="muted">Bài đánh giá độc lập và bài trong các khóa bạn đã tham gia. Mở hướng dẫn để xem thời lượng, số lượt và lịch sử trước khi bắt đầu.</p>
-@if (Model.Count == 0) { <p class="panel empty">Chưa có bài đánh giá khả dụng.</p> }
-<div class="course-grid">
-@foreach (var assessment in Model)
-{
-    <article class="panel course-card"><h2>@assessment.Title</h2>
-        <p><partial name="_UiText" model="assessment.Type" /> · @assessment.QuestionCount câu · @assessment.DurationMinutes phút</p>
-        <p class="muted">Kỹ năng: @foreach (var assessedSkill in assessment.Skills) { <span class="badge"><partial name="_UiText" model="assessedSkill" /></span> }</p>
-        @if (assessment.CourseId.HasValue) { <a asp-controller="Learning" asp-action="Course" asp-route-id="@assessment.CourseId">Trong khóa đã tham gia</a> }
-        else { <span class="badge">Bài đánh giá độc lập</span> }
-        <a class="button" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">@(assessment.ActiveAttemptId.HasValue ? "Tiếp tục làm bài" : "Hướng dẫn và lịch sử")</a>
-    </article>
+@{
+    ViewData["Title"] = "Đánh giá năng lực";
+    ViewData["ActiveSection"] = "assessment";
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+}
+
+<div class="assessment-index-layout">
+    <div class="page-heading" style="margin-bottom: 24px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="v2-pill-tag">Khảo sát &amp; Thi thử</span>
+                <span class="v2-pill-tag" style="background: #FAF9FE; color: var(--v2-text-muted);">@Model.Count bài đánh giá</span>
+            </div>
+            <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: var(--v2-dark);">Bài đánh giá năng lực</h1>
+        </div>
+        <div class="actions">
+            <a class="btn-dark" style="padding: 10px 18px; font-size: 13.5px;" asp-controller="Learning" asp-action="Dashboard">
+                <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#dashboard")"></use></svg>
+                <span>Bàn học &amp; Tiến độ</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="exam-intro-card" style="margin-bottom: 28px;">
+        <div class="exam-intro-icon">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+        </div>
+        <div class="exam-intro-text">
+            <strong>Thông tin bài đánh giá</strong>
+            <p>Bao gồm các bài kiểm tra độc lập và bài thi trong các khóa học bạn đã đăng ký. Bạn có thể mở để xem quy chế, số lượt làm bài và lịch sử các lượt thi trước khi chính thức bấm bắt đầu.</p>
+        </div>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="card-v2" style="padding: 48px 32px; text-align: center;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--v2-pastel-periwinkle); color: var(--v2-dark); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <svg class="icon" aria-hidden="true" style="width: 28px; height: 28px;"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+            </div>
+            <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px; color: var(--v2-dark);">Chưa có bài đánh giá nào khả dụng</h2>
+            <p style="color: var(--v2-text-secondary); max-width: 440px; margin: 0 auto;">Khi tham gia các khóa học hoặc có đợt khảo sát năng lực mới, danh sách bài kiểm tra sẽ xuất hiện tại đây.</p>
+        </div>
+    }
+    else
+    {
+        <div class="course-grid">
+            @foreach (var assessment in Model)
+            {
+                <article class="card-v2" style="padding: 24px; display: flex; flex-direction: column; gap: 14px; position: relative;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <span class="v2-pill-tag" style="background: var(--v2-pastel-periwinkle); color: var(--v2-dark);">
+                            <partial name="_UiText" model="assessment.Type" />
+                        </span>
+                        <span style="font-size: 12.5px; font-weight: 600; color: var(--v2-text-muted);">
+                            @assessment.DurationMinutes phút · @assessment.QuestionCount câu
+                        </span>
+                    </div>
+
+                    <h2 style="font-size: 18px; font-weight: 700; color: var(--v2-dark); margin: 0; line-height: 1.4;">
+                        @assessment.Title
+                    </h2>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        @foreach (var assessedSkill in assessment.Skills)
+                        {
+                            <span class="v2-pill-tag" style="font-size: 11px; background: #FAF9FE; color: var(--v2-text-secondary);">
+                                <partial name="_UiText" model="assessedSkill" />
+                            </span>
+                        }
+                    </div>
+
+                    <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--v2-border-light); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        @if (assessment.CourseId.HasValue)
+                        {
+                            <a asp-controller="Learning" asp-action="Course" asp-route-id="@assessment.CourseId" style="font-size: 12px; color: var(--v2-text-secondary); font-weight: 600; text-decoration: none;">
+                                &larr; Khóa học
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="v2-pill-tag" style="font-size: 11px; background: #F1F4FA; color: var(--v2-text-muted);">Độc lập</span>
+                        }
+
+                        <a class="button @(assessment.ActiveAttemptId.HasValue ? "" : "secondary")" style="padding: 8px 16px; font-size: 13px;" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">
+                            @(assessment.ActiveAttemptId.HasValue ? "Tiếp tục làm bài" : "Xem thông tin") &rarr;
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
 </div>

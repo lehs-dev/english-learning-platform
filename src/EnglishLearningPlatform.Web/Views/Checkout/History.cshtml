@@ -3,6 +3,7 @@
 @model TransactionHistoryPage
 @{
     ViewData["Title"] = "Lịch sử giao dịch";
+    ViewData["ActiveSection"] = "history";
 
     static string StatusLabel(PaymentStatus? status) => status switch
     {
@@ -12,27 +13,44 @@
         _ => "Chờ thanh toán"
     };
 }
-@section Styles { <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" /> }
-<div class="transaction-history-page">
-    <div class="page-heading">
-        <div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+}
 
-            <h1>Lịch sử giao dịch</h1>
-            <p class="muted">Các đơn mua khóa học của bạn</p>
+<div class="transaction-history-page">
+    <div class="page-heading" style="margin-bottom: 24px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="v2-pill-tag">Thanh toán</span>
+                <span class="v2-pill-tag" style="background: #FAF9FE; color: var(--v2-text-muted);">@Model.Orders.Count đơn hàng</span>
+            </div>
+            <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: var(--v2-dark);">Lịch sử giao dịch</h1>
+            <p style="color: var(--v2-text-secondary); margin: 6px 0 0; font-size: 14px;">Quản lý hóa đơn và các đơn đăng ký khóa học của bạn trên Estudy.</p>
         </div>
-        <a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a>
+        <div>
+            <a class="btn-outline-dark" style="padding: 10px 18px; font-size: 13.5px;" asp-controller="Courses" asp-action="Index">
+                <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                <span>Khám phá khóa học</span>
+            </a>
+        </div>
     </div>
 
     @if (Model.Orders.Count == 0)
     {
-        <section class="panel empty" aria-live="polite">
-            <p>Bạn chưa có giao dịch nào.</p>
-            <a class="button secondary" asp-controller="Courses" asp-action="Index">Xem danh mục khóa học</a>
-        </section>
+        <div class="card-v2" style="padding: 48px 32px; text-align: center;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--v2-pastel-periwinkle); color: var(--v2-dark); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <svg class="icon" aria-hidden="true" style="width: 28px; height: 28px;"><use href="@Url.Content("~/images/icons.svg#history")"></use></svg>
+            </div>
+            <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 8px; color: var(--v2-dark);">Bạn chưa có giao dịch nào</h2>
+            <p style="color: var(--v2-text-secondary); max-width: 440px; margin: 0 auto 20px; font-size: 14px;">
+                Khi bạn đăng ký hoặc mua các khóa học, hóa đơn và trạng thái thanh toán sẽ được lưu trữ tại đây.
+            </p>
+            <a class="button" style="padding: 12px 28px;" asp-controller="Courses" asp-action="Index">Xem danh mục khóa học &rarr;</a>
+        </div>
     }
     else
     {
-        <section class="panel transaction-history-card" aria-labelledby="transaction-history-title">
+        <section class="card-v2 transaction-history-card" aria-labelledby="transaction-history-title">
             <h2 id="transaction-history-title" class="visually-hidden">Danh sách đơn mua khóa học</h2>
             <div class="transaction-history-table-wrap">
                 <table class="transaction-history-table">
@@ -52,28 +70,52 @@
                     {
                         <tr>
                             <td data-label="Mã đơn"><span class="transaction-order-id">@order.OrderId</span></td>
-                            <td data-label="Khóa học">@order.CourseTitle</td>
+                            <td data-label="Khóa học" style="font-weight: 600; color: var(--v2-dark);">@order.CourseTitle</td>
                             <td data-label="Số tiền"><span class="transaction-amount">@order.Amount.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) @order.Currency</span></td>
                             <td data-label="Ngày tạo">@order.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                            <td data-label="Trạng thái"><span class="transaction-status transaction-status--@((order.Status ?? PaymentStatus.Pending).ToString().ToLowerInvariant())">@StatusLabel(order.Status)</span></td>
-                            <td data-label="Thao tác"><a href="@Url.Action("Order", "Checkout", new { id = order.OrderId })">Xem chi tiết</a></td>
+                            <td data-label="Trạng thái">
+                                @if (order.Status == PaymentStatus.Succeeded)
+                                {
+                                    <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;">@StatusLabel(order.Status)</span>
+                                }
+                                else if (order.Status == PaymentStatus.Failed)
+                                {
+                                    <span class="v2-pill-tag" style="background: #FEE2E2; color: #991B1B;">@StatusLabel(order.Status)</span>
+                                }
+                                else
+                                {
+                                    <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">@StatusLabel(order.Status)</span>
+                                }
+                            </td>
+                            <td data-label="Thao tác">
+                                <a class="button secondary" style="padding: 6px 14px; font-size: 12px;" href="@Url.Action("Order", "Checkout", new { id = order.OrderId })">
+                                    Chi tiết &rarr;
+                                </a>
+                            </td>
                         </tr>
                     }
                     </tbody>
                 </table>
             </div>
         </section>
+
         @if (Model.Pages > 1)
         {
-            <nav class="actions pagination transaction-history-pagination" aria-label="Phân trang lịch sử giao dịch">
+            <nav class="actions pagination transaction-history-pagination" aria-label="Phân trang lịch sử giao dịch" style="margin-top: 28px;">
                 @if (Model.Page > 1)
                 {
-                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a>
+                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page - 1)">
+                        <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                        <span>Trang trước</span>
+                    </a>
                 }
-                <span class="muted" aria-current="page">Trang @Model.Page / @Model.Pages</span>
+                <span class="v2-pill-tag" aria-current="page">Trang @Model.Page / @Model.Pages</span>
                 @if (Model.Page < Model.Pages)
                 {
-                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
+                    <a class="button secondary" asp-action="History" asp-route-page="@(Model.Page + 1)">
+                        <span>Trang sau</span>
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    </a>
                 }
             </nav>
         }

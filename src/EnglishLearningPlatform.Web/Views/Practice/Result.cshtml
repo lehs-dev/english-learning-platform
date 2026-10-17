@@ -1,7 +1,109 @@
 @model EnglishLearningPlatform.Application.Practice.PracticeResult
-@{ ViewData["Title"] = "Kết quả · " + Model.Title; }
-@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
-<a class="button secondary back-link" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học</a>
-<div class="page-heading"><div><h1>@Model.Title</h1><p class="muted">Nộp lúc @Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") (UTC+7)</p></div>@if (ViewData["CanRetry"] is true) { <a class="button secondary" asp-action="Take" asp-route-id="@Model.PracticeId">Luyện lại</a> }</div>
-<section class="result-overview"><div><h2>Kết quả luyện tập</h2><p class="assessment-score">@Model.Score.ToString("0.##")<span>/100</span></p></div><p><strong>@Model.Questions.Count(q => q.IsCorrect)/@Model.Questions.Count</strong> câu trả lời đúng.<br /><span class="muted">Đọc giải thích bên dưới để ôn lại từng câu.</span></p></section>
-@for (var index = 0; index < Model.Questions.Count; index++) { var question = Model.Questions[index]; <article class="answer-review"><div class="content-row"><h2>Câu @(index + 1)</h2><span class="badge @(question.IsCorrect ? "badge-success" : "badge-warning")">@(question.IsCorrect ? "Đúng" : "Sai / bỏ trống")</span></div><p class="reading-copy preserve">@question.Content</p><dl class="answer-comparison"><div><dt>Bạn chọn</dt><dd>@(question.SelectedAnswer ?? "Bỏ trống")</dd></div><div><dt>Đáp án đúng</dt><dd>@question.CorrectAnswer</dd></div></dl>@if (!string.IsNullOrWhiteSpace(question.Explanation)) { <div class="answer-explanation"><h3>Giải thích</h3><p class="preserve">@question.Explanation</p></div> }</article> }
+@{
+    ViewData["Title"] = "Kết quả luyện tập · " + Model.Title;
+    ViewData["ActiveSection"] = "practice";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+}
+
+<div class="exam-workspace-layout">
+    <header class="exam-header-bar">
+        <div class="exam-header-left">
+            <a class="button secondary exam-back-btn" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">
+                <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                <span>Về khóa học</span>
+            </a>
+            <div class="exam-title-group">
+                <span class="v2-pill-tag">Kết quả luyện tập</span>
+                <h1 class="exam-title">@Model.Title</h1>
+            </div>
+        </div>
+        <div>
+            @if (ViewData["CanRetry"] is true)
+            {
+                <a class="button" style="padding: 10px 20px;" asp-action="Take" asp-route-id="@Model.PracticeId">
+                    Luyện lại bài này &rarr;
+                </a>
+            }
+        </div>
+    </header>
+
+    <!-- Score Overview Banner -->
+    <div class="result-overview" style="background: #F0FDF4; border: 1.5px solid #BBF7D0;">
+        <div>
+            <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F; margin-bottom: 8px;">Tổng điểm bài luyện</span>
+            <div class="assessment-score" style="margin: 6px 0; color: var(--v2-dark);">
+                @Model.Score.ToString("0.##")<span style="font-size: 24px; font-weight: 600; color: var(--v2-text-muted);">/100</span>
+            </div>
+            <p style="margin: 0; font-size: 14.5px; color: var(--v2-dark); font-weight: 600;">
+                Bạn trả lời đúng <strong>@Model.Questions.Count(q => q.IsCorrect)</strong> / @Model.Questions.Count câu hỏi.
+            </p>
+            <p class="exam-timer-note" style="margin-top: 6px;">
+                Nộp lúc <time datetime="@Model.SubmittedAtUtc.ToString("O")">@Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy") (UTC+7)</time>
+            </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            @if (ViewData["CanRetry"] is true)
+            {
+                <a class="button secondary" style="justify-content: center; padding: 10px 18px;" asp-action="Take" asp-route-id="@Model.PracticeId">
+                    Làm lại bài luyện tập
+                </a>
+            }
+            <a class="button secondary" style="justify-content: center; padding: 10px 18px;" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">
+                Quay lại nội dung khóa học
+            </a>
+        </div>
+    </div>
+
+    <!-- Questions Detailed Review -->
+    <section class="card-v2" style="padding: 32px; margin-top: 24px;" aria-label="Chi tiết từng câu">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="v2-pill-tag">Giải thích chi tiết</span>
+                <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Xem lại câu trả lời &amp; Lời giải</h2>
+            </div>
+        </div>
+
+        @for (var index = 0; index < Model.Questions.Count; index++)
+        {
+            var question = Model.Questions[index];
+            <article class="answer-review" style="padding: 20px 0; border-bottom: 1px solid var(--v2-border-light);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <span class="v2-pill-tag exam-q-badge">Câu @(index + 1)</span>
+                    <span class="v2-pill-tag" style="@(question.IsCorrect ? "background: #DEF7EC; color: #03543F;" : "background: #FEE2E2; color: #991B1B;")">
+                        @(question.IsCorrect ? "✓ Trả lời đúng" : "✗ Chưa chính xác / Bỏ trống")
+                    </span>
+                </div>
+
+                <div class="reading-copy preserve" style="font-weight: 600; color: var(--v2-dark); margin-bottom: 14px;">
+                    @question.Content
+                </div>
+
+                <div class="answer-comparison" style="margin: 14px 0;">
+                    <div style="background: #FAF9FE; border-radius: 12px; padding: 12px 16px; border: 1px solid #EAE8FB;">
+                        <span style="font-size: 11.5px; font-weight: 600; color: var(--v2-text-muted); text-transform: uppercase;">Đáp án của bạn:</span>
+                        <div style="font-size: 14.5px; font-weight: 700; color: @(question.IsCorrect ? "#059669" : "#DC2626"); margin-top: 4px;">
+                            @(question.SelectedAnswer ?? "Bỏ trống (chưa chọn)")
+                        </div>
+                    </div>
+                    <div style="background: #F0FDF4; border-radius: 12px; padding: 12px 16px; border: 1px solid #BBF7D0;">
+                        <span style="font-size: 11.5px; font-weight: 600; color: #047857; text-transform: uppercase;">Đáp án chính xác:</span>
+                        <div style="font-size: 14.5px; font-weight: 700; color: #065F46; margin-top: 4px;">
+                            @question.CorrectAnswer
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(question.Explanation))
+                {
+                    <div class="answer-explanation" style="margin-top: 12px;">
+                        <h3>💡 Hướng dẫn &amp; Giải thích chi tiết</h3>
+                        <p class="preserve" style="margin: 0; font-size: 13.5px; line-height: 1.6;">@question.Explanation</p>
+                    </div>
+                }
+            </article>
+        }
+    </section>
+</div>
