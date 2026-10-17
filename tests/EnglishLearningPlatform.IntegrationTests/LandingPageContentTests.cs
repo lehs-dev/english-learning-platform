@@ -92,7 +92,7 @@ public sealed class LandingPageContentTests(IntegrationTestFactory factory) : IC
         var section = Regex.Match(html, "<section\\b[^>]*aria-labelledby=\"courses-heading\"[^>]*>.*?</section>",
             RegexOptions.Singleline);
         Assert.True(section.Success, "Landing page must contain its course discovery section.");
-        Assert.Contains("href=\"/Courses\"", section.Value);
+        // Estudy V2 empty state shows a "preparing" panel without a catalog link.
         Assert.Contains("Khóa học đang được chuẩn bị", section.Value);
         Assert.DoesNotContain("class=\"course-card\"", section.Value);
 
