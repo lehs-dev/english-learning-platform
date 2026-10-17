@@ -41,7 +41,7 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
             Assert.Contains("teacher-studio", html);
             Assert.Contains("studio-sidebar", html);
             Assert.DoesNotContain("student-workspace", html);
-            Assert.DoesNotContain("student-nav", html);
+            Assert.DoesNotContain("rail-nav-group", html);
         }
 
         using (var scope = factory.Services.CreateScope())
@@ -60,7 +60,7 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var html = await response.Content.ReadAsStringAsync();
             Assert.Contains("student-workspace", html);
-            Assert.Contains("student-nav", html);
+            Assert.Contains("rail-nav-group", html);
             Assert.DoesNotContain("teacher-studio", html);
             Assert.DoesNotContain("studio-sidebar", html);
         }

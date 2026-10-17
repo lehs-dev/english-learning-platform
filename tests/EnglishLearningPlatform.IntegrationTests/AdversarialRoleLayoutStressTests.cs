@@ -33,8 +33,8 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
 
         // Positive assertions: Student chrome
         Assert.Contains("student-workspace", html);
-        Assert.Contains("student-header", html);
-        Assert.Contains("student-nav", html);
+        Assert.Contains("dashboard-topbar-clean", html);
+        Assert.Contains("rail-nav-group", html);
         Assert.Contains("Estudy", html);
         Assert.Contains("Học viên", html);
         Assert.Contains("Bàn học", html);
@@ -84,7 +84,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
 
         // Negative assertions: Strict segregation - No student or admin links/chrome
         Assert.DoesNotContain("student-workspace", html);
-        Assert.DoesNotContain("student-header", html);
+        Assert.DoesNotContain("dashboard-topbar-clean", html);
         Assert.DoesNotContain("/Learning/Dashboard", html);
         Assert.DoesNotContain("Bàn học", html);
         Assert.DoesNotContain("admin-sidebar", html);
@@ -124,7 +124,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
 
         // Negative assertions: Strict segregation - No student or teacher links/chrome
         Assert.DoesNotContain("student-workspace", html);
-        Assert.DoesNotContain("student-header", html);
+        Assert.DoesNotContain("dashboard-topbar-clean", html);
         Assert.DoesNotContain("/Learning/Dashboard", html);
         Assert.DoesNotContain("Bàn học", html);
         Assert.DoesNotContain("studio-sidebar", html);
