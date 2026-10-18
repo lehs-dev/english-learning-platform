@@ -181,7 +181,15 @@ else
                         <tr>
                             @* Razor tự mã hóa nội dung.
                                Không dùng Html.Raw với dữ liệu người dùng. *@
-                            <td>@practice.Title</td>
+                           <td>
+                                @* Bấm tên Practice để mở trang câu hỏi.
+                                Server vẫn kiểm tra quyền sở hữu Practice. *@
+                                <a asp-controller="TeacherPracticeQuestions"
+                                asp-action="Index"
+                                asp-route-id="@practice.Id">
+                                    @practice.Title
+                                </a>
+                            </td>
 
                             <td>
                                 <span class="badge">
