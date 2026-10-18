@@ -1,0 +1,134 @@
+@model EnglishLearningPlatform.Web.Models.Assessment.TeacherAssessmentDraftViewModel
+
+@{
+    Layout = "_LayoutTeacher";
+    ViewData["Title"] = Model.Id.HasValue
+        ? "Sửa cấu hình Assessment Draft"
+        : "Tạo Assessment Draft";
+    ViewData["ActiveSection"] = "assessments";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <p class="muted">
+            Lưu cấu hình bản nháp. Chọn câu hỏi và Publish
+            sẽ được thực hiện ở các task tiếp theo.
+        </p>
+    </div>
+
+    <a class="button secondary"
+       asp-controller="TeacherAssessments"
+       asp-action="Index">
+        Về danh sách
+    </a>
+</div>
+
+<form method="post"
+      asp-controller="TeacherAssessments"
+      asp-action="Edit"
+      asp-route-id="@Model.Id"
+      asp-antiforgery="true"
+      class="panel editor-form">
+
+    <div asp-validation-summary="All"
+         class="validation"
+         role="alert"></div>
+
+    @* Dùng định dạng O để giữ chính xác thời điểm và múi giờ. *@
+    <input type="hidden"
+           name="Input.ExpectedUpdatedAtUtc"
+           value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" />
+
+    <label asp-for="Input.Title">Tên bài kiểm tra</label>
+    <input asp-for="Input.Title"
+           maxlength="200"
+           required />
+    <span asp-validation-for="Input.Title"
+          class="validation"></span>
+
+    <label asp-for="Input.Description">Mô tả</label>
+    <textarea asp-for="Input.Description"
+              maxlength="4000"
+              rows="4"></textarea>
+    <span asp-validation-for="Input.Description"
+          class="validation"></span>
+
+    <label asp-for="Input.AssessmentType">Loại bài kiểm tra</label>
+    <select asp-for="Input.AssessmentType">
+        <option value="">-- Chọn loại bài --</option>
+        <option value="@AssessmentType.PlacementTest">
+            Placement Test — Đánh giá đầu vào
+        </option>
+        <option value="@AssessmentType.SkillAssessment">
+            Skill Assessment — Đánh giá một kỹ năng
+        </option>
+        <option value="@AssessmentType.PracticeExam">
+            Practice Exam — Đề luyện thi
+        </option>
+    </select>
+    <span asp-validation-for="Input.AssessmentType"
+          class="validation"></span>
+
+    <label asp-for="Input.TargetSkill">
+        Kỹ năng mục tiêu — chỉ chọn với Skill Assessment
+    </label>
+    <select asp-for="Input.TargetSkill">
+        <option value="">-- Không áp dụng --</option>
+        <option value="@EnglishSkill.Reading">Reading</option>
+        <option value="@EnglishSkill.Listening">Listening</option>
+        <option value="@EnglishSkill.Vocabulary">Vocabulary</option>
+        <option value="@EnglishSkill.Grammar">Grammar</option>
+    </select>
+    <span asp-validation-for="Input.TargetSkill"
+          class="validation"></span>
+
+    <label asp-for="Input.DurationMinutes">Thời lượng — phút</label>
+    <input asp-for="Input.DurationMinutes"
+           type="number"
+           min="1"
+           step="1"
+           required />
+    <span asp-validation-for="Input.DurationMinutes"
+          class="validation"></span>
+
+    <label asp-for="Input.MaxAttempts">Số lượt làm tối đa</label>
+    <input asp-for="Input.MaxAttempts"
+           type="number"
+           min="1"
+           step="1"
+           required />
+    <span asp-validation-for="Input.MaxAttempts"
+          class="validation"></span>
+
+    <label asp-for="Input.PassingScore">Điểm đạt — phần trăm</label>
+    <input asp-for="Input.PassingScore"
+           type="number"
+           min="0"
+           max="100"
+           step="0.01" />
+    <span asp-validation-for="Input.PassingScore"
+          class="validation"></span>
+
+    <p class="muted">
+        Placement Test phải để trống điểm đạt.
+        Skill Assessment và Practice Exam có thể để trống
+        nếu không sử dụng tiêu chí đạt/rớt.
+    </p>
+
+    <p class="notice">
+        Lưu Draft không tạo Attempt và chưa cho Student làm bài.
+        Bản nháp được phép chưa có câu hỏi.
+    </p>
+
+    <div class="actions">
+        <button type="submit" class="button">
+            Lưu cấu hình Draft
+        </button>
+
+        <a asp-controller="TeacherAssessments"
+           asp-action="Index">
+            Hủy
+        </a>
+    </div>
+</form>
