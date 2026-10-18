@@ -24,6 +24,7 @@ using EnglishLearningPlatform.Infrastructure.Stimuli;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using EnglishLearningPlatform.Infrastructure.AssessmentAuthoring;
 
 namespace EnglishLearningPlatform.Infrastructure;
 
@@ -94,13 +95,14 @@ public static class DependencyInjection
         services.AddScoped<IPracticeService, PracticeService>();
         services.AddScoped<ITeacherPracticeService, TeacherPracticeService>();
         // Service riêng để lưu danh sách câu hỏi của Practice Draft.
-        services.AddScoped<
-            ITeacherPracticeQuestionService,
-            TeacherPracticeQuestionService>();
+        services.AddScoped<ITeacherPracticeQuestionService,TeacherPracticeQuestionService>();
         // Service đọc danh sách Practice dành cho Teacher.
         services.AddScoped<ITeacherPracticeQueryService,TeacherPracticeQueryService>();
         // Tạo ngữ liệu riêng của Teacher, không dùng service chấm bài của Student.
         services.AddScoped<IStimulusCreationService, StimulusCreationService>();
+        // Service riêng cho Teacher soạn cấu hình Draft.
+        // Không thay thế service Student làm bài.
+        services.AddScoped<ITeacherAssessmentDraftService,TeacherAssessmentDraftService>();
         return services;
     }
 }

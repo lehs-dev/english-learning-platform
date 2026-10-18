@@ -69,6 +69,15 @@
                         </svg>
                         <span>Bài luyện tập</span>
                     </a>
+                    <a class="studio-nav-link @(activeSection == "assessments" ? "is-active" : "")"
+                    asp-controller="TeacherAssessments"
+                    asp-action="Index"
+                    aria-current="@(activeSection == "assessments" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true">
+                            <use href="@Url.Content("~/images/icons.svg#check-circle")"></use>
+                        </svg>
+                        <span>Bài kiểm tra</span>
+                    </a>
                 </div>
 
                 <div class="studio-nav-group">
