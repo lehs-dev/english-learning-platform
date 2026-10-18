@@ -1,0 +1,253 @@
+@using System.Globalization
+@model EnglishLearningPlatform.Web.Models.Assessment.TeacherAssessmentQuestionsViewModel
+
+@{
+    Layout = "_LayoutTeacher";
+    ViewData["Title"] = "Soạn câu hỏi Assessment";
+    ViewData["ActiveSection"] = "assessments";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Soạn câu hỏi Assessment</h1>
+        <p>@Model.Editor.Title</p>
+        <p class="muted">
+            @Model.Editor.AssessmentType
+            @if (Model.Editor.TargetSkill.HasValue)
+            {
+                <span>· @Model.Editor.TargetSkill</span>
+            }
+        </p>
+    </div>
+    <a class="button secondary"
+       asp-controller="TeacherAssessments"
+       asp-action="Edit"
+       asp-route-id="@Model.Editor.AssessmentId">
+        Về cấu hình
+    </a>
+</div>
+
+<section class="panel">
+    <h2>Câu hỏi đã chọn</h2>
+    <p class="muted">
+        Đây là toàn bộ đề, không phụ thuộc trang tìm kiếm.
+        Phải lưu trước khi đổi bộ lọc hoặc chuyển trang.
+    </p>
+
+    <form id="assessment-question-form"
+          method="post"
+          asp-action="Save"
+          asp-route-id="@Model.Editor.AssessmentId"
+          asp-antiforgery="true">
+
+        <input type="hidden"
+               data-version
+               value="@(Model.Editor.UpdatedAtUtc?.ToString("O"))" />
+
+        <ol data-selected-list>
+            @foreach (var item in Model.Editor.Items)
+            {
+                <li data-selected-row>
+                    <input type="hidden" data-question-id
+                           value="@item.QuestionId" />
+                    <p class="preserve" data-content>@item.Content</p>
+                    <p class="muted">@item.PrimarySkill · @item.Status</p>
+
+                    <label>
+                        Points
+                        <input type="number" data-points
+                               min="0.01" max="999999.99"
+                               step="0.01" required
+                               value="@item.Points.ToString("0.##", CultureInfo.InvariantCulture)" />
+                    </label>
+
+                    <div class="actions">
+                        <button type="button" class="button secondary"
+                                data-action="up" disabled>Lên</button>
+                        <button type="button" class="button secondary"
+                                data-action="down" disabled>Xuống</button>
+                        <button type="button" class="button secondary"
+                                data-action="remove" disabled>Bỏ khỏi đề</button>
+                    </div>
+                </li>
+            }
+        </ol>
+
+        <p class="muted" data-empty hidden="@(Model.Editor.Items.Count > 0)">
+            Draft chưa có câu hỏi.
+        </p>
+        <p class="notice" data-notice role="status" tabindex="-1"></p>
+
+        <button type="submit" class="button" data-save disabled>
+            Lưu câu hỏi và points
+        </button>
+        <noscript>
+            <p>Cần bật JavaScript để chọn và sắp xếp câu hỏi.</p>
+        </noscript>
+    </form>
+</section>
+
+<section class="panel">
+    <h2>Tìm trong Question Bank của bạn</h2>
+
+    <form method="get" asp-action="Index" data-search-form>
+        <input type="hidden" name="id"
+               value="@Model.Editor.AssessmentId" />
+        <input type="hidden" name="PageNumber" value="1" />
+        <input type="hidden" name="PageSize"
+               value="@Model.Query.PageSize" />
+
+        <div class="filter-grid">
+            <div>
+                <label for="Search">Nội dung</label>
+                <input id="Search" name="Search"
+                       value="@Model.Query.Search" />
+            </div>
+            <div>
+                <label for="PrimarySkill">Kỹ năng</label>
+                <select id="PrimarySkill" name="PrimarySkill">
+                    @if (Model.Editor.AssessmentType == AssessmentType.SkillAssessment)
+                    {
+                        <option value="@Model.Editor.TargetSkill">
+                            @Model.Editor.TargetSkill
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="">Tất cả</option>
+                        @foreach (EnglishSkill skill in Enum.GetValues(typeof(EnglishSkill)))
+                        {
+                            <option value="@skill"
+                                    selected="@(Model.Query.PrimarySkill == skill)">
+                                @skill
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="Level">Trình độ</label>
+                <input id="Level" name="Level" value="@Model.Query.Level" />
+            </div>
+            <div>
+                <label for="Difficulty">Độ khó</label>
+                <input id="Difficulty" name="Difficulty"
+                       value="@Model.Query.Difficulty" />
+            </div>
+            <div>
+                <label for="Status">Trạng thái</label>
+                <select id="Status" name="Status">
+                    <option value="">Tất cả</option>
+                    @foreach (QuestionStatus status in Enum.GetValues(typeof(QuestionStatus)))
+                    {
+                        <option value="@status"
+                                selected="@(Model.Query.Status == status)">
+                            @status
+                        </option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="button secondary">Tìm / lọc</button>
+    </form>
+
+    <p class="muted">Tổng số câu phù hợp: @Model.Result.TotalCount</p>
+
+    @if (Model.Result.Items.Count == 0)
+    {
+        <p>Không có câu hỏi trên trang này.</p>
+    }
+    else
+    {
+        <div class="table-scroll" tabindex="0"
+             role="region" aria-label="Kết quả tìm câu hỏi">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Nội dung</th>
+                        <th scope="col">Kỹ năng</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var question in Model.Result.Items)
+                    {
+                        <tr>
+                            <td class="preserve" data-bank-content>@question.Content</td>
+                            <td>@question.PrimarySkill</td>
+                            <td>@question.Status</td>
+                            <td>
+                                @if (question.Status != QuestionStatus.Archived)
+                                {
+                                    <button type="button" class="button secondary"
+                                            data-add data-id="@question.Id" disabled>
+                                        Thêm
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span>Không thêm mới câu Archived</span>
+                                }
+
+                                <a asp-controller="TeacherQuestionBank"
+                                   asp-action="Details"
+                                   asp-route-id="@question.Id"
+                                   target="_blank" rel="noopener">
+                                    Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (Model.Result.TotalPages > 0)
+    {
+        <div class="actions">
+            <span>
+                Trang @Model.Result.PageNumber / @Model.Result.TotalPages
+            </span>
+
+            @if (Model.Result.PageNumber > 1)
+            {
+                <a class="button secondary" data-page
+                   asp-action="Index"
+                   asp-route-id="@Model.Editor.AssessmentId"
+                   asp-route-Search="@Model.Query.Search"
+                   asp-route-PrimarySkill="@Model.Query.PrimarySkill"
+                   asp-route-Level="@Model.Query.Level"
+                   asp-route-Difficulty="@Model.Query.Difficulty"
+                   asp-route-Status="@Model.Query.Status"
+                   asp-route-PageSize="@Model.Query.PageSize"
+                   asp-route-PageNumber="@(Model.Result.PageNumber - 1)">
+                    Trang trước
+                </a>
+            }
+
+            @if (Model.Result.PageNumber < Model.Result.TotalPages)
+            {
+                <a class="button secondary" data-page
+                   asp-action="Index"
+                   asp-route-id="@Model.Editor.AssessmentId"
+                   asp-route-Search="@Model.Query.Search"
+                   asp-route-PrimarySkill="@Model.Query.PrimarySkill"
+                   asp-route-Level="@Model.Query.Level"
+                   asp-route-Difficulty="@Model.Query.Difficulty"
+                   asp-route-Status="@Model.Query.Status"
+                   asp-route-PageSize="@Model.Query.PageSize"
+                   asp-route-PageNumber="@(Model.Result.PageNumber + 1)">
+                    Trang sau
+                </a>
+            }
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/teacher-assessment-questions.js"
+            asp-append-version="true" defer></script>
+}
