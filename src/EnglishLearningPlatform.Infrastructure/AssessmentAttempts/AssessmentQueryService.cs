@@ -143,6 +143,28 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
         };
     }
 
+    public async Task<Guid?> FindExpiredAttemptIdAsync(
+        Guid studentId,
+        Guid assessmentId,
+        Guid? attemptId,
+        CancellationToken ct = default)
+    {
+        if (!await IsActiveStudentAsync(studentId, ct))
+            return null;
+
+        var now = timeProvider.GetUtcNow();
+        var assessments = AuthorizedAssessments(studentId);
+        // Đề/Course có thể đã bị rút, nhưng lượt cũ vẫn cần được chấm.
+        // Giữ nguyên kiểm tra Enrollment/thanh toán và chỉ tìm lượt của chính Student.
+        return await db.Attempts.AsNoTracking()
+            .Where(a => a.StudentUserId == studentId && a.AssessmentId == assessmentId &&
+                (!attemptId.HasValue || a.Id == attemptId.Value) &&
+                a.Status == AttemptStatus.InProgress && a.DeadlineUtc <= now &&
+                assessments.Any(assessment => assessment.Id == a.AssessmentId))
+            .Select(a => (Guid?)a.Id)
+            .SingleOrDefaultAsync(ct);
+    }
+
     private IQueryable<Assessment> AuthorizedAssessments(Guid studentId) => db.Assessments.AsNoTracking()
         .Where(a => !a.CourseId.HasValue ||
             (a.Course != null && a.Course.OwnerTeacherUserId == a.OwnerTeacherUserId &&

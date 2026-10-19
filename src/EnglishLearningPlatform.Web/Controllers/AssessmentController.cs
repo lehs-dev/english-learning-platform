@@ -39,8 +39,18 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
                 var result = await queries.GetAttemptResultAsync(StudentId, selected, ct);
                 if (result is not null)
                     return result.AssessmentId == id ? RedirectToAction(nameof(Result), new { id = selected }) : NotFound();
-                if (overview?.AttemptHistory.All(a => a.AttemptId != selected) != false) return NotFound();
             }
+        }
+        if (sheet is null)
+        {
+            // GET vẫn chỉ đọc. Trang hết giờ gửi POST có CSRF để chấm lượt cũ.
+            // Không gọi Start: chấm xong cũng không được tự tiêu thụ lượt tiếp theo.
+            var expiredId = await queries.FindExpiredAttemptIdAsync(StudentId, id, selectedAttempt, ct);
+            if (expiredId.HasValue)
+                return View("Expired", new AssessmentExpiredPage(expiredId.Value));
+
+            if (selectedAttempt.HasValue && overview?.AttemptHistory.All(a => a.AttemptId != selectedAttempt.Value) != false)
+                return NotFound();
         }
         if (overview is null && sheet is null) return NotFound();
         return View(new AssessmentTakePage(overview, sheet));

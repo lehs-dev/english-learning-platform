@@ -56,7 +56,8 @@
                 @for (var i = 0; i < sheet.Questions.Count; i++)
                 {
                     var question = sheet.Questions[i];
-                    <fieldset class="exam-question-card" id="question-@(i + 1)" data-question>
+                    @* tabindex=-1 giúp liên kết số câu đưa focus đến đúng câu, không thêm Tab thừa. *@
+                    <fieldset class="exam-question-card" id="question-@(i + 1)" tabindex="-1" aria-label="Câu @(i + 1)" data-question>
                         <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
                         
                         <div class="exam-question-header">
@@ -100,6 +101,17 @@
                         </div>
 
                         <div class="exam-question-footer">
+                            @* Chỉ đổi vị trí trong trang; không gửi form hay tạo Attempt mới. *@
+                            <nav class="exam-question-navigation" aria-label="Điều hướng từ câu @(i + 1)">
+                                @if (i > 0)
+                                {
+                                    <a class="button secondary" href="#question-@i">Câu trước</a>
+                                }
+                                @if (i < sheet.Questions.Count - 1)
+                                {
+                                    <a class="button secondary" href="#question-@(i + 2)">Câu tiếp</a>
+                                }
+                            </nav>
                             <label class="exam-clear-selection" for="clear-q-@(i + 1)">
                                 <input type="radio" id="clear-q-@(i + 1)" class="exam-option-radio visually-hidden" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" />
                                 <span class="exam-clear-text">

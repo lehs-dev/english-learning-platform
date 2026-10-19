@@ -22,9 +22,15 @@ không xác minh việc render Razor, phân quyền hay dữ liệu backend; cá
 ## Kiểm thử giao diện Attempt riêng
 
 Sau `npm ci` và `npx playwright install chromium`, chạy `npm run test:assessment`.
-Bốn test dùng Chromium thật với HTML fixture và script `assessment.js` của ứng dụng:
+Chín test dùng Chromium thật với HTML fixture và script `assessment.js` của ứng dụng:
 xác nhận/hủy nộp với câu bỏ trống, lưu thủ công, hết deadline khi dialog đang mở,
-và nộp đáp án mới nhất sau lỗi autosave. Các test này không cần database;
+và nộp đáp án mới nhất sau lỗi autosave. Bổ sung kiểm tra thứ tự tự lưu,
+chỉ báo đã lưu sau xác nhận của server cho lựa chọn mới nhất, phục hồi sau lỗi
+và cảnh báo rời trang khi còn đáp án chưa lưu. Điều hướng số câu/Câu trước/Câu tiếp
+phải giữ lựa chọn mà không gửi form; xác nhận nộp khi autosave còn chờ phải giữ modal,
+chặn Escape/bấm lặp và chỉ gửi một lần với đáp án mới nhất. Hết giờ phải khóa tương tác
+mà không mất payload; trang mở lại lượt quá hạn tự gửi POST có CSRF để chấm lượt cũ.
+Các test này không cần database;
 suite `npm test` bên dưới kiểm tra giao diện thực tế cùng backend.
 
 Chạy trên **database demo riêng mới seed**, không dùng database đang có dữ liệu thật. Suite không reset dữ liệu. Bốn nhóm actor, sáu case (hai Student và thêm kiểm tra free enrollment/privacy), 19 ảnh gồm viewport 390px.

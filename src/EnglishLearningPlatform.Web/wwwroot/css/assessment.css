@@ -259,9 +259,24 @@
 /* Clear Selection Row */
 .exam-question-footer {
     display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
     align-items: center;
     justify-content: flex-end;
     padding-top: 8px;
+}
+
+/* Tách điều hướng khỏi Bỏ chọn; cho phép xuống hàng trên màn hình nhỏ. */
+.exam-question-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-right: auto;
+}
+
+.exam-question-navigation .button {
+    padding: 8px 12px;
+    font-size: 13px;
 }
 
 .exam-clear-selection {

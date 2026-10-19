@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Domain.Entities;
@@ -43,6 +44,84 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         using var teacher = await StudentClient(data.Teacher);
         using var teacherAttempt = await teacher.GetAsync($"/Assessment/Take/{data.Assessment.Id}");
         Assert.Contains("/Account/AccessDenied", teacherAttempt.Headers.Location!.ToString());
+    }
+
+    [Fact]
+    public async Task StartResume_NewLoginAndRepeatedGets_KeepOneAttemptSavedAnswersAndOriginalDeadline()
+    {
+        // MaxAttempts = 1: đã dùng lượt duy nhất vẫn phải Resume được lượt đang chạy.
+        var data = await SeedAsync(maxAttempts: 1);
+        string takePath = $"/Assessment/Take/{data.Assessment.Id}";
+        var answers = Answers(data, correctCount: 2);
+        answers["Answers[4].SelectedOptionId"] = string.Empty;
+        Guid attemptId;
+        Attempt beforeResume;
+
+        using (var client = await StudentClient(data.Student))
+        {
+            string token = await IdentityTestHelpers.GetTokenAsync(client, takePath);
+            DateTimeOffset beforeStart = DateTimeOffset.UtcNow;
+
+            // Hai POST như bấm Start từ hai tab. Các trường thời gian giả không được tin.
+            var forgedTiming = new Dictionary<string, string>
+            {
+                ["StartedAtUtc"] = "2000-01-01T00:00:00Z",
+                ["DeadlineUtc"] = "2099-01-01T00:00:00Z",
+                ["DurationMinutes"] = "9999"
+            };
+            var ids = await Task.WhenAll(
+                Start(client, data, token, new Dictionary<string, string>(forgedTiming)),
+                Start(client, data, token, new Dictionary<string, string>(forgedTiming)));
+            DateTimeOffset afterStart = DateTimeOffset.UtcNow;
+            attemptId = ids[0];
+            Assert.All(ids, id => Assert.Equal(attemptId, id));
+
+            using var saved = await Post(client, $"/Assessment/Save/{attemptId}", token, answers);
+            Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
+            using var scope = factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            beforeResume = Assert.Single(await db.Attempts.AsNoTracking().Include(a => a.Answers)
+                .Where(a => a.StudentUserId == data.Student.Id && a.AssessmentId == data.Assessment.Id).ToListAsync());
+            Assert.InRange(beforeResume.StartedAtUtc, beforeStart, afterStart);
+            Assert.Equal(beforeResume.StartedAtUtc.AddMinutes(data.Assessment.DurationMinutes), beforeResume.DeadlineUtc);
+            Assert.Equal(4, beforeResume.Answers.Count);
+        }
+
+        // Cookie jar mới và đăng nhập lại, tương đương đóng browser rồi quay lại.
+        using var resumedClient = await StudentClient(data.Student);
+        using var list = await resumedClient.GetAsync("/Assessment");
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        Assert.Contains($"{takePath}?attemptId={attemptId}", await list.Content.ReadAsStringAsync());
+
+        // GET không có attemptId cũng phải tìm được lượt đang làm; F5 không tạo lượt mới.
+        foreach (string path in new[] { takePath, $"{takePath}?attemptId={attemptId}", takePath })
+        {
+            using var page = await resumedClient.GetAsync(path);
+            Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+            Assert.True(page.Headers.CacheControl!.NoStore);
+            string html = await page.Content.ReadAsStringAsync();
+            Assert.Contains($"data-deadline=\"{beforeResume.DeadlineUtc:O}\"", WebUtility.HtmlDecode(html));
+            Assert.Contains(attemptId.ToString(), html);
+            AssertSelectedAnswers(html, answers);
+        }
+
+        string resumeToken = await IdentityTestHelpers.GetTokenAsync(resumedClient, takePath);
+        Assert.Equal(attemptId, await Start(resumedClient, data, resumeToken));
+        using var checkScope = factory.Services.CreateScope();
+        var checkDb = checkScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var afterResume = Assert.Single(await checkDb.Attempts.AsNoTracking().Include(a => a.Answers)
+            .Where(a => a.StudentUserId == data.Student.Id && a.AssessmentId == data.Assessment.Id).ToListAsync());
+        Assert.Equal(beforeResume.Id, afterResume.Id);
+        Assert.Equal(beforeResume.StartedAtUtc, afterResume.StartedAtUtc);
+        Assert.Equal(beforeResume.DeadlineUtc, afterResume.DeadlineUtc);
+        Assert.Equal(beforeResume.UpdatedAtUtc, afterResume.UpdatedAtUtc);
+        Assert.Equal(AttemptStatus.InProgress, afterResume.Status);
+        Assert.Null(afterResume.FinalizedAtUtc);
+        Assert.Equal(
+            beforeResume.Answers.OrderBy(a => a.AssessmentQuestionId)
+                .Select(a => (a.Id, a.AssessmentQuestionId, a.SelectedOptionId, a.SavedAtUtc, a.UpdatedAtUtc)),
+            afterResume.Answers.OrderBy(a => a.AssessmentQuestionId)
+                .Select(a => (a.Id, a.AssessmentQuestionId, a.SelectedOptionId, a.SavedAtUtc, a.UpdatedAtUtc)));
     }
 
     [Fact]
@@ -95,6 +174,73 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
     }
 
     [Fact]
+    public async Task Submit_UsesLatestChoicesAndBlanks_ThenRejectsFurtherAnswerChanges()
+    {
+        var data = await SeedAsync();
+        using var client = await StudentClient(data.Student);
+        string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        Guid attemptId = await Start(client, data, token);
+        using var taking = await client.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
+        string html = WebUtility.HtmlDecode(await taking.Content.ReadAsStringAsync());
+        // Kiểm tra cả Razor thật, không chỉ HTML fixture của browser test.
+        Assert.Equal(4, Regex.Matches(html, ">Câu trước</a>").Count);
+        Assert.Equal(4, Regex.Matches(html, ">Câu tiếp</a>").Count);
+        Assert.Contains("href=\"#question-5\">Câu tiếp</a>", html);
+        Assert.Contains("id=\"question-1\" tabindex=\"-1\"", html);
+
+        using var saved = await Post(client, $"/Assessment/Save/{attemptId}", token, Answers(data, 5));
+        Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
+        var latest = Answers(data, 2);
+        for (int i = 2; i < 5; i++)
+            latest[$"Answers[{i}].SelectedOptionId"] = string.Empty;
+        var expectedAnswers = data.Assessment.Questions.OrderBy(q => q.OrderIndex).Take(2)
+            .ToDictionary(q => q.Id, q => q.Question.Options.Single(option => option.IsCorrect).Id);
+
+        // Submit phải thay thế bản đã lưu: 2 câu đúng + 3 câu bỏ trống = 40%.
+        using var submitted = await Post(client, $"/Assessment/Submit/{attemptId}", token, latest);
+        Assert.Equal(HttpStatusCode.Redirect, submitted.StatusCode);
+        Assert.Equal($"/Assessment/Result/{attemptId}", submitted.Headers.Location!.ToString());
+        Attempt beforeReplay;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            beforeReplay = await db.Attempts.AsNoTracking().Include(a => a.Answers).Include(a => a.SkillResults)
+                .SingleAsync(a => a.Id == attemptId);
+            Assert.Equal(AttemptStatus.Graded, beforeReplay.Status);
+            Assert.Equal(AttemptFinalizationReason.ManualSubmit, beforeReplay.FinalizationReason);
+            Assert.Equal(40m, beforeReplay.OverallScore);
+            Assert.NotNull(beforeReplay.FinalizedAtUtc);
+            Assert.Equal(2, beforeReplay.Answers.Count);
+            Assert.All(beforeReplay.Answers, answer => Assert.Equal(
+                expectedAnswers[answer.AssessmentQuestionId], answer.SelectedOptionId));
+            Assert.Equal(2, beforeReplay.SkillResults.Count);
+        }
+
+        // Trang cũ gửi Save/Submit lại đều phải về kết quả, không sửa bài đã chấm.
+        foreach (string action in new[] { "Save", "Submit" })
+        {
+            using var replay = await Post(client, $"/Assessment/{action}/{attemptId}", token, Answers(data, 5));
+            Assert.Equal(HttpStatusCode.Redirect, replay.StatusCode);
+            Assert.Equal($"/Assessment/Result/{attemptId}", replay.Headers.Location!.ToString());
+        }
+        using var oldPage = await client.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
+        Assert.Equal(HttpStatusCode.Redirect, oldPage.StatusCode);
+        Assert.Equal($"/Assessment/Result/{attemptId}", oldPage.Headers.Location!.ToString());
+        using var checkScope = factory.Services.CreateScope();
+        var checkDb = checkScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var afterReplay = Assert.Single(await checkDb.Attempts.AsNoTracking().Include(a => a.Answers).Include(a => a.SkillResults)
+            .Where(a => a.AssessmentId == data.Assessment.Id).ToListAsync());
+        Assert.Equal(beforeReplay.OverallScore, afterReplay.OverallScore);
+        Assert.Equal(beforeReplay.FinalizedAtUtc, afterReplay.FinalizedAtUtc);
+        Assert.Equal(beforeReplay.DeadlineUtc, afterReplay.DeadlineUtc);
+        Assert.Equal(beforeReplay.UpdatedAtUtc, afterReplay.UpdatedAtUtc);
+        Assert.Equal(beforeReplay.Answers.OrderBy(a => a.Id).Select(a => (a.Id, a.SelectedOptionId, a.SavedAtUtc, a.UpdatedAtUtc)),
+            afterReplay.Answers.OrderBy(a => a.Id).Select(a => (a.Id, a.SelectedOptionId, a.SavedAtUtc, a.UpdatedAtUtc)));
+        Assert.Equal(beforeReplay.SkillResults.OrderBy(s => s.Id).Select(s => (s.Id, s.Skill, s.Score, s.QuestionCount)),
+            afterReplay.SkillResults.OrderBy(s => s.Id).Select(s => (s.Id, s.Skill, s.Score, s.QuestionCount)));
+    }
+
+    [Fact]
     public async Task SaveResume_RejectsMalformedForeignAndDuplicateAnswersBeforeWriting_AndEncodesContent()
     {
         var data = await SeedAsync();
@@ -126,7 +272,7 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         Assert.Contains(attemptId.ToString(), resumed.Headers.Location!.ToString());
         using var refreshed = await client.GetAsync(resumed.Headers.Location);
         var resumedHtml = await refreshed.Content.ReadAsStringAsync();
-        Assert.Equal(5, Regex.Matches(resumedHtml, "checked=\"checked\"").Count);
+        AssertSelectedAnswers(resumedHtml, Answers(data, 5));
         using (var scope = factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -136,7 +282,77 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
     }
 
     [Fact]
-    public async Task ExpiredGetNeverGrades_PostStartFinalizesSavedAnswersWithoutCreatingNewAttempt()
+    public async Task SaveJson_ChangeRetryAndClear_KeepOneAnswerPerQuestionAndPreserveOtherChoices()
+    {
+        var data = await SeedAsync();
+        using var client = await StudentClient(data.Student);
+        string takePath = $"/Assessment/Take/{data.Assessment.Id}";
+        string token = await IdentityTestHelpers.GetTokenAsync(client, takePath);
+        Guid attemptId = await Start(client, data, token);
+        var questions = data.Assessment.Questions.OrderBy(q => q.OrderIndex).ToArray();
+        var fields = Answers(data, 5);
+        for (int index = 2; index < questions.Length; index++)
+            fields[$"Answers[{index}].SelectedOptionId"] = string.Empty;
+
+        DateTimeOffset deadline;
+        using (var scope = factory.Services.CreateScope())
+            deadline = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts
+                .Where(a => a.Id == attemptId).Select(a => a.DeadlineUtc).SingleAsync();
+        Guid? firstAnswerId = null;
+        Guid? secondAnswerId = null;
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+        // Gửi lại cùng request phải cập nhật dòng cũ, không tạo thêm Answer.
+        foreach (string step in new[] { "save", "change", "retry", "clear", "clear-retry" })
+        {
+            if (step == "change")
+                fields["Answers[0].SelectedOptionId"] = questions[0].Question.Options.Single(o => !o.IsCorrect).Id.ToString();
+            if (step == "clear")
+                fields["Answers[0].SelectedOptionId"] = string.Empty;
+
+            using var response = await Post(client, $"/Assessment/Save/{attemptId}", token, fields);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.True(json.RootElement.GetProperty("saved").GetBoolean());
+
+            using var scope = factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var attempt = Assert.Single(await db.Attempts.AsNoTracking().Include(a => a.Answers)
+                .Where(a => a.StudentUserId == data.Student.Id && a.AssessmentId == data.Assessment.Id).ToListAsync());
+            Assert.Equal(attemptId, attempt.Id);
+            Assert.Equal(deadline, attempt.DeadlineUtc);
+            Assert.Equal(AttemptStatus.InProgress, attempt.Status);
+            Assert.Null(attempt.OverallScore);
+            Assert.False(await db.AttemptSkillResults.AnyAsync(result => result.AttemptId == attemptId));
+            bool cleared = string.IsNullOrEmpty(fields["Answers[0].SelectedOptionId"]);
+            Assert.Equal(cleared ? 1 : 2, attempt.Answers.Count);
+            if (cleared)
+            {
+                Assert.DoesNotContain(attempt.Answers, answer => answer.AssessmentQuestionId == questions[0].Id);
+            }
+            else
+            {
+                var first = Assert.Single(attempt.Answers, answer => answer.AssessmentQuestionId == questions[0].Id);
+                firstAnswerId ??= first.Id;
+                Assert.Equal(firstAnswerId, first.Id);
+                Assert.Equal(Guid.Parse(fields["Answers[0].SelectedOptionId"]), first.SelectedOptionId);
+            }
+            // Đổi/bỏ câu đầu không được thay lựa chọn hoặc tạo dòng mới cho câu thứ hai.
+            var second = Assert.Single(attempt.Answers, answer => answer.AssessmentQuestionId == questions[1].Id);
+            secondAnswerId ??= second.Id;
+            Assert.Equal(secondAnswerId, second.Id);
+            Assert.Equal(Guid.Parse(fields["Answers[1].SelectedOptionId"]), second.SelectedOptionId);
+        }
+
+        using var reload = await client.GetAsync(takePath);
+        Assert.Equal(HttpStatusCode.OK, reload.StatusCode);
+        AssertSelectedAnswers(await reload.Content.ReadAsStringAsync(), fields);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExpiredGet_OffersCsrfFinalizationWithoutAnswers_AndPostGradesSavedAnswers(bool withdrawn)
     {
         var data = await SeedAsync();
         using var client = await StudentClient(data.Student);
@@ -144,13 +360,34 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         var attemptId = await Start(client, data, token);
         using var saved = await Post(client, $"/Assessment/Save/{attemptId}", token, Answers(data, 4));
         using (var scope = factory.Services.CreateScope())
-            await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.Where(a => a.Id == attemptId)
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Attempts.Where(a => a.Id == attemptId)
                 .ExecuteUpdateAsync(s => s.SetProperty(a => a.DeadlineUtc, DateTimeOffset.UtcNow.AddSeconds(-1)));
+            if (withdrawn)
+            {
+                await db.Assessments.Where(a => a.Id == data.Assessment.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, AssessmentStatus.Archived));
+                await db.Courses.Where(c => c.Id == data.Course.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.Status, CourseStatus.Archived));
+            }
+        }
         using var get = await client.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
         Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+        string html = await get.Content.ReadAsStringAsync();
+        Assert.Contains("data-expired-attempt-form", html);
+        Assert.Contains($"action=\"/Assessment/Submit/{attemptId}\"", html);
+        Assert.DoesNotContain("data-assessment-form", html);
+        Assert.DoesNotContain("Answers[", html);
+        Assert.DoesNotContain("QUESTION_PRIVATE_EXPLANATION", html);
         using (var scope = factory.Services.CreateScope())
             Assert.Equal(AttemptStatus.InProgress, (await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.SingleAsync(a => a.Id == attemptId)).Status);
-        using var finalize = await Post(client, $"/Assessment/Start/{data.Assessment.Id}", token);
+
+        // Cả khi mở URL không có attemptId vẫn phải tìm đúng lượt đã hết hạn.
+        token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        using var noCsrf = await client.PostAsync($"/Assessment/Submit/{attemptId}", new FormUrlEncodedContent([]));
+        Assert.Equal(HttpStatusCode.BadRequest, noCsrf.StatusCode);
+        using var finalize = await Post(client, $"/Assessment/Submit/{attemptId}", token);
         Assert.Equal($"/Assessment/Result/{attemptId}", finalize.Headers.Location!.ToString());
         using (var scope = factory.Services.CreateScope())
         {
@@ -160,6 +397,53 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
             Assert.Equal(AttemptFinalizationReason.DeadlineElapsed, attempt.FinalizationReason);
             Assert.Equal(1, await db.Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
         }
+    }
+
+    [Fact]
+    public async Task ConcurrentLateSaveAndSubmit_IgnoreChangedAnswersAndGradeOneResult()
+    {
+        var data = await SeedAsync(maxAttempts: 1);
+        using var client = await StudentClient(data.Student);
+        string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        Guid attemptId = await Start(client, data, token);
+        using var saved = await Post(client, $"/Assessment/Save/{attemptId}", token, Answers(data, 4));
+        Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
+        List<AttemptAnswer> before;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            before = await db.AttemptAnswers.AsNoTracking().Where(a => a.AttemptId == attemptId).ToListAsync();
+            await db.Attempts.Where(a => a.Id == attemptId)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.DeadlineUtc, DateTimeOffset.UtcNow.AddSeconds(-1)));
+        }
+
+        // Giả lập hai tab: một request muốn sửa đáp án, một request muốn xóa đáp án.
+        var clearAnswers = Answers(data, 0);
+        for (int i = 0; i < 5; i++)
+            clearAnswers[$"Answers[{i}].SelectedOptionId"] = string.Empty;
+        var responses = await Task.WhenAll(
+            Post(client, $"/Assessment/Save/{attemptId}", token, Answers(data, 5)),
+            Post(client, $"/Assessment/Submit/{attemptId}", token, clearAnswers));
+        foreach (var response in responses)
+        {
+            using (response)
+            {
+                Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+                Assert.Equal($"/Assessment/Result/{attemptId}", response.Headers.Location!.ToString());
+            }
+        }
+
+        using var checkScope = factory.Services.CreateScope();
+        var checkDb = checkScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var attempt = Assert.Single(await checkDb.Attempts.AsNoTracking().Include(a => a.Answers).Include(a => a.SkillResults)
+            .Where(a => a.AssessmentId == data.Assessment.Id).ToListAsync());
+        Assert.Equal(AttemptStatus.Graded, attempt.Status);
+        Assert.Equal(AttemptFinalizationReason.DeadlineElapsed, attempt.FinalizationReason);
+        Assert.Equal(80m, attempt.OverallScore);
+        Assert.NotNull(attempt.FinalizedAtUtc);
+        Assert.Equal(2, attempt.SkillResults.Count);
+        Assert.Equal(before.OrderBy(a => a.Id).Select(a => (a.Id, a.SelectedOptionId, a.SavedAtUtc, a.UpdatedAtUtc)),
+            attempt.Answers.OrderBy(a => a.Id).Select(a => (a.Id, a.SelectedOptionId, a.SavedAtUtc, a.UpdatedAtUtc)));
     }
 
     [Theory]
@@ -318,13 +602,26 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         return client.PostAsync(path, new FormUrlEncodedContent(input));
     }
 
-    private async Task<Guid> Start(HttpClient client, Fixture data, string token)
+    private async Task<Guid> Start(HttpClient client, Fixture data, string token, Dictionary<string, string>? input = null)
     {
-        using var started = await Post(client, $"/Assessment/Start/{data.Assessment.Id}", token);
+        using var started = await Post(client, $"/Assessment/Start/{data.Assessment.Id}", token, input);
         Assert.Equal(HttpStatusCode.Redirect, started.StatusCode);
         var match = Regex.Match(started.Headers.Location!.ToString(), "attemptId=([0-9a-f-]+)");
         Assert.True(match.Success);
         return Guid.Parse(match.Groups[1].Value);
+    }
+
+    // Đếm radio checked là chưa đủ: cả "Bỏ chọn" cũng có thể đang checked.
+    // Phải kiểm tra đúng giá trị option của từng câu, kể cả câu để trống.
+    private static void AssertSelectedAnswers(string html, Dictionary<string, string> answers)
+    {
+        var selectedInputs = Regex.Matches(html, "<input\\b[^>]*checked=\"checked\"[^>]*>")
+            .Select(match => match.Value).ToList();
+        foreach (var answer in answers.Where(item => item.Key.EndsWith(".SelectedOptionId", StringComparison.Ordinal)))
+        {
+            string selected = Assert.Single(selectedInputs, input => input.Contains($"name=\"{answer.Key}\"", StringComparison.Ordinal));
+            Assert.Contains($"value=\"{answer.Value}\"", selected);
+        }
     }
 
     private static Dictionary<string, string> Answers(Fixture data, int correctCount)

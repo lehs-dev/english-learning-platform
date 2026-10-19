@@ -133,6 +133,10 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         Assert.Null(overview.ActiveDeadlineUtc);
         Assert.Equal(4, overview.UsedAttempts);
         Assert.Equal(AttemptStatus.InProgress, await db.Attempts.Where(a => a.Id == active.Id).Select(a => a.Status).SingleAsync());
+        // Đúng bằng deadline cũng là quá hạn; truy vấn chỉ đọc ID, không tự chấm.
+        Assert.Equal(active.Id, await query.FindExpiredAttemptIdAsync(data.Student, data.Assessment.Id, active.Id));
+        Assert.Null(await query.FindExpiredAttemptIdAsync(other.Id, data.Assessment.Id, active.Id));
+        Assert.Null(await query.FindExpiredAttemptIdAsync(data.Student, Guid.NewGuid(), active.Id));
     }
 
     [Fact]
@@ -301,6 +305,9 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var query = new AssessmentQueryService(db, new FixedTimeProvider(Now));
         Assert.Null(await query.GetAssessmentOverviewAsync(data.Student, data.Assessment.Id));
         Assert.Null(await query.GetTakingSheetAsync(data.Student, attempt.Id));
+        // Lượt đã hết hạn cũng không được đi vòng qua Enrollment/thanh toán.
+        await db.Attempts.Where(a => a.Id == attempt.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.DeadlineUtc, Now));
+        Assert.Null(await query.FindExpiredAttemptIdAsync(data.Student, data.Assessment.Id, attempt.Id));
     }
 
     [Theory]
