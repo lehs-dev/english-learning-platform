@@ -103,6 +103,8 @@ public static class DependencyInjection
         // Service riêng cho Teacher soạn cấu hình Draft.
         // Không thay thế service Student làm bài.
         services.AddScoped<ITeacherAssessmentDraftService,TeacherAssessmentDraftService>();
+        // Soạn câu hỏi và points, tách khỏi cấu hình Draft và luồng Student.
+        services.AddScoped<ITeacherAssessmentQuestionService,TeacherAssessmentQuestionService>();
         return services;
     }
 }

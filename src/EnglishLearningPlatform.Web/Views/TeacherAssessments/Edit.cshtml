@@ -132,3 +132,19 @@
         </a>
     </div>
 </form>
+@if (Model.Id.HasValue)
+{
+    <section class="panel">
+        <h2>Bước tiếp theo</h2>
+        <p class="muted">
+            Lưu cấu hình trước khi chuyển sang soạn câu hỏi.
+        </p>
+
+        <a class="button secondary"
+           asp-controller="TeacherAssessmentQuestions"
+           asp-action="Index"
+           asp-route-id="@Model.Id">
+            Soạn câu hỏi và points
+        </a>
+    </section>
+}
