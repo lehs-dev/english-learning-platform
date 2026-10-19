@@ -25,6 +25,14 @@
        asp-route-id="@Model.Editor.AssessmentId">
         Về cấu hình
     </a>
+    <a class="button secondary"
+        asp-controller="TeacherAssessmentPreview"
+        asp-action="Index"
+        asp-route-id="@Model.Editor.AssessmentId"
+        target="_blank"
+        rel="noopener">
+            Preview đề đã lưu
+    </a>
 </div>
 
 <section class="panel">

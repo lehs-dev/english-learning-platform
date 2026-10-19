@@ -61,24 +61,45 @@
                             </td>
                             <td>@item.QuestionCount</td>
                             <td>
-                                @if (item.CanEditDraft)
-                                {
-                                    <a asp-action="Edit"
-                                       asp-route-id="@item.Id">
-                                        Sửa cấu hình Draft
-                                    </a>
-                                    <a asp-controller="TeacherAssessmentQuestions"
-                                    asp-action="Index"
-                                    asp-route-id="@item.Id">
-                                        Soạn câu hỏi và points
-                                    </a>
-                                }
-                                else
-                                {
-                                    <span class="muted">
-                                        Không sửa trong bước này
-                                    </span>
-                                }
+                                @* actions tạo khoảng cách và cho phép nút tự xuống hàng.
+                                   Vẫn dùng thẻ a vì đây là thao tác chuyển trang. *@
+                                <div class="actions">
+                                    @if (item.Status == AssessmentStatus.Draft
+                                        || item.Status == AssessmentStatus.Published)
+                                    {
+                                        <a class="button small secondary"
+                                           asp-controller="TeacherAssessmentPreview"
+                                           asp-action="Index"
+                                           asp-route-id="@item.Id"
+                                           target="_blank"
+                                           rel="noopener">
+                                            Xem trước
+                                        </a>
+                                    }
+
+                                    @if (item.CanEditDraft)
+                                    {
+                                        <a class="button small secondary"
+                                           asp-controller="TeacherAssessments"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.Id">
+                                            Sửa cấu hình
+                                        </a>
+
+                                        <a class="button small"
+                                           asp-controller="TeacherAssessmentQuestions"
+                                           asp-action="Index"
+                                           asp-route-id="@item.Id">
+                                            Soạn câu hỏi
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="muted">
+                                            Không sửa trong bước này
+                                        </span>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }

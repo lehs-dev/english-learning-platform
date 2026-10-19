@@ -105,6 +105,8 @@ public static class DependencyInjection
         services.AddScoped<ITeacherAssessmentDraftService,TeacherAssessmentDraftService>();
         // Soạn câu hỏi và points, tách khỏi cấu hình Draft và luồng Student.
         services.AddScoped<ITeacherAssessmentQuestionService,TeacherAssessmentQuestionService>();
+        // Preview chỉ đọc, không sử dụng service Start/Submit của Student.
+        services.AddScoped<ITeacherAssessmentPreviewService,TeacherAssessmentPreviewService>();
         return services;
     }
 }
