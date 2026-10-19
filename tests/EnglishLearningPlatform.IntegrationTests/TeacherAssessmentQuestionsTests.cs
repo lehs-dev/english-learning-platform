@@ -202,11 +202,11 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
     }
 
     [Theory]
-    [InlineData(AssessmentStatus.Published, false)]
+    [InlineData(AssessmentStatus.Published, true)]
     [InlineData(AssessmentStatus.Unpublished, false)]
     [InlineData(AssessmentStatus.Archived, false)]
     [InlineData(AssessmentStatus.Draft, true)]
-    public async Task NonDraftOrExistingAttempt_BlocksEditorAndSaving(AssessmentStatus status, bool hasAttempt)
+    public async Task NonEditableStatusOrExistingAttempt_BlocksEditorAndSaving(AssessmentStatus status, bool hasAttempt)
     {
         var data = await SeedAsync();
         using (var scope = _factory.Services.CreateScope())
@@ -272,10 +272,12 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
             .UseSqlServer(db.Database.GetConnectionString()).AddInterceptors(interceptor).Options;
         await using var serviceDb = new AppDbContext(options);
         var drafts = new TeacherAssessmentDraftService(serviceDb,
-            NullLogger<TeacherAssessmentDraftService>.Instance);
+            NullLogger<TeacherAssessmentDraftService>.Instance,
+            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>());
         var service = new TeacherAssessmentQuestionService(serviceDb, drafts,
             scope.ServiceProvider.GetRequiredService<IQuestionUsageValidator>(),
-            NullLogger<TeacherAssessmentQuestionService>.Instance);
+            NullLogger<TeacherAssessmentQuestionService>.Instance,
+            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>());
 
         var result = await service.SaveAsync(data.Teacher.Id, data.AssessmentId, Selection(data));
 

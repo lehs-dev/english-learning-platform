@@ -42,6 +42,18 @@
         Phải lưu trước khi đổi bộ lọc hoặc chuyển trang.
     </p>
 
+    @if (Model.Editor.Status == AssessmentStatus.Published)
+    {
+        <p class="notice">
+            Đề đang Published và chưa có Attempt.
+            Bạn được thay câu hỏi, thứ tự và points,
+            nhưng sau mỗi lần lưu đề vẫn phải hợp lệ
+            và có ít nhất 5 câu hỏi khác nhau.
+            Nội dung Question và Stimulus đã khóa không được mở khóa.
+            Khi có Attempt đầu tiên, đề không còn được chỉnh sửa.
+        </p>
+    }
+
     <form id="assessment-question-form"
           method="post"
           asp-action="Save"
@@ -82,7 +94,7 @@
         </ol>
 
         <p class="muted" data-empty hidden="@(Model.Editor.Items.Count > 0)">
-            Draft chưa có câu hỏi.
+            Đề chưa có câu hỏi.
         </p>
         <p class="notice" data-notice role="status" tabindex="-1"></p>
 

@@ -26,4 +26,8 @@ public sealed class TeacherAssessmentListItem
     // Chỉ phục vụ hiển thị nút Sửa.
     // Khi lưu, service vẫn phải kiểm tra lại.
     public bool CanEditDraft { get; set; }
+
+    // Cho sửa cấu hình Draft hoặc Published chưa có Attempt.
+    // CanEditDraft vẫn dành cho chức năng soạn câu hỏi Draft.
+    public bool CanEditConfiguration { get; set; }
 }

@@ -3,7 +3,7 @@
 @{
     Layout = "_LayoutTeacher";
     ViewData["Title"] = Model.Id.HasValue
-        ? "Sửa cấu hình Assessment Draft"
+        ? "Sửa cấu hình Assessment"
         : "Tạo Assessment Draft";
     ViewData["ActiveSection"] = "assessments";
 }
@@ -12,8 +12,8 @@
     <div>
         <h1>@ViewData["Title"]</h1>
         <p class="muted">
-            Lưu cấu hình bản nháp, soạn câu hỏi và Preview đề đã lưu.
-            Chức năng Publish được thực hiện ở task tiếp theo.
+            Lưu cấu hình và Preview đề đã lưu.
+            Draft có thể tiếp tục soạn câu hỏi và Publish.
         </p>
     </div>
 
@@ -116,14 +116,25 @@
         nếu không sử dụng tiêu chí đạt/rớt.
     </p>
 
-    <p class="notice">
-        Lưu Draft không tạo Attempt và chưa cho Student làm bài.
-        Bản nháp được phép chưa có câu hỏi.
-    </p>
+    @if (Model.Status == AssessmentStatus.Published)
+    {
+        <p class="notice">
+            Đề đang Published và chưa có Attempt.
+            Mỗi lần lưu phải giữ toàn bộ đề và điều kiện Final hợp lệ.
+            Trạng thái Published không thay đổi sau khi lưu.
+        </p>
+    }
+    else
+    {
+        <p class="notice">
+            Lưu Draft không tạo Attempt và chưa cho Student làm bài.
+            Bản nháp được phép chưa có câu hỏi.
+        </p>
+    }
 
     <div class="actions">
         <button type="submit" class="button">
-            Lưu cấu hình Draft
+            Lưu cấu hình
         </button>
 
         <a asp-controller="TeacherAssessments"
@@ -137,7 +148,7 @@
     <section class="panel">
         <h2>Bước tiếp theo</h2>
         <p class="muted">
-            Lưu cấu hình trước khi chuyển sang soạn câu hỏi.
+            Lưu cấu hình trước khi Preview.
         </p>
 
         <a class="button secondary"
@@ -160,4 +171,37 @@
             Những thay đổi cấu hình chưa lưu không xuất hiện trong Preview.
         </p>
     </section>
+    @if (Model.Status == AssessmentStatus.Draft)
+    {
+        <section class="panel">
+            <h2>Công bố bài kiểm tra</h2>
+
+            <p class="muted">
+                Hãy lưu cấu hình, lưu danh sách câu hỏi và Preview trước khi Publish.
+                Nút này chỉ công bố dữ liệu đã lưu trong database.
+            </p>
+
+            <p class="notice">
+                Publish thành công sẽ khóa nội dung Question và Stimulus được dùng.
+                Những thay đổi cấu hình chưa lưu trên trang này không được lưu kèm.
+            </p>
+
+            @* Form riêng: không gửi các trường cấu hình chưa lưu. *@
+            <form method="post"
+                  asp-controller="TeacherAssessments"
+                  asp-action="Publish"
+                  asp-route-id="@Model.Id"
+                  asp-antiforgery="true">
+
+                @* Giữ nguyên độ chính xác của version khi gửi về server. *@
+                <input type="hidden"
+                       name="expectedUpdatedAtUtc"
+                       value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" />
+
+                <button type="submit" class="button">
+                    Publish đề đã lưu
+                </button>
+            </form>
+        </section>
+    }
 }

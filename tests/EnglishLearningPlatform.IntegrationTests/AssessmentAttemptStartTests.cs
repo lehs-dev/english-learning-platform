@@ -1,4 +1,4 @@
-
+using System.Text.Json;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
@@ -85,6 +85,159 @@ public sealed class AssessmentAttemptStartTests(
             .GetRequiredService<IAttemptService>();
 
         return await service.StartAsync(studentId, assessmentId);
+    }
+
+    [Theory]
+    [InlineData("BlankTitle")]
+    [InlineData("WrongSkill")]
+    [InlineData("InvalidMcq")]
+    [InlineData("ListeningWithoutAudio")]
+    [InlineData("ForeignQuestion")]
+    [InlineData("InvalidFinal")]
+    public async Task NewStart_InvalidPublishedDefinition_ReturnsUnavailableWithoutChangingContent(string fault)
+    {
+        var (studentId, assessmentId) = await SeedAsync();
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var assessment = await db.Assessments.Include(a => a.Questions).ThenInclude(q => q.Question)
+                .ThenInclude(q => q.Options).SingleAsync(a => a.Id == assessmentId);
+            var question = assessment.Questions.Single(q => q.OrderIndex == 0).Question;
+            switch (fault)
+            {
+                case "BlankTitle": assessment.Title = "   "; break;
+                case "WrongSkill": question.PrimarySkill = EnglishSkill.Vocabulary; break;
+                case "InvalidMcq":
+                    foreach (var option in question.Options) option.IsCorrect = false;
+                    break;
+                case "ListeningWithoutAudio":
+                    // Loại đa kỹ năng giúp chỉ vi phạm audio, không kèm lỗi TargetSkill.
+                    assessment.AssessmentType = AssessmentType.PracticeExam;
+                    assessment.TargetSkill = null;
+                    question.PrimarySkill = EnglishSkill.Listening;
+                    break;
+                case "ForeignQuestion":
+                    question.OwnerTeacherUserId = (await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher)).Id;
+                    break;
+                case "InvalidFinal":
+                    // Assessment độc lập bị một Course tham chiếu nhầm làm Final.
+                    db.Courses.Add(new Course
+                    {
+                        OwnerTeacherUserId = assessment.OwnerTeacherUserId,
+                        Title = "Invalid final reference", FinalAssessmentId = assessmentId
+                    });
+                    break;
+            }
+            await db.SaveChangesAsync();
+        }
+        string before = await DefinitionSnapshotAsync(assessmentId);
+
+        var result = await StartAsync(studentId, assessmentId);
+
+        Assert.Equal(AttemptStartStatus.Unavailable, result.Status);
+        Assert.Null(result.AttemptId);
+        Assert.Null(result.DeadlineUtc);
+        Assert.Equal(before, await DefinitionSnapshotAsync(assessmentId));
+        using var checkScope = factory.Services.CreateScope();
+        var checkDb = checkScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.False(await checkDb.Attempts.AnyAsync(a => a.AssessmentId == assessmentId));
+    }
+
+    [Fact]
+    public async Task NewStart_AlreadyLinkedArchivedQuestion_IsAllowedWithoutChangingItsStatus()
+    {
+        var (studentId, assessmentId) = await SeedAsync();
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var questionId = await db.AssessmentQuestions.Where(q => q.AssessmentId == assessmentId && q.OrderIndex == 0)
+                .Select(q => q.QuestionId).SingleAsync();
+            await db.Questions.Where(q => q.Id == questionId)
+                .ExecuteUpdateAsync(set => set.SetProperty(q => q.Status, QuestionStatus.Archived));
+        }
+        string before = await DefinitionSnapshotAsync(assessmentId);
+
+        var result = await StartAsync(studentId, assessmentId);
+
+        Assert.Equal(AttemptStartStatus.Started, result.Status);
+        Assert.NotNull(result.AttemptId);
+        Assert.Equal(before, await DefinitionSnapshotAsync(assessmentId));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExistingAttempt_InvalidDefinition_DoesNotBlockResumeOrDeadlineFinalization(bool expired)
+    {
+        var (studentId, assessmentId) = await SeedAsync();
+        var first = await StartAsync(studentId, assessmentId);
+        Assert.Equal(AttemptStartStatus.Started, first.Status);
+        Guid attemptId = first.AttemptId!.Value;
+        DateTimeOffset deadline = first.DeadlineUtc!.Value;
+        Guid correctOptionId;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var item = await db.AssessmentQuestions.Include(q => q.Question).ThenInclude(q => q.Options)
+                .SingleAsync(q => q.AssessmentId == assessmentId && q.OrderIndex == 0);
+            correctOptionId = item.Question.Options.Single(o => o.IsCorrect).Id;
+            Assert.Equal(AttemptSaveStatus.Saved,
+                await scope.ServiceProvider.GetRequiredService<IAttemptService>()
+                    .SaveAnswerAsync(studentId, attemptId, item.Id, correctOptionId));
+
+            // Mô phỏng định nghĩa cũ không hợp lệ, không phá nội dung dùng để chấm.
+            await db.Assessments.Where(a => a.Id == assessmentId)
+                .ExecuteUpdateAsync(set => set.SetProperty(a => a.Title, "   "));
+            if (expired)
+            {
+                deadline = DateTimeOffset.UtcNow.AddMinutes(-1);
+                await db.Attempts.Where(a => a.Id == attemptId)
+                    .ExecuteUpdateAsync(set => set.SetProperty(a => a.DeadlineUtc, deadline));
+            }
+        }
+        string definition = await DefinitionSnapshotAsync(assessmentId);
+        var otherStudent = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        Assert.Equal(AttemptStartStatus.Unavailable, (await StartAsync(otherStudent.Id, assessmentId)).Status);
+
+        var existing = await StartAsync(studentId, assessmentId);
+
+        Assert.Equal(expired ? AttemptStartStatus.ExpiredFinalized : AttemptStartStatus.Resumed, existing.Status);
+        Assert.Equal(attemptId, existing.AttemptId);
+        Assert.Equal(deadline, existing.DeadlineUtc);
+        Assert.Equal(definition, await DefinitionSnapshotAsync(assessmentId));
+        using var checkScope = factory.Services.CreateScope();
+        var checkDb = checkScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var saved = await checkDb.Attempts.AsNoTracking().Include(a => a.Answers).Include(a => a.SkillResults)
+            .SingleAsync(a => a.AssessmentId == assessmentId);
+        Assert.Equal(deadline, saved.DeadlineUtc);
+        Assert.Equal(correctOptionId, Assert.Single(saved.Answers).SelectedOptionId);
+        Assert.Equal(expired ? AttemptStatus.Graded : AttemptStatus.InProgress, saved.Status);
+        Assert.Equal(expired ? 20m : (decimal?)null, saved.OverallScore);
+        Assert.Equal(expired ? AttemptFinalizationReason.DeadlineElapsed : (AttemptFinalizationReason?)null,
+            saved.FinalizationReason);
+        Assert.Equal(expired ? 1 : 0, saved.SkillResults.Count);
+    }
+
+    // Chỉ chụp định nghĩa đề; không gồm Attempt vì Start hợp lệ phải tạo Attempt.
+    private async Task<string> DefinitionSnapshotAsync(Guid assessmentId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var assessment = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Assessments
+            .AsNoTracking().AsSplitQuery().Include(a => a.Questions).ThenInclude(q => q.Question).ThenInclude(q => q.Options)
+            .SingleAsync(a => a.Id == assessmentId);
+        return JsonSerializer.Serialize(new
+        {
+            assessment.OwnerTeacherUserId, assessment.Title, assessment.AssessmentType, assessment.TargetSkill,
+            assessment.Status, assessment.UpdatedAtUtc, assessment.CourseId, assessment.DurationMinutes,
+            assessment.MaxAttempts, assessment.PassingScore,
+            Questions = assessment.Questions.OrderBy(q => q.OrderIndex).Select(q => new
+            {
+                q.Id, q.QuestionId, q.Points, q.OrderIndex, q.Question.OwnerTeacherUserId,
+                q.Question.Content, q.Question.PrimarySkill, q.Question.Status, q.Question.StimulusId,
+                q.Question.ContentLockedAtUtc, q.Question.UpdatedAtUtc,
+                Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect })
+            })
+        });
     }
 
     [Fact]

@@ -147,7 +147,10 @@ public static class LearningDemoSeeder
     {
         OwnerTeacherUserId = teacherId, CourseId = courseId, Title = FinalAssessmentTitle,
         Description = "Bài kiểm tra ngữ pháp và từ vựng: đúng ít nhất 4/5 câu để đạt 80%.",
-        AssessmentType = AssessmentType.SkillAssessment, TargetSkill = EnglishSkill.Grammar,
+        // Đề kết hợp Grammar và Vocabulary nên dùng Practice Exam.
+        // Thay đổi mẫu tạo mới, không cập nhật Assessment đã có trong database.
+        AssessmentType = AssessmentType.PracticeExam,
+        TargetSkill = null,
         DurationMinutes = 15, MaxAttempts = 3, PassingScore = 80, Status = AssessmentStatus.Published,
         Questions =
         [

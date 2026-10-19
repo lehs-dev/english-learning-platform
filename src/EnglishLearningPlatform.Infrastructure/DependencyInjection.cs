@@ -107,6 +107,8 @@ public static class DependencyInjection
         services.AddScoped<ITeacherAssessmentQuestionService,TeacherAssessmentQuestionService>();
         // Preview chỉ đọc, không sử dụng service Start/Submit của Student.
         services.AddScoped<ITeacherAssessmentPreviewService,TeacherAssessmentPreviewService>();
+        // Publish đề đã lưu, tách khỏi service Preview và Student làm bài.
+        services.AddScoped<ITeacherAssessmentPublishService, TeacherAssessmentPublishService>();
         return services;
     }
 }
