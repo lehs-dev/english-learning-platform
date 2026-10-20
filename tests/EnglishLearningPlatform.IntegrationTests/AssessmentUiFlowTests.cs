@@ -139,8 +139,11 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         var resultHtml = WebUtility.HtmlDecode(await result.Content.ReadAsStringAsync());
         Assert.Contains("80", resultHtml);
         Assert.Contains("Ngữ pháp", resultHtml);
-        Assert.Contains("Từ vựng", resultHtml);
+        // Grammar có 3 câu; Vocabulary chỉ có 2 câu nên chưa được hiển thị.
+        Assert.DoesNotContain("Từ vựng", resultHtml);
         Assert.Contains("assessment-passed", resultHtml);
+        Assert.Contains("Không thuộc nhóm điểm yếu", resultHtml);
+        Assert.DoesNotContain("Cần cải thiện", resultHtml);
         Assert.DoesNotContain("QUESTION_PRIVATE_EXPLANATION", resultHtml);
         DateTimeOffset completedAt;
         DateTimeOffset finalizedAt;
@@ -171,6 +174,109 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
             Assert.Equal(completedAt, (await db.Enrollments.SingleAsync(e => e.StudentUserId == data.Student.Id && e.CourseId == data.Course.Id)).CompletedAtUtc);
             Assert.Equal(2, await db.AttemptSkillResults.CountAsync(s => s.AttemptId == attemptId));
         }
+    }
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(2)]
+    public async Task Result_OnlyShowsSkillsWithThreeQuestions_WithoutExposingOrDeletingAnswers(int readingQuestionCount)
+    {
+        var data = await SeedAsync();
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var questions = await db.AssessmentQuestions.Include(q => q.Question)
+                .Where(q => q.AssessmentId == data.Assessment.Id).OrderBy(q => q.OrderIndex).ToListAsync();
+            var passage = new Stimulus { OwnerTeacherUserId = data.Teacher.Id,
+                StimulusType = StimulusType.Passage, ContentText = "RESULT_PRIVATE_PASSAGE" };
+            var audio = new Stimulus { OwnerTeacherUserId = data.Teacher.Id,
+                StimulusType = StimulusType.Audio, ResourceUrl = "https://example.com/result-listening.mp3" };
+            db.Stimuli.AddRange(passage, audio);
+
+            // Hai đề kiểm tra: 3 Reading + 2 Listening; hoặc 2 Reading + 2 Listening + 1 Grammar.
+            for (int i = 0; i < questions.Count; i++)
+            {
+                if (i < readingQuestionCount)
+                {
+                    questions[i].Question.PrimarySkill = EnglishSkill.Reading;
+                    questions[i].Question.Stimulus = passage;
+                }
+                else if (i < readingQuestionCount + 2)
+                {
+                    questions[i].Question.PrimarySkill = EnglishSkill.Listening;
+                    questions[i].Question.Stimulus = audio;
+                }
+                else
+                {
+                    questions[i].Question.PrimarySkill = EnglishSkill.Grammar;
+                }
+            }
+            await db.SaveChangesAsync();
+        }
+
+        using var client = await StudentClient(data.Student);
+        string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        Guid attemptId = await Start(client, data, token);
+        // Reading đủ 3 câu nhưng chỉ đúng 1: phải hiện điểm thấp, không giấu thành thiếu dữ liệu.
+        int correctCount = readingQuestionCount == 3 ? 1 : 5;
+        using var submitted = await Post(client, $"/Assessment/Submit/{attemptId}", token, Answers(data, correctCount));
+        Assert.Equal(HttpStatusCode.Redirect, submitted.StatusCode);
+        Assert.Equal($"/Assessment/Result/{attemptId}", submitted.Headers.Location!.ToString());
+
+        using var resultScope = factory.Services.CreateScope();
+        var resultDb = resultScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var savedSkills = await resultDb.AttemptSkillResults.AsNoTracking()
+            .Where(s => s.AttemptId == attemptId).OrderBy(s => s.Skill).ToListAsync();
+        Assert.Equal(readingQuestionCount == 3 ? 2 : 3, savedSkills.Count);
+        var model = await resultScope.ServiceProvider.GetRequiredService<IAssessmentQueryService>()
+            .GetAttemptResultAsync(data.Student.Id, attemptId);
+        Assert.NotNull(model);
+        Assert.Equal(readingQuestionCount == 3 ? 20m : 100m, model.OverallScore);
+        if (readingQuestionCount == 3)
+        {
+            var reading = Assert.Single(model.SkillBreakdowns);
+            Assert.Equal(EnglishSkill.Reading, reading.Skill);
+            Assert.Equal(3, reading.QuestionCount);
+            Assert.Equal(33.33m, reading.Score);
+            Assert.True(reading.IsWeak);
+        }
+        else
+        {
+            Assert.Empty(model.SkillBreakdowns);
+        }
+        AssertResultDoesNotExposeAnswers(JsonSerializer.Serialize(model), data);
+
+        // Đọc/F5 kết quả không được xóa SkillResult chưa đủ dữ liệu hoặc đáp án đã chấm.
+        for (int refresh = 0; refresh < 2; refresh++)
+        {
+            using var result = await client.GetAsync(submitted.Headers.Location);
+            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            string html = WebUtility.HtmlDecode(await result.Content.ReadAsStringAsync());
+            Assert.Contains("Đã chấm lúc", html);
+            Assert.Contains("Nộp bài chủ động", html);
+            Assert.Contains(readingQuestionCount == 3 ? "assessment-failed" : "assessment-passed", html);
+            AssertResultDoesNotExposeAnswers(html, data);
+            if (readingQuestionCount == 3)
+            {
+                Assert.Contains("Đọc hiểu", html);
+                Assert.Contains("Cần cải thiện", html);
+                Assert.DoesNotContain("Nghe hiểu", html);
+                Assert.DoesNotContain("Ngữ pháp", html);
+            }
+            else
+            {
+                Assert.Contains("Chưa đủ dữ liệu", html);
+                Assert.DoesNotContain("class=\"assessment-table\"", html);
+                Assert.DoesNotContain("Cần cải thiện", html);
+                Assert.DoesNotContain("Không thuộc nhóm điểm yếu", html);
+            }
+        }
+
+        var afterReads = await resultDb.AttemptSkillResults.AsNoTracking()
+            .Where(s => s.AttemptId == attemptId).OrderBy(s => s.Skill).ToListAsync();
+        Assert.Equal(savedSkills.Select(s => (s.Id, s.Skill, s.Score, s.QuestionCount)),
+            afterReads.Select(s => (s.Id, s.Skill, s.Score, s.QuestionCount)));
+        Assert.Equal(5, await resultDb.AttemptAnswers.CountAsync(a => a.AttemptId == attemptId));
     }
 
     [Fact]
@@ -466,6 +572,7 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         Assert.Equal($"/Assessment/Result/{attemptId}", late.Headers.Location!.ToString());
         using var result = await client.GetAsync(late.Headers.Location);
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        Assert.Contains("Tự nộp khi hết giờ", WebUtility.HtmlDecode(await result.Content.ReadAsStringAsync()));
 
         DateTimeOffset? finalizedAt;
         using (var scope = factory.Services.CreateScope())
@@ -593,6 +700,20 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         using var login = await IdentityTestHelpers.LoginAsync(client, user);
         Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
         return client;
+    }
+
+    // Trang/API kết quả chỉ là bản tổng kết, không chứa dữ liệu đáp án ngay cả ở phần ẩn.
+    private static void AssertResultDoesNotExposeAnswers(string response, Fixture data)
+    {
+        foreach (string privateValue in new[] { "IsCorrect", "SelectedOptionId", "Explanation",
+                     "QUESTION_PRIVATE_EXPLANATION", "First choice", "Other choice" })
+        {
+            Assert.DoesNotContain(privateValue, response);
+        }
+        foreach (var option in data.Assessment.Questions.SelectMany(q => q.Question.Options))
+        {
+            Assert.DoesNotContain(option.Id.ToString(), response);
+        }
     }
 
     private static Task<HttpResponseMessage> Post(HttpClient client, string path, string token, Dictionary<string, string>? input = null)

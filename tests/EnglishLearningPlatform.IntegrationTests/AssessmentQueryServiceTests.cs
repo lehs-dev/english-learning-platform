@@ -444,6 +444,13 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
             new AttemptSkillResult { Skill = EnglishSkill.Grammar, Score = 75m, QuestionCount = 4 },
             new AttemptSkillResult { Skill = EnglishSkill.Vocabulary, Score = 100m, QuestionCount = 1 }
         ];
+        // Điểm Grammar 75% phải có đáp án gốc tương ứng: 3 đúng, 1 sai.
+        attempt.Answers = data.Assessment.Questions.Select(question => new AttemptAnswer
+        {
+            AssessmentQuestionId = question.Id,
+            SelectedOptionId = question.Question.Options.Single(option =>
+                option.OrderIndex == (question.OrderIndex == 4 ? 1 : 0)).Id
+        }).ToList();
         db.Attempts.Add(attempt);
         await db.SaveChangesAsync();
         await db.Assessments.Where(a => a.Id == data.Assessment.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, AssessmentStatus.Archived));
@@ -459,7 +466,11 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         Assert.True(result.Passed);
         Assert.Equal(attempt.FinalizedAtUtc, result.FinalizedAtUtc);
         Assert.Equal(AttemptFinalizationReason.ManualSubmit, result.FinalizationReason);
-        Assert.Equal(new[] { EnglishSkill.Vocabulary, EnglishSkill.Grammar }, result.SkillBreakdowns.Select(s => s.Skill));
+        var grammar = Assert.Single(result.SkillBreakdowns);
+        Assert.Equal(EnglishSkill.Grammar, grammar.Skill);
+        Assert.Equal(75m, grammar.Score);
+        Assert.False(grammar.IsWeak);
+        Assert.Equal(2, await db.AttemptSkillResults.CountAsync(s => s.AttemptId == attempt.Id));
         Assert.Null(await query.GetAttemptResultAsync(other.Id, attempt.Id));
         Assert.Null(await query.GetAttemptResultAsync(data.Student, Guid.NewGuid()));
         Assert.Empty(db.ChangeTracker.Entries());
@@ -509,9 +520,17 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         Assert.NotNull(result);
         Assert.Equal(83.33m, result.OverallScore);
         Assert.True(result.Passed);
-        Assert.Collection(result.SkillBreakdowns,
-            vocabulary => { Assert.Equal(EnglishSkill.Vocabulary, vocabulary.Skill); Assert.Equal(100m, vocabulary.Score); Assert.Equal(1, vocabulary.QuestionCount); },
-            grammar => { Assert.Equal(EnglishSkill.Grammar, grammar.Skill); Assert.Equal(75m, grammar.Score); Assert.Equal(4, grammar.QuestionCount); });
+        var grammar = Assert.Single(result.SkillBreakdowns);
+        Assert.Equal(EnglishSkill.Grammar, grammar.Skill);
+        Assert.Equal(75m, grammar.Score);
+        Assert.Equal(4, grammar.QuestionCount);
+        Assert.False(grammar.IsWeak);
+        // Vocabulary chỉ có 1 câu: không trả cho Student nhưng vẫn giữ điểm đã lưu.
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var vocabulary = await db.AttemptSkillResults.AsNoTracking()
+            .SingleAsync(s => s.AttemptId == started.AttemptId.Value && s.Skill == EnglishSkill.Vocabulary);
+        Assert.Equal(100m, vocabulary.Score);
+        Assert.Equal(1, vocabulary.QuestionCount);
         var finalizedAt = result.FinalizedAtUtc;
         Assert.Equal(AttemptFinalizeStatus.AlreadyGraded, (await service.FinalizeAsync(data.Student, started.AttemptId.Value)).Status);
         Assert.Equal(finalizedAt, (await query.GetAttemptResultAsync(data.Student, started.AttemptId.Value))!.FinalizedAtUtc);
@@ -582,6 +601,82 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var reloaded = await query.GetAttemptResultAsync(data.Student, attemptId);
         Assert.NotNull(reloaded);
         Assert.Equal(50m, reloaded.OverallScore);
+    }
+
+    [Theory]
+    [InlineData(5999.6, 2000.2, true, 60, true)]
+    [InlineData(6000, 2000, true, 60, false)]
+    [InlineData(6000, 2000, false, 0, true)]
+    public async Task Result_WeakSkillUsesRawPoints_NotRoundedScoreOrPassingScore(
+        decimal firstPoints, decimal otherPoints, bool answerCorrect, decimal expectedScore, bool expectedWeak)
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var questions = await db.AssessmentQuestions.Where(q => q.AssessmentId == data.Assessment.Id)
+            .Include(q => q.Question).ThenInclude(q => q.Options)
+            .OrderBy(q => q.OrderIndex).ToArrayAsync();
+        for (int index = 0; index < questions.Length; index++)
+        {
+            questions[index].Question.PrimarySkill = index < 3 ? EnglishSkill.Grammar : EnglishSkill.Vocabulary;
+            questions[index].Points = index == 0 ? firstPoints : index < 3 ? otherPoints : 1m;
+        }
+        await db.SaveChangesAsync();
+
+        var service = scope.ServiceProvider.GetRequiredService<IAttemptService>();
+        var started = await service.StartAsync(data.Student, data.Assessment.Id);
+        Assert.Equal(AttemptStartStatus.Started, started.Status);
+        Guid attemptId = started.AttemptId!.Value;
+        Guid selectedOption = questions[0].Question.Options.Single(option =>
+            option.OrderIndex == (answerCorrect ? 0 : 1)).Id;
+        Assert.Equal(AttemptSaveStatus.Saved,
+            await service.SaveAnswerAsync(data.Student, attemptId, questions[0].Id, selectedOption));
+        Assert.Equal(AttemptFinalizeStatus.Graded, (await service.FinalizeAsync(data.Student, attemptId)).Status);
+
+        var query = scope.ServiceProvider.GetRequiredService<IAssessmentQueryService>();
+        var result = await query.GetAttemptResultAsync(data.Student, attemptId);
+        Assert.NotNull(result);
+        var grammar = Assert.Single(result.SkillBreakdowns);
+        Assert.Equal(EnglishSkill.Grammar, grammar.Skill);
+        // 59.996% và 60% cùng hiển thị 60%; skill đủ 3 câu đạt 0 vẫn phải hiện.
+        Assert.Equal(expectedScore, grammar.Score);
+        Assert.Equal(expectedWeak, grammar.IsWeak);
+        Assert.Equal(80m, result.PassingScore); // Không dùng PassingScore để phân loại skill.
+        Assert.False(result.Passed);
+
+        db.ChangeTracker.Clear();
+        var storedRows = await db.AttemptSkillResults.AsNoTracking()
+            .Where(s => s.AttemptId == attemptId).ToArrayAsync();
+        Assert.Equal(2, storedRows.Length);
+        Assert.Equal(0m, storedRows.Single(s => s.Skill == EnglishSkill.Vocabulary).Score);
+        Assert.DoesNotContain(result.SkillBreakdowns, s => s.Skill == EnglishSkill.Vocabulary);
+        Assert.Empty(db.ChangeTracker.Entries());
+    }
+
+    [Fact]
+    public async Task Result_DoesNotTrustStoredCount_WhenDistinctQuestionsAreInsufficient()
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var attempt = AttemptFor(data, AttemptStatus.Graded, 0m);
+        // Dữ liệu cũ khai báo 3 nhưng đề thực tế chỉ có 1 Question Vocabulary.
+        attempt.SkillResults.Add(new AttemptSkillResult
+        {
+            Skill = EnglishSkill.Vocabulary, Score = 0m, QuestionCount = 3
+        });
+        db.Attempts.Add(attempt);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var query = scope.ServiceProvider.GetRequiredService<IAssessmentQueryService>();
+        var result = await query.GetAttemptResultAsync(data.Student, attempt.Id);
+        Assert.NotNull(result);
+        Assert.Empty(result.SkillBreakdowns);
+        var stored = await db.AttemptSkillResults.AsNoTracking().SingleAsync(s => s.AttemptId == attempt.Id);
+        Assert.Equal(3, stored.QuestionCount); // GET không sửa/xóa dữ liệu lịch sử.
+        Assert.Equal(0m, stored.Score);
+        Assert.Empty(db.ChangeTracker.Entries());
     }
 
     private sealed record Fixture(Guid Student, Guid Teacher, Assessment Assessment, Course? Course, Payment? Payment);

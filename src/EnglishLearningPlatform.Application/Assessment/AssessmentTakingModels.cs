@@ -43,7 +43,9 @@ public sealed record AssessmentResultView(
 public sealed record SkillScoreBreakdown(
     EnglishSkill Skill,
     decimal Score,
-    int QuestionCount);
+    int QuestionCount,
+    // Server so sánh điểm gốc với ngưỡng 60%, không dùng Score đã làm tròn.
+    bool IsWeak);
 
 public sealed record AssessmentOverviewModel(
     Guid AssessmentId,

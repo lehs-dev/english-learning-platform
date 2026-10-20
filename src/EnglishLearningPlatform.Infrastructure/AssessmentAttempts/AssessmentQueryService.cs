@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -131,15 +132,51 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
                 a.Id, a.AssessmentId, a.Assessment.Title, a.Assessment.CourseId,
                 a.OverallScore!.Value, a.Assessment.PassingScore, a.Passed ?? false,
                 a.FinalizedAtUtc!.Value, a.FinalizationReason!.Value,
-                a.SkillResults
-                    .Select(s => new SkillScoreBreakdown(s.Skill, s.Score, s.QuestionCount)).ToList()))
+                new List<SkillScoreBreakdown>()))
             .SingleOrDefaultAsync(ct);
 
-        // Skill is stored as a string, so SQL ordering would use its name
-        // rather than the domain enum order.
-        return result is null ? null : result with
+        if (result is null)
+            return null;
+
+        // Chỉ đọc điểm chi tiết sau khi đã xác nhận đây là kết quả của Student.
+        // Đếm QuestionId khác nhau; không dùng số câu đã trả lời để xét đủ dữ liệu.
+        var skillRows = await db.AttemptSkillResults.AsNoTracking()
+            .Where(s => s.AttemptId == attemptId && s.Attempt.StudentUserId == studentId &&
+                s.QuestionCount >= SkillAnalysisRules.MinimumQuestionCount)
+            .Select(s => new
+            {
+                s.Skill, s.Score, s.QuestionCount,
+                DistinctCount = s.Attempt.Assessment.Questions
+                    .Where(q => q.Question.PrimarySkill == s.Skill)
+                    .Select(q => q.QuestionId).Distinct().Count(),
+                Maximum = s.Attempt.Assessment.Questions
+                    .Where(q => q.Question.PrimarySkill == s.Skill).Sum(q => q.Points),
+                Earned = s.Attempt.Assessment.Questions
+                    .Where(q => q.Question.PrimarySkill == s.Skill &&
+                        s.Attempt.Answers.Any(answer => answer.AssessmentQuestionId == q.Id &&
+                            q.Question.Options.Any(option => option.Id == answer.SelectedOptionId && option.IsCorrect)))
+                    .Sum(q => q.Points)
+            }).ToListAsync(ct);
+
+        // Skill lưu dạng chuỗi trong SQL; sắp xếp trong RAM theo thứ tự enum.
+        var breakdowns = new List<SkillScoreBreakdown>();
+        foreach (var skill in skillRows.OrderBy(s => s.Skill))
         {
-            SkillBreakdowns = result.SkillBreakdowns.OrderBy(s => s.Skill).ToList()
+            // Dữ liệu lịch sử thiếu/không khớp không được biến thành kết luận năng lực.
+            // Chỉ lọc dữ liệu trả về, tuyệt đối không sửa hoặc xóa SkillResult đã lưu.
+            if (skill.DistinctCount < SkillAnalysisRules.MinimumQuestionCount ||
+                skill.DistinctCount != skill.QuestionCount || skill.Maximum <= 0m ||
+                Math.Round(skill.Earned * 100m / skill.Maximum, 2) != skill.Score)
+                continue;
+
+            bool isWeak = SkillAnalysisRules.IsWeak(skill.Earned, skill.Maximum, skill.DistinctCount);
+            breakdowns.Add(new SkillScoreBreakdown(skill.Skill, skill.Score, skill.DistinctCount, isWeak));
+        }
+
+        // DTO chỉ chứa điểm tổng hợp; không trả Answer, Option hoặc Explanation.
+        return result with
+        {
+            SkillBreakdowns = breakdowns
         };
     }
 

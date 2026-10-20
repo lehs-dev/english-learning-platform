@@ -94,10 +94,11 @@
 
         @if (Model.SkillBreakdowns.Count == 0)
         {
-            <p class="muted" style="margin: 0;">Lượt làm lịch sử này chưa có dữ liệu phân rã điểm theo kỹ năng.</p>
+            <p class="muted" style="margin: 0;">Chưa đủ dữ liệu để hiển thị điểm theo kỹ năng. Mỗi kỹ năng cần ít nhất 3 câu hỏi khác nhau; không được xem nhóm thiếu dữ liệu là 0 điểm.</p>
         }
         else
         {
+            <p class="muted">Chỉ hiển thị kỹ năng có ít nhất 3 câu hỏi khác nhau. Điểm yếu được xác định khi điểm gốc dưới 60%, độc lập với ngưỡng đạt của bài.</p>
             <div class="assessment-table-wrap">
                 <table class="assessment-table">
                     <caption class="visually-hidden">Điểm kỹ năng chi tiết</caption>
@@ -112,8 +113,6 @@
                     <tbody>
                     @foreach (var skill in Model.SkillBreakdowns)
                     {
-                        var isStrong = skill.Score >= 80;
-                        var isModerate = skill.Score >= 50 && skill.Score < 80;
                         <tr>
                             <td style="font-weight: 700; color: var(--v2-dark);">
                                 <partial name="_UiText" model="skill.Skill" />
@@ -123,17 +122,14 @@
                                 @skill.Score.ToString("0.##")
                             </td>
                             <td>
-                                @if (isStrong)
+                                @* Không phân loại lại từ Score vì điểm hiển thị đã được làm tròn. *@
+                                @if (skill.IsWeak)
                                 {
-                                    <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;">Thành thạo</span>
-                                }
-                                else if (isModerate)
-                                {
-                                    <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Cần củng cố</span>
+                                    <span class="v2-pill-tag" style="background: #FEE2E2; color: #991B1B;">Cần cải thiện</span>
                                 }
                                 else
                                 {
-                                    <span class="v2-pill-tag" style="background: #FEE2E2; color: #991B1B;">Cần luyện thêm</span>
+                                    <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;">Không thuộc nhóm điểm yếu</span>
                                 }
                             </td>
                         </tr>
