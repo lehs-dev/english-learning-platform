@@ -12,8 +12,8 @@
     <div>
         <h1>@ViewData["Title"]</h1>
         <p class="muted">
-            Lưu cấu hình bản nháp. Chọn câu hỏi và Publish
-            sẽ được thực hiện ở các task tiếp theo.
+            Lưu cấu hình bản nháp, soạn câu hỏi và Preview đề đã lưu.
+            Chức năng Publish được thực hiện ở task tiếp theo.
         </p>
     </div>
 
@@ -146,5 +146,18 @@
            asp-route-id="@Model.Id">
             Soạn câu hỏi và points
         </a>
+        <a class="button secondary"
+        asp-controller="TeacherAssessmentPreview"
+        asp-action="Index"
+        asp-route-id="@Model.Id"
+        target="_blank"
+        rel="noopener">
+            Preview đề đã lưu
+        </a>
+
+        <p class="muted">
+            Preview mở ở tab mới và chỉ đọc dữ liệu đã lưu.
+            Những thay đổi cấu hình chưa lưu không xuất hiện trong Preview.
+        </p>
     </section>
 }
