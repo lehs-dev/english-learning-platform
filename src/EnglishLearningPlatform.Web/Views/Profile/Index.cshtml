@@ -82,4 +82,45 @@
             </form>
         </div>
     </div>
+    @if (Model.Role == "Student")
+    {
+        <section class="profile-card profile-assessment-results" id="assessment-results" aria-labelledby="assessment-results-title">
+            <h2 id="assessment-results-title">Kết quả đại diện — điểm cao nhất</h2>
+            <p class="card-description">Mỗi bài lấy lượt có điểm cao nhất. Điểm tổng và các kỹ năng luôn thuộc cùng lượt; đây không nhất thiết là lượt làm mới nhất.</p>
+            @if (Model.AssessmentResults.Count == 0)
+            {
+                <p>Chưa có kết quả bài kiểm tra năng lực.</p>
+            }
+            @foreach (var result in Model.AssessmentResults)
+            {
+                <article class="profile-assessment-result" data-representative-attempt="@result.AttemptId">
+                    <div class="profile-assessment-result-heading">
+                        <h3>@result.Title</h3>
+                        <strong>@result.OverallScore.ToString("0.##")%</strong>
+                    </div>
+                    <p class="card-description">Chấm lúc <time datetime="@result.FinalizedAtUtc.ToString("O")">@result.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm:ss") (UTC+7)</time></p>
+                    @if (result.Skills.Count == 0)
+                    {
+                        <p class="muted">Chưa đủ dữ liệu kỹ năng để phân tích; mỗi kỹ năng cần ít nhất 3 câu hỏi khác nhau.</p>
+                    }
+                    else
+                    {
+                        <div class="profile-assessment-skills">
+                            @foreach (var skill in result.Skills)
+                            {
+                                <span class="v2-pill-tag">
+                                    <partial name="_UiText" model="skill.Skill" />: @skill.Score.ToString("0.##")% · @skill.QuestionCount câu
+                                    @(skill.IsWeak ? "— Cần cải thiện" : "— Không thuộc nhóm điểm yếu")
+                                </span>
+                            }
+                        </div>
+                    }
+                    <div class="actions">
+                        <a class="button secondary" asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">Xem kết quả đại diện</a>
+                        <a class="button secondary" asp-controller="Assessment" asp-action="History" asp-route-id="@result.AssessmentId">Lịch sử các lượt làm</a>
+                    </div>
+                </article>
+            }
+        </section>
+    }
 </div>

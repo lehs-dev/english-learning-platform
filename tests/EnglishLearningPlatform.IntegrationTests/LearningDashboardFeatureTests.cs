@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
@@ -72,8 +73,13 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var when = DateTimeOffset.UtcNow.AddMinutes(-1);
         var chosen = Graded(data, 80, 1, Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"), when);
+        var pending = Graded(data, 100, 3);
+        pending.Status = AttemptStatus.Submitted;
+        var incomplete = Graded(data, 100, 3);
+        incomplete.FinalizationReason = null;
         db.Attempts.AddRange(chosen, Graded(data, 80, 3, Guid.Parse("11111111-1111-1111-1111-111111111111"), when),
-            Graded(data, 70, 3, finalized: when.AddMinutes(1)), Graded(data, 80, 3, finalized: when.AddMinutes(-1)));
+            Graded(data, 70, 3, finalized: when.AddMinutes(1)), Graded(data, 80, 3, finalized: when.AddMinutes(-1)),
+            pending, incomplete);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
         var result = await scope.ServiceProvider.GetRequiredService<IStudentLearningService>().DashboardAsync(data.Student.Id);
@@ -89,6 +95,163 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Contains(recommendation.Contents, c => c.Id == data.Practice.Id);
         Assert.All(db.ChangeTracker.Entries(), entry => Assert.Equal(EntityState.Unchanged, entry.State));
         Assert.Null(db.Database.CurrentTransaction);
+
+        // Cùng quy tắc tie-break phải đến được cả Dashboard lẫn Profile, không ghép Reading 100% từ lượt khác.
+        using var client = await ClientAsync(data.Student);
+        foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
+        {
+            string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
+            Assert.Contains($"data-representative-attempt=\"{chosen.Id}\"", html);
+            Assert.Contains($"/Assessment/Result/{chosen.Id}", html);
+            Assert.DoesNotContain($"data-representative-attempt=\"{pending.Id}\"", html);
+            Assert.DoesNotContain($"data-representative-attempt=\"{incomplete.Id}\"", html);
+            Assert.Matches(@"Đọc hiểu\s*: 33[,.]33%", html);
+            Assert.DoesNotMatch(@"Đọc hiểu\s*: 100%", html);
+        }
+    }
+
+    [Fact]
+    public async Task DashboardAndProfile_KeepHighest85AndItsSkills_WhenLatestAttemptScores70()
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var questions = await db.AssessmentQuestions.Where(q => q.AssessmentId == data.Assessment.Id)
+            .Include(q => q.Question).ThenInclude(q => q.Options).OrderBy(q => q.OrderIndex).ToListAsync();
+        // 12 câu, mỗi skill có đúng 3 câu; tổng vẫn là 20 điểm để kiểm tra 60/85/70%.
+        decimal[] points = [3m, 2m, 1m, 3m, 2m, 1m, 3m, 2m, 1m, 1m, 0.5m, 0.5m];
+        EnglishSkill[] skills = [EnglishSkill.Reading, EnglishSkill.Grammar, EnglishSkill.Listening, EnglishSkill.Vocabulary];
+        var audio = new Stimulus { OwnerTeacherUserId = data.Teacher.Id, StimulusType = StimulusType.Audio,
+            ResourceUrl = "https://example.com/r4-listening.mp3" };
+        db.Stimuli.Add(audio);
+        for (int index = 0; index < points.Length; index++)
+        {
+            if (index >= questions.Count)
+            {
+                var added = new AssessmentQuestion { AssessmentId = data.Assessment.Id, OrderIndex = index,
+                    Question = Question(data.Teacher.Id, skills[index / 3], index) };
+                db.AssessmentQuestions.Add(added);
+                questions.Add(added);
+            }
+            questions[index].Points = points[index];
+            questions[index].Question.PrimarySkill = skills[index / 3];
+            if (skills[index / 3] == EnglishSkill.Listening)
+                questions[index].Question.Stimulus = audio;
+        }
+        await db.SaveChangesAsync();
+
+        var attempts = scope.ServiceProvider.GetRequiredService<IAttemptService>();
+        // Có 3 bài đã chấm để bắt lỗi Profile vô tình chỉ hiện 2 bài giống preview Dashboard.
+        var extraAttemptIds = new List<Guid>();
+        for (int index = 0; index < 2; index++)
+        {
+            var extra = new Assessment { Title = $"R4 additional assessment {index}",
+                OwnerTeacherUserId = data.Teacher.Id, CourseId = data.Course.Id, Status = AssessmentStatus.Published,
+                AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 15, MaxAttempts = 1,
+                Questions = questions.Select(q => new AssessmentQuestion
+                { QuestionId = q.QuestionId, OrderIndex = q.OrderIndex, Points = q.Points }).ToList() };
+            db.Assessments.Add(extra);
+            await db.SaveChangesAsync();
+            var started = await attempts.StartAsync(data.Student.Id, extra.Id);
+            Assert.Equal(AttemptStartStatus.Started, started.Status);
+            var finalized = await attempts.FinalizeAsync(data.Student.Id, started.AttemptId!.Value);
+            Assert.Equal(AttemptFinalizeStatus.Graded, finalized.Status);
+            Assert.Equal(0m, finalized.OverallScore); // Điểm 0 thật khác với chưa có kết quả.
+            extraAttemptIds.Add(started.AttemptId.Value);
+        }
+
+        int[][] correctQuestions = [[0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11],
+            [1, 2, 4, 5, 6, 7, 8, 9, 10, 11]];
+        decimal[] scores = [60m, 85m, 70m];
+        var ids = new List<Guid>();
+        for (int index = 0; index < correctQuestions.Length; index++)
+        {
+            var started = await attempts.StartAsync(data.Student.Id, data.Assessment.Id);
+            Assert.Equal(AttemptStartStatus.Started, started.Status);
+            Guid id = started.AttemptId!.Value;
+            ids.Add(id);
+            for (int questionIndex = 0; questionIndex < questions.Count; questionIndex++)
+            {
+                bool correct = correctQuestions[index].Contains(questionIndex);
+                Guid optionId = questions[questionIndex].Question.Options.Single(option => option.IsCorrect == correct).Id;
+                Assert.Equal(AttemptSaveStatus.Saved,
+                    await attempts.SaveAnswerAsync(data.Student.Id, id, questions[questionIndex].Id, optionId));
+            }
+            var finalized = await attempts.FinalizeAsync(data.Student.Id, id);
+            Assert.Equal(AttemptFinalizeStatus.Graded, finalized.Status);
+            Assert.Equal(scores[index], finalized.OverallScore);
+        }
+
+        var learning = scope.ServiceProvider.GetRequiredService<IStudentLearningService>();
+        var representatives = (await learning.GetRepresentativeResultsAsync(data.Student.Id)).Value!;
+        Assert.Equal(3, representatives.Count);
+        var highest = Assert.Single(representatives, result => result.AssessmentId == data.Assessment.Id);
+        Assert.Equal(ids[1], highest.AttemptId);
+        Assert.Equal(85m, highest.OverallScore);
+        Assert.Equal(4, highest.Skills.Count);
+        Assert.All(highest.Skills, skill => Assert.Equal(3, skill.QuestionCount));
+        var reading = Assert.Single(highest.Skills, skill => skill.Skill == EnglishSkill.Reading);
+        Assert.Equal(EnglishSkill.Reading, reading.Skill);
+        Assert.Equal(100m, reading.Score);
+        // Lượt 85% có Listening 50%; lượt 70% có Listening 100% nhưng không được ghép vào đại diện.
+        Assert.Equal(50m, highest.Skills.Single(skill => skill.Skill == EnglishSkill.Listening).Score);
+        Assert.Equal(50m, await db.AttemptSkillResults.Where(s => s.AttemptId == ids[2] && s.Skill == EnglishSkill.Reading)
+            .Select(s => s.Score).SingleAsync());
+
+        using var client = await ClientAsync(data.Student);
+        foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
+        {
+            using var response = await client.GetAsync(path);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(response.Headers.CacheControl!.NoStore);
+            string responseHtml = await response.Content.ReadAsStringAsync();
+            string html = WebUtility.HtmlDecode(responseHtml);
+            Assert.Contains($"data-representative-attempt=\"{ids[1]}\"", html);
+            Assert.DoesNotContain($"data-representative-attempt=\"{ids[2]}\"", html);
+            Assert.Matches(@">85%<", html);
+            Assert.Matches(@"Đọc hiểu\s*: 100%", html);
+            Assert.Matches(@"Nghe hiểu\s*: 50%", html);
+            Assert.Contains("Từ vựng", html);
+            Assert.Contains("Ngữ pháp", html);
+            int shownResults = System.Text.RegularExpressions.Regex.Matches(html, "data-representative-attempt=").Count;
+            Assert.Equal(path == "/Profile" ? 3 : 2, shownResults);
+            if (path == "/Profile")
+            {
+                foreach (Guid extraId in extraAttemptIds)
+                    Assert.Contains($"/Assessment/Result/{extraId}", html);
+                Assert.Contains(">0%<", html); // Vẫn hiển thị các bài đã chấm thật sự đạt 0%.
+            }
+            Assert.DoesNotContain("PRIVATE_PRACTICE_EXPLANATION", html);
+
+            // Chỉ xuất HTML dữ liệu giả khi được yêu cầu để kiểm tra responsive, không lưu cookie/mật khẩu.
+            string? exportDirectory = Environment.GetEnvironmentVariable("ELP_R4_UI_EXPORT");
+            if (!string.IsNullOrWhiteSpace(exportDirectory))
+            {
+                Directory.CreateDirectory(exportDirectory);
+                string safeHtml = System.Text.RegularExpressions.Regex.Replace(responseHtml,
+                    "(name=\"__RequestVerificationToken\"[^>]*value=\")[^\"]*", "$1REDACTED");
+                await File.WriteAllTextAsync(Path.Combine(exportDirectory, path == "/Profile" ? "profile.html" : "dashboard.html"), safeHtml);
+            }
+        }
+
+        // Profile lỗi validation phải nạp lại kết quả từ server, bỏ qua điểm giả từ form.
+        string token = await IdentityTestHelpers.GetTokenAsync(client, "/Profile");
+        using var invalidProfile = await client.PostAsync("/Profile", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["FullName"] = "", ["AssessmentResults[0].OverallScore"] = "100",
+            ["__RequestVerificationToken"] = token
+        }));
+        Assert.Equal(HttpStatusCode.OK, invalidProfile.StatusCode);
+        Assert.Contains($"data-representative-attempt=\"{ids[1]}\"", await invalidProfile.Content.ReadAsStringAsync());
+        Assert.Equal(3, await db.Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
+
+        var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var outsider = await ClientAsync(other);
+        foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
+        {
+            string html = await outsider.GetStringAsync($"{path}?studentId={data.Student.Id}");
+            Assert.DoesNotContain($"data-representative-attempt=\"{ids[1]}\"", html);
+        }
     }
 
     [Fact]
@@ -162,6 +325,25 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Empty(foreign.Results);
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.ActivitiesAsync(other.Id, data.Course.Id)).Access);
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.DashboardAsync(data.Teacher.Id)).Access);
+
+        // Chỉ có lượt đang làm vẫn là "Chưa có kết quả", không phải representative 0%.
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Attempts.Add(new Attempt { StudentUserId = data.Student.Id, AssessmentId = data.Assessment.Id,
+            Status = AttemptStatus.InProgress, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(10) });
+        await db.SaveChangesAsync();
+        Assert.Empty((await learning.GetRepresentativeResultsAsync(data.Student.Id)).Value!);
+        Assert.Equal(LearningAccessResult.Forbidden, (await learning.GetRepresentativeResultsAsync(data.Teacher.Id)).Access);
+        using var client = await ClientAsync(data.Student);
+        foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
+        {
+            string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
+            Assert.Contains("Chưa có kết quả bài kiểm tra năng lực.", html);
+            Assert.DoesNotContain("data-representative-attempt=", html);
+        }
+        using var outsider = await ClientAsync(other);
+        string profile = await outsider.GetStringAsync($"/Profile?studentId={data.Student.Id}");
+        Assert.DoesNotContain("data-representative-attempt=", profile);
+        Assert.DoesNotContain(data.Assessment.Title, profile);
     }
 
     [Fact]
@@ -204,6 +386,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var learning = scope.ServiceProvider.GetRequiredService<IStudentLearningService>();
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.DashboardAsync(data.Student.Id)).Access);
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.AssessmentsAsync(data.Student.Id)).Access);
+        Assert.Equal(LearningAccessResult.Forbidden, (await learning.GetRepresentativeResultsAsync(data.Student.Id)).Access);
         var practice = scope.ServiceProvider.GetRequiredService<IPracticeService>();
         Assert.Equal(LearningAccessResult.Forbidden, (await practice.GetSheetAsync(data.Student.Id, data.Practice.Id)).Access);
         Assert.Equal(PracticeSubmitStatus.Forbidden, (await practice.SubmitAsync(data.Student.Id, data.Practice.Id, Responses(data))).Status);

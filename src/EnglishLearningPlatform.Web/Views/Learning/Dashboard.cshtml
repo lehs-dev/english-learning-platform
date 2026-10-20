@@ -372,9 +372,9 @@
         @* 3. Assessment Results Clean Card *@
         <div class="assessment-results-card" id="dashboard-results">
             <div class="clean-section-header" style="margin-top:0; margin-bottom:14px;">
-                <h2 class="clean-section-title" style="font-size:16px;">Kết quả đánh giá</h2>
-                <a asp-controller="Assessment" asp-action="Index" class="btn-outline-dark" style="padding:4px 10px; font-size:11px;">
-                    Thi đánh giá
+                <h2 class="clean-section-title" style="font-size:16px;">Kết quả cao nhất</h2>
+                <a asp-controller="Profile" asp-action="Index" asp-fragment="assessment-results" class="btn-outline-dark" style="padding:4px 10px; font-size:11px;">
+                    Tất cả kết quả
                 </a>
             </div>
 
@@ -382,20 +382,25 @@
             {
                 @foreach (var res in Model.Results.Take(2))
                 {
-                    <div class="result-item-row">
+                    <div class="result-item-row" data-representative-attempt="@res.AttemptId">
                         <div class="upcoming-title-price">
                             <h3 class="upcoming-course-name">
                                 <a asp-controller="Assessment" asp-action="Result" asp-route-id="@res.AttemptId">@res.Title</a>
                             </h3>
                             <span class="upcoming-course-price" style="color:var(--v2-dark);">@res.OverallScore.ToString("0.##")%</span>
                         </div>
+                        <p class="section-subtitle-clean">Điểm cao nhất · <time datetime="@res.FinalizedAtUtc.ToString("O")">@res.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time></p>
 
                         <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
-                            @foreach (var sk in res.Skills.Take(3))
+                            @foreach (var sk in res.Skills)
                             {
                                 <span class="pill-tag @(sk.IsWeak ? "pill-tag-orange" : "pill-tag-purple")">
                                     <partial name="_UiText" model="sk.Skill" />: @sk.Score.ToString("0.##")%
                                 </span>
+                            }
+                            @if (res.Skills.Count == 0)
+                            {
+                                <span class="section-subtitle-clean">Chưa đủ dữ liệu kỹ năng để phân tích.</span>
                             }
                         </div>
                     </div>

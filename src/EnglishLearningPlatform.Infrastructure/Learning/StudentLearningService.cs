@@ -12,12 +12,23 @@ public sealed class StudentLearningService(AppDbContext db, ICourseService cours
     {
         var mine = await courses.MyCoursesAsync(studentId, false, ct);
         if (mine.Access != LearningAccessResult.Allowed) return new(mine.Access);
-        var results = await RepresentativeResultsAsync(studentId, ct);
+        var representativeResults = await GetRepresentativeResultsAsync(studentId, ct);
+        if (representativeResults.Access != LearningAccessResult.Allowed) return new(representativeResults.Access);
+        var results = representativeResults.Value!;
         var recommendations = await RecommendationsAsync(studentId, mine.Value!, results, ct);
         var practiceResults = await db.PracticeSubmissions.AsNoTracking().Where(s => s.StudentUserId == studentId)
             .OrderByDescending(s => s.SubmittedAtUtc).ThenBy(s => s.Id).Take(20)
             .Select(s => new DashboardPracticeResult(s.PracticeId, s.Practice.Title, s.Score, s.SubmittedAtUtc)).ToListAsync(ct);
         return new(LearningAccessResult.Allowed, new(mine.Value!, results, recommendations) { PracticeResults = practiceResults });
+    }
+
+    public async Task<LearningOutcome<IReadOnlyList<RepresentativeAssessmentResult>>> GetRepresentativeResultsAsync(
+        Guid studentId, CancellationToken ct = default)
+    {
+        // Profile không cần tải khóa học/gợi ý, nhưng vẫn phải kiểm tra Student trong database.
+        if (!await db.IsStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
+        var results = await RepresentativeResultsAsync(studentId, ct);
+        return new(LearningAccessResult.Allowed, results);
     }
 
     public async Task<LearningOutcome<CourseActivities>> ActivitiesAsync(Guid studentId, Guid courseId, CancellationToken ct = default)
@@ -73,7 +84,8 @@ public sealed class StudentLearningService(AppDbContext db, ICourseService cours
     private async Task<List<RepresentativeAssessmentResult>> RepresentativeResultsAsync(Guid studentId, CancellationToken ct)
     {
         var attempts = await db.Attempts.AsNoTracking().Where(t => t.StudentUserId == studentId &&
-            t.Status == AttemptStatus.Graded && t.OverallScore.HasValue && t.FinalizedAtUtc.HasValue)
+            t.Status == AttemptStatus.Graded && t.OverallScore.HasValue && t.FinalizedAtUtc.HasValue &&
+            t.FinalizationReason.HasValue)
             .Select(t => new { t.Id, t.AssessmentId, t.Assessment.Title, Score = t.OverallScore!.Value, Finalized = t.FinalizedAtUtc!.Value })
             .ToListAsync(ct);
         // BR11.1: overall and skills come from the same highest-score attempt.
