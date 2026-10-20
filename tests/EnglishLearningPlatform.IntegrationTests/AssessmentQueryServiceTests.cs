@@ -517,6 +517,73 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         Assert.Equal(finalizedAt, (await query.GetAttemptResultAsync(data.Student, started.AttemptId.Value))!.FinalizedAtUtc);
     }
 
+    [Fact]
+    public async Task FinalizedAttempt_FractionalPointsAndBlanks_PersistSeparateSkillDenominators()
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var questions = await db.AssessmentQuestions
+            .Where(question => question.AssessmentId == data.Assessment.Id)
+            .Include(question => question.Question)
+                .ThenInclude(question => question.Options)
+            .OrderBy(question => question.OrderIndex)
+            .ToArrayAsync();
+
+        // Chỉ sắp xếp dữ liệu trong SQL Server test riêng, trước khi tạo Attempt.
+        // Mỗi skill có tối đa 5 điểm; cả đề có tối đa 10 điểm.
+        decimal[] points = { 1.25m, 2.5m, 1.25m, 3.75m, 1.25m };
+        for (int index = 0; index < questions.Length; index++)
+        {
+            questions[index].Points = points[index];
+            questions[index].Question.PrimarySkill = index < 3 ? EnglishSkill.Grammar : EnglishSkill.Vocabulary;
+        }
+        await db.SaveChangesAsync();
+
+        var service = scope.ServiceProvider.GetRequiredService<IAttemptService>();
+        var started = await service.StartAsync(data.Student, data.Assessment.Id);
+        Assert.Equal(AttemptStartStatus.Started, started.Status);
+        Assert.NotNull(started.AttemptId);
+        Guid attemptId = started.AttemptId.Value;
+
+        // Grammar: câu 0 đúng, câu 1 sai, câu 2 bỏ trống => 1.25 / 5 = 25%.
+        Guid firstCorrect = questions[0].Question.Options.Single(option => option.IsCorrect).Id;
+        Guid secondWrong = questions[1].Question.Options.Single(option => option.OrderIndex == 1).Id;
+        // Vocabulary: câu 3 đúng, câu 4 bỏ trống => 3.75 / 5 = 75%.
+        Guid fourthCorrect = questions[3].Question.Options.Single(option => option.IsCorrect).Id;
+        Assert.Equal(AttemptSaveStatus.Saved, await service.SaveAnswerAsync(data.Student, attemptId, questions[0].Id, firstCorrect));
+        Assert.Equal(AttemptSaveStatus.Saved, await service.SaveAnswerAsync(data.Student, attemptId, questions[1].Id, secondWrong));
+        Assert.Equal(AttemptSaveStatus.Saved, await service.SaveAnswerAsync(data.Student, attemptId, questions[3].Id, fourthCorrect));
+
+        var finalized = await service.FinalizeAsync(data.Student, attemptId);
+        Assert.Equal(AttemptFinalizeStatus.Graded, finalized.Status);
+        Assert.Equal(50m, finalized.OverallScore); // (1.25 + 3.75) / 10 = 50%.
+        Assert.False(finalized.Passed); // Fixture cấu hình PassingScore = 80%.
+
+        // Bỏ tracking để kiểm tra dữ liệu thật đã lưu, không chỉ object trong RAM.
+        db.ChangeTracker.Clear();
+        var stored = await db.Attempts.AsNoTracking()
+            .Include(attempt => attempt.Answers)
+            .Include(attempt => attempt.SkillResults)
+            .SingleAsync(attempt => attempt.Id == attemptId);
+        Assert.Equal(AttemptStatus.Graded, stored.Status);
+        Assert.Equal(50m, stored.OverallScore);
+        Assert.Equal(3, stored.Answers.Count);
+        var grammar = Assert.Single(stored.SkillResults, result => result.Skill == EnglishSkill.Grammar);
+        var vocabulary = Assert.Single(stored.SkillResults, result => result.Skill == EnglishSkill.Vocabulary);
+        Assert.Equal(2, stored.SkillResults.Count);
+        Assert.Equal(25m, grammar.Score);
+        Assert.Equal(3, grammar.QuestionCount);
+        Assert.Equal(75m, vocabulary.Score);
+        Assert.Equal(2, vocabulary.QuestionCount);
+
+        // R1 kiểm tra điểm được lưu. Quy tắc ẩn skill dưới 3 câu thuộc R2.
+        var query = scope.ServiceProvider.GetRequiredService<IAssessmentQueryService>();
+        var reloaded = await query.GetAttemptResultAsync(data.Student, attemptId);
+        Assert.NotNull(reloaded);
+        Assert.Equal(50m, reloaded.OverallScore);
+    }
+
     private sealed record Fixture(Guid Student, Guid Teacher, Assessment Assessment, Course? Course, Payment? Payment);
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
