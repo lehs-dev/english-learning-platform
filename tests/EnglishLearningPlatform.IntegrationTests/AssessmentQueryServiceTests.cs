@@ -350,6 +350,7 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         Assert.Null(await query.GetAssessmentOverviewAsync(data.Student, data.Assessment.Id));
         Assert.Null(await query.GetTakingSheetAsync(data.Student, active.Id));
         Assert.Null(await query.GetAttemptResultAsync(data.Student, graded.Id));
+        Assert.Null(await query.GetAttemptHistoryAsync(data.Student));
     }
 
     [Theory]
@@ -375,6 +376,7 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         Assert.Null(await query.GetAssessmentOverviewAsync(data.Student, data.Assessment.Id));
         Assert.Null(await query.GetTakingSheetAsync(data.Student, active.Id));
         Assert.Null(await query.GetAttemptResultAsync(data.Student, graded.Id));
+        Assert.Null(await query.GetAttemptHistoryAsync(data.Student, data.Assessment.Id));
     }
 
     [Theory]
@@ -676,6 +678,87 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var stored = await db.AttemptSkillResults.AsNoTracking().SingleAsync(s => s.AttemptId == attempt.Id);
         Assert.Equal(3, stored.QuestionCount); // GET không sửa/xóa dữ liệu lịch sử.
         Assert.Equal(0m, stored.Score);
+        Assert.Empty(db.ChangeTracker.Entries());
+    }
+
+    [Fact]
+    public async Task History_FiltersStudentAndAssessment_DistinguishesPendingGrades_WithoutWriting()
+    {
+        var data = await SeedAsync();
+        var otherAssessment = await SeedAsync();
+        var foreignStudent = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var expired = AttemptFor(data);
+        expired.DeadlineUtc = Now.AddSeconds(-1);
+        var submitted = AttemptFor(data, AttemptStatus.Submitted, 100m);
+        var autoSubmitted = AttemptFor(data, AttemptStatus.AutoSubmitted);
+        var graded = AttemptFor(data, AttemptStatus.Graded, 60m);
+        var incompleteGrade = AttemptFor(data, AttemptStatus.Graded, 99m);
+        incompleteGrade.FinalizationReason = null;
+        var foreignAttempt = AttemptFor(data, AttemptStatus.Graded, 90m);
+        foreignAttempt.StudentUserId = foreignStudent.Id;
+        var activeInOtherAssessment = AttemptFor(otherAssessment);
+        activeInOtherAssessment.StudentUserId = data.Student;
+        activeInOtherAssessment.DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(10);
+        db.Attempts.AddRange(expired, submitted, autoSubmitted, graded, incompleteGrade,
+            foreignAttempt, activeInOtherAssessment);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+        var before = await db.Attempts.AsNoTracking().Where(a => a.AssessmentId == data.Assessment.Id)
+            .OrderBy(a => a.Id).Select(a => new
+            {
+                a.Id, a.Status, a.OverallScore, a.FinalizedAtUtc, a.FinalizationReason, a.DeadlineUtc, a.UpdatedAtUtc
+            }).ToArrayAsync();
+        var query = new AssessmentQueryService(db, new FixedTimeProvider(Now));
+
+        var filtered = Assert.Single((await query.GetAttemptHistoryAsync(data.Student, data.Assessment.Id))!);
+        Assert.Equal(data.Assessment.Id, filtered.AssessmentId);
+        Assert.Equal(5, filtered.Attempts.Count);
+        Assert.DoesNotContain(filtered.Attempts, a => a.AttemptId == foreignAttempt.Id);
+        Assert.DoesNotContain(filtered.Attempts, a => a.AttemptId == activeInOtherAssessment.Id);
+        Assert.Equal(before.Where(a => a.Id != foreignAttempt.Id).Select(a => a.Id).Order(),
+            filtered.Attempts.Select(a => a.AttemptId).Order());
+        var complete = Assert.Single(filtered.Attempts, a => a.CanViewResult);
+        Assert.Equal(graded.Id, complete.AttemptId);
+        Assert.Equal(60m, complete.OverallScore);
+        Assert.Equal(graded.FinalizedAtUtc, complete.FinalizedAtUtc);
+        foreach (var pending in filtered.Attempts.Where(a => !a.CanViewResult))
+        {
+            Assert.Null(pending.OverallScore); // Không biến điểm tạm 100/99 thành điểm chính thức.
+            Assert.Null(pending.Passed);
+        }
+        Assert.Equal(AttemptStatus.Submitted, filtered.Attempts.Single(a => a.AttemptId == submitted.Id).Status);
+        Assert.Equal(AttemptStatus.AutoSubmitted, filtered.Attempts.Single(a => a.AttemptId == autoSubmitted.Id).Status);
+        Assert.Equal(expired.StartedAtUtc, filtered.Attempts.Single(a => a.AttemptId == expired.Id).StartedAtUtc);
+        Assert.Equal(expired.DeadlineUtc, filtered.Attempts.Single(a => a.AttemptId == expired.Id).DeadlineUtc);
+        Assert.Equal(2, (await query.GetAttemptHistoryAsync(data.Student))!.Count);
+        Assert.Empty((await query.GetAttemptHistoryAsync(data.Student, Guid.NewGuid()))!);
+        Assert.Empty(db.ChangeTracker.Entries());
+
+        // Kiểm tra nhãn trên Razor thật, gồm cả InProgress đã quá hạn và Submitted chưa chấm.
+        var student = await db.Users.AsNoTracking().SingleAsync(u => u.Id == data.Student);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, student);
+        Assert.Equal(System.Net.HttpStatusCode.Redirect, login.StatusCode);
+        using var filteredResponse = await client.GetAsync($"/Assessment/History/{data.Assessment.Id}");
+        Assert.Equal(System.Net.HttpStatusCode.OK, filteredResponse.StatusCode);
+        string html = System.Net.WebUtility.HtmlDecode(await filteredResponse.Content.ReadAsStringAsync());
+        Assert.Contains("Đã hết giờ, chờ chấm", html);
+        Assert.Contains("Chờ chấm", html);
+        Assert.Contains("Chưa có điểm", html);
+        Assert.Contains($"/Assessment/Result/{graded.Id}", html);
+        foreach (var pending in filtered.Attempts.Where(a => !a.CanViewResult))
+            Assert.DoesNotContain($"/Assessment/Result/{pending.AttemptId}", html);
+        using var allResponse = await client.GetAsync("/Assessment/History");
+        Assert.Contains("Đang làm", System.Net.WebUtility.HtmlDecode(await allResponse.Content.ReadAsStringAsync()));
+
+        var after = await db.Attempts.AsNoTracking().Where(a => a.AssessmentId == data.Assessment.Id)
+            .OrderBy(a => a.Id).Select(a => new
+            {
+                a.Id, a.Status, a.OverallScore, a.FinalizedAtUtc, a.FinalizationReason, a.DeadlineUtc, a.UpdatedAtUtc
+            }).ToArrayAsync();
+        Assert.Equal(before, after); // GET không finalize, sửa điểm hoặc đổi deadline.
         Assert.Empty(db.ChangeTracker.Entries());
     }
 

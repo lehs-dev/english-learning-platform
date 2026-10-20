@@ -176,6 +176,151 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         }
     }
 
+    [Fact]
+    public async Task History_ThreeWeightedAttemptsRemainSeparateAfterWithdrawalAndEnrollmentRevocation()
+    {
+        // Còn một lượt chưa dùng: bị chặn Start sau khi thu hồi quyền, không phải do hết lượt.
+        var data = await SeedAsync(maxAttempts: 4);
+        var questions = data.Assessment.Questions.OrderBy(question => question.OrderIndex).ToArray();
+        decimal[] points = [8m, 4m, 3m, 3m, 2m];
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var storedQuestions = await db.AssessmentQuestions.Where(question => question.AssessmentId == data.Assessment.Id)
+                .OrderBy(question => question.OrderIndex).ToListAsync();
+            for (int index = 0; index < storedQuestions.Count; index++)
+                storedQuestions[index].Points = points[index];
+            await db.SaveChangesAsync();
+        }
+
+        using var client = await StudentClient(data.Student);
+        string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        int[][] correctQuestions = [[0, 1], [0, 1, 2, 4], [0, 2, 3]];
+        decimal[] expectedScores = [60m, 85m, 70m];
+        var attempts = new List<(Guid Id, decimal Score)>();
+        var snapshots = new Dictionary<Guid, string>();
+        for (int index = 0; index < correctQuestions.Length; index++)
+        {
+            var answers = Answers(data, correctCount: 0);
+            foreach (int questionIndex in correctQuestions[index])
+                answers[$"Answers[{questionIndex}].SelectedOptionId"] = questions[questionIndex].Question.Options
+                    .Single(option => option.IsCorrect).Id.ToString();
+
+            Guid attemptId = await Start(client, data, token);
+            using var submitted = await Post(client, $"/Assessment/Submit/{attemptId}", token, answers);
+            Assert.Equal(HttpStatusCode.Redirect, submitted.StatusCode);
+            Assert.Equal($"/Assessment/Result/{attemptId}", submitted.Headers.Location!.ToString());
+            attempts.Add((attemptId, expectedScores[index]));
+            using (var scope = factory.Services.CreateScope())
+            {
+                var result = await scope.ServiceProvider.GetRequiredService<IAssessmentQueryService>()
+                    .GetAttemptResultAsync(data.Student.Id, attemptId);
+                Assert.NotNull(result);
+                Assert.Equal(expectedScores[index], result.OverallScore);
+            }
+
+            // Tạo/chấm lượt tiếp theo không được đổi đáp án, điểm hoặc thời gian của lượt trước.
+            foreach (var previous in snapshots)
+                Assert.Equal(previous.Value, await Snapshot(previous.Key));
+            snapshots.Add(attemptId, await Snapshot(attemptId));
+        }
+        Assert.Equal(3, attempts.Select(attempt => attempt.Id).Distinct().Count());
+        await AssertHistoryAndResults();
+
+        foreach (var status in new[] { AssessmentStatus.Unpublished, AssessmentStatus.Archived })
+        {
+            using (var scope = factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                await db.Assessments.Where(assessment => assessment.Id == data.Assessment.Id)
+                    .ExecuteUpdateAsync(update => update.SetProperty(assessment => assessment.Status, status));
+                await db.Courses.Where(course => course.Id == data.Course.Id)
+                    .ExecuteUpdateAsync(update => update.SetProperty(course => course.Status, CourseStatus.Archived));
+                // LessonProgress tham chiếu Enrollment: xóa bản ghi con trước để không vi phạm FK.
+                await db.LessonProgressEntries.Where(progress => progress.Enrollment.StudentUserId == data.Student.Id
+                    && progress.Enrollment.CourseId == data.Course.Id).ExecuteDeleteAsync();
+                await db.Enrollments.Where(enrollment => enrollment.StudentUserId == data.Student.Id
+                    && enrollment.CourseId == data.Course.Id).ExecuteDeleteAsync();
+            }
+
+            using var index = await client.GetAsync("/Assessment");
+            Assert.Equal(HttpStatusCode.OK, index.StatusCode);
+            string indexHtml = WebUtility.HtmlDecode(await index.Content.ReadAsStringAsync());
+            Assert.Contains("Chưa có bài đánh giá nào khả dụng", indexHtml);
+            Assert.Contains("/Assessment/History", indexHtml);
+            await AssertHistoryAndResults();
+            using var blockedStart = await Post(client, $"/Assessment/Start/{data.Assessment.Id}", token);
+            Assert.Equal(HttpStatusCode.Redirect, blockedStart.StatusCode);
+            Assert.Contains("/Account/AccessDenied", blockedStart.Headers.Location!.ToString());
+        }
+
+        var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var otherClient = await StudentClient(other);
+        using var foreignHistory = await otherClient.GetAsync($"/Assessment/History/{data.Assessment.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, foreignHistory.StatusCode);
+        using var ownEmptyHistory = await otherClient.GetAsync("/Assessment/History");
+        Assert.Equal(HttpStatusCode.OK, ownEmptyHistory.StatusCode);
+        Assert.DoesNotContain(data.Assessment.Title, await ownEmptyHistory.Content.ReadAsStringAsync());
+        foreach (var attempt in attempts)
+        {
+            using var foreignResult = await otherClient.GetAsync($"/Assessment/Result/{attempt.Id}");
+            Assert.Equal(HttpStatusCode.NotFound, foreignResult.StatusCode);
+            Assert.Equal(snapshots[attempt.Id], await Snapshot(attempt.Id));
+        }
+        using (var scope = factory.Services.CreateScope())
+            Assert.Equal(3, await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts
+                .CountAsync(attempt => attempt.AssessmentId == data.Assessment.Id));
+
+        async Task AssertHistoryAndResults()
+        {
+            foreach (string path in new[] { "/Assessment/History", $"/Assessment/History/{data.Assessment.Id}" })
+            {
+                using var response = await client.GetAsync(path);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.True(response.Headers.CacheControl!.NoStore);
+                string html = await response.Content.ReadAsStringAsync();
+                Assert.Contains(data.Assessment.Title, html);
+                Assert.DoesNotContain($"/Assessment/Start/{data.Assessment.Id}", html);
+                foreach (var attempt in attempts)
+                    Assert.Contains($"/Assessment/Result/{attempt.Id}", html);
+                AssertResultDoesNotExposeAnswers(html, data);
+            }
+            foreach (var attempt in attempts)
+            {
+                using var response = await client.GetAsync($"/Assessment/Result/{attempt.Id}");
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                string html = await response.Content.ReadAsStringAsync();
+                Assert.Matches($@"{attempt.Score:0.##}<span\b", html);
+                Assert.Contains($"/Assessment/History/{data.Assessment.Id}", html);
+                AssertResultDoesNotExposeAnswers(html, data);
+            }
+        }
+
+        async Task<string> Snapshot(Guid attemptId)
+        {
+            using var scope = factory.Services.CreateScope();
+            var attempt = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.AsNoTracking()
+                .Include(item => item.Answers).Include(item => item.SkillResults)
+                .SingleAsync(item => item.Id == attemptId);
+            // Sắp xếp bản ghi con để so sánh dữ liệu, không phụ thuộc thứ tự SQL trả về.
+            return JsonSerializer.Serialize(new
+            {
+                attempt.Id, attempt.StudentUserId, attempt.AssessmentId, attempt.Status,
+                attempt.StartedAtUtc, attempt.DeadlineUtc, attempt.FinalizedAtUtc, attempt.FinalizationReason,
+                attempt.OverallScore, attempt.Passed, attempt.CreatedAtUtc, attempt.UpdatedAtUtc,
+                Answers = attempt.Answers.OrderBy(answer => answer.Id).Select(answer => new
+                {
+                    answer.Id, answer.AssessmentQuestionId, answer.SelectedOptionId,
+                    answer.SavedAtUtc, answer.CreatedAtUtc, answer.UpdatedAtUtc
+                }),
+                Skills = attempt.SkillResults.OrderBy(skill => skill.Id).Select(skill => new
+                {
+                    skill.Id, skill.Skill, skill.Score, skill.QuestionCount, skill.CreatedAtUtc, skill.UpdatedAtUtc
+                })
+            });
+        }
+    }
+
     [Theory]
     [InlineData(3)]
     [InlineData(2)]

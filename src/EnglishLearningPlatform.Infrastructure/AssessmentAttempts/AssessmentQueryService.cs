@@ -36,7 +36,8 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
         var attempts = await db.Attempts.AsNoTracking()
             .Where(a => a.StudentUserId == studentId && a.AssessmentId == assessmentId)
             .OrderByDescending(a => a.StartedAtUtc).ThenBy(a => a.Id)
-            .Select(a => new { a.Id, a.Status, a.OverallScore, a.DeadlineUtc, a.StartedAtUtc, a.FinalizedAtUtc, a.Passed })
+            .Select(a => new { a.Id, a.Status, a.OverallScore, a.DeadlineUtc, a.StartedAtUtc,
+                a.FinalizedAtUtc, a.FinalizationReason, a.Passed })
             .ToListAsync(ct);
         var now = timeProvider.GetUtcNow();
         var active = attempts.SingleOrDefault(a => a.Status == AttemptStatus.InProgress && a.DeadlineUtc > now);
@@ -63,8 +64,58 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
             Status = assessment.Status,
             QuestionCount = assessment.QuestionCount,
             AttemptHistory = attempts.Select(a => new AssessmentAttemptHistoryModel(
-                a.Id, a.Status, a.StartedAtUtc, a.DeadlineUtc, a.FinalizedAtUtc, a.OverallScore, a.Passed)).ToList()
+                a.Id, a.Status, a.StartedAtUtc, a.DeadlineUtc, a.FinalizedAtUtc, a.OverallScore, a.Passed)
+            {
+                CanViewResult = a.Status == AttemptStatus.Graded && a.OverallScore.HasValue &&
+                    a.FinalizedAtUtc.HasValue && a.FinalizationReason.HasValue
+            }).ToList()
         };
+    }
+
+    public async Task<IReadOnlyList<AssessmentHistoryView>?> GetAttemptHistoryAsync(
+        Guid studentId,
+        Guid? assessmentId = null,
+        CancellationToken ct = default)
+    {
+        if (!await IsActiveStudentAsync(studentId, ct))
+            return null;
+
+        // Quyền xem lịch sử khác quyền Start: chỉ cần đây là Attempt của chính Student.
+        // Không yêu cầu đề còn Published hoặc Enrollment còn hiệu lực, không tự chấm bài.
+        var rows = await db.Attempts.AsNoTracking()
+            .Where(a => a.StudentUserId == studentId &&
+                (!assessmentId.HasValue || a.AssessmentId == assessmentId.Value))
+            .OrderByDescending(a => a.StartedAtUtc).ThenByDescending(a => a.Id)
+            .Select(a => new
+            {
+                a.AssessmentId, a.Assessment.Title, AssessmentStatus = a.Assessment.Status,
+                a.Id, a.Status, a.StartedAtUtc, a.DeadlineUtc,
+                a.FinalizedAtUtc, a.FinalizationReason, a.OverallScore, a.Passed
+            }).ToListAsync(ct);
+
+        var history = new List<AssessmentHistoryView>();
+        foreach (var group in rows.GroupBy(row => row.AssessmentId))
+        {
+            var attempts = new List<AssessmentAttemptHistoryModel>();
+            foreach (var row in group)
+            {
+                bool canViewResult = row.Status == AttemptStatus.Graded && row.OverallScore.HasValue &&
+                    row.FinalizedAtUtc.HasValue && row.FinalizationReason.HasValue;
+                attempts.Add(new AssessmentAttemptHistoryModel(
+                    row.Id, row.Status, row.StartedAtUtc, row.DeadlineUtc, row.FinalizedAtUtc,
+                    canViewResult ? row.OverallScore : null, canViewResult ? row.Passed : null)
+                {
+                    CanViewResult = canViewResult
+                });
+            }
+
+            var assessment = group.First();
+            history.Add(new AssessmentHistoryView(
+                assessment.AssessmentId, assessment.Title, assessment.AssessmentStatus, attempts));
+        }
+
+        // Không gọi SaveChanges: xem/F5 lịch sử không sửa trạng thái, điểm hoặc deadline.
+        return history;
     }
 
     public async Task<AssessmentTakingSheet?> GetTakingSheetAsync(

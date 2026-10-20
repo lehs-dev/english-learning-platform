@@ -88,6 +88,20 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
         return result is null ? NotFound() : View(result);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> History(Guid? id, CancellationToken ct)
+    {
+        // StudentId luôn lấy từ phiên đăng nhập, không nhận userId từ URL/form.
+        var history = await queries.GetAttemptHistoryAsync(StudentId, id, ct);
+        if (history is null)
+            return Forbid();
+        if (id.HasValue && history.Count == 0)
+            return NotFound();
+
+        ViewData["FilteredHistory"] = id.HasValue;
+        return View(history);
+    }
+
     private IActionResult LimitReached(Guid assessmentId)
     {
         TempData["AssessmentError"] = "Bạn đã sử dụng hết lượt làm bài. Các kết quả đã nộp vẫn được lưu trong lịch sử.";
