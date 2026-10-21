@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Data;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Infrastructure.Stimuli;
+using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
@@ -18,10 +21,13 @@ public sealed class TeacherAssessmentDraftService
 {
     private readonly AppDbContext _db;
     private readonly ILogger<TeacherAssessmentDraftService> _logger;
+    private readonly IAssessmentDefinitionValidator _definitionValidator;
+    private readonly IStimulusAudioStore _audioStore;
 
     public TeacherAssessmentDraftService(
         AppDbContext db,
-        ILogger<TeacherAssessmentDraftService> logger)
+        ILogger<TeacherAssessmentDraftService> logger,
+        IAssessmentDefinitionValidator definitionValidator, IStimulusAudioStore audioStore)
     {
         if (db == null)
         {
@@ -33,8 +39,15 @@ public sealed class TeacherAssessmentDraftService
             throw new ArgumentNullException(nameof(logger));
         }
 
+        if (definitionValidator == null)
+        {
+            throw new ArgumentNullException(nameof(definitionValidator));
+        }
+
         _db = db;
         _logger = logger;
+        _definitionValidator = definitionValidator;
+        _audioStore = audioStore;
     }
 
     /// <summary>
@@ -69,9 +82,20 @@ public sealed class TeacherAssessmentDraftService
                 MaxAttempts = assessment.MaxAttempts,
                 PassingScore = assessment.PassingScore,
                 QuestionCount = assessment.Questions.Count,
+                CourseId = assessment.CourseId,
+                UpdatedAtUtc = assessment.UpdatedAtUtc,
+                // Không tiết lộ tên Course khác owner nếu liên kết cũ bị sai.
+                CourseTitle = assessment.Course != null
+                    && assessment.Course.OwnerTeacherUserId == actorUserId
+                        ? assessment.Course.Title : null,
 
                 CanEditDraft =
                     assessment.Status == AssessmentStatus.Draft
+                    && !assessment.Attempts.Any(),
+
+                CanEditConfiguration =
+                    (assessment.Status == AssessmentStatus.Draft
+                        || assessment.Status == AssessmentStatus.Published)
                     && !assessment.Attempts.Any()
             })
             .ToListAsync(cancellationToken);
@@ -82,11 +106,11 @@ public sealed class TeacherAssessmentDraftService
     }
 
     /// <summary>
-    /// Đọc Draft thuộc Teacher để điền vào form.
+    /// Đọc cấu hình Draft/Published thuộc Teacher khi chưa có Attempt.
     /// Không trả entity đang được EF theo dõi.
     /// </summary>
-    public async Task<LearningOutcome<AssessmentDraftRequest>>
-        GetDraftAsync(
+    public async Task<LearningOutcome<TeacherAssessmentConfigurationEditor>>
+        GetConfigurationEditorAsync(
             Guid actorUserId,
             Guid assessmentId,
             CancellationToken cancellationToken = default)
@@ -131,7 +155,11 @@ public sealed class TeacherAssessmentDraftService
                 attempt => attempt.AssessmentId == assessmentId,
                 cancellationToken);
 
-        if (assessment.Status != AssessmentStatus.Draft || hasAttempt)
+        bool editableStatus =
+            assessment.Status == AssessmentStatus.Draft
+            || assessment.Status == AssessmentStatus.Published;
+
+        if (!editableStatus || hasAttempt)
         {
             return new(LearningAccessResult.Forbidden);
         }
@@ -148,18 +176,79 @@ public sealed class TeacherAssessmentDraftService
             ExpectedUpdatedAtUtc = assessment.UpdatedAtUtc
         };
 
-        return new(LearningAccessResult.Allowed, input);
+        return new(
+            LearningAccessResult.Allowed,
+            new TeacherAssessmentConfigurationEditor
+            {
+                Status = assessment.Status,
+                Input = input
+            });
     }
 
     /// <summary>
-    /// Tạo hoặc sửa cấu hình Draft.
-    /// Mọi thay đổi được commit cùng nhau hoặc rollback cùng nhau.
+    /// Giữ hợp đồng Draft-only cho các chức năng đang dùng hàm cũ.
+    /// Không tự mở quyền soạn câu hỏi Published.
     /// </summary>
-    public async Task<WriteOutcome> SaveDraftAsync(
+    public async Task<LearningOutcome<AssessmentDraftRequest>> GetDraftAsync(
+        Guid actorUserId,
+        Guid assessmentId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await GetConfigurationEditorAsync(
+            actorUserId, assessmentId, cancellationToken);
+
+        if (result.Access != LearningAccessResult.Allowed)
+        {
+            return new(result.Access);
+        }
+
+        if (result.Value == null)
+        {
+            return new(LearningAccessResult.NotFound);
+        }
+
+        if (result.Value.Status != AssessmentStatus.Draft)
+        {
+            return new(LearningAccessResult.Forbidden);
+        }
+
+        return new(LearningAccessResult.Allowed, result.Value.Input);
+    }
+
+    // Caller cũ chỉ được lưu Draft.
+    public Task<WriteOutcome> SaveDraftAsync(
         Guid actorUserId,
         Guid? assessmentId,
         AssessmentDraftRequest request,
         CancellationToken cancellationToken = default)
+    {
+        return SaveConfigurationCoreAsync(
+            actorUserId, assessmentId, request,
+            allowPublished: false, cancellationToken: cancellationToken);
+    }
+
+    // Trang cấu hình được sửa Published, nhưng chỉ trước Attempt đầu tiên.
+    public Task<WriteOutcome> SaveConfigurationAsync(
+        Guid actorUserId,
+        Guid? assessmentId,
+        AssessmentDraftRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        return SaveConfigurationCoreAsync(
+            actorUserId, assessmentId, request,
+            allowPublished: true, cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Lưu cấu hình theo phạm vi cho phép của caller.
+    /// Mọi thay đổi được commit cùng nhau hoặc rollback cùng nhau.
+    /// </summary>
+    private async Task<WriteOutcome> SaveConfigurationCoreAsync(
+        Guid actorUserId,
+        Guid? assessmentId,
+        AssessmentDraftRequest request,
+        bool allowPublished,
+        CancellationToken cancellationToken)
     {
         if (request == null)
         {
@@ -205,16 +294,18 @@ public sealed class TeacherAssessmentDraftService
                     IsolationLevel.Serializable,
                     cancellationToken);
 
+            Course? linkedCourse = null;
+
             if (courseId.HasValue)
             {
-                var course = await _db.Courses
+                linkedCourse = await _db.Courses
                     .FromSqlInterpolated(
                         $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId.Value}")
                     .AsNoTracking()
                     .SingleOrDefaultAsync(cancellationToken);
 
-                if (course == null
-                    || course.OwnerTeacherUserId != actorUserId)
+                if (linkedCourse == null
+                    || linkedCourse.OwnerTeacherUserId != actorUserId)
                 {
                     return WriteOutcome.Denied(
                         LearningAccessResult.NotFound);
@@ -254,12 +345,18 @@ public sealed class TeacherAssessmentDraftService
                             attempt.AssessmentId == assessmentId.Value,
                         cancellationToken);
 
-                if (existing.Status != AssessmentStatus.Draft
-                    || hasAttempt)
+                bool editableStatus =
+                    existing.Status == AssessmentStatus.Draft
+                    || (allowPublished
+                        && existing.Status == AssessmentStatus.Published);
+
+                if (!editableStatus || hasAttempt)
                 {
                     return Failure(
                         assessmentId.Value,
-                        "Chỉ được sửa Assessment Draft chưa có Attempt.");
+                        allowPublished
+                            ? "Chỉ được sửa cấu hình Draft hoặc Published chưa có Attempt."
+                            : "Chỉ được sửa Assessment Draft chưa có Attempt.");
                 }
 
                 if (existing.UpdatedAtUtc
@@ -302,7 +399,58 @@ public sealed class TeacherAssessmentDraftService
                     errors);
             }
 
-            // Chỉ chép những trường thuộc phạm vi cấu hình Draft.
+            // Kiểm tra bản dự kiến trước khi thay đổi entity thật.
+            // Không lấy owner, trạng thái hay CourseId từ form.
+            var candidate = new AssessmentEntity
+            {
+                Id = assessment.Id,
+                OwnerTeacherUserId = assessment.OwnerTeacherUserId,
+                CourseId = assessment.CourseId,
+                Status = assessment.Status,
+                Title = request.Title.Trim(),
+                Description = request.Description?.Trim(),
+                AssessmentType = request.AssessmentType!.Value,
+                TargetSkill = request.TargetSkill,
+                DurationMinutes = request.DurationMinutes,
+                MaxAttempts = request.MaxAttempts,
+                PassingScore = request.PassingScore
+            };
+
+            var publishedQuestions = new List<AssessmentQuestion>();
+
+            if (assessment.Status == AssessmentStatus.Published)
+            {
+                // Dùng câu hỏi đã lưu; theo dõi entity để giữ dấu khóa sau validation.
+                publishedQuestions = await _db.AssessmentQuestions
+                    .Where(item => item.AssessmentId == assessment.Id)
+                    .Include(item => item.Question)
+                        .ThenInclude(question => question.Options)
+                    .Include(item => item.Question)
+                        .ThenInclude(question => question.Stimulus)
+                    .AsSingleQuery()
+                    .OrderBy(item => item.OrderIndex)
+                    .ThenBy(item => item.Id)
+                    .ToListAsync(cancellationToken);
+
+                var finalCourses = await _db.Courses
+                    .AsNoTracking()
+                    .Where(course => course.FinalAssessmentId == assessment.Id)
+                    .ToListAsync(cancellationToken);
+
+                var definitionErrors = _definitionValidator.Validate(
+                    candidate, publishedQuestions, linkedCourse,
+                    finalCourses, isFirstPublish: false);
+
+                if (definitionErrors.Count > 0)
+                {
+                    return Failure(assessment.Id, definitionErrors.ToArray());
+                }
+                string? audioError = await StimulusAudioIntegrity.GetErrorAsync(
+                    publishedQuestions.Select(q => q.Question.Stimulus), _audioStore, cancellationToken);
+                if (audioError != null) return Failure(assessment.Id, audioError);
+            }
+
+            // Chỉ chép những trường thuộc phạm vi cấu hình.
             // Không chép owner, status, CourseId, Questions hoặc Attempts.
             assessment.Title = request.Title.Trim();
             assessment.Description = request.Description?.Trim();
@@ -312,9 +460,19 @@ public sealed class TeacherAssessmentDraftService
             assessment.MaxAttempts = request.MaxAttempts;
             assessment.PassingScore = request.PassingScore;
 
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+
+            // Nội dung đã công bố vẫn bị khóa, kể cả sửa cấu hình trước Attempt.
+            // LockContent giữ nguyên thời điểm khóa nếu đã có.
+            foreach (var item in publishedQuestions)
+            {
+                item.Question.LockContent(now);
+                item.Question.Stimulus?.LockContent(now);
+            }
+
             if (assessmentId.HasValue)
             {
-                assessment.UpdatedAtUtc = DateTimeOffset.UtcNow;
+                assessment.UpdatedAtUtc = now;
             }
             else
             {
@@ -336,7 +494,7 @@ public sealed class TeacherAssessmentDraftService
             // Không ghi nội dung đề hoặc dữ liệu nhạy cảm vào log.
             _logger.LogError(
                 exception,
-                "Saving Assessment Draft failed for {AssessmentId}.",
+                "Saving Assessment configuration failed for {AssessmentId}.",
                 assessmentId);
 
             return Failure(
@@ -415,14 +573,14 @@ public sealed class TeacherAssessmentDraftService
     /// </summary>
     private static WriteOutcome Failure(
         Guid assessmentId,
-        string message)
+        params string[] messages)
     {
         return new WriteOutcome(
             LearningAccessResult.Allowed,
             assessmentId,
             new Dictionary<string, string[]>
             {
-                [string.Empty] = new string[] { message }
+                [string.Empty] = messages
             });
     }
 }

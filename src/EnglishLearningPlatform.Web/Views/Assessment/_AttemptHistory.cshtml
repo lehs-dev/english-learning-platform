@@ -1,0 +1,71 @@
+@using EnglishLearningPlatform.Application.Assessment
+@using EnglishLearningPlatform.Domain.Enums
+@model IReadOnlyList<AssessmentAttemptHistoryModel>
+@inject TimeProvider Clock
+@{
+    // Chỉ dùng giờ server để ghi nhãn; đọc lịch sử không tự finalize lượt quá hạn.
+    var now = Clock.GetUtcNow();
+}
+
+<div class="assessment-table-wrap">
+    <table class="assessment-table">
+        <caption class="visually-hidden">Lịch sử các lượt làm bài đánh giá</caption>
+        <thead>
+            <tr>
+                <th scope="col">Bắt đầu (UTC+7)</th>
+                <th scope="col">Chấm xong (UTC+7)</th>
+                <th scope="col">Trạng thái</th>
+                <th scope="col">Điểm / 100</th>
+                <th scope="col">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var attempt in Model)
+        {
+            <tr>
+                <td><time datetime="@attempt.StartedAtUtc.ToString("O")">@attempt.StartedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm:ss")</time></td>
+                <td>
+                    @if (attempt.CanViewResult && attempt.FinalizedAtUtc is DateTimeOffset finalizedAt)
+                    {
+                        <time datetime="@finalizedAt.ToString("O")">@finalizedAt.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm:ss")</time>
+                    }
+                    else
+                    {
+                        <span>Chưa chấm xong</span>
+                    }
+                </td>
+                <td>
+                    @if (attempt.CanViewResult)
+                    {
+                        <span class="v2-pill-tag">Đã chấm</span>
+                    }
+                    else if (attempt.Status == AttemptStatus.InProgress && attempt.DeadlineUtc > now)
+                    {
+                        <span class="v2-pill-tag">Đang làm</span>
+                    }
+                    else if (attempt.Status == AttemptStatus.InProgress)
+                    {
+                        <span class="v2-pill-tag">Đã hết giờ, chờ chấm</span>
+                    }
+                    else
+                    {
+                        <span class="v2-pill-tag">Chờ chấm</span>
+                    }
+                </td>
+                @* Không dùng điểm tạm/metadata thiếu của lượt chưa chấm làm điểm chính thức. *@
+                <td>@(attempt.CanViewResult ? attempt.OverallScore?.ToString("0.##") : "Chưa có điểm")</td>
+                <td>
+                    @if (attempt.CanViewResult)
+                    {
+                        <a class="button secondary" asp-action="Result" asp-route-id="@attempt.AttemptId">Xem kết quả</a>
+                    }
+                    else
+                    {
+                        <span class="muted">Chưa có kết quả</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

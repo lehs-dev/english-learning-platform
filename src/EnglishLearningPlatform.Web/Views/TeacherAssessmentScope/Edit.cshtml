@@ -1,0 +1,92 @@
+@model EnglishLearningPlatform.Web.Models.Assessment.TeacherAssessmentScopeViewModel
+@{
+    Layout = "_LayoutTeacher";
+    ViewData["Title"] = "Phạm vi Assessment";
+    ViewData["ActiveSection"] = "assessments";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Phạm vi Assessment</h1>
+        <p>@Model.Editor.Title</p>
+    </div>
+    <a class="button secondary" asp-controller="TeacherAssessments" asp-action="Index">Về danh sách</a>
+</div>
+
+<section class="panel" data-scope-editor
+         data-can-change="@Model.Editor.CanChangeScope.ToString().ToLowerInvariant()"
+         data-has-attempt="@Model.Editor.HasAttempt.ToString().ToLowerInvariant()"
+         data-is-final="@Model.Editor.IsFinal.ToString().ToLowerInvariant()">
+    <h2>Phạm vi hiện tại</h2>
+    <dl class="assessment-details">
+        <div>
+            <dt>Trạng thái đề</dt>
+            <dd>@Model.Editor.Status</dd>
+        </div>
+        <div>
+            <dt>Phạm vi truy cập</dt>
+            <dd data-current-scope>
+                @(Model.Editor.CourseId.HasValue ? Model.Editor.CourseTitle : "Độc lập (Independent)")
+            </dd>
+        </div>
+    </dl>
+
+    <div asp-validation-summary="All" class="validation" role="alert"></div>
+
+    @if (!Model.Editor.CanChangeScope)
+    {
+        <p class="notice" role="status" data-scope-lock>@Model.Editor.LockReason</p>
+        @if (Model.Editor.IsFinal && Model.Editor.CourseId.HasValue)
+        {
+            <p><a class="button secondary" asp-controller="TeacherCourseFinal" asp-action="Edit"
+                  asp-route-id="@Model.Editor.CourseId">Quản lý Final của Course</a></p>
+        }
+        <p class="muted">Không có thao tác đổi phạm vi trên trang này. Nội dung và lịch sử làm bài được giữ nguyên.</p>
+    }
+    else
+    {
+        <form id="assessment-scope-form" class="editor-form" method="post"
+              asp-controller="TeacherAssessmentScope" asp-action="Edit"
+              asp-route-id="@Model.Editor.AssessmentId" asp-antiforgery="true">
+            @* Giữ đầy đủ độ chính xác của version để phát hiện tab cũ. *@
+            <input type="hidden" name="Input.ExpectedUpdatedAtUtc"
+                   value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" />
+
+            <label asp-for="Input.CourseId">Phạm vi mới</label>
+            <select asp-for="Input.CourseId">
+                <option value="">Độc lập (Independent)</option>
+                @foreach (var course in Model.Editor.Courses)
+                {
+                    <option value="@course.Id">@course.Title (@course.Status)</option>
+                }
+                @* Course hiện tại có thể vừa Archived nên không còn trong danh sách đích.
+                   Vẫn hiển thị lựa chọn hiện tại, không âm thầm chọn Independent thay Teacher. *@
+                @if (Model.Editor.CourseId.HasValue
+                    && !Model.Editor.Courses.Any(course => course.Id == Model.Editor.CourseId.Value))
+                {
+                    <option value="@Model.Editor.CourseId">@Model.Editor.CourseTitle — Course hiện tại</option>
+                }
+            </select>
+            <span asp-validation-for="Input.CourseId" class="validation"></span>
+
+            <p class="muted">
+                Độc lập: Student đăng nhập được xem và bắt đầu khi đề Published.
+                Gắn Course: chỉ Student có Enrollment hợp lệ của Course đó được truy cập.
+                Khóa trả phí chưa thanh toán xong không mở quyền làm bài.
+            </p>
+            <p class="notice">
+                Chỉ đổi được phạm vi trước Attempt đầu tiên. Nếu đề đang làm Final,
+                phải gỡ/thay Final hợp lệ trước. Chuyển Course thay liên kết cũ trong cùng một lần lưu,
+                không tạo bản sao đề hoặc chuyển lịch sử làm bài.
+            </p>
+            <div class="actions">
+                <button type="submit" class="button">Lưu phạm vi</button>
+                <a class="button secondary" asp-action="Edit" asp-route-id="@Model.Editor.AssessmentId">Tải lại trang</a>
+            </div>
+        </form>
+    }
+</section>

@@ -62,10 +62,11 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
                 Assert.True(await users.CheckPasswordAsync(user, IdentityTestHelpers.Password));
             }
             var final = await db.Assessments.Include(a => a.Questions).ThenInclude(q => q.Question).ThenInclude(q => q.Options)
+                .Include(a => a.Questions).ThenInclude(q => q.Question).ThenInclude(q => q.Stimulus)
                 .SingleAsync(a => a.Id == finalId);
             Assert.Equal(finalId, (await db.Courses.SingleAsync(c => c.Id == freeId)).FinalAssessmentId);
             Assert.Equal(freeId, final.CourseId); Assert.Equal(AssessmentStatus.Published, final.Status);
-            Assert.Equal(AssessmentType.SkillAssessment, final.AssessmentType); Assert.Equal(EnglishSkill.Grammar, final.TargetSkill);
+            Assert.Equal(AssessmentType.PracticeExam, final.AssessmentType); Assert.Null(final.TargetSkill);
             Assert.Equal(15, final.DurationMinutes); Assert.Equal(3, final.MaxAttempts); Assert.Equal(80m, final.PassingScore);
             Assert.Equal(5, final.Questions.Count);
             Assert.Equal(Enumerable.Range(0, 5), final.Questions.OrderBy(q => q.OrderIndex).Select(q => q.OrderIndex));
@@ -77,6 +78,10 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
                 Assert.Equal(final.OwnerTeacherUserId, q.Question.OwnerTeacherUserId);
                 Assert.Equal(4, q.Question.Options.Count); Assert.Single(q.Question.Options, o => o.IsCorrect);
             });
+            // Mẫu demo mới phải qua cùng bộ quy tắc đang dùng khi Publish/Start.
+            var course = await db.Courses.SingleAsync(c => c.Id == freeId);
+            Assert.Empty(scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>()
+                .Validate(final, final.Questions.ToList(), course, new List<Course> { course }, isFirstPublish: false));
             Assert.Single(await db.Enrollments.ToListAsync());
             Assert.False(await db.Enrollments.AnyAsync(e => e.Course.IsPaid));
             Assert.Empty(await db.Orders.ToListAsync()); Assert.Empty(await db.Payments.ToListAsync());
@@ -169,8 +174,10 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
         }
     }
 
-    [Fact]
-    public async Task RepeatSeed_PreservesRealGradedHistoryAndCompletedEnrollment()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RepeatSeed_PreservesRealGradedHistoryAndCompletedEnrollment(bool legacyDefinition)
     {
         await Seed();
         Guid finalId, attemptId, enrollmentId;
@@ -203,7 +210,15 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
             var enrollment = await db.Enrollments.SingleAsync(e => e.CourseId == course.Id && e.StudentUserId == student.Id);
             enrollmentId = enrollment.Id; completed = enrollment.CompletedAtUtc; Assert.NotNull(completed);
             var final = await db.Assessments.SingleAsync(a => a.Id == finalId);
-            final.Description = "Teacher edited after a student completed the course."; await db.SaveChangesAsync();
+            final.Description = "Teacher edited after a student completed the course.";
+            if (legacyDefinition)
+            {
+                // Chỉ dựng fixture mô phỏng dữ liệu demo cũ, không đi qua chức năng Teacher.
+                // Seeder mới không được tự đổi định nghĩa cũ đã có lịch sử chấm thật.
+                final.AssessmentType = AssessmentType.SkillAssessment;
+                final.TargetSkill = EnglishSkill.Grammar;
+            }
+            await db.SaveChangesAsync();
             questionIds = questions.Select(q => q.QuestionId).OrderBy(id => id).ToList();
             answerIds = (await db.AttemptAnswers.Where(a => a.AttemptId == attemptId).Select(a => a.Id).ToListAsync())
                 .OrderBy(id => id).ToList();
@@ -218,6 +233,8 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var final = await db.Assessments.SingleAsync(a => a.Id == finalId);
             Assert.Equal("Teacher edited after a student completed the course.", final.Description);
+            Assert.Equal(legacyDefinition ? AssessmentType.SkillAssessment : AssessmentType.PracticeExam, final.AssessmentType);
+            Assert.Equal(legacyDefinition ? EnglishSkill.Grammar : (EnglishSkill?)null, final.TargetSkill);
             Assert.Equal(finalId, (await db.Courses.SingleAsync(c => c.Title == FreeTitle)).FinalAssessmentId);
             Assert.Equal(completed, (await db.Enrollments.SingleAsync(e => e.Id == enrollmentId)).CompletedAtUtc);
             var attempt = await db.Attempts.SingleAsync(a => a.Id == attemptId);

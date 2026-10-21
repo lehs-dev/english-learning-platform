@@ -32,3 +32,4 @@ Thumbs.db
 ## Docker/local data
 .sqlserver/
 .agents/
+**/App_Data/stimulus-audio/

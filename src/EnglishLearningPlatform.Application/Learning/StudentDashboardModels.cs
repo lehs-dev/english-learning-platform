@@ -32,6 +32,9 @@ public sealed record CourseActivities(IReadOnlyList<PracticeLink> Practices, IRe
 public interface IStudentLearningService
 {
     Task<LearningOutcome<StudentDashboard>> DashboardAsync(Guid studentId, CancellationToken ct = default);
+    // Dashboard và Profile dùng chung kết quả đại diện, không tự chọn highest ở từng trang.
+    Task<LearningOutcome<IReadOnlyList<RepresentativeAssessmentResult>>> GetRepresentativeResultsAsync(
+        Guid studentId, CancellationToken ct = default);
     Task<LearningOutcome<CourseActivities>> ActivitiesAsync(Guid studentId, Guid courseId, CancellationToken ct = default);
     Task<LearningOutcome<IReadOnlyList<AssessmentLink>>> AssessmentsAsync(Guid studentId, CancellationToken ct = default);
 }

@@ -18,4 +18,7 @@ public sealed class CreateStimulusRequest
 
     // Chỉ dùng cho Audio, tối đa 2048 ký tự.
     public string? ResourceUrl { get; set; }
+
+    // Controller đọc file với giới hạn dung lượng. Không bind byte[] từ form trực tiếp.
+    public byte[]? AudioContent { get; set; }
 }

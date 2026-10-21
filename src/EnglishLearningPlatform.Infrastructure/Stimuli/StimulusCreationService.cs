@@ -6,6 +6,7 @@ using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EnglishLearningPlatform.Infrastructure.Stimuli;
 
@@ -13,11 +14,14 @@ public sealed class StimulusCreationService : IStimulusCreationService
 {
     private readonly AppDbContext _db;
     private readonly ICreateStimulusValidator _validator;
+    private readonly IStimulusAudioStore _audioStore;
+    private readonly ILogger<StimulusCreationService> _logger;
 
     /// <summary>
     /// Nhận dependency từ DI, không tự tạo DbContext hoặc validator trong service.
     /// </summary>
-    public StimulusCreationService(AppDbContext db, ICreateStimulusValidator validator)
+    public StimulusCreationService(AppDbContext db, ICreateStimulusValidator validator, IStimulusAudioStore audioStore,
+        ILogger<StimulusCreationService> logger)
     {
         if (db == null)
         {
@@ -30,6 +34,8 @@ public sealed class StimulusCreationService : IStimulusCreationService
 
         _db = db;
         _validator = validator;
+        _audioStore = audioStore ?? throw new ArgumentNullException(nameof(audioStore));
+        _logger = logger;
     }
 
     /// <summary>
@@ -89,10 +95,20 @@ public sealed class StimulusCreationService : IStimulusCreationService
         {
             // Validator đã bảo đảm loại hợp lệ và URL không rỗng.
             stimulus.StimulusType = StimulusType.Audio;
-            stimulus.ResourceUrl = request.ResourceUrl?.Trim();
+            try
+            {
+                stimulus.ResourceUrl = request.AudioContent == null ? request.ResourceUrl?.Trim()
+                    : await _audioStore.StoreAsync(request.AudioContent, cancellationToken);
+            }
+            catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException || exception is InvalidDataException)
+            {
+                _logger.LogError(exception, "Storing stimulus audio failed for Teacher {TeacherId}.", actorUserId);
+                return new WriteOutcome(LearningAccessResult.Allowed, Guid.Empty,
+                    new Dictionary<string, string[]> { [nameof(request.AudioContent)] = new[] { "Chưa lưu được audio. Hãy kiểm tra dung lượng/quyền ghi và tình trạng kho audio của máy chủ." } });
+            }
         }
 
-        // Stimulus mới chưa bị khóa; không tải hoặc ghi đè file tại URL này.
+        // Không tải URL ngoài; upload được lưu theo hash và không có API ghi đè/xóa.
         _db.Stimuli.Add(stimulus);
         await _db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);

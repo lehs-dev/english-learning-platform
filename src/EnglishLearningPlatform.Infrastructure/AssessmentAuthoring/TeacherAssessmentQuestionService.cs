@@ -4,6 +4,9 @@ using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
+using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Infrastructure.Stimuli;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,12 +20,15 @@ public sealed class TeacherAssessmentQuestionService
     private readonly ITeacherAssessmentDraftService _draftService;
     private readonly IQuestionUsageValidator _questionValidator;
     private readonly ILogger<TeacherAssessmentQuestionService> _logger;
+    private readonly IAssessmentDefinitionValidator _definitionValidator;
+    private readonly IStimulusAudioStore _audioStore;
 
     public TeacherAssessmentQuestionService(
         AppDbContext db,
         ITeacherAssessmentDraftService draftService,
         IQuestionUsageValidator questionValidator,
-        ILogger<TeacherAssessmentQuestionService> logger)
+        ILogger<TeacherAssessmentQuestionService> logger,
+        IAssessmentDefinitionValidator definitionValidator, IStimulusAudioStore audioStore)
     {
         if (db == null)
         {
@@ -44,10 +50,17 @@ public sealed class TeacherAssessmentQuestionService
             throw new ArgumentNullException(nameof(logger));
         }
 
+        if (definitionValidator == null)
+        {
+            throw new ArgumentNullException(nameof(definitionValidator));
+        }
+
         _db = db;
         _draftService = draftService;
         _questionValidator = questionValidator;
         _logger = logger;
+        _definitionValidator = definitionValidator;
+        _audioStore = audioStore;
     }
 
     /// <summary>
@@ -59,7 +72,7 @@ public sealed class TeacherAssessmentQuestionService
             Guid assessmentId,
             CancellationToken cancellationToken = default)
     {
-        var access = await _draftService.GetDraftAsync(
+        var access = await _draftService.GetConfigurationEditorAsync(
             actorUserId, assessmentId, cancellationToken);
 
         if (access.Access != LearningAccessResult.Allowed)
@@ -73,7 +86,8 @@ public sealed class TeacherAssessmentQuestionService
             .Where(assessment =>
                 assessment.Id == assessmentId
                 && assessment.OwnerTeacherUserId == actorUserId
-                && assessment.Status == AssessmentStatus.Draft
+                && (assessment.Status == AssessmentStatus.Draft
+                    || assessment.Status == AssessmentStatus.Published)
                 && !assessment.Attempts.Any()
                 // Không trả nội dung Question của Teacher khác
                 // nếu database đang có liên kết bất thường.
@@ -84,6 +98,7 @@ public sealed class TeacherAssessmentQuestionService
                 AssessmentId = assessment.Id,
                 Title = assessment.Title,
                 AssessmentType = assessment.AssessmentType,
+                Status = assessment.Status,
                 TargetSkill = assessment.TargetSkill,
                 UpdatedAtUtc = assessment.UpdatedAtUtc,
 
@@ -132,7 +147,7 @@ public sealed class TeacherAssessmentQuestionService
 
         try
         {
-            var access = await _draftService.GetDraftAsync(
+            var access = await _draftService.GetConfigurationEditorAsync(
                 actorUserId, assessmentId, cancellationToken);
 
             if (access.Access != LearningAccessResult.Allowed)
@@ -161,16 +176,19 @@ public sealed class TeacherAssessmentQuestionService
                     IsolationLevel.Serializable,
                     cancellationToken);
 
+            // Giữ Course đã khóa để kiểm tra điều kiện Course/Final khi lưu.
+            Course? linkedCourse = null;
+
             if (snapshot.CourseId.HasValue)
             {
-                var course = await _db.Courses
+                linkedCourse = await _db.Courses
                     .FromSqlInterpolated(
                         $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.CourseId.Value}")
                     .AsNoTracking()
                     .SingleOrDefaultAsync(cancellationToken);
 
-                if (course == null
-                    || course.OwnerTeacherUserId != actorUserId)
+                if (linkedCourse == null
+                    || linkedCourse.OwnerTeacherUserId != actorUserId)
                 {
                     return WriteOutcome.Denied(
                         LearningAccessResult.NotFound);
@@ -200,7 +218,7 @@ public sealed class TeacherAssessmentQuestionService
 
             // Kiểm tra lại trong transaction.
             // Không chỉ tin quyền/trạng thái đã đọc trước khi giữ khóa.
-            access = await _draftService.GetDraftAsync(
+            access = await _draftService.GetConfigurationEditorAsync(
                 actorUserId, assessmentId, cancellationToken);
 
             if (access.Access != LearningAccessResult.Allowed)
@@ -328,6 +346,12 @@ public sealed class TeacherAssessmentQuestionService
                         $"Câu {index + 1}: {errors[0].Message}");
                 }
 
+                if (assessment.Status == AssessmentStatus.Published
+                    && !existingQuestionIds.Contains(input.QuestionId)
+                    && question?.Stimulus?.StimulusType == StimulusType.Audio
+                    && !StimulusAudioResource.TryGetHash(question.Stimulus.ResourceUrl, out _))
+                    return Failure(assessmentId, $"Câu {index + 1}: câu mới dùng audio phải được upload vào kho bất biến của ứng dụng.");
+
                 // Validator hiện tại đã kiểm tra audio.
                 // Bổ sung kiểm tra passage tại luồng này,
                 // không thay đổi validator dùng chung của nhóm.
@@ -352,8 +376,81 @@ public sealed class TeacherAssessmentQuestionService
                 });
             }
 
-            // Chỉ tới đây khi TOÀN BỘ danh sách mới đã hợp lệ.
-            // Draft không có Attempt nên được thay các bản ghi liên kết.
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+
+            if (assessment.Status == AssessmentStatus.Published)
+            {
+                // Danh sách tạm chỉ để validation, không đưa vào AddRange.
+                // Tránh EF hiểu graph Question AsNoTracking là nội dung mới cần INSERT.
+                var candidateItems = new List<AssessmentQuestion>();
+
+                foreach (var item in newItems)
+                {
+                    candidateItems.Add(new AssessmentQuestion
+                    {
+                        AssessmentId = assessmentId,
+                        QuestionId = item.QuestionId,
+                        OrderIndex = item.OrderIndex,
+                        Points = item.Points,
+                        Question = questions[item.QuestionId]
+                    });
+                }
+
+                var finalCourses = await _db.Courses
+                    .AsNoTracking()
+                    .Where(course => course.FinalAssessmentId == assessmentId)
+                    .ToListAsync(cancellationToken);
+
+                // Phải kiểm tra DANH SÁCH MỚI và toàn bộ điều kiện Publish/Final.
+                // Câu mới Archived đã bị NewUse chặn ở vòng lặp phía trên.
+                var definitionErrors = _definitionValidator.Validate(
+                    assessment,
+                    candidateItems,
+                    linkedCourse,
+                    finalCourses,
+                    isFirstPublish: false);
+
+                if (definitionErrors.Count > 0)
+                {
+                    // Chưa xóa liên kết hoặc khóa thêm nội dung nào.
+                    return Failure(assessmentId, definitionErrors.ToArray());
+                }
+                string? audioError = await StimulusAudioIntegrity.GetErrorAsync(
+                    candidateItems.Select(q => q.Question.Stimulus), _audioStore, cancellationToken);
+                if (audioError != null) return Failure(assessmentId, audioError);
+
+                // Giữ/bổ sung dấu khóa cho cả câu cũ bị bỏ khỏi đề.
+                // Nội dung từng được công bố không được mở khóa về sau.
+                var usedQuestionIds = existingQuestionIds
+                    .Concat(requestedIds)
+                    .Distinct()
+                    .ToArray();
+
+                // Đọc graph tracking riêng để lưu dấu khóa, không sửa nội dung.
+                var questionsToLock = await _db.Questions
+                    .Where(question =>
+                        question.OwnerTeacherUserId == actorUserId
+                        && usedQuestionIds.Contains(question.Id))
+                    .Include(question => question.Stimulus)
+                    .OrderBy(question => question.Id)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var question in questionsToLock)
+                {
+                    // LockContent không ghi đè thời điểm khóa đã có.
+                    question.LockContent(now);
+
+                    // Không thay đổi Stimulus của Teacher khác nếu dữ liệu cũ lỗi.
+                    if (question.Stimulus != null
+                        && question.Stimulus.OwnerTeacherUserId == actorUserId)
+                    {
+                        question.Stimulus.LockContent(now);
+                    }
+                }
+            }
+
+            // Chỉ thay liên kết khi TOÀN BỘ danh sách mới đã hợp lệ.
+            // Mọi ghi dữ liệu, kể cả dấu khóa ở trên, cùng một transaction.
             if (oldItems.Count > 0)
             {
                 _db.AssessmentQuestions.RemoveRange(oldItems);
@@ -364,7 +461,7 @@ public sealed class TeacherAssessmentQuestionService
             }
 
             _db.AssessmentQuestions.AddRange(newItems);
-            assessment.UpdatedAtUtc = DateTimeOffset.UtcNow;
+            assessment.UpdatedAtUtc = now;
 
             await _db.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -394,14 +491,14 @@ public sealed class TeacherAssessmentQuestionService
     /// </summary>
     private static WriteOutcome Failure(
         Guid assessmentId,
-        string message)
+        params string[] messages)
     {
         return new WriteOutcome(
             LearningAccessResult.Allowed,
             assessmentId,
             new Dictionary<string, string[]>
             {
-                ["Items"] = new string[] { message }
+                ["Items"] = messages
             });
     }
 }

@@ -13,7 +13,9 @@ namespace EnglishLearningPlatform.Infrastructure.AssessmentAttempts;
 public sealed class AssessmentAttemptService(
     AppDbContext db,
     UserManager<ApplicationUser> users,
-    IExamScoringService scoring) : IAttemptService
+    IExamScoringService scoring,
+    // Dùng chung quy tắc kiểm tra định nghĩa đề với Teacher Publish.
+    IAssessmentDefinitionValidator definitionValidator) : IAttemptService
 {
     public async Task<AttemptStartResult> StartAsync(
         Guid studentId,
@@ -162,13 +164,44 @@ public sealed class AssessmentAttemptService(
             }
         }
 
-        //Assessment Published phải có đề hợp lệ.
-        var questionCount = await db.AssessmentQuestions.CountAsync(
-            q => q.AssessmentId == assessmentId, ct
-        );
+        // Assessment Published phải có đề hợp lệ.
+        // Chỉ tới đây khi không có Attempt đang làm cần Resume/finalize.
+        // Không chuyển đoạn kiểm tra này lên trước phần xử lý active Attempt.
 
-        if (questionCount < 5 || assessment.DurationMinutes <= 0)
+        // Đọc dữ liệu thật, gồm Options và Stimulus để kiểm tra toàn bộ đề.
+        // AsNoTracking: các entity này chỉ dùng để kiểm tra, không sửa nội dung.
+        var questions = await db.AssessmentQuestions
+            .AsNoTracking()
+            .Where(item => item.AssessmentId == assessmentId)
+            .Include(item => item.Question)
+                .ThenInclude(question => question.Options)
+            .Include(item => item.Question)
+                .ThenInclude(question => question.Stimulus)
+            .AsSingleQuery()
+            .OrderBy(item => item.OrderIndex)
+            .ThenBy(item => item.Id)
+            .ToListAsync(ct);
+
+        // Đọc các Course đang chọn đề này làm Final.
+        // Cần kiểm tra cả tham chiếu Final, không chỉ CourseId của Assessment.
+        var finalCourses = await db.Courses
+            .AsNoTracking()
+            .Where(item => item.FinalAssessmentId == assessmentId)
+            .ToListAsync(ct);
+
+        // Đây là đề đã Published, không phải lần Publish đầu tiên.
+        // Câu Archived đã thuộc đề vẫn được kiểm tra theo ExistingUse.
+        var definitionErrors = definitionValidator.Validate(
+            assessment,
+            questions,
+            course,
+            finalCourses,
+            isFirstPublish: false);
+
+        if (definitionErrors.Count > 0)
         {
+            // Dừng trước khi tạo Attempt.
+            // Không trả chi tiết lỗi nội dung hoặc đáp án cho Student.
             return new(AttemptStartStatus.Unavailable);
         }
 

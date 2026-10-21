@@ -3,6 +3,7 @@ using EnglishLearningPlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace EnglishLearningPlatform.Infrastructure.Persistence;
 /*
@@ -36,6 +37,24 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<AttemptAnswer> AttemptAnswers => Set<AttemptAnswer>();
     public DbSet<AttemptSkillResult> AttemptSkillResults => Set<AttemptSkillResult>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    // Cả API sync/async đều qua cùng một hàng rào. Những bảng khác giữ nguyên luồng EF mặc định.
+    public override int SaveChanges(bool acceptAllChangesOnSuccess) =>
+        SaveChangesAsync(acceptAllChangesOnSuccess, CancellationToken.None).GetAwaiter().GetResult();
+
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        if (!ContentImmutabilityGuard.IsNeeded(this))
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+
+        // Khi service đã có transaction, dùng lại. Nếu chưa có, giữ kiểm tra + ghi nguyên tử.
+        await using var ownTransaction = Database.CurrentTransaction == null
+            ? await Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken) : null;
+        await ContentImmutabilityGuard.ValidateAsync(this, cancellationToken);
+        int changed = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        if (ownTransaction != null) await ownTransaction.CommitAsync(cancellationToken);
+        return changed;
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

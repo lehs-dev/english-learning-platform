@@ -29,6 +29,10 @@
                 <h1 class="exam-title">@ViewData["Title"]</h1>
             </div>
         </div>
+        @if (Model.Sheet is not null || overview?.UsedAttempts > 0)
+        {
+            <a class="button secondary" asp-action="History" asp-route-id="@(Model.Sheet?.AssessmentId ?? overview?.AssessmentId)">Lịch sử làm bài</a>
+        }
     </header>
 
     @if (TempData["AssessmentError"] is string error) { <p class="notice error" role="alert">@error</p> }
@@ -56,7 +60,8 @@
                 @for (var i = 0; i < sheet.Questions.Count; i++)
                 {
                     var question = sheet.Questions[i];
-                    <fieldset class="exam-question-card" id="question-@(i + 1)" data-question>
+                    @* tabindex=-1 giúp liên kết số câu đưa focus đến đúng câu, không thêm Tab thừa. *@
+                    <fieldset class="exam-question-card" id="question-@(i + 1)" tabindex="-1" aria-label="Câu @(i + 1)" data-question>
                         <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
                         
                         <div class="exam-question-header">
@@ -81,6 +86,7 @@
                         {
                             <div class="exam-audio-box">
                                 <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
+                                <partial name="_ExternalStimulusAudioNotice" model="question.AudioUrl" />
                                 <p class="exam-timer-note" style="margin-top: 6px;">Nếu audio không phát, kiểm tra kết nối và dùng nút phát để thử lại.</p>
                             </div>
                         }
@@ -100,6 +106,17 @@
                         </div>
 
                         <div class="exam-question-footer">
+                            @* Chỉ đổi vị trí trong trang; không gửi form hay tạo Attempt mới. *@
+                            <nav class="exam-question-navigation" aria-label="Điều hướng từ câu @(i + 1)">
+                                @if (i > 0)
+                                {
+                                    <a class="button secondary" href="#question-@i">Câu trước</a>
+                                }
+                                @if (i < sheet.Questions.Count - 1)
+                                {
+                                    <a class="button secondary" href="#question-@(i + 2)">Câu tiếp</a>
+                                }
+                            </nav>
                             <label class="exam-clear-selection" for="clear-q-@(i + 1)">
                                 <input type="radio" id="clear-q-@(i + 1)" class="exam-option-radio visually-hidden" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" />
                                 <span class="exam-clear-text">
@@ -206,48 +223,7 @@
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
                 <h2 id="attempt-history-title" style="margin: 0; font-size: 18px; font-weight: 700;">Lịch sử làm bài (@overview.AttemptHistory.Count lượt)</h2>
             </div>
-            <div class="assessment-table-wrap">
-                <table class="assessment-table">
-                    <caption class="visually-hidden">Lịch sử bài đánh giá</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">Bắt đầu (UTC+7)</th>
-                            <th scope="col">Trạng thái</th>
-                            <th scope="col">Điểm số</th>
-                            <th scope="col">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var attempt in overview.AttemptHistory)
-                    {
-                        <tr>
-                            <td><time datetime="@attempt.StartedAtUtc.ToString("O")">@attempt.StartedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time></td>
-                            <td>
-                                @if (attempt.Status == AttemptStatus.Graded)
-                                {
-                                    <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;">Đã chấm</span>
-                                }
-                                else
-                                {
-                                    <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Đang làm</span>
-                                }
-                            </td>
-                            <td style="font-weight: 700; font-size: 15px;">@(attempt.OverallScore?.ToString("0.##") ?? "—")</td>
-                            <td>
-                                @if (attempt.Status == AttemptStatus.Graded && attempt.FinalizedAtUtc.HasValue)
-                                {
-                                    <a class="button secondary" style="padding: 6px 14px; font-size: 12px;" asp-action="Result" asp-route-id="@attempt.AttemptId">Xem kết quả</a>
-                                }
-                                else if (attempt.AttemptId == overview.ActiveAttemptId)
-                                {
-                                    <a class="button" style="padding: 6px 14px; font-size: 12px;" asp-action="Take" asp-route-id="@overview.AssessmentId" asp-route-attemptId="@attempt.AttemptId">Tiếp tục</a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
+            <partial name="_AttemptHistory" model="overview.AttemptHistory" />
         </section>
     }
 </div>

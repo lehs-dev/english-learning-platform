@@ -13,6 +13,9 @@ public sealed class TeacherAssessmentQuestionEditor
 
     public AssessmentType AssessmentType { get; set; }
 
+    // Trạng thái đề do server đọc, không lấy từ form gửi lên.
+    public AssessmentStatus Status { get; set; }
+
     public EnglishSkill? TargetSkill { get; set; }
 
     public DateTimeOffset? UpdatedAtUtc { get; set; }

@@ -17,6 +17,8 @@ public static class DependencyInjection
         services.AddScoped<IQuestionUsageValidator, QuestionUsageValidator>();
         // Validator ngữ liệu chỉ kiểm tra dữ liệu, không truy cập tài nguyên ngoài.
         services.AddScoped<ICreateStimulusValidator, CreateStimulusValidator>();
+        // Bộ quy tắc chung cho Publish, sửa Published và Start mới.
+        services.AddScoped<IAssessmentDefinitionValidator, AssessmentDefinitionValidator>();
         return services;
     }
 }

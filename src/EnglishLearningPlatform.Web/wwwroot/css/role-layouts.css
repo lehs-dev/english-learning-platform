@@ -460,6 +460,11 @@ body.sidebar-open { overflow: hidden; }
     }
     .dashboard-icon-rail {
         flex-direction: row;
+        flex-wrap: wrap;
+        /* Mobile không được giữ rail sticky cao gần 100vh của desktop: sẽ che nội dung. */
+        position: static;
+        height: auto;
+        max-height: none;
         width: 100%;
         padding: 12px 18px;
         border-right: none;

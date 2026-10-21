@@ -38,6 +38,7 @@
                         <th scope="col">Tên bài</th>
                         <th scope="col">Loại</th>
                         <th scope="col">Trạng thái</th>
+                        <th scope="col">Phạm vi</th>
                         <th scope="col">Thời lượng</th>
                         <th scope="col">Lượt tối đa</th>
                         <th scope="col">Điểm đạt</th>
@@ -52,6 +53,11 @@
                             <td>@item.Title</td>
                             <td>@item.AssessmentType</td>
                             <td>@item.Status</td>
+                            <td>
+                                @(item.CourseId.HasValue
+                                    ? item.CourseTitle ?? "Course không khả dụng"
+                                    : "Độc lập (Independent)")
+                            </td>
                             <td>@item.DurationMinutes phút</td>
                             <td>@item.MaxAttempts</td>
                             <td>
@@ -64,6 +70,14 @@
                                 @* actions tạo khoảng cách và cho phép nút tự xuống hàng.
                                    Vẫn dùng thẻ a vì đây là thao tác chuyển trang. *@
                                 <div class="actions">
+                                    <form method="post" asp-controller="TeacherAssessmentClone" asp-action="Create" asp-route-id="@item.Id">
+                                        <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
+                                        <button type="submit" class="button small secondary">Clone thành Draft</button>
+                                    </form>
+                                    @* Vẫn mở được trang chỉ đọc khi phạm vi đã khóa. *@
+                                    <a class="button small secondary"
+                                       asp-controller="TeacherAssessmentScope" asp-action="Edit"
+                                       asp-route-id="@item.Id">Phạm vi / Course</a>
                                     @if (item.Status == AssessmentStatus.Draft
                                         || item.Status == AssessmentStatus.Published)
                                     {
@@ -77,7 +91,7 @@
                                         </a>
                                     }
 
-                                    @if (item.CanEditDraft)
+                                    @if (item.CanEditConfiguration)
                                     {
                                         <a class="button small secondary"
                                            asp-controller="TeacherAssessments"
@@ -85,7 +99,12 @@
                                            asp-route-id="@item.Id">
                                             Sửa cấu hình
                                         </a>
+                                    }
 
+                                    @* Cùng phạm vi Draft/Published chưa có Attempt;
+                                       service vẫn kiểm tra lại khi đọc và lưu. *@
+                                    @if (item.CanEditConfiguration)
+                                    {
                                         <a class="button small"
                                            asp-controller="TeacherAssessmentQuestions"
                                            asp-action="Index"
@@ -93,11 +112,25 @@
                                             Soạn câu hỏi
                                         </a>
                                     }
-                                    else
+                                    @if (!item.CanEditConfiguration)
                                     {
                                         <span class="muted">
-                                            Không sửa trong bước này
+                                            Đề hiện không được chỉnh sửa
                                         </span>
+                                    }
+                                    @if (item.Status == AssessmentStatus.Published)
+                                    {
+                                        <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Unpublish" asp-route-id="@item.Id">
+                                            <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
+                                            <button type="submit" class="button small secondary">Ngừng xuất bản</button>
+                                        </form>
+                                    }
+                                    @if (item.Status == AssessmentStatus.Published || item.Status == AssessmentStatus.Unpublished)
+                                    {
+                                        <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Archive" asp-route-id="@item.Id">
+                                            <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
+                                            <button type="submit" class="button small secondary">Lưu trữ đề</button>
+                                        </form>
                                     }
                                 </div>
                             </td>

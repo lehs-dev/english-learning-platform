@@ -441,6 +441,47 @@
     margin-top: 20px;
 }
 
+/* Kết quả chỉ thuộc Profile; không đổi layout/CSS của các trang khác. */
+.profile-assessment-results {
+    margin-top: 24px;
+}
+
+.profile-assessment-result {
+    padding: 20px 0;
+    border-top: 1px solid var(--v2-border-light);
+    overflow-wrap: anywhere;
+}
+
+.profile-assessment-result-heading {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.profile-assessment-result-heading h3 {
+    margin: 0 0 8px;
+}
+
+.profile-assessment-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+/* Mỗi skill có khung riêng; tự xuống hàng ở màn hình hẹp, không ảnh hưởng badge trang khác. */
+.profile-assessment-skills > .v2-pill-tag {
+    flex: 1 1 220px;
+    padding: 10px 12px;
+    border: 1px solid var(--v2-border-light);
+    border-radius: 12px;
+    background: #FAF9FE;
+    line-height: 1.6;
+    white-space: normal;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .auth-shell {

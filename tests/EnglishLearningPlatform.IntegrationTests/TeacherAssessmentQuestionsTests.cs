@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
@@ -202,11 +203,11 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
     }
 
     [Theory]
-    [InlineData(AssessmentStatus.Published, false)]
+    [InlineData(AssessmentStatus.Published, true)]
     [InlineData(AssessmentStatus.Unpublished, false)]
     [InlineData(AssessmentStatus.Archived, false)]
     [InlineData(AssessmentStatus.Draft, true)]
-    public async Task NonDraftOrExistingAttempt_BlocksEditorAndSaving(AssessmentStatus status, bool hasAttempt)
+    public async Task NonEditableStatusOrExistingAttempt_BlocksEditorAndSaving(AssessmentStatus status, bool hasAttempt)
     {
         var data = await SeedAsync();
         using (var scope = _factory.Services.CreateScope())
@@ -272,10 +273,14 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
             .UseSqlServer(db.Database.GetConnectionString()).AddInterceptors(interceptor).Options;
         await using var serviceDb = new AppDbContext(options);
         var drafts = new TeacherAssessmentDraftService(serviceDb,
-            NullLogger<TeacherAssessmentDraftService>.Instance);
+            NullLogger<TeacherAssessmentDraftService>.Instance,
+            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>(),
+            scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
         var service = new TeacherAssessmentQuestionService(serviceDb, drafts,
             scope.ServiceProvider.GetRequiredService<IQuestionUsageValidator>(),
-            NullLogger<TeacherAssessmentQuestionService>.Instance);
+            NullLogger<TeacherAssessmentQuestionService>.Instance,
+            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>(),
+            scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
 
         var result = await service.SaveAsync(data.Teacher.Id, data.AssessmentId, Selection(data));
 

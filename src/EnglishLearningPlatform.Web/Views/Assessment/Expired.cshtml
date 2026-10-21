@@ -1,0 +1,19 @@
+@using EnglishLearningPlatform.Web.Models.Assessment
+@model AssessmentExpiredPage
+@{
+    ViewData["Title"] = "Lượt làm bài đã hết giờ";
+    ViewData["ActiveSection"] = "assessment";
+}
+
+<section class="card-v2" style="padding: 24px;">
+    <h1>Đã hết thời gian làm bài</h1>
+    <p role="status">Hệ thống đang hoàn tất chấm các đáp án đã lưu trước hạn. Bạn không thể sửa đáp án của lượt này.</p>
+
+    @* Form Tag Helper tạo CSRF token. Không gửi đáp án và không gọi Start. *@
+    <form asp-action="Submit" asp-route-id="@Model.AttemptId" method="post" data-expired-attempt-form>
+        <button class="button" type="submit">Hoàn tất chấm điểm</button>
+    </form>
+    <noscript><p>JavaScript đang tắt. Bấm “Hoàn tất chấm điểm” để xem kết quả từ các đáp án đã lưu.</p></noscript>
+</section>
+
+@section Scripts { <script src="~/js/assessment.js" asp-append-version="true" defer></script> }
