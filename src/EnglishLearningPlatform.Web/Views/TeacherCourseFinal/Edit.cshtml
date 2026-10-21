@@ -1,0 +1,77 @@
+@model EnglishLearningPlatform.Web.Models.Assessment.TeacherCourseFinalViewModel
+@{
+    Layout = "_LayoutTeacher";
+    ViewData["Title"] = "Final Assessment của Course";
+    ViewData["ActiveSection"] = "courses";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+}
+<div class="page-heading">
+    <div><h1>Final Assessment</h1><p>@Model.Editor.CourseTitle</p></div>
+    <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Editor.CourseId">Về quản lý Course</a>
+</div>
+<section class="panel" data-final-editor data-can-change="@Model.Editor.CanChangeFinal.ToString().ToLowerInvariant()">
+    <h2>Final hiện tại</h2>
+    <dl class="assessment-details">
+        <div><dt>Course</dt><dd>@Model.Editor.CourseStatus</dd></div>
+        <div><dt>Final</dt><dd data-current-final>@(Model.Editor.FinalAssessmentTitle ?? "Không dùng Final")</dd></div>
+        @if (Model.Editor.FinalAssessmentId.HasValue)
+        {
+            <div><dt>Trạng thái đề</dt><dd>@Model.Editor.FinalAssessmentStatus</dd></div>
+        }
+    </dl>
+    <div asp-validation-summary="All" class="validation" role="alert"></div>
+    @if (!Model.Editor.CanChangeFinal)
+    {
+        <p class="notice" data-final-lock>@Model.Editor.LockReason</p>
+    }
+    else
+    {
+        <form id="course-final-form" class="editor-form" method="post" asp-action="Edit"
+              asp-route-id="@Model.Editor.CourseId" asp-antiforgery="true">
+            @* Version và Final cũ không được tự nâng lên khi một tab cũ gửi lỗi. *@
+            <input type="hidden" name="Input.ExpectedUpdatedAtUtc" value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" />
+            <input type="hidden" name="Input.ExpectedFinalAssessmentId" value="@Model.Input.ExpectedFinalAssessmentId" />
+            <label asp-for="Input.FinalAssessmentId">Chọn Final</label>
+            <select asp-for="Input.FinalAssessmentId">
+                <option value="">Không dùng Final / Gỡ Final</option>
+                @foreach (var item in Model.Editor.Assessments)
+                {
+                    <option value="@item.Id">@item.Title — @item.AssessmentType — Điểm đạt @item.PassingScore.ToString("0.##")%</option>
+                }
+                @* Không âm thầm chọn Gỡ Final nếu liên kết cũ không còn trong danh sách đích. *@
+                @if (Model.Editor.FinalAssessmentId.HasValue
+                    && !Model.Editor.Assessments.Any(item => item.Id == Model.Editor.FinalAssessmentId.Value))
+                {
+                    <option value="@Model.Editor.FinalAssessmentId">@Model.Editor.FinalAssessmentTitle — Final hiện tại</option>
+                }
+                @* Giữ lựa chọn bị từ chối, không tự đổi sang Gỡ Final khi đề vừa mất điều kiện. *@
+                @if (Model.Input.FinalAssessmentId.HasValue
+                    && Model.Input.FinalAssessmentId != Model.Editor.FinalAssessmentId
+                    && !Model.Editor.Assessments.Any(item => item.Id == Model.Input.FinalAssessmentId.Value))
+                {
+                    <option value="@Model.Input.FinalAssessmentId">Lựa chọn không còn hợp lệ — hãy chọn lại</option>
+                }
+            </select>
+            <span asp-validation-for="Input.FinalAssessmentId" class="validation"></span>
+            <p class="muted">Chỉ có đề Published, cùng Course/Teacher, thuộc Skill Assessment hoặc Practice Exam và có PassingScore.</p>
+            @if (Model.Editor.Assessments.Count == 0)
+            {
+                <p class="notice">Chưa có đề đủ điều kiện. Hãy tạo đề, gắn đúng Course, đặt PassingScore và Publish trước.</p>
+            }
+            <p class="notice">Final là vai trò trong Course, không phải loại bài thứ tư. Hãy Preview thật kỹ: từ Attempt đầu tiên, không được thay/gỡ Final hoặc dùng clone để thay.</p>
+            <p class="muted">Không có Final: hoàn thành khi học xong toàn bộ bài khả dụng. Có Final: cần thêm kết quả đạt Final. Mốc hoàn thành đã ghi trong quá khứ không bị xóa.</p>
+            <div class="actions">
+                <button class="button" type="submit">Lưu Final</button>
+                <a class="button secondary" asp-action="Edit" asp-route-id="@Model.Editor.CourseId">Tải lại trang</a>
+            </div>
+        </form>
+    }
+    @if (Model.Editor.FinalAssessmentId.HasValue
+        && Model.Editor.FinalAssessmentStatus == EnglishLearningPlatform.Domain.Enums.AssessmentStatus.Published)
+    {
+        <p><a class="button secondary" asp-controller="TeacherAssessmentPreview" asp-action="Index"
+              asp-route-id="@Model.Editor.FinalAssessmentId" target="_blank" rel="noopener">Preview Final hiện tại</a></p>
+    }
+</section>

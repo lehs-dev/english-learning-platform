@@ -1,5 +1,6 @@
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
 
 namespace EnglishLearningPlatform.Application.Stimuli;
 
@@ -31,6 +32,8 @@ public sealed class CreateStimulusValidator : ICreateStimulusValidator
 
         if (request.StimulusType == StimulusType.Passage)
         {
+            if (request.AudioContent != null)
+                errors[nameof(request.AudioContent)] = new[] { "Passage không dùng file audio." };
             if (string.IsNullOrWhiteSpace(request.ContentText))
             {
                 errors[nameof(request.ContentText)] = new[] { "Đoạn đọc phải có nội dung." };
@@ -44,6 +47,16 @@ public sealed class CreateStimulusValidator : ICreateStimulusValidator
         }
         else
         {
+            if (request.AudioContent != null)
+            {
+                if (StimulusAudioResource.DetectContentType(request.AudioContent) == null)
+                    errors[nameof(request.AudioContent)] = new[] { "Chọn file MP3, WAV hoặc Ogg hợp lệ, tối đa 10 MiB." };
+                if (!string.IsNullOrWhiteSpace(request.ResourceUrl))
+                    errors[nameof(request.ResourceUrl)] = new[] { "Chỉ chọn một nguồn: upload file hoặc URL ngoài." };
+                if (!string.IsNullOrWhiteSpace(request.ContentText))
+                    errors[nameof(request.ContentText)] = new[] { "Âm thanh không dùng nội dung đoạn đọc." };
+                return errors;
+            }
             // Sau kiểm tra enum ở trên, nhánh còn lại chỉ có thể là Audio.
             if (!string.IsNullOrWhiteSpace(request.ContentText))
             {

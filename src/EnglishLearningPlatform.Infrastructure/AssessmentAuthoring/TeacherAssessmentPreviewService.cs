@@ -4,6 +4,7 @@ using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -149,10 +150,10 @@ public sealed class TeacherAssessmentPreviewService
             // Hàm này không tải hoặc kiểm tra file từ Internet.
             if (stimulus != null
                 && stimulus.StimulusType == StimulusType.Audio
-                && CourseRules.ValidResource(
+                && (StimulusAudioResource.TryGetHash(stimulus.ResourceUrl, out _) || CourseRules.ValidResource(
                     LessonResourceType.Audio,
                     null,
-                    stimulus.ResourceUrl))
+                    stimulus.ResourceUrl)))
             {
                 audioUrl = stimulus.ResourceUrl;
             }

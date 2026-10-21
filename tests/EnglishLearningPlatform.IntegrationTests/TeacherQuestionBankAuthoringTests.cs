@@ -263,7 +263,7 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
     {
         // TBR05: Câu hỏi nằm trong Assessment đã từng Published rồi Unpublished (Status = Unpublished),
         // và chưa có Attempt nào, vẫn phải KHÓA nội dung chấm (Content, PrimarySkill, Options, Stimulus).
-        // Tuy nhiên, Metadata (Level, Difficulty, Explanation) vẫn cho phép sửa và lưu thành công.
+        // Level/Difficulty vẫn được sửa; Explanation được giữ nguyên theo T5 để bảo toàn phản hồi cũ.
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
 
         Guid questionId;
@@ -358,7 +358,7 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
             ["PrimarySkill"] = ((int)EnglishSkill.Grammar).ToString(),
             ["Level"] = "C1",
             ["Difficulty"] = "Hard",
-            ["Explanation"] = "Updated explanation allowed while locked.",
+            ["Explanation"] = "Original explanation",
             ["Options[0].Content"] = "Original A",
             ["Options[1].Content"] = "Original B",
             ["CorrectOptionIndex"] = "0"
@@ -385,7 +385,7 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
             Assert.Equal(EnglishSkill.Grammar, savedQuestion.PrimarySkill);
             Assert.Equal("C1", savedQuestion.Level);
             Assert.Equal("Hard", savedQuestion.Difficulty);
-            Assert.Equal("Updated explanation allowed while locked.", savedQuestion.Explanation);
+            Assert.Equal("Original explanation", savedQuestion.Explanation);
 
             var options = savedQuestion.Options.OrderBy(o => o.OrderIndex).ToList();
             Assert.Equal("Original A", options[0].Content);

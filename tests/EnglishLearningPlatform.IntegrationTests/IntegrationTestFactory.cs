@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Infrastructure.Stimuli;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace EnglishLearningPlatform.IntegrationTests;
 
@@ -13,11 +16,15 @@ public sealed class IntegrationTestFactory
     : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly DatabaseFixture _database = new();
+    private readonly string _audioRoot = Path.Combine(Path.GetTempPath(), "ELP_AudioTests_" + Guid.NewGuid().ToString("N"));
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
         {
+            // Kho audio riêng từng fixture, không đọc/ghi App_Data hoặc Docker volume của người dùng.
+            services.RemoveAll<IStimulusAudioStore>();
+            services.AddSingleton<IStimulusAudioStore>(new FileStimulusAudioStore(_audioRoot));
             var dbContextDescriptor = services.SingleOrDefault(
                 service =>
                     service.ServiceType ==
@@ -56,5 +63,6 @@ public sealed class IntegrationTestFactory
         await base.DisposeAsync();
 
         await _database.DisposeAsync();
+        if (Directory.Exists(_audioRoot)) Directory.Delete(_audioRoot, recursive: true);
     }
 }

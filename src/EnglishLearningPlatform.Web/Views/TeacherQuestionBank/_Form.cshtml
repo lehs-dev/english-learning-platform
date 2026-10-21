@@ -9,7 +9,7 @@
         <div class="notice" role="status">
             <strong>Nội dung chấm đã bị khóa (TBR05):</strong>
             <span>@Model.LockReason</span>
-            <span>Bạn vẫn có thể cập nhật thông tin bổ sung (Trình độ, Độ khó, Giải thích). Nếu cần thay đổi nội dung chấm, hãy tạo câu hỏi mới.</span>
+            <span>Bạn vẫn có thể cập nhật Trình độ, Độ khó. Giải thích cũng được giữ nguyên để bảo toàn phản hồi cũ. Muốn đổi nội dung hãy tạo Question/Stimulus mới.</span>
         </div>
     }
 
@@ -63,7 +63,7 @@
 
     <div class="form-group">
         <label asp-for="Explanation">Giải thích đáp án (tùy chọn)</label>
-        <textarea asp-for="Explanation" maxlength="4000" rows="3" class="form-control" placeholder="Giải thích lý do chọn đáp án đúng..."></textarea>
+        <textarea asp-for="Explanation" maxlength="4000" rows="3" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Giải thích lý do chọn đáp án đúng..."></textarea>
         <span asp-validation-for="Explanation" class="validation"></span>
     </div>
 

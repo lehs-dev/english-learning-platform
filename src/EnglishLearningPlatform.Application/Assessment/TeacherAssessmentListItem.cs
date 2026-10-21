@@ -23,6 +23,14 @@ public sealed class TeacherAssessmentListItem
 
     public int QuestionCount { get; set; }
 
+    // Chỉ hiển thị scope và tên Course; không trả entity Course hoặc Enrollment.
+    public Guid? CourseId { get; set; }
+
+    public string? CourseTitle { get; set; }
+
+    // Version riêng của đề, dùng cho các POST Unpublish/Archive từ danh sách.
+    public DateTimeOffset? UpdatedAtUtc { get; set; }
+
     // Chỉ phục vụ hiển thị nút Sửa.
     // Khi lưu, service vẫn phải kiểm tra lại.
     public bool CanEditDraft { get; set; }

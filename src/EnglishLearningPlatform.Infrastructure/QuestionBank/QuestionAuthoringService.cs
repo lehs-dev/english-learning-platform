@@ -292,7 +292,9 @@ public sealed class QuestionAuthoringService(
                     new QuestionError(
                         nameof(CreateQuestionRequest.StimulusId),
                         "locked",
-                        "Không thể đổi Stimulus của câu hỏi đã bị khóa.")
+                        "Không thể đổi Stimulus của câu hỏi đã bị khóa."),
+                    new QuestionError(nameof(CreateQuestionRequest.Explanation), "locked",
+                        "Không thể đổi giải thích của câu hỏi đã dùng; hãy tạo Question mới.")
                 ]);
             }
 
@@ -440,7 +442,7 @@ public sealed class QuestionAuthoringService(
     {
         if (question.Content != request.Content ||
             question.PrimarySkill != request.PrimarySkill ||
-            question.StimulusId != request.StimulusId)
+            question.StimulusId != request.StimulusId || question.Explanation != request.Explanation)
         {
             return false;
         }

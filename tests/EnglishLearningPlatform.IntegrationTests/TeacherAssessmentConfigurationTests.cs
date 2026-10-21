@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
@@ -252,7 +253,8 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             .UseSqlServer(db.Database.GetConnectionString()).AddInterceptors(interceptor).Options;
         await using var serviceDb = new AppDbContext(options);
         var service = new TeacherAssessmentDraftService(serviceDb, NullLogger<TeacherAssessmentDraftService>.Instance,
-            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>());
+            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>(),
+            scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
 
         AssertValidation(await service.SaveConfigurationAsync(data.Teacher.Id, data.Assessment.Id, input), "Chưa thể lưu");
 
@@ -319,7 +321,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
     [Fact]
     public async Task Http_PublishedQuestions_ReplacesReordersAndReweights_KeepsContentAndHistoricalLocks()
     {
-        var data = await SeedAsync();
+        var data = await SeedAsync(withRemovedStimulus: true);
         var spare = await AddSpareQuestionAsync(data);
         var input = await QuestionInputAsync(data);
         Guid removedId = input.Items![4].QuestionId;
@@ -329,14 +331,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             // Câu Archived đã thuộc đề được giữ; câu bị bỏ có Stimulus chưa có marker cũ.
             await db.Questions.Where(q => q.Id == input.Items[0].QuestionId)
                 .ExecuteUpdateAsync(set => set.SetProperty(q => q.Status, QuestionStatus.Archived));
-            var removed = await db.Questions.SingleAsync(q => q.Id == removedId);
-            removed.Stimulus = new Stimulus
-            {
-                OwnerTeacherUserId = data.Teacher.Id, StimulusType = StimulusType.Passage, ContentText = "Removed passage."
-            };
-            // Entity có Guid sẵn: đánh dấu Added rõ ràng, không để EF coi là bản ghi cũ.
-            db.Stimuli.Add(removed.Stimulus);
-            await db.SaveChangesAsync();
+            // Stimulus đã gắn từ lúc seed ban đầu, không sửa Question đã khóa để dựng fixture.
         }
         string bankBefore = await BankSnapshotAsync(data, includeLocks: false);
         input.Items[4].QuestionId = spare.Id;
@@ -455,10 +450,12 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             .UseSqlServer(db.Database.GetConnectionString()).AddInterceptors(interceptor).Options;
         await using var serviceDb = new AppDbContext(options);
         var validator = scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>();
-        var drafts = new TeacherAssessmentDraftService(serviceDb, NullLogger<TeacherAssessmentDraftService>.Instance, validator);
+        var drafts = new TeacherAssessmentDraftService(serviceDb, NullLogger<TeacherAssessmentDraftService>.Instance, validator,
+            scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
         var service = new TeacherAssessmentQuestionService(serviceDb, drafts,
             scope.ServiceProvider.GetRequiredService<IQuestionUsageValidator>(),
-            NullLogger<TeacherAssessmentQuestionService>.Instance, validator);
+            NullLogger<TeacherAssessmentQuestionService>.Instance, validator,
+            scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
 
         AssertValidation(await service.SaveAsync(data.Teacher.Id, data.Assessment.Id, input), "Chưa thể lưu");
 
@@ -633,7 +630,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
         Assert.Contains(result.Errors.SelectMany(e => e.Value), error => error.Contains(message, StringComparison.OrdinalIgnoreCase));
     }
 
-    private async Task<SeedData> SeedAsync(bool final = false)
+    private async Task<SeedData> SeedAsync(bool final = false, bool withRemovedStimulus = false)
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);
         using var scope = _factory.Services.CreateScope();
@@ -661,7 +658,9 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             {
                 OwnerTeacherUserId = teacher.Id, Content = "Configuration question " + index,
                 PrimarySkill = EnglishSkill.Reading, Status = QuestionStatus.Published,
-                Stimulus = index == 0 || index == 2 ? passage : index == 1 ? audio : null,
+                Stimulus = index == 0 || index == 2 ? passage : index == 1 ? audio
+                    : index == 4 && withRemovedStimulus ? new Stimulus
+                    { OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage, ContentText = "Removed passage." } : null,
                 Options = new List<QuestionOption>
                 {
                     new QuestionOption { Content = "Correct", IsCorrect = true, OrderIndex = 0 },

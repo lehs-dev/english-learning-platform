@@ -41,6 +41,17 @@ public sealed class AssessmentDefinitionValidatorTests
     }
 
     [Fact]
+    public void ExternalAudio_IsRejectedForNewPublication_ButExistingDefinitionIsNotRewritten()
+    {
+        var data = ValidDefinition();
+        var audio = AttachStimulus(data.Questions[0].Question, StimulusType.Audio);
+        audio.ResourceUrl = "https://external.test/mutable.mp3";
+        Assert.Contains(Validate(data), error => error.Contains("Audio URL ngoài"));
+        Assert.Empty(Validate(data, firstPublish: false));
+        Assert.Equal("https://external.test/mutable.mp3", audio.ResourceUrl);
+    }
+
+    [Fact]
     public void Validate_MinimumContent_CountsDistinctQuestionsNotLinkRows()
     {
         var data = ValidDefinition();
@@ -279,7 +290,7 @@ public sealed class AssessmentDefinitionValidatorTests
             OwnerTeacherUserId = question.OwnerTeacherUserId, StimulusType = type,
             Title = "Validator stimulus",
             ContentText = type == StimulusType.Passage ? "Reading passage." : null,
-            ResourceUrl = type == StimulusType.Audio ? "https://media.example.test/audio.mp3" : null
+            ResourceUrl = type == StimulusType.Audio ? EnglishLearningPlatform.Domain.Common.StimulusAudioResource.Prefix + new string('a', 64) : null
         };
         question.StimulusId = stimulus.Id;
         question.Stimulus = stimulus;

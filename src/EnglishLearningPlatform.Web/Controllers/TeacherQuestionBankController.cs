@@ -299,33 +299,39 @@ public sealed class TeacherQuestionBankController : Controller
         model.Id = id;
         model.IsEdit = true;
 
+        if (!Request.HasFormContentType) return BadRequest();
+
         var editor = await _questionAuthoringService.GetEditorAsync(CurrentUserId.Value, id, cancellationToken);
         if (editor is null)
         {
             return NotFound();
         }
 
-        // If scoring content is locked and fields were omitted from POST, restore them from persisted editor
+        // Chỉ khôi phục trường KHÔNG GỬI trong form cũ. Giá trị rỗng gửi rõ ràng là một yêu cầu sửa,
+        // không được âm thầm coi như đã lưu thành công khi service phải từ chối thao tác đó.
         if (editor.ScoringContentLocked)
         {
             model.ScoringContentLocked = true;
             model.LockReason = editor.LockReason;
-            if (string.IsNullOrWhiteSpace(model.Content))
+            if (!Request.Form.ContainsKey(nameof(model.Content)))
             {
                 model.Content = editor.Content;
             }
-            if (!model.PrimarySkill.HasValue)
+            if (!Request.Form.ContainsKey(nameof(model.PrimarySkill)))
             {
                 model.PrimarySkill = editor.PrimarySkill;
             }
-            if (!model.StimulusId.HasValue && editor.StimulusId.HasValue)
+            if (!Request.Form.ContainsKey(nameof(model.StimulusId)))
             {
                 model.StimulusId = editor.StimulusId;
             }
-            if (model.Options == null || model.Options.Count == 0)
+            if (!Request.Form.ContainsKey(nameof(model.Explanation))) model.Explanation = editor.Explanation;
+            if ((model.Options == null || model.Options.Count == 0)
+                && !Request.Form.Keys.Any(key => key == nameof(model.Options) || key.StartsWith("Options[", StringComparison.Ordinal)))
             {
                 model.Options = editor.Options.Select(o => new QuestionOptionFormModel { Content = o.Content }).ToList();
-                model.CorrectOptionIndex = editor.Options.Select((o, i) => (Option: o, Index: i)).FirstOrDefault(x => x.Option.IsCorrect).Index;
+                if (!Request.Form.ContainsKey(nameof(model.CorrectOptionIndex)))
+                    model.CorrectOptionIndex = editor.Options.Select((o, i) => (Option: o, Index: i)).FirstOrDefault(x => x.Option.IsCorrect).Index;
             }
         }
 

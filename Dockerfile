@@ -11,5 +11,7 @@ WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
+# Kho audio nằm ngoài wwwroot; named volume giữ file khi rebuild container.
+RUN mkdir -p /app/App_Data/stimulus-audio && chown -R app:app /app/App_Data
 USER app
 ENTRYPOINT ["dotnet", "EnglishLearningPlatform.Web.dll"]

@@ -158,6 +158,9 @@
             Soạn câu hỏi và points
         </a>
         <a class="button secondary"
+           asp-controller="TeacherAssessmentScope" asp-action="Edit"
+           asp-route-id="@Model.Id">Phạm vi / Course</a>
+        <a class="button secondary"
         asp-controller="TeacherAssessmentPreview"
         asp-action="Index"
         asp-route-id="@Model.Id"

@@ -326,17 +326,13 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
     [InlineData(2)]
     public async Task Result_OnlyShowsSkillsWithThreeQuestions_WithoutExposingOrDeletingAnswers(int readingQuestionCount)
     {
-        var data = await SeedAsync();
-        using (var scope = factory.Services.CreateScope())
+        var data = await SeedAsync(configure: assessment =>
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var questions = await db.AssessmentQuestions.Include(q => q.Question)
-                .Where(q => q.AssessmentId == data.Assessment.Id).OrderBy(q => q.OrderIndex).ToListAsync();
-            var passage = new Stimulus { OwnerTeacherUserId = data.Teacher.Id,
+            var questions = assessment.Questions.OrderBy(q => q.OrderIndex).ToList();
+            var passage = new Stimulus { OwnerTeacherUserId = assessment.OwnerTeacherUserId,
                 StimulusType = StimulusType.Passage, ContentText = "RESULT_PRIVATE_PASSAGE" };
-            var audio = new Stimulus { OwnerTeacherUserId = data.Teacher.Id,
+            var audio = new Stimulus { OwnerTeacherUserId = assessment.OwnerTeacherUserId,
                 StimulusType = StimulusType.Audio, ResourceUrl = "https://example.com/result-listening.mp3" };
-            db.Stimuli.AddRange(passage, audio);
 
             // Hai đề kiểm tra: 3 Reading + 2 Listening; hoặc 2 Reading + 2 Listening + 1 Grammar.
             for (int i = 0; i < questions.Count; i++)
@@ -356,8 +352,7 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
                     questions[i].Question.PrimarySkill = EnglishSkill.Grammar;
                 }
             }
-            await db.SaveChangesAsync();
-        }
+        });
 
         using var client = await StudentClient(data.Student);
         string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
@@ -798,19 +793,15 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
     [Fact]
     public async Task ListeningAudio_IsAvailableOnlyToEnrolledAttemptOwner_AndResumeKeepsDeadline()
     {
-        var data = await SeedAsync();
         const string audioUrl = "https://example.com/listening-regression.mp3";
-        var question = data.Assessment.Questions.OrderBy(q => q.OrderIndex).First();
-        using (var scope = factory.Services.CreateScope())
+        var data = await SeedAsync(configure: assessment =>
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var entity = await db.Questions.SingleAsync(q => q.Id == question.QuestionId);
+            var entity = assessment.Questions.OrderBy(q => q.OrderIndex).First().Question;
             entity.PrimarySkill = EnglishSkill.Listening;
-            entity.Stimulus = new Stimulus { OwnerTeacherUserId = data.Teacher.Id,
+            entity.Stimulus = new Stimulus { OwnerTeacherUserId = assessment.OwnerTeacherUserId,
                 StimulusType = StimulusType.Audio, ResourceUrl = audioUrl, ContentText = "Listen and choose." };
-            db.Stimuli.Add(entity.Stimulus);
-            await db.SaveChangesAsync();
-        }
+        });
+        var question = data.Assessment.Questions.OrderBy(q => q.OrderIndex).First();
         using var client = await StudentClient(data.Student);
         var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
         var attemptId = await Start(client, data, token);
@@ -902,7 +893,7 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         return answers;
     }
 
-    private async Task<Fixture> SeedAsync(decimal? passingScore = 80m, int maxAttempts = 3)
+    private async Task<Fixture> SeedAsync(decimal? passingScore = 80m, int maxAttempts = 3, Action<Assessment>? configure = null)
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
@@ -934,6 +925,8 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
                 }
             }).ToList()
         };
+        // Cấu hình fixture trước khi lưu Published, không sửa nội dung Question đã dùng qua EF.
+        configure?.Invoke(assessment);
         db.Assessments.Add(assessment);
         await db.SaveChangesAsync();
         course.FinalAssessmentId = passingScore.HasValue ? assessment.Id : null;

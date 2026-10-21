@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
@@ -79,6 +80,75 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
             .StartAsync(student.Id, after.Id);
         Assert.Equal(AttemptStartStatus.Started, start.Status);
         Assert.Single((await ReadAsync(data)).Attempts);
+    }
+
+    [Theory]
+    [InlineData(AssessmentType.SkillAssessment)]
+    [InlineData(AssessmentType.PracticeExam)]
+    public async Task OptionalPassingScore_RemainsNullThroughSavePreviewPublishAndStudentResult(
+        AssessmentType type)
+    {
+        var data = await SeedAsync(type);
+        using var scope = _factory.Services.CreateScope();
+        var drafts = scope.ServiceProvider.GetRequiredService<ITeacherAssessmentDraftService>();
+        var editor = await drafts.GetDraftAsync(data.Teacher.Id, data.Assessment.Id);
+        Assert.Equal(LearningAccessResult.Allowed, editor.Access);
+        var input = Assert.IsType<AssessmentDraftRequest>(editor.Value);
+
+        // Để trống PassingScore phải được lưu thật, không tự điền 0 hoặc ngưỡng mặc định.
+        input.PassingScore = null;
+        Assert.True((await drafts.SaveDraftAsync(data.Teacher.Id, data.Assessment.Id, input)).Success);
+        var saved = await ReadAsync(data);
+        Assert.Null(saved.PassingScore);
+        Assert.Equal(type, saved.AssessmentType);
+        Assert.Empty(saved.Attempts);
+
+        var previews = scope.ServiceProvider.GetRequiredService<ITeacherAssessmentPreviewService>();
+        var draftPreview = await previews.GetAsync(data.Teacher.Id, saved.Id);
+        Assert.Equal(LearningAccessResult.Allowed, draftPreview.Access);
+        Assert.NotNull(draftPreview.Value);
+        Assert.Null(draftPreview.Value.PassingScore);
+        Assert.Empty(draftPreview.Value.Warnings);
+
+        var publish = await scope.ServiceProvider.GetRequiredService<ITeacherAssessmentPublishService>()
+            .PublishAsync(data.Teacher.Id, saved.Id, saved.UpdatedAtUtc);
+        Assert.True(publish.Success);
+        var publishedPreview = await previews.GetAsync(data.Teacher.Id, saved.Id);
+        Assert.NotNull(publishedPreview.Value);
+        Assert.Equal(AssessmentStatus.Published, publishedPreview.Value.Status);
+        Assert.Null(publishedPreview.Value.PassingScore);
+        Assert.Empty(publishedPreview.Value.Warnings);
+        Assert.Empty((await ReadAsync(data)).Attempts);
+
+        var student = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Student);
+        var attempts = scope.ServiceProvider.GetRequiredService<IAttemptService>();
+        var started = await attempts.StartAsync(student.Id, saved.Id);
+        Assert.Equal(AttemptStartStatus.Started, started.Status);
+        Assert.NotNull(started.AttemptId);
+
+        // Cố tình nộp trắng được 0 điểm: không có ngưỡng thì vẫn không được gắn nhãn trượt.
+        var finalized = await attempts.FinalizeAsync(student.Id, started.AttemptId.Value);
+        Assert.Equal(AttemptFinalizeStatus.Graded, finalized.Status);
+        Assert.Equal(0m, finalized.OverallScore);
+        Assert.Null(finalized.Passed);
+        var after = await ReadAsync(data);
+        var attempt = Assert.Single(after.Attempts);
+        Assert.Equal(AttemptStatus.Graded, attempt.Status);
+        Assert.Null(attempt.Passed);
+        Assert.Null(after.PassingScore);
+        Assert.Equal(Definition(saved), Definition(after));
+
+        var result = await scope.ServiceProvider.GetRequiredService<IAssessmentQueryService>()
+            .GetAttemptResultAsync(student.Id, attempt.Id);
+        Assert.NotNull(result);
+        Assert.Null(result.PassingScore);
+        using var client = await LoginAsync(student);
+        using var page = await client.GetAsync("/Assessment/Result/" + attempt.Id);
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        string html = WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync());
+        Assert.Contains("không áp dụng ngưỡng đạt / trượt", html);
+        Assert.DoesNotContain("assessment-passed", html);
+        Assert.DoesNotContain("assessment-failed", html);
     }
 
     [Theory]
@@ -206,7 +276,8 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
         await using var serviceDb = new AppDbContext(options);
         var service = new TeacherAssessmentPublishService(serviceDb,
             scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>(),
-            NullLogger<TeacherAssessmentPublishService>.Instance);
+            NullLogger<TeacherAssessmentPublishService>.Instance,
+            scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
 
         var result = await service.PublishAsync(data.Teacher.Id, data.Assessment.Id, InitialVersion);
 
@@ -403,7 +474,7 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
         var audio = new Stimulus
         {
             OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Audio,
-            ResourceUrl = "https://media.example.test/task4.mp3"
+            ResourceUrl = await scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>().StoreAsync(StimulusAudioTestData.Wav())
         };
         var assessment = new AssessmentEntity
         {

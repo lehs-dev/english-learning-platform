@@ -86,6 +86,7 @@
                         {
                             <div class="exam-audio-box">
                                 <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
+                                <partial name="_ExternalStimulusAudioNotice" model="question.AudioUrl" />
                                 <p class="exam-timer-note" style="margin-top: 6px;">Nếu audio không phát, kiểm tra kết nối và dùng nút phát để thử lại.</p>
                             </div>
                         }

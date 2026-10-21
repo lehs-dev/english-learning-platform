@@ -1,5 +1,6 @@
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,10 @@ internal static class StudentActivityQueries
                 (q.Question.PrimarySkill != EnglishSkill.Listening ||
                     (q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Audio &&
                      q.Question.Stimulus.ResourceUrl != null &&
-                     (q.Question.Stimulus.ResourceUrl.StartsWith("https://") || q.Question.Stimulus.ResourceUrl.StartsWith("http://"))))));
+                     (q.Question.Stimulus.ResourceUrl.StartsWith("https://") || q.Question.Stimulus.ResourceUrl.StartsWith("http://")
+                        // Lọc sơ bộ có thể dịch sang SQL. Validator runtime kiểm tra chính xác toàn bộ hash.
+                        || (q.Question.Stimulus.ResourceUrl.StartsWith(StimulusAudioResource.Prefix)
+                            && q.Question.Stimulus.ResourceUrl.Length == StimulusAudioResource.Prefix.Length + 64))))));
     }
 
     // Withdrawal blocks new starts, but an existing attempt can resume to its deadline.

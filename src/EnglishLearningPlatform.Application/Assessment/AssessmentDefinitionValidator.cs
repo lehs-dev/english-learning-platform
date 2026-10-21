@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
 
 using AssessmentEntity =
     EnglishLearningPlatform.Domain.Entities.Assessment;
@@ -167,6 +168,11 @@ public sealed class AssessmentDefinitionValidator
             // Validator dùng chung đã kiểm tra audio.
             // Kiểm tra thêm passage rỗng.
             var stimulus = question.Stimulus;
+
+            // Đề cũ vẫn giữ URL ngoài để không sửa lịch sử. Đề công bố mới phải dùng bytes đã lưu bất biến.
+            if (isFirstPublish && stimulus?.StimulusType == StimulusType.Audio
+                && !StimulusAudioResource.TryGetHash(stimulus.ResourceUrl, out _))
+                errors.Add(prefix + "Audio URL ngoài không bảo đảm bất biến. Hãy upload audio và dùng Question/Stimulus mới trước khi Publish.");
 
             if (stimulus != null
                 && stimulus.OwnerTeacherUserId

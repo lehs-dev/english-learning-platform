@@ -2,6 +2,7 @@ using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Learning;
 using EnglishLearningPlatform.Infrastructure.Persistence;
@@ -153,14 +154,14 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
 
         // A slow read must not return a sheet whose deadline elapsed in flight.
         if (sheet is null || sheet.DeadlineUtc <= timeProvider.GetUtcNow()) return null;
-        // Only expose playable HTTP(S) resources; legacy or malformed URLs must not reach the player.
+        // Chỉ trả audio nội bộ theo hash hoặc HTTP(S) legacy; không trả URL tùy ý như file/javascript.
         return sheet with
         {
             Questions = sheet.Questions.Select(question => question with
             {
-                AudioUrl = Uri.TryCreate(question.AudioUrl, UriKind.Absolute, out var uri) &&
+                AudioUrl = StimulusAudioResource.TryGetHash(question.AudioUrl, out _) || (Uri.TryCreate(question.AudioUrl, UriKind.Absolute, out var uri) &&
                     (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
-                    ? question.AudioUrl : null
+                    ) ? question.AudioUrl : null
             }).ToList()
         };
     }

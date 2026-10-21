@@ -100,6 +100,10 @@ public static class DependencyInjection
         services.AddScoped<ITeacherPracticeQueryService,TeacherPracticeQueryService>();
         // Tạo ngữ liệu riêng của Teacher, không dùng service chấm bài của Student.
         services.AddScoped<IStimulusCreationService, StimulusCreationService>();
+        services.AddSingleton<IStimulusAudioStore>(provider => new FileStimulusAudioStore(
+            configuration["StimulusAudio:StoragePath"] ?? Path.Combine(
+                provider.GetRequiredService<IHostEnvironment>().ContentRootPath, "App_Data", "stimulus-audio")));
+        services.AddScoped<IStimulusAudioAccessService, StimulusAudioAccessService>();
         // Service riêng cho Teacher soạn cấu hình Draft.
         // Không thay thế service Student làm bài.
         services.AddScoped<ITeacherAssessmentDraftService,TeacherAssessmentDraftService>();
@@ -109,6 +113,12 @@ public static class DependencyInjection
         services.AddScoped<ITeacherAssessmentPreviewService,TeacherAssessmentPreviewService>();
         // Publish đề đã lưu, tách khỏi service Preview và Student làm bài.
         services.AddScoped<ITeacherAssessmentPublishService, TeacherAssessmentPublishService>();
+        // Đổi Independent/Course-linked, không thay Final hoặc service Start.
+        services.AddScoped<ITeacherAssessmentScopeService, TeacherAssessmentScopeService>();
+        // Final thuộc Course; rút đề chỉ đổi trạng thái, không sửa lịch sử Attempt.
+        services.AddScoped<ITeacherCourseFinalService, TeacherCourseFinalService>();
+        services.AddScoped<ITeacherAssessmentLifecycleService, TeacherAssessmentLifecycleService>();
+        services.AddScoped<ITeacherAssessmentCloneService, TeacherAssessmentCloneService>();
         return services;
     }
 }

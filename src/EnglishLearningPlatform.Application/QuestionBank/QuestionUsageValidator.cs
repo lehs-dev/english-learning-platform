@@ -1,5 +1,6 @@
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
 
 namespace EnglishLearningPlatform.Application.QuestionBank;
 
@@ -295,7 +296,7 @@ public sealed class QuestionUsageValidator : IQuestionUsageValidator
         {
             // Dùng đúng rule URL tài nguyên đang có trong dự án:
             // URL tuyệt đối HTTP/HTTPS, không vượt quá 2048 ký tự.
-            bool validAudioUrl = CourseRules.ValidResource(
+            bool validAudioUrl = StimulusAudioResource.TryGetHash(stimulus.ResourceUrl, out _) || CourseRules.ValidResource(
                 LessonResourceType.Audio,
                 null,
                 stimulus.ResourceUrl);

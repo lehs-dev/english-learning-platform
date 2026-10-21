@@ -2,6 +2,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Data;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Infrastructure.Stimuli;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -20,11 +22,12 @@ public sealed class TeacherAssessmentDraftService
     private readonly AppDbContext _db;
     private readonly ILogger<TeacherAssessmentDraftService> _logger;
     private readonly IAssessmentDefinitionValidator _definitionValidator;
+    private readonly IStimulusAudioStore _audioStore;
 
     public TeacherAssessmentDraftService(
         AppDbContext db,
         ILogger<TeacherAssessmentDraftService> logger,
-        IAssessmentDefinitionValidator definitionValidator)
+        IAssessmentDefinitionValidator definitionValidator, IStimulusAudioStore audioStore)
     {
         if (db == null)
         {
@@ -44,6 +47,7 @@ public sealed class TeacherAssessmentDraftService
         _db = db;
         _logger = logger;
         _definitionValidator = definitionValidator;
+        _audioStore = audioStore;
     }
 
     /// <summary>
@@ -78,6 +82,12 @@ public sealed class TeacherAssessmentDraftService
                 MaxAttempts = assessment.MaxAttempts,
                 PassingScore = assessment.PassingScore,
                 QuestionCount = assessment.Questions.Count,
+                CourseId = assessment.CourseId,
+                UpdatedAtUtc = assessment.UpdatedAtUtc,
+                // Không tiết lộ tên Course khác owner nếu liên kết cũ bị sai.
+                CourseTitle = assessment.Course != null
+                    && assessment.Course.OwnerTeacherUserId == actorUserId
+                        ? assessment.Course.Title : null,
 
                 CanEditDraft =
                     assessment.Status == AssessmentStatus.Draft
@@ -435,6 +445,9 @@ public sealed class TeacherAssessmentDraftService
                 {
                     return Failure(assessment.Id, definitionErrors.ToArray());
                 }
+                string? audioError = await StimulusAudioIntegrity.GetErrorAsync(
+                    publishedQuestions.Select(q => q.Question.Stimulus), _audioStore, cancellationToken);
+                if (audioError != null) return Failure(assessment.Id, audioError);
             }
 
             // Chỉ chép những trường thuộc phạm vi cấu hình.

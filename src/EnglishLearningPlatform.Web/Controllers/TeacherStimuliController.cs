@@ -2,6 +2,7 @@ using System.Security.Claims;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Domain.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,8 +44,11 @@ public sealed class TeacherStimuliController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequestSizeLimit(11 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 11 * 1024 * 1024)]
     public async Task<IActionResult> Create(
         [Bind("StimulusType,Title,ContentText,ResourceUrl")] CreateStimulusRequest input,
+        IFormFile? audioFile,
         CancellationToken cancellationToken)
     {
         if (!TryGetActorUserId(out Guid actorUserId))
@@ -54,6 +58,19 @@ public sealed class TeacherStimuliController : Controller
         if (input == null)
         {
             return BadRequest();
+        }
+
+        if (audioFile != null)
+        {
+            if (audioFile.Length <= 0 || audioFile.Length > StimulusAudioResource.MaxBytes)
+                ModelState.AddModelError(nameof(input.AudioContent), "File audio phải có dữ liệu và không vượt quá 10 MiB.");
+            else
+            {
+                // Không dùng tên file/đường dẫn từ browser để lưu tài nguyên.
+                using var memory = new MemoryStream();
+                await audioFile.CopyToAsync(memory, cancellationToken);
+                input.AudioContent = memory.ToArray();
+            }
         }
 
         // Lỗi chuyển kiểu (ví dụ StimulusType=abc) do MVC phát hiện trước service.

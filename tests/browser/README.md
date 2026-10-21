@@ -1,5 +1,41 @@
 # Browser UAT
 
+## Ba loại Assessment trên web thật
+
+`npm run test:assessment-types` mở Chromium và thao tác form của ứng dụng thật:
+tạo/sửa Draft, chọn câu hỏi, Preview, Publish, Student Start/Submit và kết quả
+của PlacementTest, SkillAssessment, PracticeExam. Có kiểm tra cấu hình sai không
+ghi đè dữ liệu/version, câu trái TargetSkill, PassingScore trống/0/100 và giao diện
+1440/390px. Suite không dùng HTML fixture hoặc bỏ qua đăng nhập/CSRF.
+
+Chỉ chạy trên app/database riêng mới seed, không dùng database đang làm việc.
+Caller phải bật demo seed bằng mật khẩu tạm qua environment và đợi `/health` đạt:
+
+```powershell
+$env:ELP_T2_UAT_ISOLATED = 'true' # Chỉ xác nhận sau khi đã tạo môi trường riêng.
+$env:ELP_UAT_URL = 'http://127.0.0.1:<port-app-test>'
+$env:ELP_UAT_RESULTS = 'D:\english-learning-platform\TestResults\t2-browser-uat'
+# LearningDemo__Password phải có trong environment và trùng mật khẩu seed.
+npm run test:assessment-types
+```
+
+Script từ chối URL không phải loopback hoặc thiếu xác nhận môi trường riêng.
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` tùy chọn chỉ tới Chromium đã cài.
+Ảnh và `assessment-types-results.json` được lưu trong thư mục kết quả; không lưu
+cookie, token, storage state hoặc mật khẩu. Caller chịu trách nhiệm dọn môi trường test.
+
+## Phạm vi Independent/Course-linked trên web thật
+
+`npm run test:assessment-scope` kiểm tra Teacher gắn/chuyển/gỡ Course, scope trên
+danh sách/Preview và quyền Student thay đổi tương ứng. Có kiểm tra tab cũ, form
+Start cũ, Course/Assessment khác owner, khóa sau Attempt và Final không tự bị gỡ.
+Ảnh desktop/mobile và `assessment-scope-results.json` được ghi vào thư mục kết quả.
+
+Dùng app/database riêng mới seed như trên, đặt `ELP_T3_UAT_ISOLATED=true` thay cho
+cờ T2; các biến URL, mật khẩu seed, thư mục kết quả và Chromium dùng cùng quy ước.
+Script không thử giao dịch thanh toán; Pending/Failed/verified payment và race
+Start/đổi scope được kiểm tra riêng bằng integration tests trên SQL Server.
+
 ## Kiểm thử responsive và điều hướng theo vai trò
 
 Sau khi cài dependencies và Chromium như bên dưới, chạy `npm run test:roles`.

@@ -4,6 +4,9 @@ using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
+using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Infrastructure.Stimuli;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,13 +21,14 @@ public sealed class TeacherAssessmentQuestionService
     private readonly IQuestionUsageValidator _questionValidator;
     private readonly ILogger<TeacherAssessmentQuestionService> _logger;
     private readonly IAssessmentDefinitionValidator _definitionValidator;
+    private readonly IStimulusAudioStore _audioStore;
 
     public TeacherAssessmentQuestionService(
         AppDbContext db,
         ITeacherAssessmentDraftService draftService,
         IQuestionUsageValidator questionValidator,
         ILogger<TeacherAssessmentQuestionService> logger,
-        IAssessmentDefinitionValidator definitionValidator)
+        IAssessmentDefinitionValidator definitionValidator, IStimulusAudioStore audioStore)
     {
         if (db == null)
         {
@@ -56,6 +60,7 @@ public sealed class TeacherAssessmentQuestionService
         _questionValidator = questionValidator;
         _logger = logger;
         _definitionValidator = definitionValidator;
+        _audioStore = audioStore;
     }
 
     /// <summary>
@@ -341,6 +346,12 @@ public sealed class TeacherAssessmentQuestionService
                         $"Câu {index + 1}: {errors[0].Message}");
                 }
 
+                if (assessment.Status == AssessmentStatus.Published
+                    && !existingQuestionIds.Contains(input.QuestionId)
+                    && question?.Stimulus?.StimulusType == StimulusType.Audio
+                    && !StimulusAudioResource.TryGetHash(question.Stimulus.ResourceUrl, out _))
+                    return Failure(assessmentId, $"Câu {index + 1}: câu mới dùng audio phải được upload vào kho bất biến của ứng dụng.");
+
                 // Validator hiện tại đã kiểm tra audio.
                 // Bổ sung kiểm tra passage tại luồng này,
                 // không thay đổi validator dùng chung của nhóm.
@@ -404,6 +415,9 @@ public sealed class TeacherAssessmentQuestionService
                     // Chưa xóa liên kết hoặc khóa thêm nội dung nào.
                     return Failure(assessmentId, definitionErrors.ToArray());
                 }
+                string? audioError = await StimulusAudioIntegrity.GetErrorAsync(
+                    candidateItems.Select(q => q.Question.Stimulus), _audioStore, cancellationToken);
+                if (audioError != null) return Failure(assessmentId, audioError);
 
                 // Giữ/bổ sung dấu khóa cho cả câu cũ bị bỏ khỏi đề.
                 // Nội dung từng được công bố không được mở khóa về sau.

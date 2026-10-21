@@ -4,6 +4,9 @@ using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Domain.Common;
+using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Infrastructure.Stimuli;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -21,11 +24,12 @@ public sealed class TeacherPracticeQuestionService
     private readonly AppDbContext _db;
     private readonly IQuestionUsageValidator _questionUsageValidator;
     private readonly ILogger<TeacherPracticeQuestionService> _logger;
+    private readonly IStimulusAudioStore _audioStore;
 
     public TeacherPracticeQuestionService(
         AppDbContext db,
         IQuestionUsageValidator questionUsageValidator,
-        ILogger<TeacherPracticeQuestionService> logger)
+        ILogger<TeacherPracticeQuestionService> logger, IStimulusAudioStore audioStore)
     {
         if (db == null)
         {
@@ -46,6 +50,7 @@ public sealed class TeacherPracticeQuestionService
         _db = db;
         _questionUsageValidator = questionUsageValidator;
         _logger = logger;
+        _audioStore = audioStore;
     }
 
     /// <summary>
@@ -654,6 +659,10 @@ public sealed class TeacherPracticeQuestionService
 
                 var stimulus = item.Question.Stimulus;
 
+                if (practice.Status == PracticeStatus.Draft && stimulus?.StimulusType == StimulusType.Audio
+                    && !StimulusAudioResource.TryGetHash(stimulus.ResourceUrl, out _))
+                    return Invalid(practiceId, $"Câu {index + 1}: hãy upload audio bất biến trước khi Publish; URL ngoài có thể bị thay nội dung.");
+
                 if (stimulus != null
                     && stimulus.StimulusType == StimulusType.Passage
                     && string.IsNullOrWhiteSpace(stimulus.ContentText))
@@ -664,6 +673,10 @@ public sealed class TeacherPracticeQuestionService
             }
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
+
+            string? audioError = await StimulusAudioIntegrity.GetErrorAsync(
+                items.Select(q => q.Question.Stimulus), _audioStore, cancellationToken);
+            if (audioError != null) return Invalid(practiceId, audioError);
 
             // Chỉ khóa sau khi tất cả câu hỏi đều hợp lệ.
             // LockContent giữ nguyên thời điểm nếu nội dung đã bị khóa trước đó.

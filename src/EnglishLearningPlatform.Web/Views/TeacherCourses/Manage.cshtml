@@ -11,6 +11,11 @@
 <form method="post" asp-controller="TeacherCourses" asp-action="Publish" asp-route-id="@courseId"><button class="button">Xuất bản</button></form>
 <form method="post" asp-controller="TeacherCourses" asp-action="Unpublish" asp-route-id="@courseId"><button class="button secondary">Ngừng xuất bản</button></form>
 <form method="post" asp-controller="TeacherCourses" asp-action="Archive" asp-route-id="@courseId"><button class="button secondary">Lưu trữ</button></form></div></section>
+<section class="panel">
+    <h2>Final Assessment</h2>
+    <p>@(coursePage.FinalAssessmentId.HasValue ? "Course đã có Final. Mở trang quản lý để xem đề và điều kiện khóa." : "Course chưa dùng Final; hoàn thành dựa trên các bài học khả dụng.")</p>
+    <a class="button secondary" asp-controller="TeacherCourseFinal" asp-action="Edit" asp-route-id="@courseId">Chọn / quản lý Final</a>
+</section>
 <div class="page-heading"><h2>Cấu trúc và tài nguyên</h2><a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId">Thêm chương học</a></div>
 @if (coursePage.Modules.Count == 0) { <p class="panel empty">Chưa có Chương học. Thêm Chương học đầu tiên.</p> }
 @for (var mi = 0; mi < coursePage.Modules.Count; mi++) {

@@ -54,8 +54,7 @@ public sealed class QuestionContentLockServiceTests(IntegrationTestFactory facto
         using var scope = factory.Services.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<IQuestionAuthoringService>();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var request = OriginalRequest() with { Level = "A2", Difficulty = "Medium",
-            Explanation = "Updated explanation" };
+        var request = OriginalRequest() with { Level = "A2", Difficulty = "Medium" };
 
         var result = await service.UpdateAsync(data.TeacherId, data.QuestionId, request);
 

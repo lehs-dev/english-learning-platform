@@ -19,7 +19,7 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 12, 0, 0, 0, TimeSpan.Zero);
 
-    private async Task<Fixture> SeedAsync(bool courseLinked = false, bool paid = false)
+    private async Task<Fixture> SeedAsync(bool courseLinked = false, bool paid = false, Action<Assessment>? configure = null)
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
@@ -65,6 +65,8 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
                 }
             }).ToList()
         };
+        // Cấu hình skill/points của fixture trước khi lưu đề Published, không sửa Question đã khóa.
+        configure?.Invoke(assessment);
         db.Assessments.Add(assessment);
         await db.SaveChangesAsync();
         return new Fixture(student.Id, teacher.Id, assessment, course, payment);
@@ -89,8 +91,9 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var stimulus = await db.Stimuli.SingleAsync(s => s.OwnerTeacherUserId == data.Teacher);
-        stimulus.StimulusType = StimulusType.Audio;
-        stimulus.ResourceUrl = audioUrl;
+        // Mô phỏng dữ liệu legacy bị hỏng; luồng ghi EF bình thường hiện đã chặn sửa Stimulus đã dùng.
+        await db.Stimuli.Where(s => s.Id == stimulus.Id).ExecuteUpdateAsync(set => set
+            .SetProperty(s => s.StimulusType, StimulusType.Audio).SetProperty(s => s.ResourceUrl, audioUrl));
         var attempt = AttemptFor(data);
         db.Attempts.Add(attempt);
         await db.SaveChangesAsync();
@@ -541,7 +544,16 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
     [Fact]
     public async Task FinalizedAttempt_FractionalPointsAndBlanks_PersistSeparateSkillDenominators()
     {
-        var data = await SeedAsync();
+        var data = await SeedAsync(configure: assessment =>
+        {
+            decimal[] points = { 1.25m, 2.5m, 1.25m, 3.75m, 1.25m };
+            var items = assessment.Questions.OrderBy(q => q.OrderIndex).ToArray();
+            for (int index = 0; index < items.Length; index++)
+            {
+                items[index].Points = points[index];
+                items[index].Question.PrimarySkill = index < 3 ? EnglishSkill.Grammar : EnglishSkill.Vocabulary;
+            }
+        });
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var questions = await db.AssessmentQuestions
@@ -551,15 +563,7 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
             .OrderBy(question => question.OrderIndex)
             .ToArrayAsync();
 
-        // Chỉ sắp xếp dữ liệu trong SQL Server test riêng, trước khi tạo Attempt.
-        // Mỗi skill có tối đa 5 điểm; cả đề có tối đa 10 điểm.
-        decimal[] points = { 1.25m, 2.5m, 1.25m, 3.75m, 1.25m };
-        for (int index = 0; index < questions.Length; index++)
-        {
-            questions[index].Points = points[index];
-            questions[index].Question.PrimarySkill = index < 3 ? EnglishSkill.Grammar : EnglishSkill.Vocabulary;
-        }
-        await db.SaveChangesAsync();
+        // Fixture đã có mỗi skill tối đa 5 điểm; cả đề tối đa 10 điểm.
 
         var service = scope.ServiceProvider.GetRequiredService<IAttemptService>();
         var started = await service.StartAsync(data.Student, data.Assessment.Id);
@@ -612,18 +616,20 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
     public async Task Result_WeakSkillUsesRawPoints_NotRoundedScoreOrPassingScore(
         decimal firstPoints, decimal otherPoints, bool answerCorrect, decimal expectedScore, bool expectedWeak)
     {
-        var data = await SeedAsync();
+        var data = await SeedAsync(configure: assessment =>
+        {
+            var items = assessment.Questions.OrderBy(q => q.OrderIndex).ToArray();
+            for (int index = 0; index < items.Length; index++)
+            {
+                items[index].Question.PrimarySkill = index < 3 ? EnglishSkill.Grammar : EnglishSkill.Vocabulary;
+                items[index].Points = index == 0 ? firstPoints : index < 3 ? otherPoints : 1m;
+            }
+        });
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var questions = await db.AssessmentQuestions.Where(q => q.AssessmentId == data.Assessment.Id)
             .Include(q => q.Question).ThenInclude(q => q.Options)
             .OrderBy(q => q.OrderIndex).ToArrayAsync();
-        for (int index = 0; index < questions.Length; index++)
-        {
-            questions[index].Question.PrimarySkill = index < 3 ? EnglishSkill.Grammar : EnglishSkill.Vocabulary;
-            questions[index].Points = index == 0 ? firstPoints : index < 3 ? otherPoints : 1m;
-        }
-        await db.SaveChangesAsync();
 
         var service = scope.ServiceProvider.GetRequiredService<IAttemptService>();
         var started = await service.StartAsync(data.Student, data.Assessment.Id);

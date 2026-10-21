@@ -103,21 +103,25 @@ public sealed class AssessmentAttemptStartTests(
             var assessment = await db.Assessments.Include(a => a.Questions).ThenInclude(q => q.Question)
                 .ThenInclude(q => q.Options).SingleAsync(a => a.Id == assessmentId);
             var question = assessment.Questions.Single(q => q.OrderIndex == 0).Question;
+            // Corruption test: dựng dữ liệu legacy bằng SQL vì EF hiện chặn sửa Question đã dùng.
             switch (fault)
             {
                 case "BlankTitle": assessment.Title = "   "; break;
-                case "WrongSkill": question.PrimarySkill = EnglishSkill.Vocabulary; break;
+                case "WrongSkill":
+                    await db.Questions.Where(q => q.Id == question.Id).ExecuteUpdateAsync(set => set.SetProperty(q => q.PrimarySkill, EnglishSkill.Vocabulary));
+                    break;
                 case "InvalidMcq":
-                    foreach (var option in question.Options) option.IsCorrect = false;
+                    await db.QuestionOptions.Where(o => o.QuestionId == question.Id).ExecuteUpdateAsync(set => set.SetProperty(o => o.IsCorrect, false));
                     break;
                 case "ListeningWithoutAudio":
                     // Loại đa kỹ năng giúp chỉ vi phạm audio, không kèm lỗi TargetSkill.
                     assessment.AssessmentType = AssessmentType.PracticeExam;
                     assessment.TargetSkill = null;
-                    question.PrimarySkill = EnglishSkill.Listening;
+                    await db.Questions.Where(q => q.Id == question.Id).ExecuteUpdateAsync(set => set.SetProperty(q => q.PrimarySkill, EnglishSkill.Listening));
                     break;
                 case "ForeignQuestion":
-                    question.OwnerTeacherUserId = (await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher)).Id;
+                    Guid otherOwnerId = (await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher)).Id;
+                    await db.Questions.Where(q => q.Id == question.Id).ExecuteUpdateAsync(set => set.SetProperty(q => q.OwnerTeacherUserId, otherOwnerId));
                     break;
                 case "InvalidFinal":
                     // Assessment độc lập bị một Course tham chiếu nhầm làm Final.

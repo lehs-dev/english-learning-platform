@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
@@ -273,11 +274,13 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
         await using var serviceDb = new AppDbContext(options);
         var drafts = new TeacherAssessmentDraftService(serviceDb,
             NullLogger<TeacherAssessmentDraftService>.Instance,
-            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>());
+            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>(),
+            scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
         var service = new TeacherAssessmentQuestionService(serviceDb, drafts,
             scope.ServiceProvider.GetRequiredService<IQuestionUsageValidator>(),
             NullLogger<TeacherAssessmentQuestionService>.Instance,
-            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>());
+            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>(),
+            scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
 
         var result = await service.SaveAsync(data.Teacher.Id, data.AssessmentId, Selection(data));
 

@@ -1,6 +1,8 @@
 using System.Data;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Infrastructure.Stimuli;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -16,11 +18,13 @@ public sealed class TeacherAssessmentPublishService
     private readonly AppDbContext _db;
     private readonly IAssessmentDefinitionValidator _validator;
     private readonly ILogger<TeacherAssessmentPublishService> _logger;
+    private readonly IStimulusAudioStore _audioStore;
 
     public TeacherAssessmentPublishService(
         AppDbContext db,
         IAssessmentDefinitionValidator validator,
-        ILogger<TeacherAssessmentPublishService> logger)
+        ILogger<TeacherAssessmentPublishService> logger,
+        IStimulusAudioStore audioStore)
     {
         if (db == null)
         {
@@ -40,6 +44,7 @@ public sealed class TeacherAssessmentPublishService
         _db = db;
         _validator = validator;
         _logger = logger;
+        _audioStore = audioStore;
     }
 
     /// <summary>
@@ -215,6 +220,9 @@ public sealed class TeacherAssessmentPublishService
             }
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
+            string? audioError = await StimulusAudioIntegrity.GetErrorAsync(
+                questions.Select(q => q.Question.Stimulus), _audioStore, cancellationToken);
+            if (audioError != null) return Failure(assessmentId, audioError);
 
             // Chỉ khóa nội dung sau khi toàn bộ đề hợp lệ.
             // LockContent giữ nguyên thời điểm khóa đã có.

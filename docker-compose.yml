@@ -44,6 +44,8 @@ services:
       LearningDemo__Password: "${LearningDemo__Password:-}"
       Payments__Enabled: "${Payments__Enabled:-false}"
       CheckoutSandbox__Enabled: "${CheckoutSandbox__Enabled:-false}"
+    volumes:
+      - stimulus-audio-data:/app/App_Data/stimulus-audio
     ports:
       - "127.0.0.1:${ELP_WEB_PORT:-8080}:8080"
     depends_on:
@@ -54,3 +56,4 @@ services:
 
 volumes:
   sqlserver-data:
+  stimulus-audio-data:
