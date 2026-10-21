@@ -567,11 +567,15 @@
 }
 
 .assessment-table-wrap {
+    min-width: 0;
+    max-width: 100%;
     overflow-x: auto;
 }
 
 .assessment-table {
     width: 100%;
+    /* Mobile cuộn trong khung bảng, không ép ngày giờ/nút thành từng ký tự. */
+    min-width: 560px;
     border-collapse: collapse;
     text-align: left;
 }
@@ -581,6 +585,12 @@
     padding: 14px;
     border-bottom: 1px solid var(--v2-border-light);
     font-size: 14px;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.assessment-table .button {
+    white-space: nowrap;
 }
 
 .assessment-table th {

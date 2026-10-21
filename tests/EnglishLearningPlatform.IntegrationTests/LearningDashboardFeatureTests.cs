@@ -15,7 +15,7 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
-    private async Task<Data> SeedAsync()
+    private async Task<Data> SeedAsync(int practiceQuestionCount = 2)
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
@@ -29,7 +29,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var second = new Lesson { Module = module, Title = "Second lesson", Status = LessonStatus.Published, OrderIndex = 1 };
         var enrollment = new Enrollment { StudentUserId = student.Id, Course = course, LastAccessedLesson = second };
         var practice = new Practice { Lesson = first, OwnerTeacherUserId = teacher.Id, Status = PracticeStatus.Published,
-            Title = "Reading practice", Questions = Enumerable.Range(0, 2).Select(i => new PracticeQuestion
+            Title = "Reading practice", Questions = Enumerable.Range(0, practiceQuestionCount).Select(i => new PracticeQuestion
             { OrderIndex = i, Question = Question(teacher.Id, EnglishSkill.Reading, i) }).ToList() };
         var assessment = new Assessment { Course = course, OwnerTeacherUserId = teacher.Id, Status = AssessmentStatus.Published,
             AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 15, MaxAttempts = 10, PassingScore = 80,
@@ -496,6 +496,79 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.NotNull((await practices.GetResultAsync(data.Student.Id, data.Practice.Id)).Value);
         Assert.Single((await scope.ServiceProvider.GetRequiredService<IStudentLearningService>().DashboardAsync(data.Student.Id)).Value!.PracticeResults);
         Assert.Empty((await scope.ServiceProvider.GetRequiredService<IStudentLearningService>().DashboardAsync(other.Id)).Value!.PracticeResults);
+    }
+
+    [Fact]
+    public async Task Practice_MixedCorrectWrongAndBlankAnswers_UseEqualWeightsAndRetakeReplacesLatestResult()
+    {
+        // Tạo đủ 3 câu ngay trong fixture, không thêm/sửa đề sau khi Published.
+        var data = await SeedAsync(practiceQuestionCount: 3);
+        var questions = data.Practice.Questions.OrderBy(q => q.OrderIndex).ToArray();
+        Guid firstCorrect = questions[0].Question.Options.Single(o => o.IsCorrect).Id;
+        Guid secondWrong = questions[1].Question.Options.Single(o => !o.IsCorrect).Id;
+        var mixedAnswers = new[]
+        {
+            new PracticeResponse(questions[0].Id, firstCorrect),
+            new PracticeResponse(questions[1].Id, secondWrong),
+            new PracticeResponse(questions[2].Id, null)
+        };
+
+        Guid submissionId;
+        using (var firstScope = factory.Services.CreateScope())
+        {
+            var service = firstScope.ServiceProvider.GetRequiredService<IPracticeService>();
+            var submitted = await service.SubmitAsync(data.Student.Id, data.Practice.Id, mixedAnswers);
+            Assert.Equal(PracticeSubmitStatus.Saved, submitted.Status);
+
+            // Tính tay: 1 đúng / 3 câu = 33,33%; sai và bỏ trống vẫn nằm trong mẫu số.
+            var result = (await service.GetResultAsync(data.Student.Id, data.Practice.Id)).Value!;
+            Assert.Equal(33.33m, result.Score);
+            Assert.Equal(3, result.Questions.Count);
+            var correct = result.Questions.Single(q => q.Id == questions[0].Id);
+            Assert.True(correct.IsCorrect);
+            Assert.Equal("Correct 0", correct.SelectedAnswer);
+            var wrong = result.Questions.Single(q => q.Id == questions[1].Id);
+            Assert.False(wrong.IsCorrect);
+            Assert.Equal("Wrong 1", wrong.SelectedAnswer);
+            Assert.Equal("Correct 1", wrong.CorrectAnswer);
+            var blank = result.Questions.Single(q => q.Id == questions[2].Id);
+            Assert.False(blank.IsCorrect);
+            Assert.Null(blank.SelectedAnswer);
+            Assert.Equal("Correct 2", blank.CorrectAnswer);
+            Assert.All(result.Questions, q => Assert.Equal("PRIVATE_PRACTICE_EXPLANATION", q.Explanation));
+
+            var db = firstScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var submission = Assert.Single(await db.PracticeSubmissions.AsNoTracking()
+                .Include(s => s.Answers)
+                .Where(s => s.StudentUserId == data.Student.Id && s.PracticeId == data.Practice.Id)
+                .ToListAsync());
+            submissionId = submission.Id;
+            Assert.Equal(33.33m, submission.Score);
+            Assert.Equal(2, submission.Answers.Count);
+            Assert.Contains(submission.Answers, a => a.PracticeQuestionId == questions[0].Id && a.SelectedOptionId == firstCorrect);
+            Assert.Contains(submission.Answers, a => a.PracticeQuestionId == questions[1].Id && a.SelectedOptionId == secondWrong);
+            Assert.DoesNotContain(submission.Answers, a => a.PracticeQuestionId == questions[2].Id);
+        }
+
+        // Scope mới mô phỏng request làm lại; không dựa vào entity đang tracked ở lần đầu.
+        using var retakeScope = factory.Services.CreateScope();
+        var retakeService = retakeScope.ServiceProvider.GetRequiredService<IPracticeService>();
+        var retaken = await retakeService.SubmitAsync(data.Student.Id, data.Practice.Id, Responses(data));
+        Assert.Equal(PracticeSubmitStatus.Saved, retaken.Status);
+        var latestResult = (await retakeService.GetResultAsync(data.Student.Id, data.Practice.Id)).Value!;
+        Assert.Equal(100m, latestResult.Score);
+        Assert.All(latestResult.Questions, q => Assert.True(q.IsCorrect));
+
+        var retakeDb = retakeScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var latest = Assert.Single(await retakeDb.PracticeSubmissions.AsNoTracking()
+            .Include(s => s.Answers)
+            .Where(s => s.StudentUserId == data.Student.Id && s.PracticeId == data.Practice.Id)
+            .ToListAsync());
+        Assert.Equal(submissionId, latest.Id);
+        Assert.Equal(100m, latest.Score);
+        Assert.Equal(3, latest.Answers.Count);
+        Assert.Equal(questions.Select(q => q.Question.Options.Single(o => o.IsCorrect).Id).OrderBy(id => id),
+            latest.Answers.Select(a => a.SelectedOptionId).OrderBy(id => id));
     }
 
     [Fact]

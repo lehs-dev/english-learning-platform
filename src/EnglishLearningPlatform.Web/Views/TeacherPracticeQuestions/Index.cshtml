@@ -17,6 +17,11 @@
         <p class="muted">@Model.Editor.Title</p>
     </div>
 
+    @if (Model.Editor.Status == PracticeStatus.Draft || Model.Editor.Status == PracticeStatus.Published)
+    {
+        <a class="button" asp-controller="TeacherPracticePreview" asp-action="Index"
+           asp-route-id="@Model.Editor.PracticeId" data-editor-navigation>Preview Practice đã lưu</a>
+    }
     <a class="button secondary"
        asp-controller="TeacherPractices"
        asp-action="Index">

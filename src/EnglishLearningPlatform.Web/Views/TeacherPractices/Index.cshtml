@@ -172,6 +172,7 @@ else
                         <th scope="col">Nơi gắn</th>
                         <th scope="col">Số câu</th>
                         <th scope="col">Ngày tạo (UTC)</th>
+                        <th scope="col">Thao tác</th>
                     </tr>
                 </thead>
 
@@ -240,6 +241,13 @@ else
                                 @* Hiển thị UTC rõ ràng, không phụ thuộc
                                    múi giờ của máy chạy ứng dụng. *@
                                 @practice.CreatedAtUtc.UtcDateTime.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td>
+                                @if (practice.Status == PracticeStatus.Draft || practice.Status == PracticeStatus.Published)
+                                {
+                                    <a class="button secondary small" asp-controller="TeacherPracticePreview"
+                                       asp-action="Index" asp-route-id="@practice.Id">Preview</a>
+                                }
                             </td>
                         </tr>
                     }

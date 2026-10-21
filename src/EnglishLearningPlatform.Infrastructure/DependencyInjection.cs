@@ -98,6 +98,8 @@ public static class DependencyInjection
         services.AddScoped<ITeacherPracticeQuestionService,TeacherPracticeQuestionService>();
         // Service đọc danh sách Practice dành cho Teacher.
         services.AddScoped<ITeacherPracticeQueryService,TeacherPracticeQueryService>();
+        // Preview Teacher chỉ đọc, không dùng service Student Submit/chấm điểm.
+        services.AddScoped<ITeacherPracticePreviewService, TeacherPracticePreviewService>();
         // Tạo ngữ liệu riêng của Teacher, không dùng service chấm bài của Student.
         services.AddScoped<IStimulusCreationService, StimulusCreationService>();
         services.AddSingleton<IStimulusAudioStore>(provider => new FileStimulusAudioStore(
