@@ -228,6 +228,47 @@ public sealed class TeacherAssessmentScopeTests(IntegrationTestFactory factory)
         Assert.Equal(AttemptStartStatus.Started, (await StartAsync(student.Id, data.Assessment.Id)).Status);
     }
 
+    [Fact]
+    public async Task Http_StaleIndependentStart_RechecksCourseScope_AndDetachRestoresIndependentAccess()
+    {
+        var data = await SeedAsync();
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, student);
+        string takePath = "/Assessment/Take/" + data.Assessment.Id;
+        string token = await IdentityTestHelpers.GetTokenAsync(client, takePath);
+
+        // Student đã mở đề độc lập, nhưng Teacher gắn Course trước lúc Student bấm Start.
+        Assert.True((await SaveAsync(data, Request(await ReadAsync(data), data.First.Id))).Success);
+        string definition = await DefinitionAsync(data);
+        DateTimeOffset? version = (await ReadAsync(data)).UpdatedAtUtc;
+        using var staleStart = await client.PostAsync("/Assessment/Start/" + data.Assessment.Id,
+            new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token }));
+        Assert.Equal(HttpStatusCode.Redirect, staleStart.StatusCode);
+        Assert.Contains("/Account/AccessDenied", staleStart.Headers.Location!.ToString());
+        using var blockedPage = await client.GetAsync(takePath);
+        Assert.Equal(HttpStatusCode.NotFound, blockedPage.StatusCode);
+        Assert.Equal(definition, await DefinitionAsync(data));
+        Assert.Equal(version, (await ReadAsync(data)).UpdatedAtUtc);
+        using (var scope = factory.Services.CreateScope())
+            Assert.False(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts
+                .AnyAsync(a => a.AssessmentId == data.Assessment.Id));
+
+        Assert.True((await SaveAsync(data, Request(await ReadAsync(data), null))).Success);
+        using var independent = await client.GetAsync(takePath);
+        Assert.Equal(HttpStatusCode.OK, independent.StatusCode);
+        using var started = await client.PostAsync("/Assessment/Start/" + data.Assessment.Id,
+            new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token }));
+        Assert.Equal(HttpStatusCode.Redirect, started.StatusCode);
+        Assert.Contains("attemptId=", started.Headers.Location!.ToString());
+        using var check = factory.Services.CreateScope();
+        var db = check.ServiceProvider.GetRequiredService<AppDbContext>();
+        var attempt = Assert.Single(await db.Attempts.AsNoTracking().Where(a => a.AssessmentId == data.Assessment.Id).ToListAsync());
+        Assert.Equal(student.Id, attempt.StudentUserId);
+        Assert.Equal(AttemptStatus.InProgress, attempt.Status);
+        Assert.False(await db.Enrollments.AnyAsync(e => e.StudentUserId == student.Id));
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -260,7 +301,7 @@ public sealed class TeacherAssessmentScopeTests(IntegrationTestFactory factory)
             var service = new AssessmentAttemptService(interceptedDb,
                 services.GetRequiredService<UserManager<ApplicationUser>>(),
                 services.GetRequiredService<IExamScoringService>(),
-                services.GetRequiredService<IAssessmentDefinitionValidator>());
+                services.GetRequiredService<IAssessmentDefinitionValidator>(), TimeProvider.System);
             started = await service.StartAsync(student.Id, data.Assessment.Id);
         }
         Assert.True(gate.Applied);

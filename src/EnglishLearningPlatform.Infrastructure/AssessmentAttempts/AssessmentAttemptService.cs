@@ -15,7 +15,8 @@ public sealed class AssessmentAttemptService(
     UserManager<ApplicationUser> users,
     IExamScoringService scoring,
     // Dùng chung quy tắc kiểm tra định nghĩa đề với Teacher Publish.
-    IAssessmentDefinitionValidator definitionValidator) : IAttemptService
+    IAssessmentDefinitionValidator definitionValidator,
+    TimeProvider timeProvider) : IAttemptService
 {
     public async Task<AttemptStartResult> StartAsync(
         Guid studentId,
@@ -92,7 +93,8 @@ public sealed class AssessmentAttemptService(
             }
         }
 
-        var now = DateTimeOffset.UtcNow;
+        // Đồng hồ server được dùng chung với query; test có thể cố định đúng tick deadline.
+        var now = timeProvider.GetUtcNow();
 
         var active = await db.Attempts.SingleOrDefaultAsync(
             a => a.StudentUserId == studentId &&
@@ -223,10 +225,21 @@ public sealed class AssessmentAttemptService(
     }
 
 
-    public async Task<AttemptFinalizeResult> FinalizeAsync(
+    public Task<AttemptFinalizeResult> FinalizeAsync(
         Guid studentId,
         Guid attemptId,
-        CancellationToken ct = default)
+        CancellationToken ct = default) =>
+        FinalizeCoreAsync(studentId, attemptId, onlyExpired: false, ct);
+
+    public Task<AttemptFinalizeResult> FinalizeExpiredAsync(
+        Guid studentId,
+        Guid attemptId,
+        CancellationToken ct = default) =>
+        FinalizeCoreAsync(studentId, attemptId, onlyExpired: true, ct);
+
+    // Hai đường dùng chung quyền, thứ tự khóa và thao tác chấm; không có công thức chấm thứ hai.
+    private async Task<AttemptFinalizeResult> FinalizeCoreAsync(
+        Guid studentId, Guid attemptId, bool onlyExpired, CancellationToken ct)
     {
         var snapshot = await db.Attempts.AsNoTracking()
             .Where(a => a.Id == attemptId)
@@ -284,10 +297,23 @@ public sealed class AssessmentAttemptService(
         if (roles.Count != 1 || roles[0] != AppRoles.Student)
             return new(AttemptFinalizeStatus.Forbidden);
 
+        var now = timeProvider.GetUtcNow();
+        if (onlyExpired)
+        {
+            // F5 kết quả đã chấm không sửa timestamp/điểm hoặc chạy lại completion.
+            if (attempt.Status == AttemptStatus.Graded)
+                return new(AttemptFinalizeStatus.AlreadyGraded, attempt.Id,
+                    attempt.OverallScore, attempt.Passed, attempt.FinalizationReason);
+
+            // Kiểm tra lại SAU khi lấy khóa: không tin deadline/status từ trang hoặc query cũ.
+            if (attempt.Status != AttemptStatus.InProgress || now < attempt.DeadlineUtc)
+                return new(AttemptFinalizeStatus.Unavailable);
+        }
+
         var result = await FinalizeLockedAsync(
             attempt,
             assessment,
-            DateTimeOffset.UtcNow,
+            now,
             ct);
 
         if (result.Status is AttemptFinalizeStatus.Graded or AttemptFinalizeStatus.AlreadyGraded)
@@ -361,7 +387,11 @@ public sealed class AssessmentAttemptService(
         if (attempt.Status != AttemptStatus.InProgress)
             return AttemptSaveStatus.AlreadyFinalized;
 
-        var now = DateTimeOffset.UtcNow;
+        // Kiểm lại trong transaction: quyền lúc mở trang không phải quyền lúc ghi.
+        if (!await HasCurrentCourseAccessAsync(studentId, assessment, ct))
+            return AttemptSaveStatus.Forbidden;
+
+        var now = timeProvider.GetUtcNow();
 
         if (now >= attempt.DeadlineUtc)
         {
@@ -446,6 +476,17 @@ public sealed class AssessmentAttemptService(
         return AttemptSaveStatus.Saved;
     }
 
+
+    // Không xét Published/Archived ở đây: lượt đã Start được hoàn thành khi đề rút.
+    // Chỉ xét scope, cùng owner Course và Enrollment/thanh toán hiện còn hợp lệ.
+    private async Task<bool> HasCurrentCourseAccessAsync(Guid studentId, Assessment assessment, CancellationToken ct)
+    {
+        if (!assessment.CourseId.HasValue)
+            return true; // Đề Independent không yêu cầu Enrollment.
+
+        return await db.Enrollments.Valid().AnyAsync(e => e.StudentUserId == studentId &&
+            e.CourseId == assessment.CourseId && e.Course.OwnerTeacherUserId == assessment.OwnerTeacherUserId, ct);
+    }
 
     private async Task<AttemptFinalizeResult> FinalizeLockedAsync(
         Attempt attempt,

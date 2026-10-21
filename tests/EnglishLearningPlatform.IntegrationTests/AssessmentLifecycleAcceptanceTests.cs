@@ -280,7 +280,7 @@ public sealed class AssessmentLifecycleAcceptanceTests(IntegrationTestFactory fa
         await using var db = new AppDbContext(options);
         var service = new AssessmentAttemptService(db, scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
             scope.ServiceProvider.GetRequiredService<IExamScoringService>(),
-            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>());
+            scope.ServiceProvider.GetRequiredService<IAssessmentDefinitionValidator>(), TimeProvider.System);
 
         var result = await service.StartAsync(data.Student, data.Assessment);
 

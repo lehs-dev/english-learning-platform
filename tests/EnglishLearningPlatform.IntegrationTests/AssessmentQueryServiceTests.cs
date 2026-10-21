@@ -688,7 +688,7 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
     }
 
     [Fact]
-    public async Task History_FiltersStudentAndAssessment_DistinguishesPendingGrades_WithoutWriting()
+    public async Task History_QueryIsReadOnly_HttpFinalizesExpiredButPreservesOtherRows()
     {
         var data = await SeedAsync();
         var otherAssessment = await SeedAsync();
@@ -741,6 +741,12 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         Assert.Equal(2, (await query.GetAttemptHistoryAsync(data.Student))!.Count);
         Assert.Empty((await query.GetAttemptHistoryAsync(data.Student, Guid.NewGuid()))!);
         Assert.Empty(db.ChangeTracker.Entries());
+        var afterQuery = await db.Attempts.AsNoTracking().Where(a => a.AssessmentId == data.Assessment.Id)
+            .OrderBy(a => a.Id).Select(a => new
+            {
+                a.Id, a.Status, a.OverallScore, a.FinalizedAtUtc, a.FinalizationReason, a.DeadlineUtc, a.UpdatedAtUtc
+            }).ToArrayAsync();
+        Assert.Equal(before, afterQuery); // Query vẫn chỉ đọc; HTTP gọi write service riêng cho expiry.
 
         // Kiểm tra nhãn trên Razor thật, gồm cả InProgress đã quá hạn và Submitted chưa chấm.
         var student = await db.Users.AsNoTracking().SingleAsync(u => u.Id == data.Student);
@@ -750,11 +756,13 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         using var filteredResponse = await client.GetAsync($"/Assessment/History/{data.Assessment.Id}");
         Assert.Equal(System.Net.HttpStatusCode.OK, filteredResponse.StatusCode);
         string html = System.Net.WebUtility.HtmlDecode(await filteredResponse.Content.ReadAsStringAsync());
-        Assert.Contains("Đã hết giờ, chờ chấm", html);
+        Assert.Contains("Đã chấm", html);
+        Assert.DoesNotContain("Đã hết giờ, chờ chấm", html);
         Assert.Contains("Chờ chấm", html);
         Assert.Contains("Chưa có điểm", html);
         Assert.Contains($"/Assessment/Result/{graded.Id}", html);
-        foreach (var pending in filtered.Attempts.Where(a => !a.CanViewResult))
+        Assert.Contains($"/Assessment/Result/{expired.Id}", html);
+        foreach (var pending in filtered.Attempts.Where(a => !a.CanViewResult && a.AttemptId != expired.Id))
             Assert.DoesNotContain($"/Assessment/Result/{pending.AttemptId}", html);
         using var allResponse = await client.GetAsync("/Assessment/History");
         Assert.Contains("Đang làm", System.Net.WebUtility.HtmlDecode(await allResponse.Content.ReadAsStringAsync()));
@@ -764,7 +772,12 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
             {
                 a.Id, a.Status, a.OverallScore, a.FinalizedAtUtc, a.FinalizationReason, a.DeadlineUtc, a.UpdatedAtUtc
             }).ToArrayAsync();
-        Assert.Equal(before, after); // GET không finalize, sửa điểm hoặc đổi deadline.
+        Assert.Equal(before.Where(a => a.Id != expired.Id), after.Where(a => a.Id != expired.Id));
+        var expiredAfter = after.Single(a => a.Id == expired.Id);
+        Assert.Equal(AttemptStatus.Graded, expiredAfter.Status);
+        Assert.Equal(0m, expiredAfter.OverallScore);
+        Assert.Equal(expired.DeadlineUtc, expiredAfter.DeadlineUtc);
+        Assert.Equal(AttemptFinalizationReason.DeadlineElapsed, expiredAfter.FinalizationReason);
         Assert.Empty(db.ChangeTracker.Entries());
     }
 
