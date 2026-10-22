@@ -188,6 +188,65 @@ public sealed class TransactionHistoryTests(IntegrationTestFactory factory) : IC
     }
 
     [Fact]
+    public async Task ExpiredUnpaidOrder_IsMarkedExpired_AndShowsRetryCta()
+    {
+        var data = await SeedUsersAndCourses();
+        var now = DateTimeOffset.UtcNow;
+        var expired = new Order
+        {
+            StudentUserId = data.StudentA.Id, CourseId = data.CourseA.Id, Amount = data.CourseA.Price,
+            Currency = "VND", Provider = "test", CreatedAtUtc = now.AddHours(-2), ExpiresAtUtc = now.AddMinutes(-1)
+        };
+        var paid = new Order
+        {
+            StudentUserId = data.StudentA.Id, CourseId = data.CourseB.Id, Amount = data.CourseB.Price,
+            Currency = "VND", Provider = "test", CreatedAtUtc = now.AddHours(-3), ExpiresAtUtc = now.AddMinutes(-1)
+        };
+        paid.Payments.Add(new Payment
+        {
+            Amount = paid.Amount, Status = PaymentStatus.Succeeded, Provider = "test",
+            ProviderTransactionId = $"success-{Guid.NewGuid():N}"
+        });
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Orders.AddRange(expired, paid);
+            await db.SaveChangesAsync();
+        }
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var service = scope.ServiceProvider.GetRequiredService<ICheckoutService>();
+            var history = (await service.HistoryAsync(data.StudentA.Id)).Value!;
+            var expiredItem = history.Orders.Single(item => item.OrderId == expired.Id);
+            Assert.True(expiredItem.IsExpired);
+            Assert.Equal(expired.ExpiresAtUtc, expiredItem.ExpiresAtUtc);
+            Assert.False(history.Orders.Single(item => item.OrderId == paid.Id).IsExpired);
+
+            var details = (await service.GetOrderAsync(data.StudentA.Id, expired.Id)).Value!;
+            Assert.True(details.IsExpired);
+            Assert.False(details.CanCheckout);
+            Assert.Null(details.CheckoutUrl);
+        }
+
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, data.StudentA);
+        Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        using var orderResponse = await client.GetAsync($"/Checkout/Order/{expired.Id}");
+        Assert.Equal(HttpStatusCode.OK, orderResponse.StatusCode);
+        string orderHtml = WebUtility.HtmlDecode(await orderResponse.Content.ReadAsStringAsync());
+        Assert.Contains("Đơn hàng đã hết hạn", orderHtml);
+        Assert.Contains("Tạo đơn thanh toán mới", orderHtml);
+        Assert.Contains($"/Checkout?courseId={data.CourseA.Id}", orderHtml);
+        Assert.DoesNotContain("Đang chờ xử lý thanh toán", orderHtml);
+
+        using var historyResponse = await client.GetAsync("/Checkout/History");
+        string historyHtml = WebUtility.HtmlDecode(await historyResponse.Content.ReadAsStringAsync());
+        Assert.Contains("Đã hết hạn", historyHtml);
+        Assert.Contains("Hết hạn lúc", historyHtml);
+    }
+
+    [Fact]
     public async Task History_ReturnsEmptyPage_WithoutCreatingCommerceRows()
     {
         var data = await SeedUsersAndCourses();

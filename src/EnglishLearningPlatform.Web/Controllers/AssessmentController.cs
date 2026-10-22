@@ -149,9 +149,10 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
             return await Finalize(attemptId, ct, onlyExpired: true);
         }
 
-        // Validate the entire posted sheet before any write, including duplicate/foreign questions.
-        if (input.Answers.Count != sheet.Questions.Count ||
-            input.Answers.Select(a => a.AssessmentQuestionId).Distinct().Count() != input.Answers.Count ||
+        // Accept partial answer sets: autosave sends only the question(s) changed in
+        // this tab, so answers saved by another tab remain untouched. Still reject
+        // duplicate/foreign questions and options that do not belong to the question.
+        if (input.Answers.Select(a => a.AssessmentQuestionId).Distinct().Count() != input.Answers.Count ||
             input.Answers.Any(answer => !sheet.Questions.Any(question =>
                 question.AssessmentQuestionId == answer.AssessmentQuestionId &&
                 (!answer.SelectedOptionId.HasValue || question.Options.Any(option => option.Id == answer.SelectedOptionId)))))

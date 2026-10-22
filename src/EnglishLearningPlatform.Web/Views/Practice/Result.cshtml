@@ -19,13 +19,16 @@
                 <h1 class="exam-title">@Model.Title</h1>
             </div>
         </div>
-        <div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
             @if (ViewData["CanRetry"] is true)
             {
                 <a class="button" style="padding: 10px 20px;" asp-action="Take" asp-route-id="@Model.PracticeId">
                     Luyện lại bài này &rarr;
                 </a>
             }
+            <a class="button secondary" style="padding:10px 20px;" asp-controller="Learning" asp-action="Continue" asp-route-id="@Model.CourseId">
+                Tiếp tục học &rarr;
+            </a>
         </div>
     </header>
 
@@ -76,6 +79,24 @@
                         @(question.IsCorrect ? "✓ Trả lời đúng" : "✗ Chưa chính xác / Bỏ trống")
                     </span>
                 </div>
+
+                @if (!string.IsNullOrWhiteSpace(question.Passage))
+                {
+                    <div class="exam-stimulus-box" style="margin-bottom:14px;">
+                        <div class="stimulus-label">
+                            <svg class="icon" aria-hidden="true" style="width:14px; height:14px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                            <span>Bài đọc / Ngữ cảnh:</span>
+                        </div>
+                        <div class="preserve">@question.Passage</div>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(question.AudioUrl))
+                {
+                    <div class="exam-audio-box" style="margin-bottom:14px;">
+                        <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu hỏi">Trình duyệt chưa hỗ trợ âm thanh.</audio>
+                        <partial name="_ExternalStimulusAudioNotice" model="question.AudioUrl" />
+                    </div>
+                }
 
                 <div class="reading-copy preserve" style="font-weight: 600; color: var(--v2-dark); margin-bottom: 14px;">
                     @question.Content

@@ -16,10 +16,12 @@
     let saving = Promise.resolve();
     let submitting = false;
     let expired = false;
-    // Số thứ tự thay đổi trong tab này, không phải version của database.
-    // Chỉ báo đã lưu khi server xác nhận đúng lựa chọn mới nhất.
+    // Mỗi câu có version riêng. Chỉ xóa khỏi dirty khi server xác nhận đúng
+    // version mới nhất của chính câu đó; đáp án của tab khác không bị gửi đè.
     let changeNumber = 0;
-    let savedChangeNumber = 0;
+    const versions = new Map();
+    const dirtyQuestions = new Set();
+    const failedQuestions = new Set();
     const dialog = form.querySelector('[data-submit-dialog]');
     const questions = [...form.querySelectorAll('[data-question]')];
     const answeredCount = () => questions.filter(question =>
@@ -40,6 +42,29 @@
             });
         });
     };
+    const answerIndex = question => question.querySelector('input[name$=".AssessmentQuestionId"]')
+        ?.name.match(/^Answers\[([^\]]+)\]\.AssessmentQuestionId$/)?.[1];
+    const updateSaveStatus = () => {
+        if (submitting) return;
+        status.textContent = failedQuestions.size > 0
+            ? 'Chưa lưu được đáp án. Dùng nút Lưu đáp án hoặc Nộp bài để thử lại.'
+            : dirtyQuestions.size > 0 ? 'Đang lưu đáp án…' : 'Đã lưu đáp án.';
+    };
+    const answerData = question => {
+        const data = new FormData();
+        const token = form.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) data.append(token.name, token.value);
+        // MVC cần index tường minh khi chỉ gửi một câu có vị trí khác 0.
+        const index = answerIndex(question);
+        if (index !== undefined) data.append('Answers.Index', index);
+        const questionId = question.querySelector('input[name$=".AssessmentQuestionId"]');
+        if (questionId) data.append(questionId.name, questionId.value);
+        const selected = question.querySelector('input[type="radio"]:checked');
+        const radioName = selected?.name ?? question.querySelector('input[type="radio"]')?.name;
+        // Gửi chuỗi rỗng khi bỏ chọn để model binder nhận SelectedOptionId = null.
+        if (radioName) data.append(radioName, selected?.value ?? '');
+        return data;
+    };
     const send = saveOnly => {
         submitting = true;
         status.textContent = saveOnly ? 'Đang lưu đáp án…' : 'Đang nộp bài…';
@@ -48,14 +73,36 @@
         form.querySelector('[data-save-button]').disabled = true;
         if (dialog.open) {
             // Giữ modal mở khi chờ autosave để không sửa đáp án sau xác nhận.
-            // Không disable radio: radio bị disable sẽ không được gửi trong form.
+            // Không disable radio trước khi quyết định payload: radio bị disable
+            // sẽ không được gửi trong form.
             dialog.querySelector('[data-cancel-submit]').disabled = true;
             const confirmButton = dialog.querySelector('[data-confirm-submit]');
             confirmButton.disabled = true;
             confirmButton.textContent = 'Đang nộp bài…';
         }
-        // Chờ request cũ kết thúc rồi gửi toàn bộ lựa chọn mới nhất trên trang.
-        saving.finally(() => form.submit());
+        // Chờ request cũ kết thúc, rồi chỉ gửi các câu còn dirty.
+        // Câu đã lưu thành công không được gửi lại: một tab cũ có thể giữ
+        // lựa chọn cũ và ghi đè đáp án mới của tab khác.
+        saving.finally(() => {
+            questions.forEach((question, index) => {
+                if (dirtyQuestions.has(index)) {
+                    // Các câu còn dirty có thể nằm rải rác, không bắt đầu từ 0.
+                    const fieldIndex = answerIndex(question);
+                    if (fieldIndex !== undefined) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'Answers.Index';
+                        input.value = fieldIndex;
+                        form.appendChild(input);
+                    }
+                    return;
+                }
+                question.querySelectorAll('input[name^="Answers["]').forEach(input => {
+                    input.disabled = true;
+                });
+            });
+            form.submit();
+        });
     };
     dialog.querySelector('[data-cancel-submit]').addEventListener('click', () => {
         if (!submitting) dialog.close();
@@ -71,11 +118,16 @@
 
     form.addEventListener('change', event => {
         if (!event.target.matches('input[type="radio"]') || submitting) return;
+        const question = event.target.closest('[data-question]');
+        const questionIndex = questions.indexOf(question);
+        if (questionIndex < 0) return;
         updateProgress();
-        changeNumber++;
-        const currentChange = changeNumber;
-        const data = new FormData(form);
-        status.textContent = 'Đang lưu đáp án…';
+        const currentChange = ++changeNumber;
+        versions.set(questionIndex, currentChange);
+        dirtyQuestions.add(questionIndex);
+        failedQuestions.delete(questionIndex);
+        const data = answerData(question);
+        updateSaveStatus();
         // Preserve selection order if answers change while an earlier save is in flight.
         saving = saving.then(async () => {
             if (submitting) return;
@@ -92,15 +144,19 @@
                 if (!response.ok) throw new Error('save');
                 const result = await response.json();
                 if (!result || result.saved !== true) throw new Error('save');
-                savedChangeNumber = currentChange;
 
-                // Phản hồi cũ không được che trạng thái đang lưu/nộp hiện tại.
-                if (currentChange === changeNumber && !submitting) {
-                    status.textContent = 'Đã lưu đáp án.';
+                // Chỉ đánh dấu sạch khi câu này chưa bị đổi tiếp trong lúc chờ.
+                if (versions.get(questionIndex) === currentChange) {
+                    dirtyQuestions.delete(questionIndex);
+                    failedQuestions.delete(questionIndex);
                 }
+                updateSaveStatus();
             } catch {
-                if (currentChange === changeNumber && !submitting) {
-                    status.textContent = 'Chưa lưu được đáp án. Dùng nút Lưu đáp án hoặc Nộp bài để thử lại.';
+                // Lỗi của một version cũ không che lỗi/trạng thái của version mới hơn.
+                if (versions.get(questionIndex) === currentChange) {
+                    dirtyQuestions.add(questionIndex);
+                    failedQuestions.add(questionIndex);
+                    updateSaveStatus();
                 }
             }
         });
@@ -109,7 +165,7 @@
     // Giữ lựa chọn trên trang khi mất mạng; cảnh báo nếu rời đi trước lúc lưu xong.
     // Lưu thủ công/Nộp bài là điều hướng có chủ đích nên không hiện cảnh báo này.
     window.addEventListener('beforeunload', event => {
-        if (changeNumber !== savedChangeNumber && !submitting) {
+        if (dirtyQuestions.size > 0 && !submitting) {
             event.preventDefault();
             event.returnValue = '';
         }

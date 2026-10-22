@@ -58,7 +58,10 @@ public sealed class StudentLearningCourseService(
         var lesson = await db.Lessons.AsNoTracking().Where(l => l.Id == id).Select(l => new LessonPage(l.Id,
             l.Module.CourseId, l.Module.Course.Title, l.Title, l.Resources.OrderBy(r => r.OrderIndex).ThenBy(r => r.Id)
                 .Select(r => new ResourceContent(r.Id, r.Title, r.ResourceType, r.ContentText, r.ResourceUrl)).ToList())).SingleAsync(ct);
-        var module = await db.Lessons.Where(l => l.Id == id).Select(l => new { l.ModuleId, l.Module.Title, l.Module.Course.Status }).SingleAsync(ct);
+        var module = await db.Lessons.Where(l => l.Id == id).Select(l => new
+        {
+            l.ModuleId, l.Module.Title, l.Module.Course.Status, l.Module.Course.FinalAssessmentId
+        }).SingleAsync(ct);
         var owner = await Manage(userId, lesson.CourseId, ct) == LearningAccessResult.Allowed;
         var navigation = (await queries.OutlineAsync(lesson.CourseId, owner, ct)).SelectMany(m => m.Lessons).ToList();
         var position = navigation.FindIndex(l => l.Id == id);
@@ -67,7 +70,8 @@ public sealed class StudentLearningCourseService(
             p.Enrollment.StudentUserId == userId && p.Enrollment.CourseId == lesson.CourseId, ct);
         return new(allowed, lesson with { ModuleId = module.ModuleId, ModuleTitle = module.Title, CourseStatus = module.Status,
             IsCompleted = completed, CanRecordProgress = !owner && module.Status is CourseStatus.Published or CourseStatus.Unpublished,
-            Progress = progress, Previous = position > 0 ? navigation[position - 1] : null,
+            Progress = progress, FinalAssessmentId = module.FinalAssessmentId,
+            Previous = position > 0 ? navigation[position - 1] : null,
             Next = position >= 0 && position + 1 < navigation.Count ? navigation[position + 1] : null });
     }
 

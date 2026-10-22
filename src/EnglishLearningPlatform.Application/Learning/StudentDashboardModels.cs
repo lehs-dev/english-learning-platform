@@ -9,8 +9,16 @@ public sealed record StudentDashboard(
 {
     public int CompletedCourses => Courses.Count(c => c.Progress?.CompletedAtUtc.HasValue == true);
     public IReadOnlyList<DashboardPracticeResult> PracticeResults { get; init; } = [];
+    public IReadOnlyList<DashboardActivity> WeeklyActivities { get; init; } = [];
+    public DateOnly WeekStartDate { get; init; }
 }
 public sealed record DashboardPracticeResult(Guid PracticeId, string Title, decimal Score, DateTimeOffset SubmittedAtUtc);
+public enum DashboardActivityKind { LessonCompleted, PracticeSubmitted, AssessmentFinalized }
+public sealed record DashboardActivity(DashboardActivityKind Kind, Guid TargetId, Guid? CourseId,
+    string Title, DateTimeOffset OccurredAtUtc)
+{
+    public bool CanOpenTarget { get; init; } = true;
+}
 
 public sealed record RepresentativeAssessmentResult(Guid AssessmentId, string Title, Guid AttemptId,
     decimal OverallScore, DateTimeOffset FinalizedAtUtc, IReadOnlyList<DashboardSkillResult> Skills);
@@ -21,7 +29,11 @@ public sealed record SkillRecommendation(Guid AssessmentId, string AssessmentTit
     EnglishSkill Skill, decimal Score, IReadOnlyList<RecommendedContent> Contents);
 
 public sealed record PracticeLink(Guid Id, Guid CourseId, Guid? ModuleId, Guid? LessonId,
-    string Title, int QuestionCount, IReadOnlyList<EnglishSkill> Skills);
+    string Title, int QuestionCount, IReadOnlyList<EnglishSkill> Skills, string CourseTitle);
+public sealed record PracticeHubPage(
+    IReadOnlyList<PracticeLink> Practices,
+    IReadOnlyList<DashboardPracticeResult> Results,
+    IReadOnlyList<SkillRecommendation> Recommendations);
 public sealed record AssessmentLink(Guid Id, Guid? CourseId, string Title, AssessmentType Type,
     int QuestionCount, int DurationMinutes, IReadOnlyList<EnglishSkill> Skills, Guid? ActiveAttemptId)
 {
@@ -32,6 +44,7 @@ public sealed record CourseActivities(IReadOnlyList<PracticeLink> Practices, IRe
 public interface IStudentLearningService
 {
     Task<LearningOutcome<StudentDashboard>> DashboardAsync(Guid studentId, CancellationToken ct = default);
+    Task<LearningOutcome<PracticeHubPage>> PracticeHubAsync(Guid studentId, CancellationToken ct = default);
     // Dashboard và Profile dùng chung kết quả đại diện, không tự chọn highest ở từng trang.
     Task<LearningOutcome<IReadOnlyList<RepresentativeAssessmentResult>>> GetRepresentativeResultsAsync(
         Guid studentId, CancellationToken ct = default);

@@ -167,6 +167,68 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         using var malformed = await client.GetAsync("/Courses?Level=invalid&Page=oops&Paid=oops"); Assert.Equal(HttpStatusCode.OK, malformed.StatusCode);
     }
     [Fact]
+    public async Task DisabledOwnerCourses_AreHiddenFromDiscovery_WhileEnrolledStudentsKeepAccess()
+    {
+        var owner = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var activeOwner = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var enrolledStudent = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var newStudent = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var prefix = Guid.NewGuid().ToString("N");
+        var free = await Seed(owner.Id, prefix + " withdrawn free");
+        var paid = await Seed(owner.Id, prefix + " withdrawn paid", paid: true);
+        var available = await Seed(activeOwner.Id, prefix + " available");
+        var withdrawnTopic = "Withdrawn " + prefix;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<ICourseService>();
+            Assert.True((await service.EnrollFreeAsync(enrolledStudent.Id, free.Id)).Success);
+            db.CourseTopics.Add(new CourseTopic { CourseId = paid.Id, Topic = withdrawnTopic });
+            await db.Users.Where(u => u.Id == owner.Id)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.AccountStatus, AccountStatus.Disabled));
+            await db.SaveChangesAsync();
+
+            var catalog = await service.CatalogAsync(new CatalogQuery { Search = prefix });
+            Assert.Equal(1, catalog.Total);
+            Assert.Equal(available.Id, Assert.Single(catalog.Courses).Id);
+            Assert.DoesNotContain(catalog.Teachers, teacher => teacher.Id == owner.Id);
+            Assert.DoesNotContain(withdrawnTopic, catalog.Topics);
+            Assert.Contains(catalog.Teachers, teacher => teacher.Id == activeOwner.Id);
+            Assert.Null(await service.PublicDetailAsync(free.Id, null));
+            Assert.Null(await service.PublicDetailAsync(paid.Id, newStudent.Id));
+            Assert.True((await service.PublicDetailAsync(free.Id, enrolledStudent.Id))!.CanLearn);
+            Assert.Equal(LearningAccessResult.Allowed,
+                (await service.OpenLessonAsync(enrolledStudent.Id, free.Modules.First().Lessons.First().Id)).Access);
+        }
+
+        using var guestClient = IdentityTestHelpers.CreateClient(factory);
+        using var studentClient = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(studentClient, newStudent);
+        foreach (var client in new[] { guestClient, studentClient })
+        {
+            var catalogHtml = await client.GetStringAsync($"/Courses?Search={prefix}");
+            Assert.Contains(available.Title, catalogHtml);
+            Assert.DoesNotContain(free.Title, catalogHtml);
+            Assert.DoesNotContain(paid.Title, catalogHtml);
+            foreach (var course in new[] { free, paid })
+            {
+                using var response = await client.GetAsync($"/Courses/Details/{course.Id}");
+                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            }
+        }
+
+        using var enrolledClient = IdentityTestHelpers.CreateClient(factory);
+        using var enrolledLogin = await IdentityTestHelpers.LoginAsync(enrolledClient, enrolledStudent);
+        using var details = await enrolledClient.GetAsync($"/Courses/Details/{free.Id}");
+        Assert.Equal(HttpStatusCode.OK, details.StatusCode);
+        Assert.Contains($"/Learning/Course/{free.Id}", await details.Content.ReadAsStringAsync());
+        using var library = await enrolledClient.GetAsync("/Learning");
+        Assert.Contains(free.Title, await library.Content.ReadAsStringAsync());
+        using var lesson = await enrolledClient.GetAsync($"/Learning/Lesson/{free.Modules.First().Lessons.First().Id}");
+        Assert.Equal(HttpStatusCode.OK, lesson.StatusCode);
+    }
+
+    [Fact]
     public async Task PublicDetail_DoesNotLeakResourcesOrHiddenStructure_AndCannotGuessNonPublicIds()
     {
         var owner = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);

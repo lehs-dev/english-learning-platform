@@ -10,10 +10,17 @@ namespace EnglishLearningPlatform.Web.Controllers;
 
 [Authorize(Policy = AuthorizationPolicies.Student)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class PracticeController(IPracticeService practices) : Controller
+public sealed class PracticeController(IPracticeService practices, IStudentLearningService learning) : Controller
 {
     private Guid StudentId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.Forbidden ? Forbid() : NotFound();
+
+    [HttpGet]
+    public async Task<IActionResult> Index(CancellationToken ct)
+    {
+        var result = await learning.PracticeHubAsync(StudentId, ct);
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+    }
 
     [HttpGet]
     public async Task<IActionResult> Take(Guid id, CancellationToken ct)

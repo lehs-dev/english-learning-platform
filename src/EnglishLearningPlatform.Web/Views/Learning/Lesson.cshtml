@@ -1,3 +1,4 @@
+@using EnglishLearningPlatform.Application.Assessment
 @using EnglishLearningPlatform.Domain.Enums
 @model LessonPage
 @{
@@ -72,6 +73,40 @@
                     }
                 </div>
             </nav>
+
+            @if (Model.Next is null && Model.CanRecordProgress)
+            {
+                <section class="card-v2" aria-labelledby="lesson-final-title" style="padding: 26px 28px; margin-top: 24px; background: #FFFDF5; border-color: #FEF3C7;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                        <span class="v2-pill-tag" style="background:#FEF3C7; color:#92400E;">Bài cuối</span>
+                        <h2 id="lesson-final-title" style="margin:0; font-size:19px; font-weight:800; color:var(--v2-dark);">Hoàn tất khóa học</h2>
+                    </div>
+                    @if (Model.FinalAssessmentId is Guid)
+                    {
+                        if (ViewData["FinalAssessment"] is AssessmentOverviewModel final)
+                        {
+                            <p style="margin:0 0 14px; color:var(--v2-text-secondary); line-height:1.6;">
+                                Bạn đã đến bài học cuối. Làm bài thi cuối khóa để hoàn thành khóa học và ghi nhận kết quả.
+                            </p>
+                            <a class="button" asp-controller="Assessment" asp-action="Take" asp-route-id="@final.AssessmentId">
+                                @(final.ActiveAttemptId.HasValue ? "Tiếp tục bài thi cuối khóa" : "Làm bài thi cuối khóa") &rarr;
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="notice" style="margin-bottom:14px;">Bài thi cuối khóa hiện chưa khả dụng. Bạn vẫn có thể xem lại tiến độ trong trang khóa học.</div>
+                            <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId">Xem tổng quan khóa học</a>
+                        }
+                    }
+                    else
+                    {
+                        <p style="margin:0 0 14px; color:var(--v2-text-secondary); line-height:1.6;">
+                            Bạn đã đến bài học cuối của khóa. Xem lại tiến độ và các hoạt động trong trang khóa học.
+                        </p>
+                        <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId">Xem tổng quan khóa học</a>
+                    }
+                </section>
+            }
         </article>
 
         <!-- Right Sticky Session Aside -->

@@ -120,7 +120,10 @@ public sealed class PracticeService(
                     s.Answers.Where(a => a.PracticeQuestionId == q.Id).Select(a => a.SelectedOption.Content).FirstOrDefault(),
                     q.Question.Options.Where(o => o.IsCorrect).Select(o => o.Content).FirstOrDefault() ?? "",
                     s.Answers.Any(a => a.PracticeQuestionId == q.Id && a.SelectedOption.IsCorrect),
-                    q.Question.Explanation)).ToList())).SingleOrDefaultAsync(ct);
+                    q.Question.Explanation,
+                    q.Question.Stimulus == null ? null : q.Question.Stimulus.ContentText,
+                    q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Audio
+                        ? q.Question.Stimulus.ResourceUrl : null)).ToList())).SingleOrDefaultAsync(ct);
         return result is null ? new(LearningAccessResult.NotFound) : new(LearningAccessResult.Allowed, result);
     }
 
