@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 namespace EnglishLearningPlatform.Infrastructure.Commerce;
 
 // A process-local simulator, not an external payment provider. Never registers a known/default key.
-public sealed class LocalSandboxGateway : IPaymentGateway
+public sealed class LocalSandboxGateway : ISandboxPaymentGateway
 {
     public const string ProviderName = "local-sandbox";
     private readonly byte[] _key;
@@ -18,7 +18,6 @@ public sealed class LocalSandboxGateway : IPaymentGateway
     public bool IsConfigured => IsEnabled;
     public DateTimeOffset CheckoutDeadline => DateTimeOffset.UtcNow.AddMinutes(30);
     public string CreateCheckoutUrl(CheckoutOrder order) => $"/Checkout/Order/{order.Id:D}";
-    public PaymentNotification? VerifyNotification(byte[] body, string signature) => null;
 
     public LocalSandboxGateway(IHostEnvironment environment, IConfiguration configuration)
     {

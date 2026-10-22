@@ -9,8 +9,8 @@ using EnglishLearningPlatform.Web.Models.Courses;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class LearningController(ICourseService courses, IAssessmentQueryService assessments,
-    IStudentLearningService learning) : Controller
+public sealed class LearningController(IStudentLearningCourseService courses, IAssessmentQueryService assessments,
+    IStudentLearningService learning, ICourseAuthoringService authoring, ICourseCatalogService catalogService) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -38,7 +38,7 @@ public sealed class LearningController(ICourseService courses, IAssessmentQueryS
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         if (!ModelState.IsValid) ViewData["QueryNotice"] = "Một số bộ lọc không hợp lệ đã được bỏ qua.";
         var enrolled = result.Value!;
-        var catalog = await courses.CatalogAsync(query, ct, enrolled.Select(course => course.Id).ToArray());
+        var catalog = await catalogService.CatalogAsync(query, ct, enrolled.Select(course => course.Id).ToArray());
         ModelState.Clear();
         return View(new StudentCoursesPage(enrolled, catalog));
     }
@@ -104,7 +104,7 @@ public sealed class LearningController(ICourseService courses, IAssessmentQueryS
     {
         var result = await courses.OpenCourseAsync(UserId, id, true, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
-        var resources = await courses.AuthoringResourcesAsync(UserId, id, ct);
+        var resources = await authoring.AuthoringResourcesAsync(UserId, id, ct);
         return resources.Access == LearningAccessResult.Allowed
             ? View("~/Views/TeacherCourses/Manage.cshtml", new EnglishLearningPlatform.Web.Models.Courses.AuthoringModel(result.Value!, resources.Value!))
             : Denied(resources.Access);

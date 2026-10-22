@@ -1,3 +1,4 @@
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Application.QuestionBank;
@@ -18,11 +19,7 @@ public sealed class TeacherPracticePreviewService(
         Guid actorUserId, Guid practiceId, CancellationToken cancellationToken = default)
     {
         // Kiểm tra tài khoản hiện tại trong DB, không chỉ tin role trong cookie.
-        bool teacher = await db.Users.AsNoTracking().AnyAsync(user => user.Id == actorUserId &&
-            user.AccountStatus == AccountStatus.Active &&
-            db.UserRoles.Count(item => item.UserId == actorUserId) == 1 &&
-            db.UserRoles.Any(item => item.UserId == actorUserId &&
-                db.Roles.Any(role => role.Id == item.RoleId && role.Name == AppRoles.Teacher)), cancellationToken);
+        bool teacher = await db.HasActiveRoleAsync(actorUserId, AppRoles.Teacher, cancellationToken);
         if (!teacher) return new(LearningAccessResult.Forbidden);
 
         // Chỉ tải đề của owner, không Include Submissions/Answers hoặc gọi SaveChanges.
@@ -61,7 +58,7 @@ public sealed class TeacherPracticePreviewService(
             var stimulus = question.Stimulus;
             // Không đưa file:/javascript: hoặc URL tùy ý vào player.
             if (stimulus != null && stimulus.StimulusType == StimulusType.Audio &&
-                (StimulusAudioResource.TryGetHash(stimulus.ResourceUrl, out _) ||
+                (StimulusAudioUrl.TryGetHash(stimulus.ResourceUrl, out _) ||
                  CourseRules.ValidResource(LessonResourceType.Audio, null, stimulus.ResourceUrl)))
                 audioUrl = stimulus.ResourceUrl;
             questions.Add(new PracticeQuestionSheet(item.Id, question.Content, question.PrimarySkill,

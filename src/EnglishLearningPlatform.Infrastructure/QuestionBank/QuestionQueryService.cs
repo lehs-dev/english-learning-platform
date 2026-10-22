@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -11,8 +12,8 @@ public class QuestionQueryService : IQuestionQueryService
 {   
     private readonly AppDbContext _dbContext;
 
-    private readonly UserManager<ApplicationUser> _userManager;
-   public QuestionQueryService(AppDbContext db, UserManager<ApplicationUser> userManager)
+    private readonly IActiveUserValidator _activeUsers;
+   public QuestionQueryService(AppDbContext db, UserManager<ApplicationUser> userManager, IActiveUserValidator? activeUsers = null)
     {
         if (db == null)
         {
@@ -23,34 +24,7 @@ public class QuestionQueryService : IQuestionQueryService
             throw new ArgumentNullException(nameof(userManager));
         }
         _dbContext = db;
-        _userManager = userManager;
-    }
-    private async Task<bool> IsActiveTeacherAsync(Guid actoUserId)
-    {
-        if(actoUserId == Guid.Empty)
-        {
-            return false;
-        }
-        //read user with id from database
-        ApplicationUser? user = await _userManager.FindByIdAsync(actoUserId.ToString());
-        if(user == null)
-        {
-            return false;
-        }
-        if(user.AccountStatus != AccountStatus.Active)
-        {
-            return false;
-        }
-        IList<String> roles = await _userManager.GetRolesAsync(user);
-        if(roles.Count != 1)
-        {
-            return false;
-        }
-        if (roles[0] != AppRoles.Teacher)
-        {
-            return false;
-        }
-        return true;
+        _activeUsers = activeUsers ?? new ActiveUserValidator(userManager, db);
     }
     public async Task<QuestionSearchResult?> SearchAsync(Guid actorUserId,QuestionSearchRequest request, CancellationToken cancellationToken = default)
     {
@@ -61,7 +35,7 @@ public class QuestionQueryService : IQuestionQueryService
         //dừng thao tác nếu phía gọi dừng
         cancellationToken.ThrowIfCancellationRequested();
         
-        if(!await IsActiveTeacherAsync(actorUserId))
+        if(!await _activeUsers.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
            return null;
         }
@@ -180,7 +154,7 @@ public class QuestionQueryService : IQuestionQueryService
         {
             return null;
         }
-        if(!await IsActiveTeacherAsync(actorUserId))
+        if(!await _activeUsers.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return null;
         }

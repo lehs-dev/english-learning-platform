@@ -14,7 +14,7 @@ public sealed class FileStimulusAudioStore(string rootPath) : IStimulusAudioStor
         ArgumentNullException.ThrowIfNull(content);
         // Chụp bản riêng để caller không đổi mảng trong lúc đang ghi/hash.
         byte[] snapshot = content.ToArray();
-        if (StimulusAudioResource.DetectContentType(snapshot) == null)
+        if (StimulusAudioContent.DetectContentType(snapshot) == null)
             throw new InvalidDataException("File âm thanh không hợp lệ hoặc vượt 10 MiB.");
         string hash = Convert.ToHexString(SHA256.HashData(snapshot)).ToLowerInvariant();
         Directory.CreateDirectory(_root);
@@ -31,13 +31,13 @@ public sealed class FileStimulusAudioStore(string rootPath) : IStimulusAudioStor
             }
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
-        return StimulusAudioResource.Prefix + hash;
+        return StimulusAudioConstants.RoutePrefix + hash;
     }
 
     /// <summary>Kiểm tra hash mỗi lần đọc: file bị sửa trên đĩa không được phát dưới URL cũ.</summary>
     public async Task<StoredStimulusAudio?> ReadAsync(string hash, CancellationToken cancellationToken = default)
     {
-        if (!StimulusAudioResource.TryGetHash(StimulusAudioResource.Prefix + hash, out _)) return null;
+        if (!StimulusAudioResource.IsValidHash(hash)) return null;
         string path = Path.Combine(_root, hash + ".audio");
         if (!File.Exists(path)) return null;
         // Đọc tối đa MaxBytes + 1 để file bị thay bằng file lớn không làm cạn RAM.
@@ -53,7 +53,7 @@ public sealed class FileStimulusAudioStore(string rootPath) : IStimulusAudioStor
             await memory.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
         }
         byte[] content = memory.ToArray();
-        string? contentType = StimulusAudioResource.DetectContentType(content);
+        string? contentType = StimulusAudioContent.DetectContentType(content);
         if (contentType == null || Convert.ToHexString(SHA256.HashData(content)).ToLowerInvariant() != hash)
             throw new InvalidDataException("Audio đã bị thay đổi hoặc hỏng; từ chối phát dưới URL cũ.");
         return new StoredStimulusAudio(content, contentType);
