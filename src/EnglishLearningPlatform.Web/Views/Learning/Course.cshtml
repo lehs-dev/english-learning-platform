@@ -55,6 +55,22 @@
         {
             <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--v2-border-light);">
                 <partial name="_LearningProgress" model="Model.Progress" />
+                @if (Model.Progress.TotalLessons > 0 &&
+                     Model.Progress.CompletedLessons >= Model.Progress.TotalLessons &&
+                     Model.Progress.CompletedAtUtc is null)
+                {
+                    <div class="notice" style="margin-top: 14px;" role="status">
+                        Bạn đã hoàn thành tất cả bài học.
+                        @if (Model.FinalAssessmentId.HasValue)
+                        {
+                            <text>Hãy làm bài thi cuối khóa để hoàn tất khóa học.</text>
+                        }
+                        else
+                        {
+                            <text>Khóa học chưa có bài thi cuối khóa.</text>
+                        }
+                    </div>
+                }
             </div>
         }
     </div>

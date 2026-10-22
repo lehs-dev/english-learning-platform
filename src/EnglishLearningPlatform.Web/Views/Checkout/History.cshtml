@@ -82,6 +82,13 @@
                                 {
                                     <span class="v2-pill-tag" style="background: #FEE2E2; color: #991B1B;">@StatusLabel(order.Status)</span>
                                 }
+                                else if (order.IsExpired)
+                                {
+                                    <span class="v2-pill-tag" style="background: #FFF1F2; color: #9F1239;"
+                                          title="Hết hạn lúc @order.ExpiresAtUtc!.Value.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")">
+                                        Đã hết hạn
+                                    </span>
+                                }
                                 else
                                 {
                                     <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">@StatusLabel(order.Status)</span>

@@ -71,6 +71,13 @@
                 <p style="margin: 0; color: var(--v2-text-secondary); font-size: 14px;">Bạn đã hủy giao dịch này. Bạn có thể đăng ký lại bất cứ khi nào sẵn sàng.</p>
             </div>
         }
+        else if (Model.IsExpired)
+        {
+            <div class="checkout-status checkout-status--expired" role="alert" style="background: #FFF1F2; border: 1px solid #FECDD3; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
+                <strong style="color: #9F1239; font-size: 16px; display: block; margin-bottom: 4px;">Đơn hàng đã hết hạn</strong>
+                <p style="margin: 0; color: #BE123C; font-size: 14px;">Đơn giữ chỗ học phí đã quá hạn thanh toán và không còn hiệu lực. Tạo đơn mới để tiếp tục mua khóa học.</p>
+            </div>
+        }
         else
         {
             <div class="checkout-status checkout-status--neutral" role="status" style="background: #FFFDF5; border: 1px solid #FEF3C7; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
@@ -98,6 +105,13 @@
                 <div class="notice error" role="alert">Thanh toán đã được xác nhận nhưng khóa học hoặc tài khoản chưa đủ điều kiện tham gia. Vui lòng liên hệ hỗ trợ kèm mã đơn hàng.</div>
             }
         }
+        else if (Model.IsExpired)
+        {
+            <div class="actions checkout-actions" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
+                <a class="button" style="padding: 12px 24px;" asp-action="Index" asp-route-courseId="@Model.CourseId">Tạo đơn thanh toán mới &rarr;</a>
+                <a class="button secondary" asp-action="History">Xem lịch sử giao dịch</a>
+            </div>
+        }
         else if (!Model.IsSandbox && !Model.Status.HasValue)
         {
             <div class="actions checkout-actions" style="display: flex; gap: 12px; margin-top: 20px;">
@@ -107,7 +121,7 @@
                 }
                 else
                 {
-                    <p class="muted">Đơn hàng đã hết hạn hoặc thanh toán hiện không khả dụng.</p>
+                    <p class="muted">Thanh toán hiện không khả dụng.</p>
                 }
                 <a class="button secondary" asp-action="Result" asp-route-id="@Model.Id">Kiểm tra trạng thái</a>
             </div>

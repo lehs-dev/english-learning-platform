@@ -55,6 +55,7 @@ public sealed record LessonPage(Guid Id, Guid CourseId, string CourseTitle, stri
     public bool CanRecordProgress { get; init; }
     public CourseStatus CourseStatus { get; init; }
     public CourseProgress? Progress { get; init; }
+    public Guid? FinalAssessmentId { get; init; }
     public LessonOutline? Previous { get; init; }
     public LessonOutline? Next { get; init; }
 }

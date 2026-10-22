@@ -476,6 +476,14 @@
     color: var(--v2-dark);
 }
 
+.resource-content audio,
+.resource-content video {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
 .resource-type {
     font-size: 12px;
     color: var(--v2-text-muted);

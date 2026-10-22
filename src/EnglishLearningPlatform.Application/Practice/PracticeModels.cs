@@ -13,7 +13,7 @@ public sealed record PracticeSheet(Guid Id, Guid CourseId, string CourseTitle, s
 }
 public sealed record PracticeResponse(Guid PracticeQuestionId, Guid? SelectedOptionId);
 public sealed record PracticeQuestionFeedback(Guid Id, string Content, string? SelectedAnswer,
-    string CorrectAnswer, bool IsCorrect, string? Explanation);
+    string CorrectAnswer, bool IsCorrect, string? Explanation, string? Passage, string? AudioUrl);
 public sealed record PracticeResult(Guid PracticeId, Guid CourseId, string Title, decimal Score,
     DateTimeOffset SubmittedAtUtc, IReadOnlyList<PracticeQuestionFeedback> Questions);
 public enum PracticeSubmitStatus { Saved, Forbidden, NotFound, Unavailable, InvalidAnswers }

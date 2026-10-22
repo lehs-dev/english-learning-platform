@@ -26,7 +26,11 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
         // Resolve the current target each time, so a hidden lesson cannot leave a stale resume link.
         var result = await courses.OpenCourseAsync(UserId, id, false, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
-        return result.Value!.Progress?.ContinueLessonId is Guid lessonId
+        var progress = result.Value!.Progress;
+        // Khi đã xong toàn bộ lesson (hoặc không còn lesson), Course là nơi
+        // hiển thị bài thi cuối khóa thay vì quay lại bài đầu tiên.
+        return progress is { TotalLessons: > 0, ContinueLessonId: Guid lessonId } &&
+               progress.CompletedLessons < progress.TotalLessons
             ? RedirectToAction(nameof(Lesson), new { id = lessonId })
             : RedirectToAction(nameof(Course), new { id });
     }
@@ -81,6 +85,8 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
             if (activities.Access != LearningAccessResult.Allowed) return Denied(activities.Access);
             ViewData["Activities"] = new CourseActivities(activities.Value!.Practices.Where(p => p.LessonId == id ||
                 p.ModuleId == result.Value.ModuleId).ToList(), []);
+            if (result.Value.FinalAssessmentId is Guid finalAssessmentId)
+                ViewData["FinalAssessment"] = await assessments.GetAssessmentOverviewAsync(UserId, finalAssessmentId, ct);
         }
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }

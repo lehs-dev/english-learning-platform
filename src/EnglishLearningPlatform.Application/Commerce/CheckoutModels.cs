@@ -18,10 +18,16 @@ public sealed record OrderCheckout(Guid Id, Guid CourseId, string Title, string 
     DateTimeOffset CreatedAtUtc = default, string? CheckoutUrl = null, bool CanCheckout = true)
 {
     public bool IsSandbox => Provider == "local-sandbox";
+    // Chỉ đơn chưa có trạng thái thanh toán mới có thể hết hạn.
+    public bool IsExpired { get; init; }
 }
 
 public sealed record TransactionHistoryItem(Guid OrderId, string CourseTitle, decimal Amount,
-    string Currency, DateTimeOffset CreatedAtUtc, PaymentStatus? Status);
+    string Currency, DateTimeOffset CreatedAtUtc, PaymentStatus? Status)
+{
+    public DateTimeOffset? ExpiresAtUtc { get; init; }
+    public bool IsExpired { get; init; }
+}
 
 public sealed record TransactionHistoryPage(IReadOnlyList<TransactionHistoryItem> Orders, int Page, int Total)
 {

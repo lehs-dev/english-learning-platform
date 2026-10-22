@@ -4,20 +4,27 @@
     ViewData["Title"] = "Bàn học — Tiến độ học tập";
     ViewData["ActiveSection"] = "dashboard";
 
-    // 1. Find target course for 1-Click Continue Learning
-    var inProgressCourses = Model.Courses
-        .Where(c => c.Progress?.ContinueLessonId.HasValue == true && c.Status != CourseStatus.Archived)
+    // 1. Chỉ khóa còn bài chưa học mới là "tiếp tục học". CourseProgress có thể
+    // fallback ContinueLessonId về bài đầu ngay cả khi khóa đã hoàn thành.
+    // CompletedAtUtc là lịch sử; bài mới hoặc bài đánh dấu chưa xong vẫn cần học tiếp.
+    var activeCourses = Model.Courses
+        .Where(c => c.Status != CourseStatus.Archived && c.Progress is { TotalLessons: > 0 } progress &&
+            progress.CompletedLessons < progress.TotalLessons)
         .ToList();
-    var continueCourse = inProgressCourses.FirstOrDefault()
-        ?? Model.Courses.FirstOrDefault(c => c.Progress is not null && c.Progress.Percentage < 100)
-        ?? Model.Courses.FirstOrDefault();
+    var continueCourse = activeCourses.FirstOrDefault(c => c.Progress!.ContinueLessonId.HasValue);
+    var finalPendingCourse = Model.Courses.FirstOrDefault(c =>
+        c.Status != CourseStatus.Archived && c.Progress is { TotalLessons: > 0, CompletedAtUtc: null } progress &&
+        progress.CompletedLessons >= progress.TotalLessons);
+    var heroCourse = continueCourse ?? finalPendingCourse;
+    var otherCourses = Model.Courses.Where(c => c.Id != heroCourse?.Id).Take(3).ToList();
 
-    // 2. Dynamic Calendar Week Strip based on Today
-    var today = DateTime.Today;
-    var currentDayOfWeek = (int)today.DayOfWeek; // 0 = Sunday, 1 = Monday, ...
-    var mondayOffset = currentDayOfWeek == 0 ? -6 : 1 - currentDayOfWeek;
-    var monday = today.AddDays(mondayOffset);
-    var weekDays = Enumerable.Range(0, 7).Select(i => monday.AddDays(i)).ToList();
+    // 2. Calendar tuần hiện tại theo UTC+7, dùng đúng tuần mà service đã query.
+    var localToday = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+    var weekStart = Model.WeekStartDate == default ? localToday.AddDays(-(((int)localToday.DayOfWeek + 6) % 7)) : Model.WeekStartDate;
+    var weekDays = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
+    var selectedDay = weekDays.Contains(localToday) ? localToday : weekStart;
+    var activitiesByDay = Model.WeeklyActivities
+        .ToLookup(a => DateOnly.FromDateTime(a.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).DateTime));
     string[] dayNamesVi = { "T2", "T3", "T4", "T5", "T6", "T7", "CN" };
 
     // 3. Pastel Card Theme Classes
@@ -49,6 +56,38 @@
                     </p>
                     <a asp-action="Continue" asp-route-id="@continueCourse.Id" class="btn-dark">
                         <span>Tiếp tục học ngay</span>
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    </a>
+                }
+                else if (finalPendingCourse != null)
+                {
+                    <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <span>🎓 Đã hoàn thành bài học</span>
+                    </div>
+                    <h1 class="hero-promo-title">
+                        Hoàn tất khóa "@finalPendingCourse.Title" bằng bài thi cuối khóa
+                    </h1>
+                    <p class="hero-promo-desc">
+                        Bạn đã học xong @finalPendingCourse.Progress!.CompletedLessons/@finalPendingCourse.Progress.TotalLessons bài. Làm bài thi cuối khóa để ghi nhận hoàn thành.
+                    </p>
+                    <a asp-action="Course" asp-route-id="@finalPendingCourse.Id" class="btn-dark">
+                        <span>Làm bài thi cuối khóa</span>
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    </a>
+                }
+                else if (Model.CompletedCourses > 0)
+                {
+                    <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <span>✅ Bạn đã hoàn thành @Model.CompletedCourses khóa học</span>
+                    </div>
+                    <h1 class="hero-promo-title">
+                        Tiếp tục mở rộng lộ trình học của bạn
+                    </h1>
+                    <p class="hero-promo-desc">
+                        Các khóa đã hoàn thành vẫn được lưu trong tiến độ. Khám phá nội dung mới để tiếp tục học.
+                    </p>
+                    <a asp-controller="Courses" asp-action="Index" class="btn-dark">
+                        <span>Khám phá khóa học mới</span>
                         <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                     </a>
                 }
@@ -131,8 +170,8 @@
                     {
                         var c = displayCourses[i];
                         var themeClass = pastelCardThemes[i % pastelCardThemes.Length];
-                        var pct = c.Progress?.Percentage ?? 0m;
-                        var pctStr = pct.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                        var pct = c.Progress?.Percentage;
+                        var pctStr = pct?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? "0";
 
                         <div class="progress-pastel-card @themeClass">
                             <div class="progress-card-top">
@@ -154,8 +193,17 @@
                                     <div class="progress-fill-clean" style="width: @pctStr%;"></div>
                                 </div>
                                 <div class="progress-card-footer">
-                                    <span>@(c.Progress?.CompletedLessons ?? 0)/@c.LessonCount bài</span>
-                                    <strong>@pct.ToString("0.##")%</strong>
+                                    <span>
+                                        @if (c.Progress is { TotalLessons: > 0 } courseProgress)
+                                        {
+                                            <text>@courseProgress.CompletedLessons/@courseProgress.TotalLessons bài</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Chưa có bài học</text>
+                                        }
+                                    </span>
+                                    <strong>@(pct.HasValue ? $"{pct.Value.ToString("0.##")}%" : "—")</strong>
                                 </div>
                             </div>
                         </div>
@@ -172,125 +220,97 @@
             </div>
         }
 
-        @* 3. Gợi ý ôn tập & Luyện tập thông minh (Top articles / recommendations for you) *@
+        @* 3. Gợi ý ôn tập theo kỹ năng (dữ liệu thật, không có bài viết giả) *@
         <div class="clean-section-header" style="margin-top:32px;">
-            <h2 class="clean-section-title">Gợi ý ôn tập & Phương pháp học</h2>
+            <h2 class="clean-section-title" id="recommendations-title">Gợi ý ôn tập theo kỹ năng</h2>
         </div>
 
-        <div class="articles-cards-row">
-            @if (Model.Recommendations.Count > 0)
-            {
-                var rec = Model.Recommendations.First();
-                var firstContent = rec.Contents.FirstOrDefault();
-
-                <article class="article-clean-card">
-                    <div class="article-art-box" aria-hidden="true">
-                        <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
-                            <circle cx="130" cy="70" r="54" fill="#FFD2E8"/>
-                            <path d="M60 45 C60 30, 95 30, 105 45 C115 60, 95 75, 80 75 L70 85 L73 75 C60 72, 60 55, 60 45 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
-                            <text x="82" y="60" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="800" fill="#FF71CE" text-anchor="middle">!</text>
-                            <path d="M125 105 C135 90, 150 82, 175 88 L190 135 L120 135 Z" fill="#191A23"/>
-                            <path d="M150 95 C135 90, 100 88, 88 78 L80 84 C95 98, 130 102, 145 104" stroke="#191A23" stroke-width="2" fill="#FFFFFF"/>
-                            <circle cx="168" cy="74" r="9" fill="#FEE2E2" stroke="#191A23" stroke-width="1.5"/>
-                            <path d="M162 70 C160 62, 174 62, 176 68 C180 72, 174 78, 166 78 Z" fill="#191A23"/>
-                        </svg>
-                    </div>
-
-                    <h3 class="article-clean-title">
-                        Cải thiện <partial name="_UiText" model="rec.Skill" />: Điểm đạt @rec.Score.ToString("0.##")%
-                    </h3>
-                    <p class="section-subtitle-clean" style="margin-bottom: 12px;">
-                        Căn cứ từ bài: @rec.AssessmentTitle
-                    </p>
-
-                    @if (firstContent != null)
-                    {
-                        <div class="article-clean-meta" style="margin-top: auto;">
-                            @switch (firstContent.Kind)
-                            {
-                                case RecommendedContentKind.Course:
-                                    <a asp-action="Course" asp-route-id="@firstContent.Id" class="btn-dark-sm">Học tiếp: @firstContent.Title</a>
-                                    break;
-                                case RecommendedContentKind.Practice:
-                                    <a asp-controller="Practice" asp-action="Take" asp-route-id="@firstContent.Id" class="btn-dark-sm">Luyện tập: @firstContent.Title</a>
-                                    break;
-                                case RecommendedContentKind.Assessment:
-                                    <a asp-controller="Assessment" asp-action="Take" asp-route-id="@firstContent.Id" class="btn-dark-sm">Đánh giá: @firstContent.Title</a>
-                                    break;
-                            }
+        @if (Model.Recommendations.Count == 0)
+        {
+            <div class="panel empty" style="border-radius:20px; padding:24px; background:#FFFFFF; border:1px solid var(--v2-border-light);">
+                <p style="font-weight:600; color:var(--v2-dark); margin-bottom:6px;">Chưa có gợi ý ôn tập.</p>
+                <p class="section-subtitle-clean" style="margin-bottom:14px;">Hoàn thành một bài đánh giá năng lực để nhận gợi ý theo kỹ năng yếu.</p>
+                <a asp-controller="Assessment" asp-action="Index" class="btn-dark-sm">Xem bài đánh giá</a>
+            </div>
+        }
+        else
+        {
+            <div class="articles-cards-row">
+                @foreach (var recommendation in Model.Recommendations.Take(4))
+                {
+                    <article class="article-clean-card">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                            <span class="pill-tag pill-tag-orange"><partial name="_UiText" model="recommendation.Skill" /></span>
+                            <strong style="font-size:15px; color:var(--v2-dark);">@recommendation.Score.ToString("0.##")%</strong>
                         </div>
-                    }
-                </article>
-            }
-            else
-            {
-                <article class="article-clean-card">
-                    <div class="article-art-box" aria-hidden="true">
-                        <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
-                            <circle cx="130" cy="70" r="54" fill="#FFD2E8"/>
-                            <path d="M60 45 C60 30, 95 30, 105 45 C115 60, 95 75, 80 75 L70 85 L73 75 C60 72, 60 55, 60 45 Z" fill="#FFFFFF" stroke="#191A23" stroke-width="2"/>
-                            <text x="82" y="60" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="800" fill="#FF71CE" text-anchor="middle">?</text>
-                            <path d="M125 105 C135 90, 150 82, 175 88 L190 135 L120 135 Z" fill="#191A23"/>
-                        </svg>
-                    </div>
-                    <h3 class="article-clean-title">Mastering Vocabulary: Chiến lược nạp 30 từ mới mỗi ngày không quên</h3>
-                    <div class="article-clean-meta">
-                        <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                        <span>Kỹ thuật • 5 phút đọc</span>
-                    </div>
-                </article>
-            }
+                        <p class="section-subtitle-clean" style="margin:0 0 12px;">
+                            Căn cứ từ bài: <a asp-controller="Assessment" asp-action="Result" asp-route-id="@recommendation.AttemptId">@recommendation.AssessmentTitle</a>
+                        </p>
+                        @if (recommendation.Contents.Count == 0)
+                        {
+                            <p class="section-subtitle-clean" style="margin:0;">Chưa có nội dung phù hợp trong các khóa bạn đã tham gia.</p>
+                        }
+                        else
+                        {
+                            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:auto;">
+                                @foreach (var content in recommendation.Contents.Take(2))
+                                {
+                                    switch (content.Kind)
+                                    {
+                                        case RecommendedContentKind.Course:
+                                            <a asp-action="Course" asp-route-id="@content.Id" class="btn-dark-sm">Học: @content.Title</a>
+                                            break;
+                                        case RecommendedContentKind.Practice:
+                                            <a asp-controller="Practice" asp-action="Take" asp-route-id="@content.Id" class="btn-dark-sm">Luyện: @content.Title</a>
+                                            break;
+                                        case RecommendedContentKind.Assessment:
+                                            <a asp-controller="Assessment" asp-action="Take" asp-route-id="@content.Id" class="btn-dark-sm">Đánh giá: @content.Title</a>
+                                            break;
+                                    }
+                                }
+                            </div>
+                        }
+                    </article>
+                }
+            </div>
+        }
 
-            @if (Model.PracticeResults.Count > 0)
+        @* 4. Kết quả luyện tập gần đây; toàn bộ kết quả nằm ở trang Luyện tập. *@
+        <section id="dashboard-practice-results" aria-labelledby="dashboard-practice-results-title" style="margin-top:32px;">
+            <div class="clean-section-header">
+                <h2 class="clean-section-title" id="dashboard-practice-results-title">Luyện tập gần đây</h2>
+                <a asp-controller="Practice" asp-action="Index" class="btn-outline-dark" style="padding:6px 14px; font-size:12px;">
+                    Xem tất cả (@Model.PracticeResults.Count)
+                </a>
+            </div>
+
+            @if (Model.PracticeResults.Count == 0)
             {
-                var practice = Model.PracticeResults.First();
-                <article class="article-clean-card" id="dashboard-practice-results">
-                    <div class="article-art-box" aria-hidden="true">
-                        <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
-                            <circle cx="130" cy="70" r="54" fill="#DDD9FC"/>
-                            <g transform="translate(170, 75) scale(0.7)" stroke="#191A23" stroke-width="2" fill="#191A23">
-                                <circle cx="20" cy="20" r="16" fill="none"/>
-                                <circle cx="20" cy="20" r="6" fill="#DDD9FC"/>
-                                <rect x="17" y="0" width="6" height="40" rx="2"/>
-                                <rect x="0" y="17" width="40" height="6" rx="2"/>
-                            </g>
-                            <path d="M100 135 C100 105, 115 90, 140 92 C160 92, 170 105, 170 135 Z" fill="#191A23"/>
-                            <circle cx="132" cy="72" r="9" fill="#FEE2E2" stroke="#191A23" stroke-width="1.5"/>
-                            <path d="M112 85 L130 92 L148 85 L148 110 L130 117 L112 110 Z" fill="#FF71CE" stroke="#191A23" stroke-width="1.8"/>
-                        </svg>
-                    </div>
-                    <h3 class="article-clean-title">Bài luyện gần đây: @practice.Title</h3>
-                    <p class="section-subtitle-clean" style="margin-bottom: 12px;">
-                        Điểm đạt: <strong>@practice.Score.ToString("0.##")%</strong>
-                    </p>
-                    <div class="article-clean-meta" style="margin-top: auto;">
-                        <a asp-controller="Practice" asp-action="Result" asp-route-id="@practice.PracticeId" class="btn-dark-sm">
-                            Xem lại bài giải
-                        </a>
-                    </div>
-                </article>
+                <div class="panel empty" style="border-radius:20px; padding:24px; background:#FFFFFF; border:1px solid var(--v2-border-light);">
+                    <p style="font-weight:600; color:var(--v2-dark); margin-bottom:6px;">Bạn chưa nộp bài luyện tập nào.</p>
+                    <p class="section-subtitle-clean" style="margin-bottom:14px;">Vào khóa học để luyện tập và xem lời giải chi tiết.</p>
+                    <a asp-action="Index" class="btn-dark-sm">Xem khóa học của tôi</a>
+                </div>
             }
             else
             {
-                <article class="article-clean-card">
-                    <div class="article-art-box" aria-hidden="true">
-                        <svg viewBox="0 0 260 135" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
-                            <circle cx="130" cy="70" r="54" fill="#DDD9FC"/>
-                            <g transform="translate(170, 75) scale(0.7)" stroke="#191A23" stroke-width="2" fill="#191A23">
-                                <circle cx="20" cy="20" r="16" fill="none"/>
-                                <circle cx="20" cy="20" r="6" fill="#DDD9FC"/>
-                            </g>
-                            <path d="M100 135 C100 105, 115 90, 140 92 C160 92, 170 105, 170 135 Z" fill="#191A23"/>
-                        </svg>
-                    </div>
-                    <h3 class="article-clean-title">Embarking on English: Sơ đồ tư duy 12 thì trong 1 trang duy nhất</h3>
-                    <div class="article-clean-meta">
-                        <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                        <span>Chuyên đề • 6 phút đọc</span>
-                    </div>
-                </article>
+                <div class="articles-cards-row">
+                    @foreach (var practice in Model.PracticeResults.Take(3))
+                    {
+                        <article class="article-clean-card">
+                            <h3 class="article-clean-title">@practice.Title</h3>
+                            <p class="section-subtitle-clean" style="margin-bottom:12px;">
+                                Điểm đạt: <strong>@practice.Score.ToString("0.##")%</strong> ·
+                                <time datetime="@practice.SubmittedAtUtc.ToString("O")">@practice.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time>
+                            </p>
+                            <div class="article-clean-meta" style="margin-top:auto;">
+                                <a asp-controller="Practice" asp-action="Result" asp-route-id="@practice.PracticeId" class="btn-dark-sm">Xem lại bài giải</a>
+                            </div>
+                        </article>
+                    }
+                </div>
             }
-        </div>
+        </section>
     </div>
 
     @* =========================================================================
@@ -300,7 +320,16 @@
         @* 1. Calendar / Date Strip Widget (Dynamic Current Week) *@
         <div class="calendar-date-card" id="calendar-widget">
             <div class="calendar-header-row">
-                <span class="calendar-month-label">Tháng @today.ToString("MM / yyyy")</span>
+                <span class="calendar-month-label">
+                    @if (weekDays[0].Month == weekDays[6].Month)
+                    {
+                        <text>Tháng @weekStart.ToString("MM / yyyy")</text>
+                    }
+                    else
+                    {
+                        <text>@weekDays[0].ToString("MM") – @weekDays[6].ToString("MM / yyyy")</text>
+                    }
+                </span>
                 <span class="pill-tag pill-tag-purple">Hôm nay</span>
             </div>
 
@@ -308,15 +337,69 @@
                 @for (int i = 0; i < weekDays.Count; i++)
                 {
                     var d = weekDays[i];
-                    var isToday = d.Date == today.Date;
-                    var activeClass = isToday ? "active" : "";
+                    var isToday = d == localToday;
+                    var isSelected = d == selectedDay;
+                    var activityCount = activitiesByDay[d].Count();
 
-                    <div class="calendar-day-col @activeClass" tabindex="0" title="@d.ToString("dd/MM/yyyy")">
+                    <button type="button" class="calendar-day-col @(isSelected ? "active" : "") @(isToday ? "is-today" : "")"
+                            data-calendar-day="@d.ToString("yyyy-MM-dd")" aria-pressed="@(isSelected ? "true" : "false")"
+                            aria-label="@dayNamesVi[i], @d.ToString("dd/MM/yyyy"), @activityCount hoạt động"
+                            title="@d.ToString("dd/MM/yyyy")">
                         <span class="calendar-day-name">@dayNamesVi[i]</span>
                         <span class="calendar-day-num">@d.Day</span>
-                    </div>
+                        @if (activityCount > 0)
+                        {
+                            <span class="calendar-day-dot" aria-hidden="true"></span>
+                        }
+                    </button>
                 }
             </div>
+
+            @foreach (var d in weekDays)
+            {
+                var activities = activitiesByDay[d].OrderBy(a => a.OccurredAtUtc).ToList();
+                <div class="calendar-day-panel" data-calendar-panel="@d.ToString("yyyy-MM-dd")" hidden="@(d != selectedDay ? "hidden" : null)">
+                    <h3 class="calendar-day-panel-title">Hoạt động ngày @d.ToString("dd/MM/yyyy")</h3>
+                    @if (activities.Count == 0)
+                    {
+                        <p class="section-subtitle-clean" style="margin:0;">Chưa có hoạt động học tập trong ngày này.</p>
+                    }
+                    else
+                    {
+                        <ul class="calendar-activity-list">
+                            @foreach (var activity in activities)
+                            {
+                                <li>
+                                    <span class="calendar-activity-time">@activity.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm")</span>
+                                    @switch (activity.Kind)
+                                    {
+                                        case DashboardActivityKind.LessonCompleted:
+                                            @if (activity.CanOpenTarget)
+                                            {
+                                                <a asp-action="Lesson" asp-route-id="@activity.TargetId">@activity.Title</a>
+                                            }
+                                            else
+                                            {
+                                                <span>@activity.Title</span>
+                                                <span class="calendar-activity-kind">Bài học hiện không khả dụng</span>
+                                            }
+                                            <span class="calendar-activity-kind">Hoàn thành bài học</span>
+                                            break;
+                                        case DashboardActivityKind.PracticeSubmitted:
+                                            <a asp-controller="Practice" asp-action="Result" asp-route-id="@activity.TargetId">@activity.Title</a>
+                                            <span class="calendar-activity-kind">Nộp bài luyện tập</span>
+                                            break;
+                                        case DashboardActivityKind.AssessmentFinalized:
+                                            <a asp-controller="Assessment" asp-action="Result" asp-route-id="@activity.TargetId">@activity.Title</a>
+                                            <span class="calendar-activity-kind">Chấm bài đánh giá</span>
+                                            break;
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            }
         </div>
 
         @* 2. Enrolled & Completed Courses KPI *@
@@ -327,9 +410,9 @@
             </div>
 
             <div class="upcoming-courses-list">
-                @if (Model.Courses.Count > 0)
+                @if (otherCourses.Count > 0)
                 {
-                    @foreach (var course in Model.Courses.Skip(1).Take(3))
+                    @foreach (var course in otherCourses)
                     {
                         var cSkill = course.Skills.FirstOrDefault();
                         <div class="upcoming-course-item">
@@ -422,12 +505,21 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Interactive calendar day selection
-            var dayCols = document.querySelectorAll('.calendar-day-col');
-            dayCols.forEach(function (col) {
-                col.addEventListener('click', function () {
-                    dayCols.forEach(function (c) { c.classList.remove('active'); });
-                    col.classList.add('active');
+            // Chọn ngày để xem chi tiết hoạt động; dữ liệu được render sẵn từ server.
+            var dayButtons = document.querySelectorAll('.calendar-day-col');
+            var panels = document.querySelectorAll('[data-calendar-panel]');
+            dayButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    dayButtons.forEach(function (item) {
+                        item.classList.remove('active');
+                        item.setAttribute('aria-pressed', 'false');
+                    });
+                    button.classList.add('active');
+                    button.setAttribute('aria-pressed', 'true');
+                    var day = button.dataset.calendarDay;
+                    panels.forEach(function (panel) {
+                        panel.hidden = panel.dataset.calendarPanel !== day;
+                    });
                 });
             });
         });

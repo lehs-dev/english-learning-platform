@@ -94,9 +94,11 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
             if (order is null) return new(CheckoutCode.NotFound);
             var enrolled = await Enrolled(userId, order.CourseId, ct);
             var status = ResolveStatus(order.Payments);
+            var now = DateTimeOffset.UtcNow;
             var isLocal = order.Provider == local.Provider;
             var gateway = isLocal ? (IPaymentGateway)local : hosted;
-            var canCheckout = !enrolled && !status.HasValue && order.ExpiresAtUtc > DateTimeOffset.UtcNow &&
+            var isExpired = !status.HasValue && order.ExpiresAtUtc <= now;
+            var canCheckout = !enrolled && !status.HasValue && order.ExpiresAtUtc > now &&
                 order.Course.Status == CourseStatus.Published && order.Course.IsPaid && order.Amount == order.Course.Price &&
                 gateway.IsConfigured && order.Provider == gateway.Provider &&
                 await db.Users.AnyAsync(u => u.Id == order.Course.OwnerTeacherUserId && u.AccountStatus != AccountStatus.Disabled, ct);
@@ -104,7 +106,10 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
             return new(CheckoutCode.Allowed, new(order.Id, order.CourseId, order.Course.Title, teacher, order.Amount,
                 order.Currency, status, enrolled && order.Course.Status != CourseStatus.Draft, local.IsConfigured,
                 order.Provider, order.ExpiresAtUtc, order.CreatedAtUtc,
-                canCheckout ? gateway.CreateCheckoutUrl(new(order.Id, order.Amount, order.Currency, order.ExpiresAtUtc!.Value)) : null, canCheckout));
+                canCheckout ? gateway.CreateCheckoutUrl(new(order.Id, order.Amount, order.Currency, order.ExpiresAtUtc!.Value)) : null, canCheckout)
+            {
+                IsExpired = isExpired
+            });
         }, new(CheckoutCode.IntegrationError), ct);
     public Task<CheckoutOutcome<TransactionHistoryPage>> HistoryAsync(Guid userId, int page = 1, CancellationToken ct = default) =>
         transactions.ReadAsync<CheckoutOutcome<TransactionHistoryPage>>("transaction-history", userId, async () =>
@@ -119,8 +124,17 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
                 .OrderByDescending(o => o.CreatedAtUtc).ThenByDescending(o => o.Id)
                 .Skip((page - 1) * TransactionHistoryPage.PageSize)
                 .Take(TransactionHistoryPage.PageSize).ToListAsync(ct);
-            var items = orders.Select(o => new TransactionHistoryItem(o.Id, o.Course.Title,
-                o.Amount, o.Currency, o.CreatedAtUtc, ResolveStatus(o.Payments))).ToList();
+            var now = DateTimeOffset.UtcNow;
+            var items = orders.Select(o =>
+            {
+                var status = ResolveStatus(o.Payments);
+                return new TransactionHistoryItem(o.Id, o.Course.Title,
+                    o.Amount, o.Currency, o.CreatedAtUtc, status)
+                {
+                    ExpiresAtUtc = o.ExpiresAtUtc,
+                    IsExpired = !status.HasValue && o.ExpiresAtUtc.HasValue && o.ExpiresAtUtc.Value <= now
+                };
+            }).ToList();
             return new(CheckoutCode.Allowed, new TransactionHistoryPage(items, page, total));
         }, new(CheckoutCode.IntegrationError), ct);
 
@@ -130,6 +144,6 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
         if (result.Code != CheckoutCode.Allowed) return new(result.Code == CheckoutCode.NotFound ? LearningAccessResult.NotFound : LearningAccessResult.Forbidden);
         var order = result.Value!;
         return new(LearningAccessResult.Allowed, new(order.Id, order.CourseId, order.Title, order.Amount, order.Currency,
-            order.Status ?? PaymentStatus.Pending, order.CanLearn, order.ExpiresAtUtc, order.CheckoutUrl));
+            order.Status ?? PaymentStatus.Pending, order.CanLearn, order.ExpiresAtUtc, order.CheckoutUrl, order.IsExpired));
     }
 }

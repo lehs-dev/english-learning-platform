@@ -19,7 +19,8 @@ public sealed class CourseCatalogService(
         if (q.Topic?.Length > 120) q.Topic = q.Topic[..120];
         if (q.Level.HasValue && !Enum.IsDefined(q.Level.Value)) q.Level = null;
         if (q.Skill.HasValue && !Enum.IsDefined(q.Skill.Value)) q.Skill = null;
-        var published = db.Courses.AsNoTracking().Where(c => c.Status == CourseStatus.Published);
+        var published = db.Courses.AsNoTracking().Where(c => c.Status == CourseStatus.Published &&
+            db.Users.Any(u => u.Id == c.OwnerTeacherUserId && u.AccountStatus != AccountStatus.Disabled));
         var query = published;
         // Exclude server-resolved enrollments before counting and paging discovery results.
         if (excludedCourseIds is { Count: > 0 })
@@ -39,7 +40,7 @@ public sealed class CourseCatalogService(
             .Skip((q.Page - 1) * CatalogPage.PageSize).Take(CatalogPage.PageSize), true).ToListAsync(ct);
         var teachers = await db.Users.AsNoTracking().Where(u => published.Any(c => c.OwnerTeacherUserId == u.Id))
             .OrderBy(u => u.FullName).ThenBy(u => u.Id).Select(u => new TeacherOption(u.Id, u.FullName)).ToListAsync(ct);
-        var topics = await db.CourseTopics.Where(t => t.Course.Status == CourseStatus.Published)
+        var topics = await db.CourseTopics.Where(t => published.Any(c => c.Id == t.CourseId))
             .Select(t => t.Topic).Distinct().OrderBy(t => t).ToListAsync(ct);
         return new(q, items, count, teachers, topics);
     }
@@ -50,6 +51,9 @@ public sealed class CourseCatalogService(
         if (summary is null) return null;
         var owner = userId.HasValue && await Manage(userId.Value, id, ct) == LearningAccessResult.Allowed;
         var learn = userId.HasValue && await access.CheckAccessAsync(userId.Value, LearningResourceType.Course, id, LearningOperation.ViewContent, ct) == LearningAccessResult.Allowed;
+        // Retain existing students' access without offering new enrollments for a disabled owner.
+        if (!learn && !await db.Users.AnyAsync(u => u.Id == summary.OwnerId && u.AccountStatus != AccountStatus.Disabled, ct))
+            return null;
         return new(summary, await queries.OutlineAsync(id, false, ct), learn, owner, 0, []);
     }
 }

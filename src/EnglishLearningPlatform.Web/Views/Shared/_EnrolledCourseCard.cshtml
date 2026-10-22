@@ -21,7 +21,8 @@
         }
         <div class="actions course-card-action">
             <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Id">Vào học</a>
-            @if (!completed && Model.Progress?.ContinueLessonId is Guid)
+            @if (Model.Progress is { ContinueLessonId: Guid } progress &&
+                 (progress.CompletedAtUtc is null || progress.CompletedLessons < progress.TotalLessons))
             {
                 <a class="button" asp-controller="Learning" asp-action="Continue" asp-route-id="@Model.Id">@(Model.Status == CourseStatus.Archived ? "Xem bài học" : "Học tiếp") <span aria-hidden="true">→</span></a>
             }

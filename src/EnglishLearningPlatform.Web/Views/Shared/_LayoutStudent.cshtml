@@ -55,7 +55,7 @@
                         <span>Khóa học của tôi</span>
                     </a>
                     <a class="studio-nav-link @(activeSection == "practice" ? "is-active" : "")"
-                       asp-controller="Learning" asp-action="Dashboard" asp-fragment="dashboard-practice-results"
+                       asp-controller="Practice" asp-action="Index"
                        aria-current="@(activeSection == "practice" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
                         <span>Luyện tập</span>
