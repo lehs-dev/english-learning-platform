@@ -4,7 +4,7 @@ using EnglishLearningPlatform.Application.Learning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
-public sealed class CoursesController(ICourseService courses) : Controller
+public sealed class CoursesController(ICourseCatalogService courses, IStudentLearningCourseService learning) : Controller
 {
     private Guid? UserId => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
     [HttpGet, AllowAnonymous]
@@ -27,7 +27,7 @@ public sealed class CoursesController(ICourseService courses) : Controller
     public async Task<IActionResult> EnrollFree(Guid id, CancellationToken ct)
     {
         if (!UserId.HasValue) return Challenge();
-        var result = await courses.EnrollFreeAsync(UserId.Value, id, ct);
+        var result = await learning.EnrollFreeAsync(UserId.Value, id, ct);
         return result.Access switch
         {
             LearningAccessResult.Allowed => RedirectToAction("Course", "Learning", new { id }),

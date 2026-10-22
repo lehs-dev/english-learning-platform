@@ -14,8 +14,8 @@ public sealed class StimulusAudioController(IStimulusAudioStore store, IStimulus
     [HttpGet("/StimulusAudio/Play/{hash}")]
     public async Task<IActionResult> Play(string hash, CancellationToken ct)
     {
-        string url = StimulusAudioResource.Prefix + hash;
-        if (!StimulusAudioResource.TryGetHash(url, out _)
+        string url = StimulusAudioConstants.RoutePrefix + hash;
+        if (!StimulusAudioUrl.TryGetHash(url, out _)
             || !Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out Guid actor)
             || !await access.CanReadAsync(actor, url, ct)) return NotFound();
         try

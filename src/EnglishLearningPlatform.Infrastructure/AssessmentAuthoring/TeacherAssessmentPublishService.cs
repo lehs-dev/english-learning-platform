@@ -101,9 +101,7 @@ public sealed class TeacherAssessmentPublishService
             {
                 // Giữ thứ tự Course -> Assessment,
                 // giống luồng xử lý Assessment đang có.
-                linkedCourse = await _db.Courses
-                    .FromSqlInterpolated(
-                        $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.CourseId.Value}")
+                linkedCourse = await _db.CoursesForUpdate(snapshot.CourseId.Value)
                     .AsNoTracking()
                     .SingleOrDefaultAsync(cancellationToken);
 
@@ -117,9 +115,7 @@ public sealed class TeacherAssessmentPublishService
 
             // Khóa Assessment để hai yêu cầu không cùng
             // sửa hoặc Publish đề này trong một thời điểm.
-            var assessment = await _db.Assessments
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {assessmentId} AND OwnerTeacherUserId = {actorUserId}")
+            var assessment = await _db.AssessmentsForUpdate(assessmentId, actorUserId)
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (assessment == null)
@@ -272,26 +268,8 @@ public sealed class TeacherAssessmentPublishService
     /// </summary>
     private Task<bool> IsActiveTeacherAsync(
         Guid actorUserId,
-        CancellationToken cancellationToken)
-    {
-        return _db.Users
-            .AsNoTracking()
-            .AnyAsync(
-                user =>
-                    user.Id == actorUserId
-                    && user.AccountStatus == AccountStatus.Active
-                    && _db.UserRoles.Count(
-                        userRole =>
-                            userRole.UserId == actorUserId) == 1
-                    && _db.UserRoles.Any(
-                        userRole =>
-                            userRole.UserId == actorUserId
-                            && _db.Roles.Any(
-                                role =>
-                                    role.Id == userRole.RoleId
-                                    && role.Name == AppRoles.Teacher)),
-                cancellationToken);
-    }
+        CancellationToken cancellationToken) =>
+        _db.HasActiveRoleAsync(actorUserId, AppRoles.Teacher, cancellationToken);
 
     /// <summary>
     /// Trả danh sách lỗi chung để giao diện hiển thị.

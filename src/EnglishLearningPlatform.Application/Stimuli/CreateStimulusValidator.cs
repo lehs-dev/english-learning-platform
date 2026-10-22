@@ -49,7 +49,7 @@ public sealed class CreateStimulusValidator : ICreateStimulusValidator
         {
             if (request.AudioContent != null)
             {
-                if (StimulusAudioResource.DetectContentType(request.AudioContent) == null)
+                if (StimulusAudioContent.DetectContentType(request.AudioContent) == null)
                     errors[nameof(request.AudioContent)] = new[] { "Chọn file MP3, WAV hoặc Ogg hợp lệ, tối đa 10 MiB." };
                 if (!string.IsNullOrWhiteSpace(request.ResourceUrl))
                     errors[nameof(request.ResourceUrl)] = new[] { "Chỉ chọn một nguồn: upload file hoặc URL ngoài." };

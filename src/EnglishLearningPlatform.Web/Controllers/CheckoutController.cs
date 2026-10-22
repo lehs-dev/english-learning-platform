@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using System.Text.Json;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Commerce;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Web.Commerce;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +10,7 @@ namespace EnglishLearningPlatform.Web.Controllers;
 
 [Authorize(Policy = AuthorizationPolicies.Student)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class CheckoutController(ICheckoutService checkout, ILogger<CheckoutController> logger) : Controller
+public sealed class CheckoutController(ICheckoutOrderService checkout, IPaymentWebhookProcessor webhookProcessor, ISandboxCheckoutService sandbox) : Controller
 {
     private Guid? UserId => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
     private IActionResult Learn(Guid courseId) => RedirectToAction("Course", "Learning", new { id = courseId });
@@ -88,7 +88,7 @@ public sealed class CheckoutController(ICheckoutService checkout, ILogger<Checko
         SandboxScenario? selected = scenario switch
         { "success" => SandboxScenario.Success, "failed" => SandboxScenario.Failed, "cancelled" => SandboxScenario.Cancelled, _ => null };
         if (!selected.HasValue) return BadRequest();
-        var result = await checkout.SimulateAsync(UserId.Value, id, selected.Value, ct);
+        var result = await sandbox.SimulateAsync(UserId.Value, id, selected.Value, ct);
         if (result == CheckoutCode.Forbidden) return Forbid();
         if (result == CheckoutCode.NotFound) return NotFound();
         if (result != CheckoutCode.Allowed) TempData["Error"] = Message(result);
@@ -96,49 +96,7 @@ public sealed class CheckoutController(ICheckoutService checkout, ILogger<Checko
     }
     // One webhook route. Hosted raw-byte HMAC and local envelope are never cross-verified.
     [AllowAnonymous, HttpPost("/payments/webhook"), IgnoreAntiforgeryToken, RequestSizeLimit(16384)]
-    public async Task<IActionResult> Webhook(CancellationToken ct)
-    {
-        var buffer = new byte[16385]; var length = 0;
-        while (length < buffer.Length)
-        {
-            var read = await Request.Body.ReadAsync(buffer.AsMemory(length), ct);
-            if (read == 0) break;
-            length += read;
-        }
-        if (length > 16384) return StatusCode(413);
-        var body = buffer[..length];
-        if (!Request.Headers.ContainsKey("X-Payment-Signature"))
-        {
-            try
-            {
-                using var json = JsonDocument.Parse(body);
-                if (json.RootElement.ValueKind == JsonValueKind.Object && json.RootElement.TryGetProperty("data", out _) && json.RootElement.TryGetProperty("signature", out _))
-                {
-                    var callback = JsonSerializer.Deserialize<SignedPaymentCallback>(body, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                    if (callback is null) return BadRequest(new { code = "invalid_callback" });
-                    var code = await checkout.ProcessCallbackAsync(callback, ct);
-                    logger.LogInformation("Local callback outcome: {Code}", code);
-                    return code switch
-                    {
-                        CheckoutCode.Allowed => Ok(new { code = "accepted" }), CheckoutCode.Disabled => NotFound(),
-                        CheckoutCode.Conflict => Conflict(new { code = "conflicting_event" }),
-                        CheckoutCode.IntegrationError => StatusCode(503, new { code = "retry_later" }),
-                        _ => BadRequest(new { code = "invalid_callback" })
-                    };
-                }
-            }
-            catch (JsonException) { return BadRequest(new { code = "invalid_callback" }); }
-        }
-        var result = await checkout.ConfirmAsync(body, Request.Headers["X-Payment-Signature"].ToString(), ct);
-        logger.LogInformation("Hosted callback outcome: {Code}", result);
-        return result switch
-        {
-            PaymentConfirmation.Accepted => Ok(new { code = "accepted" }), PaymentConfirmation.NotFound => NotFound(),
-            PaymentConfirmation.Conflict => Conflict(new { code = "conflicting_event" }),
-            PaymentConfirmation.Unavailable => StatusCode(503, new { code = "retry_later" }),
-            _ => BadRequest(new { code = "invalid_callback" })
-        };
-    }
+    public Task<IActionResult> Webhook(CancellationToken ct) => webhookProcessor.ProcessAsync(Request, ct);
     private static string Message(CheckoutCode code) => code switch
     {
         CheckoutCode.Disabled => "Thanh toán thử nghiệm hiện chưa khả dụng. Vui lòng thử lại sau.",

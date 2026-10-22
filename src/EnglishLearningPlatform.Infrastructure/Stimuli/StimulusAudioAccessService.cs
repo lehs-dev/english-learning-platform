@@ -11,15 +11,11 @@ public sealed class StimulusAudioAccessService(AppDbContext db) : IStimulusAudio
 {
     public async Task<bool> CanReadAsync(Guid actorUserId, string resourceUrl, CancellationToken cancellationToken = default)
     {
-        if (!await db.Users.AnyAsync(u => u.Id == actorUserId && u.AccountStatus == AccountStatus.Active, cancellationToken)) return false;
-        if (await db.UserRoles.CountAsync(ur => ur.UserId == actorUserId, cancellationToken) != 1) return false;
-        bool teacher = await db.UserRoles.AnyAsync(ur => ur.UserId == actorUserId
-            && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Teacher), cancellationToken);
-        if (teacher) return await db.Stimuli.AnyAsync(s => s.ResourceUrl == resourceUrl
+        var role = await db.ActiveRoleAssignments().Where(user => user.UserId == actorUserId)
+            .Select(user => user.Role).SingleOrDefaultAsync(cancellationToken);
+        if (role == AppRoles.Teacher) return await db.Stimuli.AnyAsync(s => s.ResourceUrl == resourceUrl
             && s.OwnerTeacherUserId == actorUserId, cancellationToken);
-        bool student = await db.UserRoles.AnyAsync(ur => ur.UserId == actorUserId
-            && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Student), cancellationToken);
-        if (!student) return false;
+        if (role != AppRoles.Student) return false;
 
         // IQueryable chỉ dựng SQL, chưa tải danh sách câu hỏi/đáp án về bộ nhớ.
         var questionIds = db.Questions.Where(q => db.Stimuli.Any(s => s.Id == q.StimulusId

@@ -13,7 +13,7 @@ internal static class StimulusAudioIntegrity
         foreach (string? url in stimuli.Where(s => s?.StimulusType == StimulusType.Audio).Select(s => s!.ResourceUrl).Distinct())
         {
             // Dữ liệu lịch sử dùng URL ngoài vẫn được giữ, không tự tải hoặc sửa nó.
-            if (!StimulusAudioResource.TryGetHash(url, out string hash)) continue;
+            if (!StimulusAudioUrl.TryGetHash(url, out string hash)) continue;
             try
             {
                 if (await store.ReadAsync(hash, ct) == null) return "Không tìm thấy audio đã lưu; hãy khôi phục kho audio trước khi công bố/sửa đề.";

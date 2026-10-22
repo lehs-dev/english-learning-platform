@@ -33,14 +33,12 @@ public sealed class TeacherAssessmentCloneService(
             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
             if (snapshot.CourseId.HasValue)
             {
-                var course = await db.Courses.FromSqlInterpolated(
-                    $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.CourseId.Value}")
+                var course = await db.CoursesForUpdate(snapshot.CourseId.Value)
                     .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
                 if (course == null || course.OwnerTeacherUserId != actorUserId)
                     return WriteOutcome.Denied(LearningAccessResult.NotFound);
             }
-            var source = await db.Assessments.FromSqlInterpolated(
-                $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {sourceId} AND OwnerTeacherUserId = {actorUserId}")
+            var source = await db.AssessmentsForUpdate(sourceId, actorUserId)
                 .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
             if (source == null) return WriteOutcome.Denied(LearningAccessResult.NotFound);
             if (!await IsTeacherAsync(actorUserId, cancellationToken))
@@ -89,9 +87,8 @@ public sealed class TeacherAssessmentCloneService(
         }
     }
 
-    private Task<bool> IsTeacherAsync(Guid id, CancellationToken ct) => db.Users.AsNoTracking().AnyAsync(u =>
-        u.Id == id && u.AccountStatus == AccountStatus.Active && db.UserRoles.Count(ur => ur.UserId == id) == 1
-        && db.UserRoles.Any(ur => ur.UserId == id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Teacher)), ct);
+    private Task<bool> IsTeacherAsync(Guid id, CancellationToken ct) =>
+        db.HasActiveRoleAsync(id, AppRoles.Teacher, ct);
 
     private static WriteOutcome Failure(Guid id, string message) => new(LearningAccessResult.Allowed, id,
         new Dictionary<string, string[]> { [string.Empty] = new[] { message } });

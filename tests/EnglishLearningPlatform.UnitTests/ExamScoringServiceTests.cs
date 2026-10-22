@@ -7,6 +7,49 @@ namespace EnglishLearningPlatform.UnitTests;
 
 public sealed class ExamScoringServiceTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Score_DuplicateResponses_UsesLastAnswer(bool correctLast)
+    {
+        var question = CreateQuestion("Duplicate response");
+        var correctOption = question.Options.Single(option => option.IsCorrect).Id;
+        var wrongOption = question.Options.Single(option => !option.IsCorrect).Id;
+        var assessment = new Assessment
+        {
+            Questions = [new AssessmentQuestion { QuestionId = question.Id, Question = question, Points = 4m }]
+        };
+
+        var result = new ExamScoringService().Score(assessment,
+        [
+            new QuestionResponse(question.Id, correctLast ? wrongOption : correctOption),
+            new QuestionResponse(question.Id, correctLast ? correctOption : wrongOption)
+        ]);
+
+        Assert.Equal(correctLast ? 4m : 0m, result.Score);
+        Assert.Equal(4m, result.MaxScore);
+    }
+
+    [Fact]
+    public void Score_UsesConfiguredStrategy()
+    {
+        var firstQuestion = CreateQuestion("First question");
+        var secondQuestion = CreateQuestion("Second question");
+        var assessment = new Assessment
+        {
+            Questions =
+            [
+                new AssessmentQuestion { QuestionId = firstQuestion.Id, Question = firstQuestion, Points = 1m },
+                new AssessmentQuestion { QuestionId = secondQuestion.Id, Question = secondQuestion, Points = 9m }
+            ]
+        };
+
+        var result = new ExamScoringService(new EqualWeightPracticeScoringStrategy()).Score(assessment,
+            [new QuestionResponse(firstQuestion.Id, firstQuestion.Options.Single(option => option.IsCorrect).Id)]);
+
+        Assert.Equal(new ScoringResult(1m, 2m, 50m), result);
+    }
+
     [Fact]
     public void Score_ReturnsFullPoints_WhenSelectedOptionIsCorrect()
     {

@@ -22,7 +22,7 @@ public sealed class HostedPaymentOptions
 
 // Adapter for an external hosted gateway that implements the documented HMAC contract.
 // No browser endpoint can sign a success notification.
-public sealed class HostedPaymentGateway(IOptions<HostedPaymentOptions> options, IHostEnvironment environment) : IPaymentGateway
+public sealed class HostedPaymentGateway(IOptions<HostedPaymentOptions> options, IHostEnvironment environment) : IWebhookPaymentGateway
 {
     private readonly HostedPaymentOptions settings = options.Value;
     public string Provider => settings.Provider;
