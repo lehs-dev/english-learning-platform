@@ -120,9 +120,26 @@ public sealed class AssessmentCloneTests(IntegrationTestFactory factory) : IClas
         var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         using var scope = factory.Services.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<ITeacherAssessmentCloneService>();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        string before = await SnapshotAsync(data.Id);
+        int assessmentCount = await db.Assessments.CountAsync();
         Assert.Equal(LearningAccessResult.NotFound, (await service.CloneAsync(other.Id, data.Id, data.Version)).Access);
         Assert.Equal(LearningAccessResult.Forbidden, (await service.CloneAsync(data.Student.Id, data.Id, data.Version)).Access);
         Assert.False((await service.CloneAsync(data.Teacher.Id, data.Id, data.Version!.Value.AddSeconds(-1))).Success);
+        // Request trực tiếp có CSRF hợp lệ vẫn không được Clone đề của Teacher khác.
+        using var foreignClient = IdentityTestHelpers.CreateClient(factory);
+        using var foreignLogin = await IdentityTestHelpers.LoginAsync(foreignClient, other);
+        string foreignToken = await IdentityTestHelpers.GetTokenAsync(foreignClient, "/TeacherAssessments/Edit");
+        using var foreignClone = await foreignClient.PostAsync("/TeacherAssessmentClone/Create/" + data.Id,
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["__RequestVerificationToken"] = foreignToken,
+                ["expectedUpdatedAtUtc"] = data.Version.Value.ToString("O"),
+                ["OwnerTeacherUserId"] = other.Id.ToString()
+            }));
+        Assert.Equal(HttpStatusCode.NotFound, foreignClone.StatusCode);
+        Assert.Equal(assessmentCount, await db.Assessments.CountAsync());
+        Assert.Equal(before, await SnapshotAsync(data.Id));
         using var client = IdentityTestHelpers.CreateClient(factory);
         using var login = await IdentityTestHelpers.LoginAsync(client, data.Teacher);
         string path = "/TeacherAssessmentClone/Create/" + data.Id;

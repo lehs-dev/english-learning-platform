@@ -1,5 +1,15 @@
 # Bộ hồ sơ bàn giao Công việc 10–12
 
+## Bổ sung QA6 — 21/10/2026
+
+[Hướng dẫn chạy và demo Practice–Assessment–Result](qa6-run-demo.md),
+[báo cáo/testcase/evidence QA6](../acceptance/qa6-handover-results.md).
+Đây là bổ sung theo kết quả local mới; không sửa ngày/kết quả các hồ sơ SP cũ
+hoặc tự coi rehearsal/CI của nhóm đã hoàn thành.
+
+[Lượt chốt trước push sau cập nhật main](../acceptance/qa-pre-push-20261021.md):
+390 unit, 1.143 integration, 9 browser fixture và 6 hành trình browser live pass.
+
 Nguồn được soạn theo mã nguồn candidate và kế hoạch bảo vệ 16/10/2026. Người phụ trách tổng hợp: Lê Hoàng Sơn — 3123560077. Ngày soạn: 11/10/2026, Asia/Saigon. Hồ sơ này không tự chứng nhận các AC đã Pass; SP14 và nhật ký evidence chứa kết quả thật của người chốt release.
 
 | Tài liệu | Nguồn chỉnh sửa | Đầu ra |

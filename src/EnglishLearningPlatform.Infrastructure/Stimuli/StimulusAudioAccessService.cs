@@ -27,9 +27,23 @@ public sealed class StimulusAudioAccessService(AppDbContext db) : IStimulusAudio
         var assessmentIds = db.AssessmentQuestions.Where(q => questionIds.Contains(q.QuestionId)).Select(q => q.AssessmentId);
         var practiceIds = db.PracticeQuestions.Where(q => questionIds.Contains(q.QuestionId)).Select(q => q.PracticeId);
 
-        // Lịch sử của chính Student vẫn được đọc sau khi đề rút/Archive.
-        if (await db.Attempts.AnyAsync(a => a.StudentUserId == actorUserId && assessmentIds.Contains(a.AssessmentId), cancellationToken)) return true;
-        if (await db.PracticeSubmissions.AnyAsync(p => p.StudentUserId == actorUserId && practiceIds.Contains(p.PracticeId), cancellationToken)) return true;
+        var enrolledCourses = db.Enrollments.Valid().Where(e => e.StudentUserId == actorUserId).Select(e => e.CourseId);
+
+        // Rút/Archive không làm mất lịch sử, nhưng có Attempt không thay thế Enrollment.
+        // Independent không cần Enrollment; Course-linked phải còn đúng owner và quyền học.
+        if (await db.Attempts.AnyAsync(a => a.StudentUserId == actorUserId && assessmentIds.Contains(a.AssessmentId) &&
+            (!a.Assessment.CourseId.HasValue ||
+             (a.Assessment.Course!.OwnerTeacherUserId == a.Assessment.OwnerTeacherUserId &&
+              enrolledCourses.Contains(a.Assessment.CourseId.Value))), cancellationToken)) return true;
+
+        // Practice lịch sử cũng dùng đúng một Lesson/Module thuộc Course đã enroll.
+        if (await db.PracticeSubmissions.AnyAsync(p => p.StudentUserId == actorUserId && practiceIds.Contains(p.PracticeId) &&
+            ((p.Practice.ModuleId == null && p.Practice.Lesson != null &&
+              p.Practice.Lesson.Module.Course.OwnerTeacherUserId == p.Practice.OwnerTeacherUserId &&
+              enrolledCourses.Contains(p.Practice.Lesson.Module.CourseId)) ||
+             (p.Practice.LessonId == null && p.Practice.Module != null &&
+              p.Practice.Module.Course.OwnerTeacherUserId == p.Practice.OwnerTeacherUserId &&
+              enrolledCourses.Contains(p.Practice.Module.CourseId))), cancellationToken)) return true;
 
         // Dùng lại rule của màn hình Student: không viết một bộ Enrollment/Payment/parent khác.
         if (await db.AvailableAssessments(actorUserId, DateTimeOffset.UtcNow)

@@ -333,18 +333,25 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
     }
 
     [Theory]
-    [InlineData("None", false)]
-    [InlineData("Pending", false)]
-    [InlineData("Succeeded", true)]
-    public async Task ManagedAudio_CourseScopeHonorsPaymentAndOwnership(string enrollment, bool allowed)
+    [InlineData("None", false, false)]
+    [InlineData("Pending", false, false)]
+    [InlineData("Failed", false, false)]
+    [InlineData("Cancelled", false, false)]
+    [InlineData("Succeeded", true, false)]
+    [InlineData("Succeeded", true, true)]
+    public async Task ManagedAudio_CourseScopeHonorsPaymentAndOwnership(string enrollment, bool allowed, bool practiceHistory)
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         var otherTeacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        // Hash dùng chung đồng nghĩa cùng bytes có thể đã được cấp quyền qua đề Independent khác.
+        // Mỗi ca dùng PCM riêng để chỉ đo quyền của Course đang kiểm tra, không đổi rule dedup audio.
+        byte[] audioBytes = StimulusAudioTestData.Wav();
+        Guid.NewGuid().ToByteArray().CopyTo(audioBytes, audioBytes.Length - 16);
         var created = await scope.ServiceProvider.GetRequiredService<IStimulusCreationService>().CreateAsync(teacher.Id,
-            new CreateStimulusRequest { StimulusType = StimulusType.Audio, AudioContent = StimulusAudioTestData.Wav() });
+            new CreateStimulusRequest { StimulusType = StimulusType.Audio, AudioContent = audioBytes });
         Assert.True(created.Success);
         var stimulus = await db.Stimuli.SingleAsync(s => s.Id == created.Id);
         var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Private audio course", Status = CourseStatus.Published,
@@ -359,11 +366,21 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         if (enrollment != "None")
         {
             var payment = new Payment { Amount = 1000m, Provider = "TestOnly_Audio", ProviderTransactionId = Guid.NewGuid().ToString("N"),
-                Status = enrollment == "Pending" ? PaymentStatus.Pending : PaymentStatus.Succeeded,
+                Status = Enum.Parse<PaymentStatus>(enrollment),
                 Order = new Order { Course = course, StudentUserId = student.Id, Amount = 1000m, Currency = "VND", Provider = "TestOnly_Audio" } };
             db.Enrollments.Add(new Enrollment { Course = course, StudentUserId = student.Id, Payment = payment });
         }
         await db.SaveChangesAsync();
+        if (practiceHistory)
+        {
+            // Lịch sử Practice dùng chung audio cũng không được vượt qua Enrollment.
+            var practice = new Practice { OwnerTeacherUserId = teacher.Id, Title = "QA4 audio practice",
+                Status = PracticeStatus.Published, Lesson = new Lesson { Title = "Audio lesson", Status = LessonStatus.Published,
+                    Module = new Module { Title = "Audio module", Course = course } } };
+            practice.Questions.Add(new PracticeQuestion { Question = assessment.Questions.First().Question });
+            db.PracticeSubmissions.Add(new PracticeSubmission { Practice = practice, StudentUserId = student.Id, Score = 0m });
+            await db.SaveChangesAsync();
+        }
         using var studentClient = await LoginAsync(student);
         using var audio = await studentClient.GetAsync(stimulus.ResourceUrl);
         Assert.Equal(allowed ? HttpStatusCode.OK : HttpStatusCode.NotFound, audio.StatusCode);
@@ -374,6 +391,27 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         using var ownerAudio = await owner.GetAsync(stimulus.ResourceUrl);
         Assert.Equal(HttpStatusCode.OK, ownerAudio.StatusCode);
         Assert.False(await db.Attempts.AnyAsync(a => a.AssessmentId == assessment.Id));
+        if (allowed)
+        {
+            // Có Attempt không được trở thành vé đọc audio vĩnh viễn sau khi mất Enrollment.
+            var started = await scope.ServiceProvider.GetRequiredService<IAttemptService>().StartAsync(student.Id, assessment.Id);
+            Assert.Equal(AttemptStartStatus.Started, started.Status);
+            await db.Courses.Where(c => c.Id == course.Id).ExecuteUpdateAsync(s => s.SetProperty(c => c.Status, CourseStatus.Archived));
+            using var archived = await studentClient.GetAsync(stimulus.ResourceUrl);
+            Assert.Equal(HttpStatusCode.OK, archived.StatusCode); // Enrollment còn hợp lệ: vẫn đọc lịch sử.
+            await db.Payments.Where(p => p.Order.CourseId == course.Id)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.Status, PaymentStatus.Pending));
+            using var stale = await studentClient.GetAsync(stimulus.ResourceUrl);
+            Assert.Equal(HttpStatusCode.NotFound, stale.StatusCode);
+            await db.Enrollments.Where(e => e.CourseId == course.Id).ExecuteDeleteAsync();
+            using var removed = await studentClient.GetAsync(stimulus.ResourceUrl);
+            Assert.Equal(HttpStatusCode.NotFound, removed.StatusCode);
+            var unchanged = await db.Attempts.AsNoTracking().SingleAsync(a => a.Id == started.AttemptId);
+            Assert.Equal(AttemptStatus.InProgress, unchanged.Status);
+            Assert.Equal(started.DeadlineUtc, unchanged.DeadlineUtc);
+            Assert.Null(unchanged.FinalizedAtUtc);
+            Assert.False(await db.AttemptSkillResults.AnyAsync(r => r.AttemptId == started.AttemptId));
+        }
     }
 
     [Fact]

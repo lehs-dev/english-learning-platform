@@ -296,29 +296,6 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
             }
         }
 
-        async Task<string> Snapshot(Guid attemptId)
-        {
-            using var scope = factory.Services.CreateScope();
-            var attempt = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.AsNoTracking()
-                .Include(item => item.Answers).Include(item => item.SkillResults)
-                .SingleAsync(item => item.Id == attemptId);
-            // Sắp xếp bản ghi con để so sánh dữ liệu, không phụ thuộc thứ tự SQL trả về.
-            return JsonSerializer.Serialize(new
-            {
-                attempt.Id, attempt.StudentUserId, attempt.AssessmentId, attempt.Status,
-                attempt.StartedAtUtc, attempt.DeadlineUtc, attempt.FinalizedAtUtc, attempt.FinalizationReason,
-                attempt.OverallScore, attempt.Passed, attempt.CreatedAtUtc, attempt.UpdatedAtUtc,
-                Answers = attempt.Answers.OrderBy(answer => answer.Id).Select(answer => new
-                {
-                    answer.Id, answer.AssessmentQuestionId, answer.SelectedOptionId,
-                    answer.SavedAtUtc, answer.CreatedAtUtc, answer.UpdatedAtUtc
-                }),
-                Skills = attempt.SkillResults.OrderBy(skill => skill.Id).Select(skill => new
-                {
-                    skill.Id, skill.Skill, skill.Score, skill.QuestionCount, skill.CreatedAtUtc, skill.UpdatedAtUtc
-                })
-            });
-        }
     }
 
     [Theory]
@@ -596,9 +573,11 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task ExpiredGet_OffersCsrfFinalizationWithoutAnswers_AndPostGradesSavedAnswers(bool withdrawn)
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ExpiredGet_LazilyGradesSavedAnswersWithoutPost_AndReplayKeepsResult(bool withdrawn, bool explicitAttempt)
     {
         var data = await SeedAsync();
         using var client = await StudentClient(data.Student);
@@ -618,19 +597,24 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
                     .ExecuteUpdateAsync(s => s.SetProperty(c => c.Status, CourseStatus.Archived));
             }
         }
-        using var get = await client.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
-        Assert.Equal(HttpStatusCode.OK, get.StatusCode);
-        string html = await get.Content.ReadAsStringAsync();
-        Assert.Contains("data-expired-attempt-form", html);
-        Assert.Contains($"action=\"/Assessment/Submit/{attemptId}\"", html);
-        Assert.DoesNotContain("data-assessment-form", html);
-        Assert.DoesNotContain("Answers[", html);
-        Assert.DoesNotContain("QUESTION_PRIVATE_EXPLANATION", html);
+        string path = $"/Assessment/Take/{data.Assessment.Id}";
+        if (explicitAttempt) path += $"?attemptId={attemptId}";
+        using var get = await client.GetAsync(path);
+        Assert.Equal(HttpStatusCode.Redirect, get.StatusCode);
+        Assert.Equal($"/Assessment/Result/{attemptId}", get.Headers.Location!.ToString());
+        using var resultPage = await client.GetAsync(get.Headers.Location);
+        Assert.Equal(HttpStatusCode.OK, resultPage.StatusCode);
+        AssertResultDoesNotExposeAnswers(await resultPage.Content.ReadAsStringAsync(), data);
+        DateTimeOffset? finalizedAt;
         using (var scope = factory.Services.CreateScope())
-            Assert.Equal(AttemptStatus.InProgress, (await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.SingleAsync(a => a.Id == attemptId)).Status);
+        {
+            var attempt = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.SingleAsync(a => a.Id == attemptId);
+            Assert.Equal(AttemptStatus.Graded, attempt.Status);
+            Assert.Equal(80m, attempt.OverallScore);
+            finalizedAt = attempt.FinalizedAtUtc;
+        }
 
-        // Cả khi mở URL không có attemptId vẫn phải tìm đúng lượt đã hết hạn.
-        token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        // Lazy-finalize không thay thế CSRF cho hành động Submit thủ công.
         using var noCsrf = await client.PostAsync($"/Assessment/Submit/{attemptId}", new FormUrlEncodedContent([]));
         Assert.Equal(HttpStatusCode.BadRequest, noCsrf.StatusCode);
         using var finalize = await Post(client, $"/Assessment/Submit/{attemptId}", token);
@@ -640,9 +624,71 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var attempt = await db.Attempts.SingleAsync(a => a.Id == attemptId);
             Assert.Equal(80m, attempt.OverallScore);
+            Assert.Equal(finalizedAt, attempt.FinalizedAtUtc);
             Assert.Equal(AttemptFinalizationReason.DeadlineElapsed, attempt.FinalizationReason);
             Assert.Equal(1, await db.Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
         }
+    }
+
+    [Theory]
+    [InlineData("Result")]
+    [InlineData("History")]
+    public async Task ReadPages_LazilyGradeOnlyOwnExpiredAttempt_AndNeverSubmitAnActiveAttempt(string page)
+    {
+        var data = await SeedAsync();
+        var other = await SeedAsync();
+        using var client = await StudentClient(data.Student);
+        using var otherClient = await StudentClient(other.Student);
+        string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        string otherToken = await IdentityTestHelpers.GetTokenAsync(otherClient, $"/Assessment/Take/{other.Assessment.Id}");
+        Guid attemptId = await Start(client, data, token);
+        Guid otherAttemptId = await Start(otherClient, other, otherToken);
+        using var saved = await Post(client, $"/Assessment/Save/{attemptId}", token, Answers(data, 4));
+        string path = page == "Result" ? $"/Assessment/Result/{attemptId}" : $"/Assessment/History/{data.Assessment.Id}";
+
+        // Đọc khi còn hạn không được biến thành Submit sớm.
+        using var before = await client.GetAsync(path);
+        Assert.Equal(page == "Result" ? HttpStatusCode.NotFound : HttpStatusCode.OK, before.StatusCode);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(AttemptStatus.InProgress, (await db.Attempts.SingleAsync(a => a.Id == attemptId)).Status);
+            await db.Attempts.Where(a => a.Id == attemptId || a.Id == otherAttemptId)
+                .ExecuteUpdateAsync(s => s.SetProperty(a => a.DeadlineUtc, DateTimeOffset.UtcNow.AddSeconds(-1)));
+        }
+
+        // Biết URL của Student khác không đủ quyền chấm hoặc đọc bài của họ.
+        string foreignPath = page == "Result" ? $"/Assessment/Result/{otherAttemptId}" : $"/Assessment/History/{other.Assessment.Id}";
+        using var foreign = await client.GetAsync(foreignPath);
+        Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
+        using var read = await client.GetAsync(path);
+        Assert.Equal(HttpStatusCode.OK, read.StatusCode);
+        using var resultPage = await client.GetAsync($"/Assessment/Result/{attemptId}");
+        AssertResultDoesNotExposeAnswers(await resultPage.Content.ReadAsStringAsync(), data);
+
+        DateTimeOffset? finalizedAt;
+        DateTimeOffset deadline;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var attempt = await db.Attempts.SingleAsync(a => a.Id == attemptId);
+            Assert.Equal(AttemptStatus.Graded, attempt.Status);
+            Assert.Equal(80m, attempt.OverallScore);
+            Assert.Equal(AttemptFinalizationReason.DeadlineElapsed, attempt.FinalizationReason);
+            Assert.Equal(AttemptStatus.InProgress, (await db.Attempts.SingleAsync(a => a.Id == otherAttemptId)).Status);
+            Assert.False(await db.AttemptSkillResults.AnyAsync(s => s.AttemptId == otherAttemptId));
+            finalizedAt = attempt.FinalizedAtUtc;
+            deadline = attempt.DeadlineUtc;
+        }
+        using var refresh = await client.GetAsync(path);
+        using var check = factory.Services.CreateScope();
+        var checkDb = check.ServiceProvider.GetRequiredService<AppDbContext>();
+        var unchanged = await checkDb.Attempts.SingleAsync(a => a.Id == attemptId);
+        Assert.Equal(finalizedAt, unchanged.FinalizedAtUtc);
+        Assert.Equal(deadline, unchanged.DeadlineUtc);
+        Assert.Equal(80m, unchanged.OverallScore);
+        Assert.Equal(1, await checkDb.Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
+        Assert.Equal(2, await checkDb.AttemptSkillResults.CountAsync(s => s.AttemptId == attemptId));
     }
 
     [Fact]
@@ -744,10 +790,18 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         using var client = await StudentClient(data.Student);
         var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
         var attemptId = await Start(client, data, token);
-        using var graded = await Post(client, $"/Assessment/Submit/{attemptId}", token, Answers(data, 5));
         var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         using var foreignClient = await StudentClient(other);
         var otherToken = await IdentityTestHelpers.GetTokenAsync(foreignClient, "/Profile");
+        // Thử khi còn InProgress, không chỉ khi bài đã chấm và vốn không sửa được nữa.
+        string activeBefore = await Snapshot(attemptId);
+        foreach (string action in new[] { "Save", "Submit" })
+        {
+            using var denied = await Post(foreignClient, $"/Assessment/{action}/{attemptId}", otherToken, Answers(data, 0));
+            Assert.Equal(HttpStatusCode.NotFound, denied.StatusCode);
+            Assert.Equal(activeBefore, await Snapshot(attemptId));
+        }
+        using var graded = await Post(client, $"/Assessment/Submit/{attemptId}", token, Answers(data, 5));
         using var foreignResult = await foreignClient.GetAsync($"/Assessment/Result/{attemptId}");
         Assert.Equal(HttpStatusCode.NotFound, foreignResult.StatusCode);
         using var foreignTake = await foreignClient.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
@@ -790,6 +844,86 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         Assert.Equal(1, await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
     }
 
+    [Theory]
+    [InlineData("Missing")]
+    [InlineData("Pending")]
+    [InlineData("Failed")]
+    public async Task StaleTakingTab_InvalidEnrollment_BlocksStartSaveAndEarlySubmitWithoutWrites(string state)
+    {
+        var data = await SeedAsync();
+        Guid paymentId;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var course = await db.Courses.SingleAsync(c => c.Id == data.Course.Id);
+            course.IsPaid = true;
+            course.Price = 1000m;
+            var payment = new Payment
+            {
+                Status = PaymentStatus.Succeeded, Amount = 1000m, Provider = "QA4_TestOnly",
+                ProviderTransactionId = Guid.NewGuid().ToString("N"),
+                Order = new Order { CourseId = course.Id, StudentUserId = data.Student.Id,
+                    Amount = 1000m, Currency = "VND", Provider = "QA4_TestOnly" }
+            };
+            db.Payments.Add(payment);
+            (await db.Enrollments.SingleAsync(e => e.CourseId == course.Id && e.StudentUserId == data.Student.Id)).Payment = payment;
+            await db.SaveChangesAsync();
+            paymentId = payment.Id;
+        }
+
+        using var client = await StudentClient(data.Student);
+        string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        Guid attemptId = await Start(client, data, token);
+        using var saved = await Post(client, $"/Assessment/Save/{attemptId}", token, Answers(data, 4));
+        Assert.Equal(HttpStatusCode.Redirect, saved.StatusCode);
+        // Token/URL/payload này được lấy lúc còn quyền: mô phỏng tab cũ, không giả CSRF.
+        using var opened = await client.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
+        Assert.Equal(HttpStatusCode.OK, opened.StatusCode);
+        string before = await Snapshot(attemptId);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            if (state == "Missing")
+            {
+                await db.LessonProgressEntries.Where(p => p.Enrollment.CourseId == data.Course.Id).ExecuteDeleteAsync();
+                await db.Enrollments.Where(e => e.CourseId == data.Course.Id).ExecuteDeleteAsync();
+            }
+            else
+            {
+                PaymentStatus status = state == "Pending" ? PaymentStatus.Pending : PaymentStatus.Failed;
+                await db.Payments.Where(p => p.Id == paymentId).ExecuteUpdateAsync(set => set.SetProperty(p => p.Status, status));
+            }
+        }
+
+        using var take = await client.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
+        Assert.Equal(HttpStatusCode.NotFound, take.StatusCode);
+        foreach (string action in new[] { "Start", "Save", "Submit" })
+        {
+            Guid id = action == "Start" ? data.Assessment.Id : attemptId;
+            using var denied = await Post(client, $"/Assessment/{action}/{id}", token, Answers(data, 0));
+            if (action == "Start")
+            {
+                Assert.Equal(HttpStatusCode.Redirect, denied.StatusCode);
+                Assert.Contains("/Account/AccessDenied", denied.Headers.Location!.ToString());
+            }
+            else
+                Assert.Equal(HttpStatusCode.NotFound, denied.StatusCode);
+            Assert.Equal(before, await Snapshot(attemptId));
+        }
+
+        // Gọi service trực tiếp cũng phải kiểm quyền lại, không chỉ dựa vào controller.
+        using var check = factory.Services.CreateScope();
+        var attempts = check.ServiceProvider.GetRequiredService<IAttemptService>();
+        var first = data.Assessment.Questions.OrderBy(q => q.OrderIndex).First();
+        Assert.Equal(AttemptSaveStatus.Forbidden, await attempts.SaveAnswerAsync(data.Student.Id, attemptId,
+            first.Id, first.Question.Options.Single(o => !o.IsCorrect).Id));
+        Assert.Equal(AttemptFinalizeStatus.Unavailable, (await attempts.FinalizeExpiredAsync(data.Student.Id, attemptId)).Status);
+        Assert.Equal(before, await Snapshot(attemptId));
+        var checkDb = check.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(1, await checkDb.Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
+        Assert.False(await checkDb.AttemptSkillResults.AnyAsync(s => s.AttemptId == attemptId));
+    }
+
     [Fact]
     public async Task ListeningAudio_IsAvailableOnlyToEnrolledAttemptOwner_AndResumeKeepsDeadline()
     {
@@ -828,6 +962,30 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         using var denied = await otherClient.GetAsync($"/Assessment/Take/{data.Assessment.Id}?attemptId={attemptId}");
         Assert.Equal(HttpStatusCode.NotFound, denied.StatusCode);
         Assert.DoesNotContain(audioUrl, await denied.Content.ReadAsStringAsync());
+    }
+
+    // Dùng chung cho history và kiểm tra request bị từ chối không làm thay đổi dữ liệu.
+    private async Task<string> Snapshot(Guid attemptId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var attempt = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.AsNoTracking()
+            .Include(item => item.Answers).Include(item => item.SkillResults)
+            .SingleAsync(item => item.Id == attemptId);
+        return JsonSerializer.Serialize(new
+        {
+            attempt.Id, attempt.StudentUserId, attempt.AssessmentId, attempt.Status,
+            attempt.StartedAtUtc, attempt.DeadlineUtc, attempt.FinalizedAtUtc, attempt.FinalizationReason,
+            attempt.OverallScore, attempt.Passed, attempt.CreatedAtUtc, attempt.UpdatedAtUtc,
+            Answers = attempt.Answers.OrderBy(answer => answer.Id).Select(answer => new
+            {
+                answer.Id, answer.AssessmentQuestionId, answer.SelectedOptionId,
+                answer.SavedAtUtc, answer.CreatedAtUtc, answer.UpdatedAtUtc
+            }),
+            Skills = attempt.SkillResults.OrderBy(skill => skill.Id).Select(skill => new
+            {
+                skill.Id, skill.Skill, skill.Score, skill.QuestionCount, skill.CreatedAtUtc, skill.UpdatedAtUtc
+            })
+        });
     }
 
     private async Task<HttpClient> StudentClient(ApplicationUser user)

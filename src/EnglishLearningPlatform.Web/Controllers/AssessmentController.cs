@@ -12,7 +12,7 @@ namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Policy = AuthorizationPolicies.Student)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AssessmentController(IAssessmentQueryService queries, IAttemptService attempts,
-    IStudentLearningService learning) : Controller
+    IStudentLearningService learning, TimeProvider timeProvider) : Controller
 {
     private Guid StudentId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -26,7 +26,7 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
     [HttpGet]
     public async Task<IActionResult> Take(Guid id, Guid? attemptId, CancellationToken ct)
     {
-        // GET only reads persisted state. Opening/refreshing this page never consumes an attempt.
+        // Mở/F5 không Start lượt mới. Lượt đã quá hạn có thể được chấm từ đáp án cũ.
         var overview = await queries.GetAssessmentOverviewAsync(StudentId, id, ct);
         var selectedAttempt = attemptId ?? overview?.ActiveAttemptId;
         AssessmentTakingSheet? sheet = null;
@@ -43,11 +43,18 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
         }
         if (sheet is null)
         {
-            // GET vẫn chỉ đọc. Trang hết giờ gửi POST có CSRF để chấm lượt cũ.
-            // Không gọi Start: chấm xong cũng không được tự tiêu thụ lượt tiếp theo.
+            // Lazy-finalize không phụ thuộc browser chạy JavaScript hoặc gửi Submit trở lại.
+            // Chỉ dùng đáp án đã lưu; không nhận đáp án hay deadline từ GET.
             var expiredId = await queries.FindExpiredAttemptIdAsync(StudentId, id, selectedAttempt, ct);
             if (expiredId.HasValue)
+            {
+                var finalized = await attempts.FinalizeExpiredAsync(StudentId, expiredId.Value, ct);
+                if (finalized.Status is AttemptFinalizeStatus.Graded or AttemptFinalizeStatus.AlreadyGraded)
+                    return RedirectToAction(nameof(Result), new { id = expiredId.Value });
+                if (finalized.Status == AttemptFinalizeStatus.Forbidden) return Forbid();
+                // Giữ màn hình fallback nếu chưa chấm được; tuyệt đối không Start lượt khác.
                 return View("Expired", new AssessmentExpiredPage(expiredId.Value));
+            }
 
             if (selectedAttempt.HasValue && overview?.AttemptHistory.All(a => a.AttemptId != selectedAttempt.Value) != false)
                 return NotFound();
@@ -84,6 +91,9 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
     [HttpGet]
     public async Task<IActionResult> Result(Guid id, CancellationToken ct)
     {
+        // Người dùng có thể mở link Result khi lượt vừa hết hạn nhưng chưa có Submit.
+        // Service tự kiểm tra owner và chỉ chấm InProgress đã đến deadline.
+        await attempts.FinalizeExpiredAsync(StudentId, id, ct);
         var result = await queries.GetAttemptResultAsync(StudentId, id, ct);
         return result is null ? NotFound() : View(result);
     }
@@ -97,6 +107,26 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
             return Forbid();
         if (id.HasValue && history.Count == 0)
             return NotFound();
+
+        bool graded = false;
+        foreach (var assessment in history)
+        {
+            foreach (var attempt in assessment.Attempts)
+            {
+                if (attempt.Status != AttemptStatus.InProgress || attempt.DeadlineUtc > timeProvider.GetUtcNow())
+                    continue;
+
+                var result = await attempts.FinalizeExpiredAsync(StudentId, attempt.AttemptId, ct);
+                if (result.Status is AttemptFinalizeStatus.Graded or AttemptFinalizeStatus.AlreadyGraded)
+                    graded = true;
+            }
+        }
+        // Query vẫn chỉ đọc. Sau khi service chấm, tải lại để History trả trạng thái/điểm thật.
+        if (graded)
+        {
+            history = await queries.GetAttemptHistoryAsync(StudentId, id, ct);
+            if (history is null) return Forbid();
+        }
 
         ViewData["FilteredHistory"] = id.HasValue;
         return View(history);
@@ -114,9 +144,9 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
         var sheet = await queries.GetTakingSheetAsync(StudentId, attemptId, ct);
         if (sheet is null)
         {
-            // Deadline is enforced by the write service; late input cannot replace saved answers.
-            // Finalize also validates ownership and preserves an already graded result on replay.
-            return await Finalize(attemptId, ct);
+            // Sheet có thể mất vì hết giờ HOẶC mất quyền Enrollment, không đồng nghĩa đã nộp.
+            // Chỉ chấm khi server xác nhận đã hết hạn; không để Save từ tab cũ chấm sớm.
+            return await Finalize(attemptId, ct, onlyExpired: true);
         }
 
         // Validate the entire posted sheet before any write, including duplicate/foreign questions.
@@ -155,9 +185,11 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
         return RedirectToAction(nameof(Take), new { id = sheet.AssessmentId, attemptId });
     }
 
-    private async Task<IActionResult> Finalize(Guid attemptId, CancellationToken ct)
+    private async Task<IActionResult> Finalize(Guid attemptId, CancellationToken ct, bool onlyExpired = false)
     {
-        var result = await attempts.FinalizeAsync(StudentId, attemptId, ct);
+        var result = onlyExpired
+            ? await attempts.FinalizeExpiredAsync(StudentId, attemptId, ct)
+            : await attempts.FinalizeAsync(StudentId, attemptId, ct);
         return result.Status switch
         {
             AttemptFinalizeStatus.Graded or AttemptFinalizeStatus.AlreadyGraded => RedirectToAction(nameof(Result), new { id = attemptId }),

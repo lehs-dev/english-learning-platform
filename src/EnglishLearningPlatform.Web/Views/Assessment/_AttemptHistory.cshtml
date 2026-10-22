@@ -3,11 +3,11 @@
 @model IReadOnlyList<AssessmentAttemptHistoryModel>
 @inject TimeProvider Clock
 @{
-    // Chỉ dùng giờ server để ghi nhãn; đọc lịch sử không tự finalize lượt quá hạn.
+    // View chỉ ghi nhãn bằng giờ server; controller/service xử lý lượt quá hạn trước khi render.
     var now = Clock.GetUtcNow();
 }
 
-<div class="assessment-table-wrap">
+<div class="assessment-table-wrap" role="region" aria-label="Lịch sử các lượt làm bài" tabindex="0">
     <table class="assessment-table">
         <caption class="visually-hidden">Lịch sử các lượt làm bài đánh giá</caption>
         <thead>
