@@ -7,8 +7,9 @@ namespace EnglishLearningPlatform.Infrastructure.Learning;
 public sealed class CourseService(
     ICourseCatalogService catalog, IStudentLearningCourseService students, ICourseAuthoringService authoring) : ICourseService
 {
-    public Task<CatalogPage> CatalogAsync(CatalogQuery q, CancellationToken ct = default) =>
-        catalog.CatalogAsync(q, ct);
+    public Task<CatalogPage> CatalogAsync(CatalogQuery q, CancellationToken ct = default,
+        IReadOnlyCollection<Guid>? excludedCourseIds = null) =>
+        catalog.CatalogAsync(q, ct, excludedCourseIds);
 
     public Task<CoursePage?> PublicDetailAsync(Guid id, Guid? userId, CancellationToken ct = default) =>
         catalog.PublicDetailAsync(id, userId, ct);

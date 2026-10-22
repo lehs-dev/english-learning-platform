@@ -3,13 +3,14 @@ using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Identity;
+using EnglishLearningPlatform.Web.Models.Courses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class LearningController(IStudentLearningCourseService courses, IAssessmentQueryService assessments,
-    IStudentLearningService learning, ICourseAuthoringService authoring) : Controller
+    IStudentLearningService learning, ICourseAuthoringService authoring, ICourseCatalogService catalog) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -30,11 +31,16 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
             : RedirectToAction(nameof(Course), new { id });
     }
     [HttpGet]
-    public async Task<IActionResult> Index(CancellationToken ct)
+    public async Task<IActionResult> Index(CatalogQuery query, CancellationToken ct)
     {
         if (User.IsInRole(AppRoles.Teacher)) return RedirectToAction("Index", "TeacherCourses");
         var result = await courses.MyCoursesAsync(UserId, false, ct);
-        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        if (!ModelState.IsValid) ViewData["QueryNotice"] = "Một số bộ lọc không hợp lệ đã được bỏ qua.";
+        var enrolled = result.Value!;
+        var catalogPage = await catalog.CatalogAsync(query, ct, enrolled.Select(course => course.Id).ToArray());
+        ModelState.Clear();
+        return View(new StudentCoursesPage(enrolled, catalogPage));
     }
     [HttpGet]
     public async Task<IActionResult> Course(Guid id, CancellationToken ct)

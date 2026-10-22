@@ -1,0 +1,124 @@
+@model CatalogPage
+@{
+    var catalogController = ViewData["CatalogController"] as string ?? "Courses";
+    var activeFilters = new[] { !string.IsNullOrWhiteSpace(Model.Query.Search), Model.Query.Level.HasValue,
+        Model.Query.Skill.HasValue, !string.IsNullOrWhiteSpace(Model.Query.Topic), Model.Query.Teacher.HasValue,
+        Model.Query.Paid.HasValue }.Count(value => value);
+}
+@if (ViewData["QueryNotice"] is string notice)
+{
+    <div class="notice">@notice</div>
+}
+<div class="catalog-layout">
+    <details class="catalog-filters" open data-catalog-filters>
+        <summary>
+            <span>Bộ lọc khóa học</span>
+            <span class="catalog-filter-count">@(activeFilters > 0 ? activeFilters + " đang áp dụng" : "Tất cả khóa học")</span>
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chevron-down")"></use></svg>
+        </summary>
+        <form asp-controller="@catalogController" asp-action="Index" asp-fragment="discover-courses" method="get" class="filter-grid" role="search" aria-label="Bộ lọc khám phá khóa học">
+            <label class="filter-search">
+                Tên khóa học
+                <input type="search" name="Search" value="@Model.Query.Search" maxlength="200" placeholder="Tìm theo tên khóa học..." />
+            </label>
+            <label>
+                Cấp độ
+                <select name="Level">
+                    <option value="">Tất cả cấp độ</option>
+                    @foreach (var level in Enum.GetValues<CourseLevel>())
+                    {
+                        <option value="@level" selected="@(Model.Query.Level == level)"><partial name="_UiText" model="level" /></option>
+                    }
+                </select>
+            </label>
+            <label>
+                Kỹ năng
+                <select name="Skill">
+                    <option value="">Tất cả kỹ năng</option>
+                    @foreach (var skill in Enum.GetValues<EnglishSkill>())
+                    {
+                        <option value="@skill" selected="@(Model.Query.Skill == skill)"><partial name="_UiText" model="skill" /></option>
+                    }
+                </select>
+            </label>
+            <label>
+                Chủ đề
+                <select name="Topic">
+                    <option value="">Tất cả chủ đề</option>
+                    @foreach (var topic in Model.Topics)
+                    {
+                        <option value="@topic" selected="@(Model.Query.Topic == topic)">@topic</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Giảng viên
+                <select name="Teacher">
+                    <option value="">Tất cả giảng viên</option>
+                    @foreach (var teacher in Model.Teachers)
+                    {
+                        <option value="@teacher.Id" selected="@(Model.Query.Teacher == teacher.Id)">@teacher.Name</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Học phí
+                <select name="Paid">
+                    <option value="">Tất cả</option>
+                    <option value="false" selected="@(Model.Query.Paid == false)">Miễn phí</option>
+                    <option value="true" selected="@(Model.Query.Paid == true)">Có phí</option>
+                </select>
+            </label>
+            <div class="actions catalog-filter-actions">
+                <button class="button" type="submit">Lọc khóa học</button>
+                @if (activeFilters > 0)
+                {
+                    <a class="catalog-reset" asp-controller="@catalogController" asp-action="Index" asp-fragment="discover-courses">Đặt lại</a>
+                }
+            </div>
+        </form>
+    </details>
+    <section class="catalog-results" id="catalog-results" aria-label="Kết quả khóa học">
+        <p class="catalog-result-count" role="status">Hiển thị <strong>@Model.Courses.Count</strong> / @Model.Total khóa học · Trang @Model.Query.Page / @Model.Pages</p>
+        @if (Model.Courses.Count == 0)
+        {
+            <div class="catalog-empty">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                <h3>@(activeFilters > 0 ? "Chưa tìm thấy khóa học phù hợp" : catalogController == "Learning" ? "Bạn đã khám phá hết các khóa học hiện có" : "Khóa học đang được chuẩn bị")</h3>
+                <p>@(activeFilters > 0 ? "Thử đổi từ khóa hoặc đặt lại bộ lọc để xem thêm khóa học." : "Khóa học mới sẽ xuất hiện tại đây khi được cập nhật.")</p>
+                @if (activeFilters > 0)
+                {
+                    <a class="button secondary" asp-controller="@catalogController" asp-action="Index" asp-fragment="discover-courses">Xem tất cả khóa học</a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="course-grid">
+                @foreach (var course in Model.Courses)
+                {
+                    <article class="course-card" data-course-id="@course.Id">
+                        <partial name="_CourseCover" model="course" />
+                        <div class="course-card-body">
+                            <h3><a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">@course.Title</a></h3>
+                            <p class="excerpt">@course.Description</p>
+                            <partial name="_CourseSummary" model="course" />
+                            <a class="button secondary course-card-action" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">Xem chi tiết <span aria-hidden="true">→</span></a>
+                        </div>
+                    </article>
+                }
+            </div>
+            @if (Model.Pages > 1)
+            {
+                <nav class="actions pagination" aria-label="Phân trang khóa học">
+                    @foreach (var pageNumber in new[] { Model.Query.Page - 1, Model.Query.Page + 1 }.Where(page => page >= 1 && page <= Model.Pages))
+                    {
+                        <a class="button secondary" asp-controller="@catalogController" asp-action="Index" asp-fragment="discover-courses" asp-route-Page="@pageNumber" asp-route-Search="@Model.Query.Search" asp-route-Level="@Model.Query.Level" asp-route-Skill="@Model.Query.Skill" asp-route-Topic="@Model.Query.Topic" asp-route-Teacher="@Model.Query.Teacher" asp-route-Paid="@Model.Query.Paid">
+                            @(pageNumber < Model.Query.Page ? "← Trang trước" : "Trang sau →")
+                        </a>
+                    }
+                </nav>
+            }
+        }
+    </section>
+</div>

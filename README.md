@@ -7,6 +7,8 @@ và [testcase, actual, lỗi/retest và gói bằng chứng](docs/acceptance/qa6
 Có launcher demo Windows riêng, không reset database đang làm việc; kết quả local không thay CI/rehearsal nhóm.
 Kết quả sau cập nhật main: [kiểm tra trước push QA2–QA6](docs/acceptance/qa-pre-push-20261021.md).
 
+Muốn khám phá nhiều Course, Module, Lesson, Practice, Placement/Skill/Mock Assessment và audio mẫu trên UI, bật [bộ dữ liệu demo mở rộng](docs/project/demo-seed-data.md) trong Development.
+
 > **Cập nhật Công việc 10–12 (11/10/2026):** Có giao diện Final Assessment (Start/Save/Resume/Submit/Result), huy hiệu hoàn thành khóa, Admin tra cứu giao dịch/tài khoản và bộ hồ sơ bàn giao trong [docs/handover](docs/handover/README.md). Trạng thái kiểm thử, CI và rehearsal được ghi riêng theo bằng chứng thực tế; không suy ra mọi phân hệ của dự án đã hoàn tất.
 
 **Cập nhật 03/10/2026:** Đã có catalog Course công khai, tìm/lọc/phân trang, detail chỉ metadata/cấu trúc/giá, enroll Free, đọc Lesson/resource có quyền và giao diện Teacher authoring/preview/Publish/Unpublish/Archive. Paid hiện có schema và kiểm tra Enrollment/Payment; checkout/webhook chưa triển khai. Xem [hướng dẫn Course và dữ liệu demo](docs/project/course-authoring.md).

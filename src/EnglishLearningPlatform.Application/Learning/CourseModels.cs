@@ -89,7 +89,8 @@ public sealed class ContentInput
 }
 public interface ICourseCatalogService
 {
-    Task<CatalogPage> CatalogAsync(CatalogQuery query, CancellationToken ct = default);
+    Task<CatalogPage> CatalogAsync(CatalogQuery query, CancellationToken ct = default,
+        IReadOnlyCollection<Guid>? excludedCourseIds = null);
     Task<CoursePage?> PublicDetailAsync(Guid id, Guid? userId, CancellationToken ct = default);
 }
 
