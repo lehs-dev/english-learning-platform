@@ -29,9 +29,7 @@ public sealed class CourseFacadeTests
         var contentInput = new ContentInput();
         Guid[] order = [contentId];
 
-        Forward(catalogCalls, nameof(facade.CatalogAsync), () => facade.CatalogAsync(query, ct), query, ct, null);
-        Guid[] excludedCourses = [id];
-        Forward(catalogCalls, nameof(facade.CatalogAsync), () => facade.CatalogAsync(query, ct, excludedCourses), query, ct, excludedCourses);
+        Forward(catalogCalls, nameof(facade.CatalogAsync), () => facade.CatalogAsync(query, ct), query, ct);
         Forward(catalogCalls, nameof(facade.PublicDetailAsync), () => facade.PublicDetailAsync(id, actor, ct), id, actor, ct);
         Forward(studentCalls, nameof(facade.MyCoursesAsync), () => facade.MyCoursesAsync(actor, true, ct), actor, true, ct);
         Forward(studentCalls, nameof(facade.OpenCourseAsync), () => facade.OpenCourseAsync(actor, id, true, ct), actor, id, true, ct);

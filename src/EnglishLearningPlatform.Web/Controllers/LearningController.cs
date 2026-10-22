@@ -5,12 +5,11 @@ using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using EnglishLearningPlatform.Web.Models.Courses;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class LearningController(IStudentLearningCourseService courses, IAssessmentQueryService assessments,
-    IStudentLearningService learning, ICourseAuthoringService authoring, ICourseCatalogService catalogService) : Controller
+    IStudentLearningService learning, ICourseAuthoringService authoring) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -31,16 +30,11 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
             : RedirectToAction(nameof(Course), new { id });
     }
     [HttpGet]
-    public async Task<IActionResult> Index(CatalogQuery query, CancellationToken ct)
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
         if (User.IsInRole(AppRoles.Teacher)) return RedirectToAction("Index", "TeacherCourses");
         var result = await courses.MyCoursesAsync(UserId, false, ct);
-        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
-        if (!ModelState.IsValid) ViewData["QueryNotice"] = "Một số bộ lọc không hợp lệ đã được bỏ qua.";
-        var enrolled = result.Value!;
-        var catalog = await catalogService.CatalogAsync(query, ct, enrolled.Select(course => course.Id).ToArray());
-        ModelState.Clear();
-        return View(new StudentCoursesPage(enrolled, catalog));
+        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
     [HttpGet]
     public async Task<IActionResult> Course(Guid id, CancellationToken ct)
