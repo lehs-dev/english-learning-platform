@@ -31,7 +31,8 @@ public sealed partial class CourseService(AppDbContext db, ILearningAccessServic
     private IQueryable<Course> Graph() => db.Courses.Include(c => c.Skills).Include(c => c.Topics)
         .Include(c => c.FinalAssessment).Include(c => c.Modules).ThenInclude(m => m.Lessons).ThenInclude(l => l.Resources).AsSplitQuery();
 
-    public async Task<CatalogPage> CatalogAsync(CatalogQuery q, CancellationToken ct = default)
+    public async Task<CatalogPage> CatalogAsync(CatalogQuery q, CancellationToken ct = default,
+        IReadOnlyCollection<Guid>? excludedCourseIds = null)
     {
         q.Search = q.Search?.Trim(); q.Topic = q.Topic?.Trim();
         if (q.Search?.Length > 200) q.Search = q.Search[..200];
@@ -40,6 +41,12 @@ public sealed partial class CourseService(AppDbContext db, ILearningAccessServic
         if (q.Skill.HasValue && !Enum.IsDefined(q.Skill.Value)) q.Skill = null;
         var published = db.Courses.AsNoTracking().Where(c => c.Status == CourseStatus.Published);
         var query = published;
+        // Exclude server-resolved enrollments before counting and paging discovery results.
+        if (excludedCourseIds is { Count: > 0 })
+        {
+            var excluded = excludedCourseIds.ToArray();
+            query = query.Where(c => !excluded.Contains(c.Id));
+        }
         if (!string.IsNullOrEmpty(q.Search)) query = query.Where(c => c.Title.Contains(q.Search));
         if (q.Level.HasValue) query = query.Where(c => c.Level == q.Level);
         if (q.Skill.HasValue) query = query.Where(c => c.Skills.Any(s => s.Skill == q.Skill));

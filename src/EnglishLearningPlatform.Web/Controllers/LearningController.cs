@@ -5,6 +5,7 @@ using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using EnglishLearningPlatform.Web.Models.Courses;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
@@ -30,11 +31,16 @@ public sealed class LearningController(ICourseService courses, IAssessmentQueryS
             : RedirectToAction(nameof(Course), new { id });
     }
     [HttpGet]
-    public async Task<IActionResult> Index(CancellationToken ct)
+    public async Task<IActionResult> Index(CatalogQuery query, CancellationToken ct)
     {
         if (User.IsInRole(AppRoles.Teacher)) return RedirectToAction("Index", "TeacherCourses");
         var result = await courses.MyCoursesAsync(UserId, false, ct);
-        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        if (!ModelState.IsValid) ViewData["QueryNotice"] = "Một số bộ lọc không hợp lệ đã được bỏ qua.";
+        var enrolled = result.Value!;
+        var catalog = await courses.CatalogAsync(query, ct, enrolled.Select(course => course.Id).ToArray());
+        ModelState.Clear();
+        return View(new StudentCoursesPage(enrolled, catalog));
     }
     [HttpGet]
     public async Task<IActionResult> Course(Guid id, CancellationToken ct)

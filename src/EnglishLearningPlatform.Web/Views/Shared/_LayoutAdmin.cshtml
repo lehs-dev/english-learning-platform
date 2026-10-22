@@ -1,10 +1,13 @@
 @{
     var activeSection = ViewData["ActiveSection"] as string;
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var isAdminPage = string.Equals(currentController, "Admin", StringComparison.OrdinalIgnoreCase);
+    var isCatalog = string.Equals(currentController, "Courses", StringComparison.OrdinalIgnoreCase);
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
-    var isTransactions = string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
-    var isUsers = string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase);
-    var isOverview = string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
-    var isAudit = string.Equals(currentAction, "Audit", StringComparison.OrdinalIgnoreCase);
+    var isTransactions = isAdminPage && string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
+    var isUsers = isAdminPage && string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase);
+    var isOverview = isAdminPage && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
+    var isAudit = isAdminPage && string.Equals(currentAction, "Audit", StringComparison.OrdinalIgnoreCase);
     var title = ViewData["Title"] as string ?? "Quản trị";
 }
 <!DOCTYPE html>
@@ -68,12 +71,10 @@
 
                 <div class="admin-nav-section">
                     <span class="admin-nav-heading">Liên kết nhanh</span>
-                    <a class="admin-nav-link"
+                    <a class="admin-nav-link @(isCatalog ? "is-active" : "")"
                        asp-controller="Courses"
                        asp-action="Index"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       aria-label="Xem danh mục khóa học (mở trong tab mới)">
+                       aria-current="@(isCatalog ? "page" : null)">
                         <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
                         <span>Xem danh mục khóa học</span>
                     </a>

@@ -60,9 +60,67 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var html = await response.Content.ReadAsStringAsync();
             Assert.Contains("student-workspace", html);
-            Assert.Contains("rail-nav-group", html);
+            Assert.Contains("student-sidebar", html);
             Assert.DoesNotContain("teacher-studio", html);
-            Assert.DoesNotContain("studio-sidebar", html);
+            Assert.DoesNotContain("teacher-sidebar", html);
+        }
+    }
+
+    [Fact]
+    public async Task Catalog_ExcludesEnrolledCoursesBeforeCountingAndPaging()
+    {
+        var owner = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var prefix = Guid.NewGuid().ToString("N");
+        var courses = new List<Course>();
+        for (var index = 0; index < 14; index++)
+            courses.Add(await Seed(owner.Id, prefix + index.ToString("D2")));
+        var excluded = courses.Take(3).Select(course => course.Id).ToArray();
+        using var scope = factory.Services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<ICourseService>();
+        var first = await service.CatalogAsync(new CatalogQuery { Search = prefix }, excludedCourseIds: excluded);
+        var second = await service.CatalogAsync(new CatalogQuery { Search = prefix, Page = 2 }, excludedCourseIds: excluded);
+        Assert.Equal(11, first.Total);
+        Assert.Equal(2, first.Pages);
+        Assert.Equal(9, first.Courses.Count);
+        Assert.Equal(2, second.Courses.Count);
+        var resultIds = first.Courses.Concat(second.Courses).Select(course => course.Id).ToArray();
+        Assert.Empty(resultIds.Intersect(excluded));
+        Assert.Equal(11, resultIds.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task StudentLibrary_UnifiesBothRoutesAndKeepsArchivedEnrollmentAboveDiscovery()
+    {
+        var owner = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var prefix = Guid.NewGuid().ToString("N");
+        var enrolled = await Seed(owner.Id, prefix + " enrolled");
+        var archived = await Seed(owner.Id, prefix + " archived", status: CourseStatus.Archived);
+        var discovery = await Seed(owner.Id, prefix + " discovery");
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Enrollments.AddRange(new Enrollment { StudentUserId = student.Id, CourseId = enrolled.Id },
+                new Enrollment { StudentUserId = student.Id, CourseId = archived.Id });
+            await db.SaveChangesAsync();
+        }
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, student);
+        foreach (var path in new[] { "/Learning", "/Courses" })
+        {
+            using var response = await client.GetAsync(path + "?Search=" + prefix);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(response.Headers.CacheControl?.NoStore);
+            var html = await response.Content.ReadAsStringAsync();
+            Assert.Contains("student-sidebar", html);
+            var enrolledSection = html.IndexOf("data-enrolled-courses", StringComparison.Ordinal);
+            var discoverySection = html.IndexOf("id=\"discover-courses\"", StringComparison.Ordinal);
+            Assert.True(enrolledSection >= 0 && discoverySection > enrolledSection);
+            Assert.Contains($"data-course-id=\"{enrolled.Id}\"", html[..discoverySection]);
+            Assert.Contains($"data-course-id=\"{archived.Id}\"", html[..discoverySection]);
+            Assert.DoesNotContain($"data-course-id=\"{enrolled.Id}\"", html[discoverySection..]);
+            Assert.Contains($"data-course-id=\"{discovery.Id}\"", html[discoverySection..]);
+            Assert.DoesNotContain("SECRET_CONTENT", html);
         }
     }
 

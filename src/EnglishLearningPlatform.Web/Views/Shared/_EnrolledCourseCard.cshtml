@@ -1,0 +1,30 @@
+@model CourseSummary
+@{
+    var completed = Model.Progress?.CompletedAtUtc is not null;
+    var courseState = completed ? "Đã hoàn thành" : Model.Progress?.CompletedLessons > 0 ? "Đang học" : Model.IsPaid ? "Đã mua" : "Đã tham gia";
+}
+<article class="course-card enrolled-course-card" data-course-id="@Model.Id">
+    <partial name="_CourseCover" model="Model" />
+    <div class="course-card-body">
+        <div class="enrolled-course-state">
+            <span class="pill-tag @(completed ? "pill-tag-mint" : "pill-tag-purple")">@courseState</span>
+            @if (Model.Status != CourseStatus.Published)
+            {
+                <span class="muted"><partial name="_UiText" model="Model.Status" /></span>
+            }
+        </div>
+        <h3><a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Id">@Model.Title</a></h3>
+        <p class="course-enrolled-meta">@Model.Teacher · @Model.LessonCount bài học</p>
+        @if (Model.Progress is not null)
+        {
+            <partial name="_LearningProgress" model="Model.Progress" />
+        }
+        <div class="actions course-card-action">
+            <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Id">Vào học</a>
+            @if (!completed && Model.Progress?.ContinueLessonId is Guid)
+            {
+                <a class="button" asp-controller="Learning" asp-action="Continue" asp-route-id="@Model.Id">@(Model.Status == CourseStatus.Archived ? "Xem bài học" : "Học tiếp") <span aria-hidden="true">→</span></a>
+            }
+        </div>
+    </div>
+</article>
