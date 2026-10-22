@@ -9,6 +9,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddScoped<IScoringStrategy, WeightedExamScoringStrategy>();
+        services.AddScoped<EqualWeightPracticeScoringStrategy>();
+        services.AddScoped<IPracticeScoringStrategy>(provider => provider.GetRequiredService<EqualWeightPracticeScoringStrategy>());
         services.AddScoped<IExamScoringService, ExamScoringService>();
         services.AddScoped<ICreateQuestionValidator, CreateQuestionValidator>();
         // Validator chỉ kiểm tra dữ liệu đầu vào, không truy cập database.

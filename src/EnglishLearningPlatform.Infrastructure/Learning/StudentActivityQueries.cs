@@ -1,3 +1,4 @@
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Domain.Common;
@@ -10,9 +11,7 @@ namespace EnglishLearningPlatform.Infrastructure.Learning;
 internal static class StudentActivityQueries
 {
     public static Task<bool> IsStudentAsync(this AppDbContext db, Guid id, CancellationToken ct) =>
-        db.Users.AsNoTracking().AnyAsync(u => u.Id == id && u.AccountStatus == AccountStatus.Active &&
-            db.UserRoles.Count(r => r.UserId == id) == 1 && db.UserRoles.Any(r => r.UserId == id &&
-                db.Roles.Any(role => role.Id == r.RoleId && role.Name == AppRoles.Student)), ct);
+        db.HasActiveRoleAsync(id, AppRoles.Student, ct);
 
     public static IQueryable<Practice> AvailablePractices(this AppDbContext db, Guid studentId)
     {
@@ -33,8 +32,8 @@ internal static class StudentActivityQueries
                      q.Question.Stimulus.ResourceUrl != null &&
                      (q.Question.Stimulus.ResourceUrl.StartsWith("https://") || q.Question.Stimulus.ResourceUrl.StartsWith("http://")
                         // Lọc sơ bộ có thể dịch sang SQL. Validator runtime kiểm tra chính xác toàn bộ hash.
-                        || (q.Question.Stimulus.ResourceUrl.StartsWith(StimulusAudioResource.Prefix)
-                            && q.Question.Stimulus.ResourceUrl.Length == StimulusAudioResource.Prefix.Length + 64))))));
+                        || (q.Question.Stimulus.ResourceUrl.StartsWith(StimulusAudioConstants.RoutePrefix)
+                            && q.Question.Stimulus.ResourceUrl.Length == StimulusAudioConstants.RoutePrefix.Length + StimulusAudioResource.HashLength))))));
     }
 
     // Withdrawal blocks new starts, but an existing attempt can resume to its deadline.

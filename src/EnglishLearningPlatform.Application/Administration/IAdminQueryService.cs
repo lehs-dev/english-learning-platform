@@ -5,6 +5,7 @@ namespace EnglishLearningPlatform.Application.Administration;
 /// <summary>Read-only administrative projections; never return identity secrets or assessment answers.</summary>
 public interface IAdminQueryService
 {
+    Task<AdminPage<AdminAudit>?> AuditAsync(Guid actorId, string? search, int page, CancellationToken ct = default);
     Task<AdminPage<AdminTransaction>?> TransactionsAsync(Guid actorId, string? search, PaymentStatus? status, int page, CancellationToken ct = default);
     Task<AdminPage<AdminUser>?> UsersAsync(Guid actorId, string? search, AccountStatus? status, int page, CancellationToken ct = default, string? role = null);
 }

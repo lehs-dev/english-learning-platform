@@ -18,18 +18,20 @@ public interface IPaymentGateway
     bool IsConfigured { get; }
     DateTimeOffset CheckoutDeadline { get; }
     string CreateCheckoutUrl(CheckoutOrder order);
+}
+
+public interface IWebhookPaymentGateway : IPaymentGateway
+{
     PaymentNotification? VerifyNotification(byte[] body, string signature);
 }
 
-public interface ICheckoutService
+public interface ISandboxPaymentGateway : IPaymentGateway
 {
-    Task<CheckoutOutcome<CourseCheckout>> PreviewAsync(Guid userId, Guid courseId, CancellationToken ct = default);
-    Task<CheckoutOutcome<OrderCheckout>> CreateOrderAsync(Guid userId, Guid courseId, CancellationToken ct = default);
-    Task<CheckoutOutcome<OrderCheckout>> GetOrderAsync(Guid userId, Guid orderId, CancellationToken ct = default);
-    Task<CheckoutOutcome<TransactionHistoryPage>> HistoryAsync(Guid userId, int page = 1, CancellationToken ct = default);
-    Task<CheckoutCode> SimulateAsync(Guid userId, Guid orderId, SandboxScenario scenario, CancellationToken ct = default);
-    Task<CheckoutCode> ProcessCallbackAsync(SignedPaymentCallback callback, CancellationToken ct = default);
-    Task<CheckoutStart> StartAsync(Guid userId, Guid courseId, CancellationToken ct = default);
-    Task<LearningOutcome<CheckoutPage>> GetAsync(Guid userId, Guid orderId, CancellationToken ct = default);
-    Task<PaymentConfirmation> ConfirmAsync(byte[] body, string signature, CancellationToken ct = default);
+    SignedPaymentCallback CreateCallback(OrderCheckout order, SandboxScenario scenario);
+    SignedPaymentCallback Sign(PaymentCallback data);
+    bool Verify(SignedPaymentCallback callback);
+}
+
+public interface ICheckoutService : ICheckoutOrderService, IPaymentConfirmationService, ISandboxCheckoutService
+{
 }

@@ -1,3 +1,4 @@
+using EnglishLearningPlatform.Application.Stimuli;
 using System.Globalization;
 using System.Text.Json;
 using EnglishLearningPlatform.Application;
@@ -290,7 +291,7 @@ public sealed class AssessmentDefinitionValidatorTests
             OwnerTeacherUserId = question.OwnerTeacherUserId, StimulusType = type,
             Title = "Validator stimulus",
             ContentText = type == StimulusType.Passage ? "Reading passage." : null,
-            ResourceUrl = type == StimulusType.Audio ? EnglishLearningPlatform.Domain.Common.StimulusAudioResource.Prefix + new string('a', 64) : null
+            ResourceUrl = type == StimulusType.Audio ? EnglishLearningPlatform.Application.Stimuli.StimulusAudioConstants.RoutePrefix + new string('a', 64) : null
         };
         question.StimulusId = stimulus.Id;
         question.Stimulus = stimulus;

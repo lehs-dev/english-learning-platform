@@ -34,32 +34,10 @@ public sealed class TeacherPracticeQueryService
     /// Giữ cùng nguyên tắc với service tạo Draft:
     /// tài khoản Active, đúng một role và role đó là Teacher.
     /// </summary>
-    private async Task<bool> IsActiveTeacherAsync(
+    private Task<bool> IsActiveTeacherAsync(
         Guid userId,
-        CancellationToken cancellationToken)
-    {
-        if (userId == Guid.Empty)
-        {
-            return false;
-        }
-
-        return await _db.Users
-            .AsNoTracking()
-            .AnyAsync(
-                user =>
-                    user.Id == userId
-                    && user.AccountStatus == AccountStatus.Active
-                    && _db.UserRoles.Count(
-                        userRole => userRole.UserId == userId) == 1
-                    && _db.UserRoles.Any(
-                        userRole =>
-                            userRole.UserId == userId
-                            && _db.Roles.Any(
-                                role =>
-                                    role.Id == userRole.RoleId
-                                    && role.Name == AppRoles.Teacher)),
-                cancellationToken);
-    }
+        CancellationToken cancellationToken) =>
+        _db.HasActiveRoleAsync(userId, AppRoles.Teacher, cancellationToken);
 
     /// <summary>
     /// Tìm, lọc và phân trang Practice thuộc Teacher đang đăng nhập.

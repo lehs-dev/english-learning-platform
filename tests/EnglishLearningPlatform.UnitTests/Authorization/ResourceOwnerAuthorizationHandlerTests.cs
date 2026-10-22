@@ -1,7 +1,10 @@
 using System.Security.Claims;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Domain.Authorization;
+using EnglishLearningPlatform.Domain.Entities;
+using EnglishLearningPlatform.Infrastructure.Persistence;
 using EnglishLearningPlatform.Infrastructure.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Xunit;
 
@@ -69,5 +72,29 @@ public sealed class ResourceOwnerAuthorizationHandlerTests
         var resource = new OwnedResourceStub { OwnerUserId = Guid.NewGuid() };
 
         Assert.False(await HandleAsync(user, resource));
+    }
+
+    [Theory]
+    [InlineData(typeof(Assessment))]
+    [InlineData(typeof(Question))]
+    [InlineData(typeof(Stimulus))]
+    [InlineData(typeof(EnglishLearningPlatform.Domain.Entities.Practice))]
+    public async Task TeacherOwnedEntity_UsesExistingOwnerForAuthorizationWithoutAddingMappedProperty(Type entityType)
+    {
+        var ownerId = Guid.NewGuid();
+        var entity = Activator.CreateInstance(entityType)!;
+        entityType.GetProperty("OwnerTeacherUserId")!.SetValue(entity, ownerId);
+        var resource = Assert.IsAssignableFrom<IOwnedResource>(entity);
+
+        Assert.True(await HandleAsync(Principal(ownerId), resource));
+        Assert.False(await HandleAsync(Principal(Guid.NewGuid()), resource));
+
+        // Building SQL Server metadata does not connect to a database.
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlServer("Server=localhost;Database=OwnershipModel;Trusted_Connection=True;").Options;
+        using var db = new AppDbContext(options);
+        var mappedType = db.Model.FindEntityType(entityType)!;
+        Assert.NotNull(mappedType.FindProperty("OwnerTeacherUserId"));
+        Assert.Null(mappedType.FindProperty(nameof(IOwnedResource.OwnerUserId)));
     }
 }

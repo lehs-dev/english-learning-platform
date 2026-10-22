@@ -181,9 +181,7 @@ public sealed class TeacherAssessmentQuestionService
 
             if (snapshot.CourseId.HasValue)
             {
-                linkedCourse = await _db.Courses
-                    .FromSqlInterpolated(
-                        $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.CourseId.Value}")
+                linkedCourse = await _db.CoursesForUpdate(snapshot.CourseId.Value)
                     .AsNoTracking()
                     .SingleOrDefaultAsync(cancellationToken);
 
@@ -195,9 +193,7 @@ public sealed class TeacherAssessmentQuestionService
                 }
             }
 
-            var assessment = await _db.Assessments
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {assessmentId} AND OwnerTeacherUserId = {actorUserId}")
+            var assessment = await _db.AssessmentsForUpdate(assessmentId, actorUserId)
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (assessment == null)
@@ -349,7 +345,7 @@ public sealed class TeacherAssessmentQuestionService
                 if (assessment.Status == AssessmentStatus.Published
                     && !existingQuestionIds.Contains(input.QuestionId)
                     && question?.Stimulus?.StimulusType == StimulusType.Audio
-                    && !StimulusAudioResource.TryGetHash(question.Stimulus.ResourceUrl, out _))
+                    && !StimulusAudioUrl.TryGetHash(question.Stimulus.ResourceUrl, out _))
                     return Failure(assessmentId, $"Câu {index + 1}: câu mới dùng audio phải được upload vào kho bất biến của ứng dụng.");
 
                 // Validator hiện tại đã kiểm tra audio.

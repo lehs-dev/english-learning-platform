@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class LearningController(ICourseService courses, IAssessmentQueryService assessments,
-    IStudentLearningService learning) : Controller
+public sealed class LearningController(IStudentLearningCourseService courses, IAssessmentQueryService assessments,
+    IStudentLearningService learning, ICourseAuthoringService authoring) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -98,7 +98,7 @@ public sealed class LearningController(ICourseService courses, IAssessmentQueryS
     {
         var result = await courses.OpenCourseAsync(UserId, id, true, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
-        var resources = await courses.AuthoringResourcesAsync(UserId, id, ct);
+        var resources = await authoring.AuthoringResourcesAsync(UserId, id, ct);
         return resources.Access == LearningAccessResult.Allowed
             ? View("~/Views/TeacherCourses/Manage.cshtml", new EnglishLearningPlatform.Web.Models.Courses.AuthoringModel(result.Value!, resources.Value!))
             : Denied(resources.Access);

@@ -1,3 +1,4 @@
+using EnglishLearningPlatform.Application.Stimuli;
 using System.ComponentModel.DataAnnotations;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
@@ -150,7 +151,7 @@ public sealed class TeacherAssessmentPreviewService
             // Hàm này không tải hoặc kiểm tra file từ Internet.
             if (stimulus != null
                 && stimulus.StimulusType == StimulusType.Audio
-                && (StimulusAudioResource.TryGetHash(stimulus.ResourceUrl, out _) || CourseRules.ValidResource(
+                && (StimulusAudioUrl.TryGetHash(stimulus.ResourceUrl, out _) || CourseRules.ValidResource(
                     LessonResourceType.Audio,
                     null,
                     stimulus.ResourceUrl)))
@@ -199,25 +200,8 @@ public sealed class TeacherAssessmentPreviewService
     /// </summary>
     private Task<bool> IsActiveTeacherAsync(
         Guid actorUserId,
-        CancellationToken cancellationToken)
-    {
-        return _db.Users
-            .AsNoTracking()
-            .AnyAsync(
-                user =>
-                    user.Id == actorUserId
-                    && user.AccountStatus == AccountStatus.Active
-                    && _db.UserRoles.Count(
-                        item => item.UserId == actorUserId) == 1
-                    && _db.UserRoles.Any(
-                        item =>
-                            item.UserId == actorUserId
-                            && _db.Roles.Any(
-                                role =>
-                                    role.Id == item.RoleId
-                                    && role.Name == AppRoles.Teacher)),
-                cancellationToken);
-    }
+        CancellationToken cancellationToken) =>
+        _db.HasActiveRoleAsync(actorUserId, AppRoles.Teacher, cancellationToken);
 
     /// <summary>
     /// Cảnh báo cấu hình/nội dung đang thiếu.

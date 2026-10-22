@@ -1,5 +1,6 @@
 using EnglishLearningPlatform.Application;
 using EnglishLearningPlatform.Infrastructure;
+using EnglishLearningPlatform.Web.Commerce;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,7 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute()));
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<IPaymentWebhookProcessor, PaymentWebhookProcessor>();
 
 var app = builder.Build();
 

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.Learning;
 
-public sealed class StudentLearningService(AppDbContext db, ICourseService courses,
+public sealed class StudentLearningService(AppDbContext db, IStudentLearningCourseService courses,
     ILearningAccessService access, TimeProvider time) : IStudentLearningService
 {
     public async Task<LearningOutcome<StudentDashboard>> DashboardAsync(Guid studentId, CancellationToken ct = default)

@@ -87,17 +87,26 @@ public sealed class ContentInput
     public string? ContentText { get; set; }
     [StringLength(2048)] public string? ResourceUrl { get; set; }
 }
-public interface ICourseService
+public interface ICourseCatalogService
 {
-    Task<LearningOutcome<IReadOnlyDictionary<Guid, IReadOnlyList<ResourceContent>>>> AuthoringResourcesAsync(Guid userId, Guid courseId, CancellationToken ct = default);
     Task<CatalogPage> CatalogAsync(CatalogQuery query, CancellationToken ct = default);
     Task<CoursePage?> PublicDetailAsync(Guid id, Guid? userId, CancellationToken ct = default);
+}
+
+public interface IStudentLearningCourseService
+{
     Task<LearningOutcome<IReadOnlyList<CourseSummary>>> MyCoursesAsync(Guid userId, bool teacher, CancellationToken ct = default);
     Task<LearningOutcome<CoursePage>> OpenCourseAsync(Guid userId, Guid id, bool manage, CancellationToken ct = default);
     Task<LearningOutcome<LessonPage>> OpenLessonAsync(Guid userId, Guid id, CancellationToken ct = default);
     Task<LearningOutcome<ModulePage>> OpenModuleAsync(Guid userId, Guid id, CancellationToken ct = default);
     Task<WriteOutcome> SetLessonCompletedAsync(Guid userId, Guid id, bool completed, CancellationToken ct = default);
     Task<LearningOutcome<ResourceContent>> OpenResourceAsync(Guid userId, Guid id, CancellationToken ct = default);
+    Task<WriteOutcome> EnrollFreeAsync(Guid userId, Guid id, CancellationToken ct = default);
+}
+
+public interface ICourseAuthoringService
+{
+    Task<LearningOutcome<IReadOnlyDictionary<Guid, IReadOnlyList<ResourceContent>>>> AuthoringResourcesAsync(Guid userId, Guid courseId, CancellationToken ct = default);
     Task<LearningOutcome<Guid>> ModuleCourseAsync(Guid userId, Guid id, CancellationToken ct = default);
     Task<LearningOutcome<CourseInput>> CourseInputAsync(Guid userId, Guid id, CancellationToken ct = default);
     Task<WriteOutcome> SaveCourseAsync(Guid userId, Guid? id, CourseInput input, CancellationToken ct = default);
@@ -106,5 +115,9 @@ public interface ICourseService
     Task<WriteOutcome> DeleteResourceAsync(Guid userId, Guid courseId, Guid lessonId, Guid id, CancellationToken ct = default);
     Task<WriteOutcome> ReorderAsync(Guid userId, Guid courseId, ContentKind kind, Guid parentId, Guid[] ids, CancellationToken ct = default);
     Task<WriteOutcome> ChangeStatusAsync(Guid userId, Guid id, CourseStatus status, CancellationToken ct = default);
-    Task<WriteOutcome> EnrollFreeAsync(Guid userId, Guid id, CancellationToken ct = default);
+}
+
+// Keep existing controller and view consumers on the complete course contract.
+public interface ICourseService : ICourseCatalogService, IStudentLearningCourseService, ICourseAuthoringService
+{
 }

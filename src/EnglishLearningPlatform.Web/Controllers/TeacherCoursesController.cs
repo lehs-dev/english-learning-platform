@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Policy = AuthorizationPolicies.Teacher)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class TeacherCoursesController(ICourseService courses, ITeacherCourseReportService reports) : Controller
+public sealed class TeacherCoursesController(ICourseAuthoringService courses, ITeacherCourseReportService reports, IStudentLearningCourseService learning) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -22,7 +22,7 @@ public sealed class TeacherCoursesController(ICourseService courses, ITeacherCou
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken ct)
     {
-        var result = await courses.MyCoursesAsync(UserId, true, ct);
+        var result = await learning.MyCoursesAsync(UserId, true, ct);
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
     [HttpGet]
@@ -30,7 +30,7 @@ public sealed class TeacherCoursesController(ICourseService courses, ITeacherCou
     {
         if (!id.HasValue)
         {
-            var mine = await courses.MyCoursesAsync(UserId, true, ct);
+            var mine = await learning.MyCoursesAsync(UserId, true, ct);
             return mine.Access == LearningAccessResult.Allowed ? View(new CourseEditModel(null, new())) : Denied(mine.Access);
         }
         var result = await courses.CourseInputAsync(UserId, id.Value, ct);
@@ -41,7 +41,7 @@ public sealed class TeacherCoursesController(ICourseService courses, ITeacherCou
     {
         if (!ModelState.IsValid)
         {
-            var check = id.HasValue ? (await courses.CourseInputAsync(UserId, id.Value, ct)).Access : (await courses.MyCoursesAsync(UserId, true, ct)).Access;
+            var check = id.HasValue ? (await courses.CourseInputAsync(UserId, id.Value, ct)).Access : (await learning.MyCoursesAsync(UserId, true, ct)).Access;
             return check == LearningAccessResult.Allowed ? View(new CourseEditModel(id, input)) : Denied(check);
         }
         var result = await courses.SaveCourseAsync(UserId, id, input, ct);
@@ -53,7 +53,7 @@ public sealed class TeacherCoursesController(ICourseService courses, ITeacherCou
     [HttpGet]
     public async Task<IActionResult> Manage(Guid id, CancellationToken ct)
     {
-        var page = await courses.OpenCourseAsync(UserId, id, true, ct);
+        var page = await learning.OpenCourseAsync(UserId, id, true, ct);
         if (page.Access != LearningAccessResult.Allowed) return Denied(page.Access);
         var resources = await courses.AuthoringResourcesAsync(UserId, id, ct);
         if (resources.Access != LearningAccessResult.Allowed) return Denied(resources.Access);

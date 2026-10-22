@@ -103,10 +103,8 @@ public sealed class TeacherPracticeService : ITeacherPracticeService
         {
             // Dự án hiện tại dùng thứ tự khóa Course trước.
             // Giữ cùng cách này để phối hợp với các luồng của nhóm.
-            // FromSqlInterpolated truyền ID dưới dạng SQL parameter.
-            var course = await _db.Courses
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId.Value}")
+            // The persistence query passes the course ID as a SQL parameter.
+            var course = await _db.CoursesForUpdate(courseId.Value)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -186,34 +184,10 @@ public sealed class TeacherPracticeService : ITeacherPracticeService
     /// Kiểm tra quyền bằng dữ liệu hiện tại trong database.
     /// Không dựa vào role hoặc ID do form gửi lên.
     /// </summary>
-    private async Task<bool> IsActiveTeacherAsync(
+    private Task<bool> IsActiveTeacherAsync(
         Guid userId,
-        CancellationToken cancellationToken)
-    {
-        if (userId == Guid.Empty)
-        {
-            return false;
-        }
-
-        // Cùng nguyên tắc với IsStudentAsync đang có trong dự án:
-        // tài khoản Active, đúng một role, và role đó là Teacher.
-        return await _db.Users
-            .AsNoTracking()
-            .AnyAsync(
-                user =>
-                    user.Id == userId
-                    && user.AccountStatus == AccountStatus.Active
-                    && _db.UserRoles.Count(
-                        userRole => userRole.UserId == userId) == 1
-                    && _db.UserRoles.Any(
-                        userRole =>
-                            userRole.UserId == userId
-                            && _db.Roles.Any(
-                                role =>
-                                    role.Id == userRole.RoleId
-                                    && role.Name == AppRoles.Teacher)),
-                cancellationToken);
-    }
+        CancellationToken cancellationToken) =>
+        _db.HasActiveRoleAsync(userId, AppRoles.Teacher, cancellationToken);
 
     /// <summary>
     /// Tìm Course chứa parent, nhưng chỉ trong phạm vi Teacher sở hữu.

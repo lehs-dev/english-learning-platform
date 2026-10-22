@@ -10,10 +10,8 @@ public sealed class AdminQueryService(AppDbContext db) : IAdminQueryService
 {
     private const int PageSize = 20;
 
-    private Task<bool> IsAdminAsync(Guid actorId, CancellationToken ct) => db.Users.AnyAsync(u =>
-        u.Id == actorId && u.AccountStatus == AccountStatus.Active &&
-        db.UserRoles.Count(r => r.UserId == u.Id) == 1 &&
-        db.UserRoles.Any(ur => ur.UserId == u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Admin)), ct);
+    private Task<bool> IsAdminAsync(Guid actorId, CancellationToken ct) =>
+        db.HasActiveRoleAsync(actorId, AppRoles.Admin, ct);
 
     private static string Search(string? search)
     {
@@ -73,6 +71,21 @@ public sealed class AdminQueryService(AppDbContext db) : IAdminQueryService
                            select new { ur.UserId, r.Name }).ToListAsync(ct);
         var items = rows.Select(u => new AdminUser(u.Id, u.FullName, u.Email ?? "",
             string.Join(", ", roles.Where(r => r.UserId == u.Id).Select(r => r.Name).Order()), u.AccountStatus, u.CreatedAtUtc)).ToList();
+        return new(items, term, page, pages, total);
+    }
+
+    public async Task<AdminPage<AdminAudit>?> AuditAsync(Guid actorId, string? search, int page, CancellationToken ct = default)
+    {
+        if (!await IsAdminAsync(actorId, ct)) return null;
+        var term = Search(search);
+        var query = db.AuditLogs.AsNoTracking();
+        if (term.Length > 0) query = query.Where(a => a.ActorSnapshot.Contains(term) ||
+            (a.TargetSnapshot != null && a.TargetSnapshot.Contains(term)) || a.Action.Contains(term));
+        var total = await query.CountAsync(ct);
+        var pages = Math.Max(1, (total + PageSize - 1) / PageSize); page = Math.Clamp(page, 1, pages);
+        var items = await query.OrderByDescending(a => a.OccurredAtUtc).ThenByDescending(a => a.Id)
+            .Skip((page - 1) * PageSize).Take(PageSize).Select(a => new AdminAudit(a.ActorSnapshot, a.TargetSnapshot,
+                a.Action, a.BeforeData, a.AfterData, a.OccurredAtUtc)).ToListAsync(ct);
         return new(items, term, page, pages, total);
     }
 }

@@ -1,11 +1,13 @@
+using EnglishLearningPlatform.Domain.Authorization;
 using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Domain.Enums;
 
 namespace EnglishLearningPlatform.Domain.Entities;
 
-public sealed class Assessment : BaseEntity
+public sealed class Assessment : BaseEntity, IOwnedResource
 {
     public Guid OwnerTeacherUserId { get; set; }
+    Guid IOwnedResource.OwnerUserId => OwnerTeacherUserId;
     public Guid? CourseId { get; set; }
     public Course? Course { get; set; }
     public string Title { get; set; } = string.Empty;
