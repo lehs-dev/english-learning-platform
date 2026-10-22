@@ -595,8 +595,7 @@ public sealed class TeacherPracticeIndexControllerTests
             Guid userId, Guid courseId, CancellationToken ct = default) =>
             Unexpected<LearningOutcome<IReadOnlyDictionary<Guid, IReadOnlyList<ResourceContent>>>>(nameof(AuthoringResourcesAsync));
 
-        public Task<CatalogPage> CatalogAsync(CatalogQuery query, CancellationToken ct = default,
-            IReadOnlyCollection<Guid>? excludedCourseIds = null) =>
+        public Task<CatalogPage> CatalogAsync(CatalogQuery query, CancellationToken ct = default) =>
             Unexpected<CatalogPage>(nameof(CatalogAsync));
 
         public Task<CoursePage?> PublicDetailAsync(Guid id, Guid? userId, CancellationToken ct = default) =>
