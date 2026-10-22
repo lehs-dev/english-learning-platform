@@ -60,9 +60,9 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var html = await response.Content.ReadAsStringAsync();
             Assert.Contains("student-workspace", html);
-            Assert.Contains("rail-nav-group", html);
+            Assert.Contains("studio-nav-group", html);
             Assert.DoesNotContain("teacher-studio", html);
-            Assert.DoesNotContain("studio-sidebar", html);
+            Assert.DoesNotContain("teacher-sidebar", html);
         }
     }
 
