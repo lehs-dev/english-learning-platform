@@ -93,6 +93,9 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
     }
 
     [Theory]
+    [InlineData("/Admin")]
+    [InlineData("/Admin/Audit")]
+    [InlineData("/Admin/CreateTeacher")]
     [InlineData("/Admin/Transactions")]
     [InlineData("/Admin/Users")]
     public async Task AdminEndpoints_RenderAdminConsoleLayout_WithNoStudentOrTeacherChrome(string endpoint)
@@ -111,12 +114,15 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.Contains("admin-body", html);
         Assert.Contains("admin-shell", html);
         Assert.Contains("admin-sidebar", html);
-        Assert.Contains("Không gian quản trị", html);
+        Assert.Contains("aria-label=\"Điều hướng quản trị\"", html);
+        Assert.Contains("aria-label=\"Thực đơn quản trị\"", html);
+        Assert.Contains("aria-controls=\"admin-sidebar\"", html);
         Assert.Contains("admin-topbar", html);
         Assert.DoesNotContain("Hệ thống: Trực tuyến", html);
         Assert.DoesNotContain("Production Console", html);
         Assert.Contains("/Admin/Transactions", html);
         Assert.Contains("/Admin/Users", html);
+        Assert.Contains("/Admin/Audit", html);
         Assert.Contains("Giao dịch", html);
         Assert.Contains("Người dùng", html);
         Assert.Contains(admin.FullName, html);
