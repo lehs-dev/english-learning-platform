@@ -14,10 +14,13 @@
 @if (TempData["AdminSuccess"] is string success) { <p class="notice" role="status">@success</p> }
 @if (TempData["AdminError"] is string error) { <p class="notice error" role="alert">@error</p> }
 <section class="admin-surface">
-    <form method="get" asp-action="Users" class="admin-filters">
+    <div asp-validation-summary="All" class="notice error" role="alert"></div>
+<form method="get" asp-action="Users" class="admin-filters">
         <div class="admin-search"><label for="search">Tìm tài khoản</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Nhập họ tên hoặc email…" /></div>
         <div><label for="role">Vai trò</label><select id="role" name="role"><option value="">Tất cả vai trò</option>@foreach (var role in new[] { "Student", "Teacher", "Admin" }) { <option value="@role" selected="@(selectedRole == role)">@RoleLabel(role)</option> }</select></div>
         <div><label for="status">Trạng thái</label><select id="status" name="status"><option value="">Tất cả trạng thái</option>@foreach (var status in Enum.GetValues<AccountStatus>()) { <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option> }</select></div>
+        <div class="admin-date-filter"><label for="fromDate">Ngày tạo tài khoản từ</label><input type="date" id="fromDate" name="fromDate" value="@ViewData["FromDate"]" min="0001-01-02" max="9999-12-30" /></div>
+        <div class="admin-date-filter"><label for="toDate">Đến ngày</label><input type="date" id="toDate" name="toDate" value="@ViewData["ToDate"]" min="0001-01-02" max="9999-12-30" /></div>
         <div class="admin-filter-actions"><button class="button" type="submit">Tìm kiếm</button><a asp-action="Users">Đặt lại</a></div>
     </form>
     <div class="admin-list-heading"><h2>Danh sách người dùng <span class="admin-count">@Model.Total</span></h2><span>Ngày tạo theo giờ Việt Nam</span></div>
@@ -36,8 +39,8 @@
     </tbody></table></div>
     }
     <nav class="admin-pagination" aria-label="Phân trang tài khoản"><span>Trang <strong>@Model.Page</strong> / @Model.Pages</span><div>
-        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a> }
-        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a> }
+        @if (Model.Page > 1) { <a class="button secondary" asp-route-fromDate="@ViewData["FromDate"]" asp-route-toDate="@ViewData["ToDate"]" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a> }
+        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-fromDate="@ViewData["FromDate"]" asp-route-toDate="@ViewData["ToDate"]" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-role="@selectedRole" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a> }
     </div></nav>
 </section>
 @foreach (var item in Model.Items) {
