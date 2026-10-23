@@ -5,7 +5,7 @@ import { chromium } from 'playwright';
 const password = process.env.LearningDemo__Password;
 assert.ok(password, 'Set LearningDemo__Password via environment.');
 const baseURL = process.env.ELP_UAT_URL ?? 'http://localhost:8081';
-const output = 'TestResults/admin-uat';
+const output = process.env.ELP_UAT_RESULTS ?? 'TestResults/admin-uat';
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const email = `admin-uat-${Date.now()}@example.test`;
@@ -28,7 +28,7 @@ try {
   await page.locator('#FullName').fill('Dương UAT Teacher');
   await page.locator('#Email').fill(email);
   await page.locator('#Password').fill(teacherPassword);
-  await page.getByRole('button', { name: 'Tạo Teacher', exact: true }).click();
+  await page.locator('form[action*="CreateTeacher"] button[type=submit]').click();
   await page.waitForURL('**/Admin/Users');
   await page.goto(`/Admin/Users?search=${email}&role=Teacher`);
   let row = page.locator('tbody tr').filter({ hasText: email });
@@ -71,8 +71,11 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   for (const [path, name] of [['/Admin', 'dashboard'], ['/Admin/Users', 'users'], ['/Admin/CreateTeacher', 'create-teacher'], ['/Admin/Transactions', 'transactions'], ['/Admin/Audit', 'audit']]) {
     await page.goto(path);
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${path}: page overflow`);
     await page.screenshot({ path: `${output}/${name}-mobile.png`, fullPage: true });
+    const widths = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: window.innerWidth,
+      offenders: [...document.querySelectorAll('main *')].filter(el => el.getBoundingClientRect().right > innerWidth + 1)
+        .slice(0, 8).map(el => ({ tag: el.tagName, className: el.className, width: Math.round(el.getBoundingClientRect().width) })) }));
+    assert.ok(widths.document <= widths.viewport + 1, `${path}: page overflow ${JSON.stringify(widths)}`);
     if (name === 'users') {
       await page.locator('[data-open-admin-dialog]').first().click();
       await page.screenshot({ path: `${output}/edit-dialog-mobile.png` });
