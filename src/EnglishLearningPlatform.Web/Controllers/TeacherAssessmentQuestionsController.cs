@@ -92,6 +92,8 @@ public sealed class TeacherAssessmentQuestionsController : Controller
             query.PrimarySkill = editor.Value.TargetSkill;
         }
 
+        query.Level = QuestionLevels.Normalize(query.Level);
+
         var result = await _questions.SearchAsync(
             actorUserId, query, cancellationToken);
 

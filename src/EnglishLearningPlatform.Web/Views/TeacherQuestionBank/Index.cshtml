@@ -1,326 +1,183 @@
-@using EnglishLearningPlatform.Application.QuestionBank
-@using EnglishLearningPlatform.Web.Models.QuestionBank
-@model QuestionBankIndexModel
-
+@model EnglishLearningPlatform.Web.Models.QuestionBank.QuestionBankIndexModel
 @{
     ViewData["Title"] = "Ngân hàng câu hỏi";
-    // Class riêng trên body giúp CSS chỉ tác động tới trang Question Bank.
-    ViewData["PageClass"] = "question-bank-page";
+    ViewData["ActiveSection"] = "questionbank";
+    ViewData["PageClass"] = "question-bank-page question-bank-index-page question-bank-focus-page";
+    var result = Model.Result;
+    var firstItem = result.Items.Count == 0 ? 0L : ((long)result.PageNumber - 1) * result.PageSize + 1;
+    var lastItem = result.Items.Count == 0 ? 0L : firstItem + result.Items.Count - 1;
+    var firstPage = Math.Max(1, Math.Min(result.PageNumber - 2, result.TotalPages - 4));
+    var lastPage = Math.Min(result.TotalPages, firstPage + 4);
+    int[] pageSizes = [10, 20, 50, 100];
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
 }
 
-<div class="page-heading">
+<div class="page-heading question-bank-heading">
     <div>
         <h1>Ngân hàng câu hỏi</h1>
-        <p>Danh sách câu hỏi thuộc tài khoản Giảng viên hiện tại.</p>
+        <p>Danh sách câu hỏi thuộc tài khoản giảng viên hiện tại.</p>
     </div>
     <div class="actions">
-        <a class="button"
-           asp-controller="TeacherQuestionBank"
-           asp-action="Create">
-            Tạo câu hỏi
-        </a>
-        @* Tạo ngữ liệu trước khi mở form câu hỏi, không làm mất nội dung đang soạn. *@
-        <a class="button secondary" asp-controller="TeacherStimuli" asp-action="Create">
-            Tạo ngữ liệu đọc/nghe
-        </a>
+        <a class="button" asp-controller="TeacherQuestionBank" asp-action="Create">Tạo câu hỏi</a>
+        <a class="button secondary" asp-controller="TeacherStimuli" asp-action="Create">Tạo bài đọc và âm thanh</a>
     </div>
 </div>
 
-@if (TempData["Success"] is string successMessage)
-{
-    <div class="alert alert-success" role="status">
-        @successMessage
-    </div>
-}
 <section class="panel question-bank-filters" aria-labelledby="question-filter-title">
-    <h2 id="question-filter-title">Tìm / lọc câu hỏi</h2>
-
-    @* GET dùng để đọc dữ liệu.
-       Các điều kiện tìm kiếm được đưa lên URL, không ghi vào database. *@
-    <form asp-controller="TeacherQuestionBank"
-          asp-action="Index"
-          method="get">
-
-        @* Khi tìm kiếm lại, luôn quay về trang 1.
-           Tránh đang ở trang 3 nhưng kết quả mới chỉ có 1 trang. *@
+    <h2 id="question-filter-title" class="visually-hidden">Tìm và lọc câu hỏi</h2>
+    <form asp-controller="TeacherQuestionBank" asp-action="Index" method="get" class="question-bank-filter-form">
         <input type="hidden" name="PageNumber" value="1" />
-
-        @* filter-grid là class CSS đã có trong dự án. *@
-        <div class="filter-grid">
-
-            <div>
-                <label for="Search">Từ khóa trong nội dung</label>
-
-                @* name phải trùng tên Search trong QuestionSearchRequest.
-                   value giữ lại từ khóa sau khi tìm kiếm. *@
-                <input type="search"
-                       id="Search"
-                       name="Search"
-                       value="@Model.Query.Search"
-                       placeholder="Ví dụ: school" />
-            </div>
-
-            <div>
-                <label for="PrimarySkill">Kỹ năng</label>
-
-                <select id="PrimarySkill" name="PrimarySkill">
-                    @* Giá trị rỗng được nhận thành null:
-                       không giới hạn theo kỹ năng. *@
-                    <option value="">Tất cả kỹ năng</option>
-
-                    @* GetValues lấy các kỹ năng đã định nghĩa trong enum.
-                       Không cần tự viết lại danh sách kỹ năng ở đây. *@
-                    @foreach (EnglishSkill skill in
-                        Enum.GetValues(typeof(EnglishSkill)))
-                    {
-                        @* Giữ kỹ năng Teacher đã chọn sau khi tải lại trang. *@
-                        if (Model.Query.PrimarySkill == skill)
-                        {
-                            <option value="@skill" selected>
-                                <partial name="_UiText" model="skill" />
-                            </option>
-                        }
-                        else
-                        {
-                            <option value="@skill">
-                                <partial name="_UiText" model="skill" />
-                            </option>
-                        }
-                    }
-                </select>
-            </div>
-
-            <div>
-                <label for="Level">Trình độ</label>
-
-                @* Level hiện là chuỗi trong dự án.
-                   Lọc theo giá trị đã lưu, không tự tạo enum mới. *@
-                <input type="text"
-                       id="Level"
-                       name="Level"
-                       value="@Model.Query.Level"
-                       placeholder="Ví dụ: B1" />
-            </div>
-
-            <div>
-                <label for="Difficulty">Độ khó</label>
-
-                @* Backend đang lọc theo giá trị độ khó đã lưu. *@
-                <input type="text"
-                       id="Difficulty"
-                       name="Difficulty"
-                       value="@Model.Query.Difficulty"
-                       placeholder="Ví dụ: Dễ" />
-            </div>
-
-            <div>
-                <label for="Status">Trạng thái</label>
-
-                <select id="Status" name="Status">
-                    <option value="">Tất cả trạng thái</option>
-
-                    @* Đọc danh sách trạng thái từ enum đang có. *@
-                    @foreach (QuestionStatus status in
-                        Enum.GetValues(typeof(QuestionStatus)))
-                    {
-                        if (Model.Query.Status == status)
-                        {
-                            <option value="@status" selected>
-                                <partial name="_UiText" model="status" />
-                            </option>
-                        }
-                        else
-                        {
-                            <option value="@status">
-                                <partial name="_UiText" model="status" />
-                            </option>
-                        }
-                    }
-                </select>
-            </div>
-
-            <div>
-                <label for="PageSize">Số câu mỗi trang</label>
-
-                @* Trình duyệt giới hạn từ 1 đến 100.
-                   Controller vẫn kiểm tra lại vì người dùng có thể sửa URL. *@
-                <input type="number"
-                       id="PageSize"
-                       name="PageSize"
-                       min="1"
-                       max="100"
-                       required
-                       value="@Model.Query.PageSize" />
-            </div>
+        <div class="question-filter-search">
+            <label for="Search">Từ khóa trong nội dung</label>
+            <input type="search" id="Search" name="Search" value="@Model.Query.Search" placeholder="Nhập nội dung cần tìm" />
         </div>
-
-        <p class="actions">
-            <button type="submit" class="button">
-                Tìm / lọc
-            </button>
-
-            @* Mở lại Index không kèm bộ lọc:
-               trở về danh sách mặc định. *@
-            <a class="button secondary"
-               asp-controller="TeacherQuestionBank"
-               asp-action="Index">
-                Xóa bộ lọc
-            </a>
-        </p>
+        <div>
+            <label for="PrimarySkill">Kỹ năng</label>
+            <select id="PrimarySkill" name="PrimarySkill">
+                <option value="">Tất cả</option>
+                @foreach (var skill in Enum.GetValues<EnglishSkill>())
+                {
+                    <option value="@skill" selected="@(Model.Query.PrimarySkill == skill)"><partial name="_UiText" model="skill" /></option>
+                }
+            </select>
+        </div>
+        <div>
+            <label for="Level">Trình độ</label>
+            <select id="Level" name="Level">
+                <option value="">Tất cả</option>
+                @foreach (var level in QuestionLevels.All)
+                {
+                    <option value="@level" selected="@(Model.Query.Level == level)">@level</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label for="Status">Trạng thái</label>
+            <select id="Status" name="Status">
+                <option value="">Tất cả</option>
+                @foreach (var status in Enum.GetValues<QuestionStatus>())
+                {
+                    <option value="@status" selected="@(Model.Query.Status == status)"><partial name="_UiText" model="status" /></option>
+                }
+            </select>
+        </div>
+        <div>
+            <label for="PageSize">Số câu/trang</label>
+            <select id="PageSize" name="PageSize">
+                @if (!pageSizes.Contains(Model.Query.PageSize))
+                {
+                    <option value="@Model.Query.PageSize" selected>@Model.Query.PageSize</option>
+                }
+                @foreach (var size in pageSizes)
+                {
+                    <option value="@size" selected="@(Model.Query.PageSize == size)">@size</option>
+                }
+            </select>
+        </div>
+        <div class="actions question-filter-actions">
+            <button type="submit" class="button">Tìm / lọc</button>
+            <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">Xóa bộ lọc</a>
+        </div>
     </form>
 </section>
 
-<p class="muted">
-    Tổng số câu hỏi phù hợp: @Model.Result.TotalCount
-</p>
+<p class="question-bank-total">Tổng số câu hỏi phù hợp: <strong>@result.TotalCount</strong></p>
 
-@* Danh sách rỗng có thể do không có kết quả hoặc trang vượt giới hạn. *@
-@if (Model.Result.Items.Count == 0)
+@if (result.Items.Count == 0)
 {
-    <section class="panel empty">
-        @if (Model.Result.TotalCount == 0)
+    <section class="panel question-bank-empty">
+        @if (result.TotalCount == 0)
         {
-            <p>
-                Chưa có câu hỏi hoặc không có câu hỏi phù hợp
-                với điều kiện tìm kiếm.
-            </p>
+            <h2>Chưa có câu hỏi phù hợp</h2>
+            <p>Thử thay đổi bộ lọc hoặc tạo câu hỏi đầu tiên của bạn.</p>
         }
         else
         {
-            <p>Trang bạn yêu cầu không có câu hỏi.</p>
-            <p>
-                Kết quả hiện có @Model.Result.TotalPages trang.
-                Hãy chọn số trang phù hợp.
-            </p>
+            <h2>Trang này chưa có câu hỏi</h2>
+            <p>Kết quả hiện có @result.TotalPages trang. Chọn một trang bên dưới để tiếp tục.</p>
         }
     </section>
 }
 else
 {
-
-    @* Lưới giúp các thẻ tận dụng chiều ngang trên desktop, xuống một cột trên mobile. *@
-    <div class="question-bank-list">
-    @foreach (QuestionListItem question in Model.Result.Items)
-    {
-        <article class="panel question-bank-card">
-            @* Razor mã hóa nội dung, không dùng Html.Raw. *@
-            <h2>Nội dung câu hỏi</h2>
-            <p class="preserve question-bank-content">@question.Content</p>
-
-            @* Mỗi div gom một nhãn và giá trị để CSS sắp xếp thành ô thông tin. *@
-            <dl class="question-bank-metadata">
-                <div>
-                    <dt>Kỹ năng</dt>
-                    <dd><partial name="_UiText" model="question.PrimarySkill" /></dd>
-                </div>
-
-                <div>
-                    <dt>Trình độ</dt>
-                    <dd>@question.Level</dd>
-                </div>
-
-                <div>
-                    <dt>Độ khó</dt>
-                    <dd>@question.Difficulty</dd>
-                </div>
-
-                <div>
-                    <dt>Trạng thái</dt>
-                    <dd><partial name="_UiText" model="question.Status" /></dd>
-                </div>
-
-                <div>
-                    <dt>Số lựa chọn</dt>
-                    <dd>@question.OptionCount</dd>
-                </div>
-            </dl>
-
-            <div class="question-bank-card-actions">
-                @* Tag Helper tạo URL tới action Details đang có. *@
-                <a class="button secondary"
-                   asp-controller="TeacherQuestionBank"
-                   asp-action="Details"
-                   asp-route-id="@question.Id">
-                    Xem chi tiết
-                </a>
-                <a class="button secondary"
-                   asp-controller="TeacherQuestionBank"
-                   asp-action="Edit"
-                   asp-route-id="@question.Id">
-                    Chỉnh sửa
-                </a>
-            </div>
-        </article>
-    }
+    <div class="question-bank-table-wrap" role="region" aria-label="Danh sách câu hỏi" tabindex="0">
+        <table class="question-bank-table">
+            <caption class="visually-hidden">Nội dung và thuộc tính câu hỏi trong ngân hàng câu hỏi</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Nội dung câu hỏi</th>
+                    <th scope="col">Kỹ năng</th>
+                    <th scope="col">Trình độ</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="question-option-count">Lựa chọn</th>
+                    <th scope="col"><span class="visually-hidden">Thao tác</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var question in result.Items)
+                {
+                    var statusClass = question.Status switch
+                    {
+                        QuestionStatus.Published => "is-published",
+                        QuestionStatus.Archived => "is-archived",
+                        _ => "is-draft"
+                    };
+                    <tr data-question-row>
+                        <td class="question-bank-text"><p class="preserve">@question.Content</p></td>
+                        <td><span class="question-skill-badge"><partial name="_UiText" model="question.PrimarySkill" /></span></td>
+                        <td class="question-level">@QuestionLevels.Display(question.Level)</td>
+                        <td><span class="question-status-badge @statusClass"><partial name="_UiText" model="question.Status" /></span></td>
+                        <td class="question-option-count">@question.OptionCount</td>
+                        <td>
+                            <div class="question-bank-row-actions">
+                                <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Details" asp-route-id="@question.Id">Xem</a>
+                                <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Edit" asp-route-id="@question.Id">Sửa</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 }
-@* Không có kết quả thì không hiện phân trang, tránh hiển thị Trang 1/0. *@
-@if (Model.Result.TotalPages > 0)
-{
-    <nav class="question-bank-pagination"
-         aria-label="Phân trang câu hỏi">
 
-        @* Chỉ cho quay lại khi đang ở một trang hợp lệ và không phải trang đầu. *@
-        @if (Model.Result.PageNumber > 1
-            && Model.Result.PageNumber <= Model.Result.TotalPages)
-        {
-            <a class="button secondary"
-               asp-controller="TeacherQuestionBank"
-               asp-action="Index"
-               asp-route-PageNumber="@(Model.Result.PageNumber - 1)"
-               asp-route-PageSize="@Model.Result.PageSize"
-               asp-route-Search="@Model.Query.Search"
-               asp-route-PrimarySkill="@Model.Query.PrimarySkill"
-               asp-route-Level="@Model.Query.Level"
-               asp-route-Difficulty="@Model.Query.Difficulty"
-               asp-route-Status="@Model.Query.Status"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trang trước
-            </a>
-        }
-
-        @* Chỉ hiển thị số trang khi trang đang xem nằm trong kết quả. *@
-        @if (Model.Result.PageNumber <= Model.Result.TotalPages)
-        {
-            <span class="muted">
-                Trang @Model.Result.PageNumber / @Model.Result.TotalPages
-            </span>
-        }
-
-        @* Chưa tới trang cuối thì mới có trang tiếp theo. *@
-        @if (Model.Result.PageNumber < Model.Result.TotalPages)
-        {
-            <a class="button secondary"
-               asp-controller="TeacherQuestionBank"
-               asp-action="Index"
-               asp-route-PageNumber="@(Model.Result.PageNumber + 1)"
-               asp-route-PageSize="@Model.Result.PageSize"
-               asp-route-Search="@Model.Query.Search"
-               asp-route-PrimarySkill="@Model.Query.PrimarySkill"
-               asp-route-Level="@Model.Query.Level"
-               asp-route-Difficulty="@Model.Query.Difficulty"
-               asp-route-Status="@Model.Query.Status">
-                Trang sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
-        }
-
-        @* Người dùng có thể sửa URL thành PageNumber=99.
-           Nếu trang vượt giới hạn, cho quay về trang 1 với cùng bộ lọc. *@
-        @if (Model.Result.PageNumber > Model.Result.TotalPages)
-        {
-            <a class="button secondary"
-               asp-controller="TeacherQuestionBank"
-               asp-action="Index"
-               asp-route-PageNumber="1"
-               asp-route-PageSize="@Model.Result.PageSize"
-               asp-route-Search="@Model.Query.Search"
-               asp-route-PrimarySkill="@Model.Query.PrimarySkill"
-               asp-route-Level="@Model.Query.Level"
-               asp-route-Difficulty="@Model.Query.Difficulty"
-               asp-route-Status="@Model.Query.Status">
-                Về trang đầu
-            </a>
-        }
-    </nav>
-}
+<div class="question-bank-list-footer">
+    <p>Hiển thị @firstItem–@lastItem / @result.TotalCount</p>
+    @if (result.TotalPages > 0)
+    {
+        <nav class="question-bank-pagination" aria-label="Phân trang câu hỏi">
+            @if (result.PageNumber > 1 && result.PageNumber <= result.TotalPages)
+            {
+                <a class="button secondary" asp-action="Index" asp-route-PageNumber="@(result.PageNumber - 1)" asp-route-PageSize="@result.PageSize" asp-route-Search="@Model.Query.Search" asp-route-PrimarySkill="@Model.Query.PrimarySkill" asp-route-Level="@Model.Query.Level" asp-route-Status="@Model.Query.Status" aria-label="Trang trước">‹</a>
+            }
+            @if (firstPage > 1)
+            {
+                <a class="button secondary" asp-action="Index" asp-route-PageNumber="1" asp-route-PageSize="@result.PageSize" asp-route-Search="@Model.Query.Search" asp-route-PrimarySkill="@Model.Query.PrimarySkill" asp-route-Level="@Model.Query.Level" asp-route-Status="@Model.Query.Status" aria-label="Trang 1">1</a>
+                @if (firstPage > 2) { <span class="question-pagination-gap" aria-hidden="true">…</span> }
+            }
+            @for (var number = firstPage; number <= lastPage; number++)
+            {
+                if (number == result.PageNumber)
+                {
+                    <span class="button is-current" aria-current="page" aria-label="Trang @number">@number</span>
+                }
+                else
+                {
+                    <a class="button secondary" asp-action="Index" asp-route-PageNumber="@number" asp-route-PageSize="@result.PageSize" asp-route-Search="@Model.Query.Search" asp-route-PrimarySkill="@Model.Query.PrimarySkill" asp-route-Level="@Model.Query.Level" asp-route-Status="@Model.Query.Status" aria-label="Trang @number">@number</a>
+                }
+            }
+            @if (lastPage < result.TotalPages)
+            {
+                @if (lastPage < result.TotalPages - 1) { <span class="question-pagination-gap" aria-hidden="true">…</span> }
+                <a class="button secondary" asp-action="Index" asp-route-PageNumber="@result.TotalPages" asp-route-PageSize="@result.PageSize" asp-route-Search="@Model.Query.Search" asp-route-PrimarySkill="@Model.Query.PrimarySkill" asp-route-Level="@Model.Query.Level" asp-route-Status="@Model.Query.Status" aria-label="Trang @result.TotalPages">@result.TotalPages</a>
+            }
+            @if (result.PageNumber < result.TotalPages)
+            {
+                <a class="button secondary" asp-action="Index" asp-route-PageNumber="@(result.PageNumber + 1)" asp-route-PageSize="@result.PageSize" asp-route-Search="@Model.Query.Search" asp-route-PrimarySkill="@Model.Query.PrimarySkill" asp-route-Level="@Model.Query.Level" asp-route-Status="@Model.Query.Status" aria-label="Trang sau">›</a>
+            }
+        </nav>
+    }
+</div>

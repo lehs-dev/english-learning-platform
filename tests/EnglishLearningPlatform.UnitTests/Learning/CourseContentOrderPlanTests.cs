@@ -52,7 +52,7 @@ public sealed class CourseContentOrderPlanTests
 
         Assert.False(CourseContentOrderPlan.TryCreate(entries, requested, out var plan, out var error));
         Assert.Null(plan);
-        Assert.Equal("Thứ tự phải chứa đúng mỗi ID của cùng parent một lần.", error);
+        Assert.Equal("Danh sách sắp xếp phải chứa đủ các mục trong cùng một chương hoặc bài học, mỗi mục đúng một lần.", error);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class CourseContentOrderPlanTests
         CourseContentOrderEntry[] entries = [new(id, int.MinValue, _ => throw new InvalidOperationException())];
         Assert.False(CourseContentOrderPlan.TryCreate(entries, [id], out var plan, out var error));
         Assert.Null(plan);
-        Assert.Equal("OrderIndex vượt giới hạn; cần chuẩn hóa dữ liệu.", error);
+        Assert.Equal("Thứ tự nội dung vượt giới hạn cho phép; cần chuẩn hóa lại dữ liệu sắp xếp.", error);
     }
 
     [Fact]

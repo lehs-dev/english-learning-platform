@@ -13,7 +13,6 @@ public sealed class Question : BaseEntity, IOwnedResource
     public string Content { get; set; } = string.Empty;
     public EnglishSkill PrimarySkill { get; set; }
     public string? Level { get; set; }
-    public string? Difficulty { get; set; }
     public string? Explanation { get; set; }
     public QuestionStatus Status { get; set; } = QuestionStatus.Draft;
     // Thời điểm hệ thống ghi nhận nội dung bị khóa.

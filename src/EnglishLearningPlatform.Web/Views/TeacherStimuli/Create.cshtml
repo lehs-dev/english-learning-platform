@@ -1,58 +1,157 @@
 @model EnglishLearningPlatform.Application.Stimuli.CreateStimulusRequest
 @{
-    ViewData["Title"] = "Tạo ngữ liệu đọc/nghe";
+    ViewData["Title"] = "Tạo bài đọc và âm thanh";
     ViewData["ActiveSection"] = "questionbank";
+    ViewData["PageClass"] = "question-bank-page question-editor-page stimulus-editor-page";
+    var isAudio = Model.StimulusType == StimulusType.Audio;
 }
 
-<div class="page-heading">
+@section Styles {
+    <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/stimulus-editor.css" asp-append-version="true" />
+}
+
+<nav class="question-editor-breadcrumb" aria-label="Đường dẫn điều hướng">
+    <a asp-controller="TeacherQuestionBank" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Ngân hàng câu hỏi</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">Tạo bài đọc và âm thanh</span>
+</nav>
+<div class="page-heading question-editor-heading">
     <div>
-        <h1>Tạo ngữ liệu đọc/nghe</h1>
-        <p class="muted">Lưu đoạn đọc hoặc upload âm thanh bất biến, sau đó chọn khi soạn câu hỏi.</p>
+        <h1>Tạo bài đọc và âm thanh</h1>
+        <p>Thêm bài đọc hoặc âm thanh để sử dụng khi soạn câu hỏi.</p>
     </div>
-    <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">
-        Quay lại ngân hàng câu hỏi
-    </a>
 </div>
 
-@* Dùng lại CSS form hiện có; không thay đổi layout hoặc CSS dùng chung của nhóm. *@
-<form asp-controller="TeacherStimuli" asp-action="Create" method="post"
-      asp-antiforgery="true" enctype="multipart/form-data" class="panel editor-form">
+<form asp-controller="TeacherStimuli" asp-action="Create" method="post" asp-antiforgery="true" enctype="multipart/form-data" class="editor-form question-form stimulus-form" data-stimulus-editor>
     <div asp-validation-summary="All" class="validation" role="alert"></div>
+    <div class="question-editor-grid stimulus-editor-grid">
+        <div class="question-editor-card question-editor-content">
+            <fieldset class="question-editor-section stimulus-type-section">
+                <legend class="visually-hidden">Loại nội dung</legend>
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">01</span>
+                    <h2>Loại nội dung <span class="required">*</span></h2>
+                </div>
+                <div class="stimulus-type-choices">
+                    <label class="stimulus-type-choice" for="StimulusType_Passage">
+                        <input type="radio" name="StimulusType" id="StimulusType_Passage" value="@((int)StimulusType.Passage)" checked="@(!isAudio ? "checked" : null)" required />
+                        <span class="stimulus-choice-icon" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+                        <span><strong>Bài đọc</strong><span>Nội dung văn bản</span></span>
+                    </label>
+                    <label class="stimulus-type-choice" for="StimulusType_Audio">
+                        <input type="radio" name="StimulusType" id="StimulusType_Audio" value="@((int)StimulusType.Audio)" checked="@(isAudio ? "checked" : null)" required />
+                        <span class="stimulus-choice-icon" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#headphones")"></use></svg></span>
+                        <span><strong>Âm thanh</strong><span>Tải tệp âm thanh</span></span>
+                    </label>
+                </div>
+                <span asp-validation-for="StimulusType" class="validation"></span>
+            </fieldset>
 
-    <label asp-for="StimulusType">Loại ngữ liệu</label>
-    <select asp-for="StimulusType" required>
-        <option value="">-- Chọn loại ngữ liệu --</option>
-        <option value="@((int)StimulusType.Passage)">Đoạn đọc (Passage)</option>
-        <option value="@((int)StimulusType.Audio)">Âm thanh (Audio)</option>
-    </select>
-    <span asp-validation-for="StimulusType" class="validation"></span>
+            <section class="question-editor-section stimulus-info-section" aria-labelledby="stimulus-info-heading">
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">02</span>
+                    <h2 id="stimulus-info-heading">Thông tin nội dung</h2>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Title">Tiêu đề <span class="question-optional">Tùy chọn</span></label>
+                    <input asp-for="Title" class="form-control" maxlength="200" placeholder="Ví dụ: A day at school" aria-describedby="stimulus-title-help" />
+                    <span asp-validation-for="Title" class="validation"></span>
+                    <p class="stimulus-field-help" id="stimulus-title-help">Đặt tiêu đề để dễ tìm và chọn bài đọc hoặc âm thanh.</p>
+                </div>
+            </section>
 
-    <label asp-for="Title">Tiêu đề (tùy chọn)</label>
-    <input asp-for="Title" maxlength="200" placeholder="Ví dụ: Reading - A day at school" />
-    <span asp-validation-for="Title" class="validation"></span>
-    <p class="muted">Nên đặt tiêu đề để dễ nhận biết trong danh sách ngữ liệu của câu hỏi.</p>
+            <fieldset class="question-editor-section stimulus-mode-panel" data-stimulus-passage hidden="@(isAudio ? "hidden" : null)" disabled="@(isAudio ? "disabled" : null)">
+                <legend class="visually-hidden">Nội dung bài đọc</legend>
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">03</span>
+                    <h2><label asp-for="ContentText">Nội dung bài đọc <span class="required">*</span></label></h2>
+                </div>
+                <div class="question-text-editor" data-question-text-editor>
+                    <div class="question-editor-toolbar" role="group" aria-label="Công cụ soạn bài đọc">
+                        <button type="button" data-text-command="undo" aria-label="Hoàn tác" title="Hoàn tác"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4 3 9l5 5M3 9h10a7 7 0 0 1 7 7v4" /></svg></button>
+                        <button type="button" data-text-command="redo" aria-label="Làm lại" title="Làm lại"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 4 5 5-5 5m5-5H11a7 7 0 0 0-7 7v4" /></svg></button>
+                        <span class="question-toolbar-divider" aria-hidden="true"></span>
+                        <button type="button" data-text-command="bullets" aria-label="Danh sách có dấu đầu dòng" title="Danh sách có dấu đầu dòng"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h.01M3 12h.01M3 18h.01" /></svg></button>
+                        <button type="button" data-text-command="numbers" aria-label="Danh sách đánh số" title="Danh sách đánh số"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6h11M10 12h11M10 18h11M3 3h1v5M3 8h3M3 12c3-2 4 1 1 3l-1 2h3" /></svg></button>
+                    </div>
+                    <textarea asp-for="ContentText" rows="9" class="form-control" placeholder="Nhập nội dung bài đọc..." required="@(!isAudio ? "required" : null)" data-question-content></textarea>
+                </div>
+                <span asp-validation-for="ContentText" class="validation"></span>
+            </fieldset>
 
-    <label asp-for="ContentText">Nội dung đoạn đọc — chỉ điền khi chọn Passage</label>
-    <textarea asp-for="ContentText" rows="8" placeholder="Nhập đoạn văn để học viên đọc..."></textarea>
-    <span asp-validation-for="ContentText" class="validation"></span>
+            <fieldset class="question-editor-section stimulus-mode-panel" data-stimulus-audio hidden="@(!isAudio ? "hidden" : null)" disabled="@(!isAudio ? "disabled" : null)">
+                <legend class="visually-hidden">Tệp âm thanh</legend>
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">03</span>
+                    <h2>Tệp âm thanh <span class="required">*</span></h2>
+                </div>
+                <div class="stimulus-upload-zone" data-audio-dropzone>
+                    <span class="stimulus-upload-icon" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#headphones")"></use></svg></span>
+                    <label for="audioFile">Chọn hoặc kéo thả tệp âm thanh</label>
+                    <p>MP3, WAV hoặc Ogg, tối đa 10 MiB.</p>
+                    <input type="file" id="audioFile" name="audioFile" accept=".mp3,.wav,.ogg,audio/mpeg,audio/wav,audio/ogg" required="@(isAudio && string.IsNullOrWhiteSpace(Model.ResourceUrl) ? "required" : null)" aria-describedby="stimulus-audio-help stimulus-audio-error" />
+                </div>
+                <div class="stimulus-file-info" data-audio-file-info hidden>
+                    <span data-audio-file-name></span><button type="button" data-clear-audio>Bỏ tệp</button>
+                </div>
+                <p class="validation" id="stimulus-audio-error" data-audio-error role="alert"></p>
+                <span asp-validation-for="AudioContent" class="validation"></span>
+                <p class="stimulus-field-help" id="stimulus-audio-help">Bạn có thể nghe thử tệp đã chọn ở phần xem trước.</p>
+                @if (Model.AudioContent?.Length > 0)
+                {
+                    <p class="stimulus-reselect-note">Vui lòng chọn lại tệp âm thanh trước khi lưu.</p>
+                }
+                <details class="stimulus-external-source" open="@(!string.IsNullOrWhiteSpace(Model.ResourceUrl) ? "open" : null)">
+                    <summary>Dùng đường dẫn âm thanh có sẵn</summary>
+                    <label asp-for="ResourceUrl">Đường dẫn âm thanh</label>
+                    <input asp-for="ResourceUrl" type="url" class="form-control" maxlength="2048" placeholder="https://example.com/audio.mp3" aria-describedby="stimulus-url-help" />
+                    <span asp-validation-for="ResourceUrl" class="validation"></span>
+                    <p class="stimulus-field-help" id="stimulus-url-help">Đường dẫn ngoài chỉ dành cho dữ liệu cũ. Để dùng trong bài mới, hãy tải tệp âm thanh lên.</p>
+                </details>
+            </fieldset>
 
-    <label for="audioFile">Upload audio — dùng cho đề mới</label>
-    <input type="file" id="audioFile" name="audioFile" accept=".mp3,.wav,.ogg,audio/mpeg,audio/wav,audio/ogg" />
-    <span asp-validation-for="AudioContent" class="validation"></span>
-    <p class="muted">MP3, WAV hoặc Ogg, tối đa 10 MiB. Upload file mới tạo tài nguyên mới; không ghi đè audio đã dùng.</p>
+            <div class="stimulus-form-footer">
+                <p>Nội dung sẽ xuất hiện trong danh sách khi soạn câu hỏi.</p>
+                <div class="actions">
+                    <a class="question-cancel" asp-controller="TeacherQuestionBank" asp-action="Index">Hủy</a>
+                    <button type="submit" class="button question-submit"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>Lưu và tiếp tục tạo câu hỏi</button>
+                </div>
+            </div>
+        </div>
 
-    <label asp-for="ResourceUrl">URL âm thanh bên ngoài — không dùng để công bố đề mới</label>
-    <input asp-for="ResourceUrl" type="url" maxlength="2048" placeholder="https://example.com/audio.mp3" />
-    <span asp-validation-for="ResourceUrl" class="validation"></span>
-
-    <p class="muted">
-        Passage: chỉ nhập nội dung. Audio: chọn file, để trống đoạn đọc và URL.
-        URL ngoài chỉ được kiểm tra định dạng, không tải về; nhà cung cấp có thể thay/xóa file tại cùng URL.
-        Đề lịch sử giữ nguyên URL cũ, nhưng khi công bố đề mới phải dùng audio upload do ứng dụng quản lý.
-    </p>
-
-    <div class="actions">
-        <button type="submit" class="button">Lưu ngữ liệu và tiếp tục tạo câu hỏi</button>
-        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">Hủy</a>
+        <aside class="question-editor-aside stimulus-preview-aside" aria-label="Xem trước bài đọc và âm thanh">
+            <section class="question-editor-card stimulus-preview-card" aria-labelledby="stimulus-preview-heading">
+                <div class="question-aside-heading">
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg></span>
+                    <h2 id="stimulus-preview-heading">Xem trước</h2>
+                    <span class="stimulus-preview-badge" data-preview-type>@(isAudio ? "Âm thanh" : "Bài đọc")</span>
+                </div>
+                <div class="stimulus-preview-mode stimulus-passage-preview" data-passage-preview hidden="@(isAudio ? "hidden" : null)">
+                    <h3 data-preview-title>@(string.IsNullOrWhiteSpace(Model.Title) ? "Bài đọc chưa có tiêu đề" : Model.Title)</h3>
+                    <p data-preview-passage>@(string.IsNullOrWhiteSpace(Model.ContentText) ? "Nội dung bài đọc sẽ xuất hiện ở đây." : Model.ContentText)</p>
+                </div>
+                <div class="stimulus-preview-mode stimulus-audio-preview" data-audio-preview hidden="@(!isAudio ? "hidden" : null)">
+                    <span class="stimulus-audio-art" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#headphones")"></use></svg></span>
+                    <h3 data-preview-title>@(string.IsNullOrWhiteSpace(Model.Title) ? "Âm thanh chưa có tiêu đề" : Model.Title)</h3>
+                    <p data-preview-audio-description>Chọn tệp âm thanh để nghe thử.</p>
+                    <audio controls preload="none" data-preview-audio-player aria-label="Nghe thử âm thanh đã chọn" hidden>Trình duyệt không hỗ trợ phát âm thanh.</audio>
+                    <p class="stimulus-field-help" data-preview-audio-status role="status"></p>
+                </div>
+                <div class="stimulus-preview-footer">
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#book")" data-preview-footer-icon></use></svg></span>
+                    <p>Hiển thị cho học viên khi làm bài.</p>
+                </div>
+            </section>
+            <section class="question-editor-card stimulus-ready-card">
+                <span class="question-step" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18v-2a6 6 0 1 1 6 0v2M9 18h6M10 21h4M12 1v1M3 4l1 1m16-1-1 1M1 11h1m20 0h1" /></svg></span>
+                <div><h2 data-stimulus-tip-heading>@(isAudio ? "Sẵn sàng cho câu hỏi nghe hiểu" : "Sẵn sàng cho câu hỏi đọc hiểu")</h2><p>Lưu nội dung, sau đó chọn để tạo một hoặc nhiều câu hỏi.</p></div>
+            </section>
+        </aside>
     </div>
 </form>
+
+@section Scripts {
+    <script src="~/js/question-bank.js" asp-append-version="true" defer></script>
+    <script src="~/js/stimulus-editor.js" asp-append-version="true" defer></script>
+}

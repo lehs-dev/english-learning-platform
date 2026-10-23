@@ -1,183 +1,128 @@
-@using EnglishLearningPlatform.Application.QuestionBank
-@using EnglishLearningPlatform.Domain.Enums
 @model QuestionDetail
-
 @{
     ViewData["Title"] = "Chi tiết câu hỏi";
-    // Dùng CSS chung của Question Bank và class riêng cho bố cục chi tiết.
-    ViewData["PageClass"] = "question-bank-page question-bank-detail-page";
+    ViewData["ActiveSection"] = "questionbank";
+    ViewData["PageClass"] = "question-bank-page question-bank-detail-page question-bank-focus-page";
+    var statusClass = Model.Status switch
+    {
+        QuestionStatus.Published => "is-published",
+        QuestionStatus.Archived => "is-archived",
+        _ => "is-draft"
+    };
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
 }
 
-<div class="page-heading">
+<div class="page-heading question-detail-heading">
     <div>
         <h1>Chi tiết câu hỏi</h1>
         <p>Thông tin, lựa chọn và đáp án của câu hỏi.</p>
     </div>
     <div class="actions">
-        <a class="button"
-           asp-controller="TeacherQuestionBank"
-           asp-action="Edit"
-           asp-route-id="@Model.Id">
-            Chỉnh sửa câu hỏi
-        </a>
-        <a class="button secondary"
-           asp-controller="TeacherQuestionBank"
-           asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Quay lại ngân hàng câu hỏi
+        <a class="button" asp-controller="TeacherQuestionBank" asp-action="Edit" asp-route-id="@Model.Id">Chỉnh sửa câu hỏi</a>
+        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">
+            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+            Quay lại ngân hàng câu hỏi
         </a>
     </div>
 </div>
 
-@if (TempData["Success"] is string successMessage)
-{
-    <div class="alert alert-success" role="status">
-        @successMessage
+<dl class="question-bank-metadata question-detail-summary" aria-label="Thông tin câu hỏi">
+    <div>
+        <dt>Kỹ năng</dt>
+        <dd><span class="question-skill-badge"><partial name="_UiText" model="Model.PrimarySkill" /></span></dd>
     </div>
-}
-
-@* Hiển thị lỗi được Controller gửi qua lần chuyển trang. *@
-@if (TempData["Error"] is string errorMessage)
-{
-    <div class="alert alert-error" role="alert">
-        @errorMessage
+    <div>
+        <dt>Trình độ</dt>
+        <dd>@QuestionLevels.Display(Model.Level)</dd>
     </div>
-}
+    <div>
+        <dt>Trạng thái</dt>
+        <dd><span class="question-status-badge @statusClass"><partial name="_UiText" model="Model.Status" /></span></dd>
+    </div>
+</dl>
 
-<section class="panel question-bank-detail" aria-labelledby="question-content-title">
-
-    @* Gom từng nhãn và giá trị thành một ô, không dùng thụt lề mặc định của dd. *@
-    <dl class="question-bank-metadata">
-        <div>
-            <dt>Kỹ năng</dt>
-            <dd><partial name="_UiText" model="Model.PrimarySkill" /></dd>
-        </div>
-
-        <div>
-            <dt>Trình độ</dt>
-            <dd>@Model.Level</dd>
-        </div>
-
-        <div>
-            <dt>Độ khó</dt>
-            <dd>@Model.Difficulty</dd>
-        </div>
-
-        <div>
-            <dt>Trạng thái</dt>
-            <dd><partial name="_UiText" model="Model.Status" /></dd>
-        </div>
-    </dl>
-
-    <h2 id="question-content-title">Nội dung</h2>
-
-    @* Razor tự mã hóa nội dung để không thực thi HTML/script được nhập vào. *@
-    <p class="preserve question-bank-content">@Model.Content</p>
-
-    <h2>Các lựa chọn</h2>
-
-    @* Service đã sắp xếp options theo OrderIndex; type A hiển thị ký hiệu A, B, C... *@
-    <ol class="question-bank-options" type="A">
-        @foreach (QuestionOptionItem option in Model.Options)
-        {
-            // Class is-correct chỉ đổi cách hiển thị, không thay đổi đáp án trong dữ liệu.
-            string optionClass = "question-bank-option";
-            if (option.IsCorrect)
-            {
-                optionClass += " is-correct";
-            }
-
-            <li class="@optionClass">
-                <div class="question-bank-option-row">
-                    <span class="preserve question-bank-option-content">@option.Content</span>
-
-                    @* Có cả nhãn chữ để không phải chỉ dựa vào màu sắc nhận biết đáp án. *@
-                    @if (option.IsCorrect)
-                    {
-                        <strong class="question-bank-correct-label">Đáp án đúng</strong>
-                    }
-                </div>
-            </li>
-        }
-    </ol>
-
-    @* Giải thích là thông tin tùy chọn. *@
-    @if (!string.IsNullOrWhiteSpace(Model.Explanation))
-    {
-        <section class="question-bank-explanation" aria-labelledby="question-explanation-title">
-            <h2 id="question-explanation-title">Giải thích</h2>
-            <p class="preserve">@Model.Explanation</p>
+<div class="question-detail-grid">
+    <div class="question-detail-column">
+        <section class="panel question-detail-card question-bank-detail" aria-labelledby="question-content-title">
+            <h2 id="question-content-title">Nội dung</h2>
+            <p class="preserve question-bank-content">@Model.Content</p>
         </section>
-    }
-</section>
 
-@* Chỉ hiển thị passage/audio khi câu hỏi có Stimulus. *@
-@if (Model.Stimulus != null)
-{
-    <section class="panel question-bank-stimulus" aria-labelledby="question-stimulus-title">
-        <h2 id="question-stimulus-title">Ngữ liệu đọc / nghe</h2>
+        <section class="panel question-detail-card" aria-labelledby="question-options-title">
+            <h2 id="question-options-title">Các lựa chọn</h2>
+            <ol class="question-bank-options" type="A" role="list">
+                @foreach (var option in Model.Options)
+                {
+                    <li class="question-bank-option @(option.IsCorrect ? "is-correct" : "")">
+                        <span class="question-option-letter" aria-hidden="true"></span>
+                        <span class="preserve question-bank-option-content">@option.Content</span>
+                        @if (option.IsCorrect)
+                        {
+                            <strong class="question-bank-correct-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10" /></svg>
+                                Đáp án đúng
+                            </strong>
+                        }
+                    </li>
+                }
+            </ol>
+        </section>
 
-        <p>
-            <strong>Tiêu đề:</strong>
-            @Model.Stimulus.Title
-        </p>
-
-        @if (Model.Stimulus.StimulusType == StimulusType.Passage)
+        @if (!string.IsNullOrWhiteSpace(Model.Explanation))
         {
-            <p class="preserve">@Model.Stimulus.ContentText</p>
+            <section class="panel question-detail-card question-bank-explanation" aria-labelledby="question-explanation-title">
+                <h2 id="question-explanation-title">Giải thích đáp án</h2>
+                <p class="preserve">@Model.Explanation</p>
+            </section>
         }
-        else if (Model.Stimulus.StimulusType == StimulusType.Audio)
+    </div>
+
+    <div class="question-detail-column">
+        @if (Model.Stimulus != null)
         {
-            @if (!string.IsNullOrWhiteSpace(Model.Stimulus.ResourceUrl))
+            <section class="panel question-detail-card question-bank-stimulus" aria-labelledby="question-stimulus-title">
+                <h2 id="question-stimulus-title">Bài đọc và âm thanh</h2>
+                @if (!string.IsNullOrWhiteSpace(Model.Stimulus.Title))
+                {
+                    <p class="question-stimulus-title"><strong>Tiêu đề:</strong> @Model.Stimulus.Title</p>
+                }
+                @if (Model.Stimulus.StimulusType == StimulusType.Passage)
+                {
+                    <p class="preserve question-stimulus-passage">@Model.Stimulus.ContentText</p>
+                }
+                else if (Model.Stimulus.StimulusType == StimulusType.Audio)
+                {
+                    @if (!string.IsNullOrWhiteSpace(Model.Stimulus.ResourceUrl))
+                    {
+                        <audio controls preload="none" aria-label="@(string.IsNullOrWhiteSpace(Model.Stimulus.Title) ? "Âm thanh của câu hỏi" : Model.Stimulus.Title)" src="@Model.Stimulus.ResourceUrl">
+                            Trình duyệt không hỗ trợ phát âm thanh.
+                        </audio>
+                        <partial name="_ExternalStimulusAudioNotice" model="Model.Stimulus.ResourceUrl" />
+                    }
+                    else
+                    {
+                        <p class="question-stimulus-empty">Chưa có đường dẫn âm thanh.</p>
+                    }
+                }
+            </section>
+        }
+
+        <section class="panel question-detail-card question-detail-archive" aria-labelledby="question-archive-title">
+            <h2 id="question-archive-title">Lưu trữ câu hỏi</h2>
+            @if (Model.Status == QuestionStatus.Archived)
             {
-                @* Không tải trước audio; người dùng chủ động bấm phát. *@
-                <audio controls
-                       preload="none"
-                       aria-label="@Model.Stimulus.Title"
-                       src="@Model.Stimulus.ResourceUrl">
-                    Trình duyệt không hỗ trợ phát audio.
-                </audio>
-                <partial name="_ExternalStimulusAudioNotice" model="Model.Stimulus.ResourceUrl" />
+                <p>Câu hỏi đã được lưu trữ. Nội dung và dữ liệu lịch sử vẫn được giữ nguyên.</p>
             }
             else
             {
-                <p>Chưa có URL audio.</p>
+                <p>Sau khi lưu trữ, câu hỏi không được chọn cho bài luyện tập hoặc bài kiểm tra mới. Câu hỏi, các lựa chọn và dữ liệu làm bài đã có không bị xóa.</p>
+                <form asp-controller="TeacherQuestionBank" asp-action="Archive" asp-route-id="@Model.Id" method="post" asp-antiforgery="true">
+                    <button type="submit" class="button secondary">Lưu trữ câu hỏi</button>
+                </form>
             }
-        }
-    </section>
-}
-
-@* Archive chỉ đổi trạng thái, không xóa câu hỏi hoặc bài làm cũ. *@
-<section class="panel" aria-labelledby="question-archive-title">
-    <h2 id="question-archive-title">Lưu trữ câu hỏi</h2>
-
-    @if (Model.Status == QuestionStatus.Archived)
-    {
-        <p>
-            Câu hỏi đã được lưu trữ.
-            Nội dung và dữ liệu lịch sử vẫn được giữ nguyên.
-        </p>
-    }
-    else
-    {
-        <p>
-            Sau khi lưu trữ, câu hỏi không được chọn cho
-            Practice/Assessment mới.
-            Câu hỏi, các lựa chọn và dữ liệu làm bài đã có không bị xóa.
-        </p>
-
-        @* Tag Helper tạo URL gửi đến action Archive.
-           asp-antiforgery tạo token để Controller kiểm tra. *@
-        <form asp-controller="TeacherQuestionBank"
-              asp-action="Archive"
-              asp-route-id="@Model.Id"
-              method="post"
-              asp-antiforgery="true">
-            <button type="submit" class="button secondary">
-                Lưu trữ câu hỏi
-            </button>
-        </form>
-    }
-</section>
+        </section>
+    </div>
+</div>

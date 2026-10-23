@@ -81,6 +81,7 @@ async function postVisibleForm(page, selector) {
 
 async function createQuestion(page, number) {
   await page.goto('/TeacherQuestionBank/Create');
+  await page.locator('#Level').selectOption('A1');
   await page.locator('#Content').fill(`${runId} Grammar ${number}`);
   await page.locator('#PrimarySkill').selectOption('2');
   const options = page.locator('[data-option-row] input[name$=".Content"]');

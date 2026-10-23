@@ -1,108 +1,164 @@
 @using EnglishLearningPlatform.Domain.Enums
 @model EnglishLearningPlatform.Web.Models.QuestionBank.QuestionFormViewModel
 
-<form method="post" asp-controller="TeacherQuestionBank" asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" class="panel editor-form question-form">
+<form id="question-editor-form" method="post" asp-controller="TeacherQuestionBank" asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" class="editor-form question-form">
     <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
 
     @if (Model.IsEdit && Model.ScoringContentLocked)
     {
         <div class="notice" role="status">
-            <strong>Nội dung chấm đã bị khóa (TBR05):</strong>
+            <strong>Nội dung câu hỏi đã bị khóa:</strong>
             <span>@Model.LockReason</span>
-            <span>Bạn vẫn có thể cập nhật Trình độ, Độ khó. Giải thích cũng được giữ nguyên để bảo toàn phản hồi cũ. Muốn đổi nội dung hãy tạo Question/Stimulus mới.</span>
+            <span>Bạn vẫn có thể cập nhật trình độ. Giải thích được giữ nguyên để bảo toàn phản hồi cũ. Muốn đổi nội dung, hãy tạo câu hỏi, bài đọc hoặc âm thanh mới.</span>
         </div>
     }
 
-    <div class="form-group">
-        <label asp-for="Content">Nội dung câu hỏi <span class="required">*</span></label>
-        <textarea asp-for="Content" maxlength="4000" rows="5" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Nhập nội dung câu hỏi..."></textarea>
-        <span asp-validation-for="Content" class="validation"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="PrimarySkill">Kỹ năng chính <span class="required">*</span></label>
-        <select asp-for="PrimarySkill" class="form-control" disabled="@(Model.ScoringContentLocked ? "disabled" : null)">@foreach (var choice in Enum.GetValues<EnglishSkill>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }
-            <option value="">-- Chọn kỹ năng --</option>
-        </select>
-        @if (Model.ScoringContentLocked)
-        {
-            <input type="hidden" asp-for="PrimarySkill" />
-        }
-        <span asp-validation-for="PrimarySkill" class="validation"></span>
-    </div>
-
-    <div class="form-row">
-        <div class="form-group">
-            <label asp-for="Level">Trình độ (tùy chọn)</label>
-            <input asp-for="Level" maxlength="32" class="form-control" placeholder="Ví dụ: B1, B2" />
-            <span asp-validation-for="Level" class="validation"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="Difficulty">Độ khó (tùy chọn)</label>
-            <input asp-for="Difficulty" maxlength="32" class="form-control" placeholder="Ví dụ: Trung bình, Khó" />
-            <span asp-validation-for="Difficulty" class="validation"></span>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="StimulusId">Ngữ liệu đọc/nghe (tùy chọn)</label>
-        <select asp-for="StimulusId" class="form-control" disabled="@(Model.ScoringContentLocked ? "disabled" : null)">
-            <option value="">-- Không gắn ngữ liệu --</option>
-            @foreach (var stimulus in Model.Stimuli)
-            {
-                <option value="@stimulus.Id" selected="@(Model.StimulusId == stimulus.Id ? "selected" : null)">@stimulus.Label</option>
-            }
-        </select>
-        @if (Model.ScoringContentLocked)
-        {
-            <input type="hidden" asp-for="StimulusId" />
-        }
-        <span asp-validation-for="StimulusId" class="validation"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Explanation">Giải thích đáp án (tùy chọn)</label>
-        <textarea asp-for="Explanation" maxlength="4000" rows="3" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Giải thích lý do chọn đáp án đúng..."></textarea>
-        <span asp-validation-for="Explanation" class="validation"></span>
-    </div>
-
-    <fieldset class="question-options" data-question-options data-locked="@(Model.ScoringContentLocked ? "true" : "false")">
-        <legend>Lựa chọn và đáp án đúng <span class="required">*</span></legend>
-        <p class="muted">Cần ít nhất 2 lựa chọn không rỗng và chọn đúng 1 đáp án đúng. Thứ tự các lựa chọn sẽ được lưu theo thứ tự hiển thị.</p>
-        <span asp-validation-for="Options" class="validation"></span>
-        <div data-option-list>
-        @for (var index = 0; index < Model.Options.Count; index++)
-        {
-            <div class="question-option-row" data-option-row>
-                <div class="question-option-input">
-                    <label for="Options_@(index)__Content">Lựa chọn @(index + 1)</label>
-                    <input asp-for="Options[index].Content" id="Options_@(index)__Content" maxlength="1000" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Nhập nội dung lựa chọn..." />
-                    <span asp-validation-for="Options[index].Content" class="validation"></span>
+    <div class="question-editor-grid">
+        <div class="question-editor-card question-editor-content">
+            <section class="question-editor-section" aria-labelledby="question-content-heading">
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">01</span>
+                    <div>
+                        <h2 id="question-content-heading"><label asp-for="Content">Nội dung câu hỏi <span class="required">*</span></label></h2>
+                        <p id="question-content-help">Nhập câu hỏi rõ ràng, ngắn gọn.</p>
+                    </div>
                 </div>
-                <label class="check question-correct">
-                    <input type="radio" name="CorrectOptionIndex" value="@index" checked="@(Model.CorrectOptionIndex == index ? "checked" : null)" disabled="@(Model.ScoringContentLocked ? "disabled" : null)" />
-                    <span>Đáp án đúng</span>
-                </label>
+                <div class="question-text-editor" data-question-text-editor>
+                    @if (!Model.ScoringContentLocked)
+                    {
+                        <div class="question-editor-toolbar" role="group" aria-label="Công cụ soạn nội dung">
+                            <button type="button" data-text-command="undo" aria-label="Hoàn tác" title="Hoàn tác"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4 3 9l5 5M3 9h10a7 7 0 0 1 7 7v4" /></svg></button>
+                            <button type="button" data-text-command="redo" aria-label="Làm lại" title="Làm lại"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 4 5 5-5 5m5-5H11a7 7 0 0 0-7 7v4" /></svg></button>
+                            <span class="question-toolbar-divider" aria-hidden="true"></span>
+                            <button type="button" data-text-command="bullets" aria-label="Danh sách có dấu đầu dòng" title="Danh sách có dấu đầu dòng"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M3 6h.01M3 12h.01M3 18h.01" /></svg></button>
+                            <button type="button" data-text-command="numbers" aria-label="Danh sách đánh số" title="Danh sách đánh số"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6h11M10 12h11M10 18h11M3 3h1v5M3 8h3M3 12c3-2 4 1 1 3l-1 2h3" /></svg></button>
+                        </div>
+                    }
+                    <textarea asp-for="Content" maxlength="4000" rows="5" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Nhập nội dung câu hỏi..." aria-describedby="question-content-help question-content-count" data-question-content></textarea>
+                </div>
+                <div id="question-content-count" class="question-character-count"><span data-character-count>@(Model.Content?.Length ?? 0)</span> ký tự</div>
+                <span asp-validation-for="Content" class="validation"></span>
+            </section>
+
+            <fieldset class="question-options question-editor-section" data-question-options data-locked="@(Model.ScoringContentLocked ? "true" : "false")" aria-describedby="question-options-help">
+                <legend class="visually-hidden">Lựa chọn và đáp án đúng</legend>
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">02</span>
+                    <div>
+                        <h2>Lựa chọn &amp; đáp án <span class="required">*</span></h2>
+                        <p id="question-options-help">Thêm ít nhất 2 lựa chọn và chọn 1 đáp án đúng.</p>
+                    </div>
+                </div>
+                <span asp-validation-for="Options" class="validation"></span>
+                <span asp-validation-for="CorrectOptionIndex" class="validation"></span>
+                <div class="question-option-list" data-option-list>
+                    @for (var index = 0; index < Model.Options.Count; index++)
+                    {
+                        var letter = index < 26 ? ((char)('A' + index)).ToString() : (index + 1).ToString();
+                        <div class="question-option-row @(Model.CorrectOptionIndex == index ? "is-correct" : "")" data-option-row>
+                            <input type="radio" name="CorrectOptionIndex" value="@index" checked="@(Model.CorrectOptionIndex == index ? "checked" : null)" disabled="@(Model.ScoringContentLocked ? "disabled" : null)" aria-label="Chọn lựa chọn @letter làm đáp án đúng" />
+                            <label class="question-option-key" for="Options_@(index)__Content" aria-label="Lựa chọn @letter" data-option-letter>@letter</label>
+                            <div class="question-option-input">
+                                <input asp-for="Options[index].Content" id="Options_@(index)__Content" maxlength="1000" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Nhập nội dung lựa chọn..." />
+                                <span asp-validation-for="Options[index].Content" class="validation"></span>
+                            </div>
+                            <span class="question-correct-badge"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><span>Đáp án đúng</span></span>
+                            @if (!Model.ScoringContentLocked)
+                            {
+                                <button type="button" class="question-remove-option" data-remove-option aria-label="Xóa lựa chọn @letter" title="Xóa lựa chọn @letter" disabled="@(Model.Options.Count <= 2 ? "disabled" : null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6" /></svg></button>
+                            }
+                        </div>
+                    }
+                </div>
+                @if (!Model.ScoringContentLocked)
+                {
+                    <button type="button" class="question-add-option" data-add-option><span aria-hidden="true">+</span>Thêm lựa chọn</button>
+                }
                 @if (Model.ScoringContentLocked)
                 {
-                    <input type="hidden" name="Options[@index].Content" value="@Model.Options[index].Content" />
+                    <input type="hidden" name="CorrectOptionIndex" value="@Model.CorrectOptionIndex" />
                 }
-            </div>
-        }
-        </div>
-        @if (!Model.ScoringContentLocked)
-        {
-            <button type="button" class="button secondary small" data-add-option>Thêm lựa chọn</button>
-        }
-        @if (Model.ScoringContentLocked)
-        {
-            <input type="hidden" name="CorrectOptionIndex" value="@Model.CorrectOptionIndex" />
-        }
-    </fieldset>
+            </fieldset>
 
-    <div class="actions">
-        <button class="button" type="submit">@(Model.IsEdit ? "Lưu thay đổi" : "Tạo câu hỏi")</button>
-        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index">Hủy</a>
+            <section class="question-editor-section" aria-labelledby="question-explanation-heading">
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">03</span>
+                    <div>
+                        <h2 id="question-explanation-heading"><label asp-for="Explanation">Giải thích đáp án</label> <span class="question-optional">Tùy chọn</span></h2>
+                        <p id="question-explanation-help">Giúp học viên hiểu vì sao đáp án này đúng.</p>
+                    </div>
+                </div>
+                <textarea asp-for="Explanation" maxlength="4000" rows="3" class="form-control" readonly="@(Model.ScoringContentLocked ? "readonly" : null)" placeholder="Giải thích lý do chọn đáp án đúng..." aria-describedby="question-explanation-help"></textarea>
+                <span asp-validation-for="Explanation" class="validation"></span>
+            </section>
+            <p class="question-required-note"><span class="required">*</span> Các trường bắt buộc</p>
+        </div>
+
+        <aside class="question-editor-aside" aria-label="Thiết lập và hướng dẫn câu hỏi">
+            <section class="question-editor-card question-settings" aria-labelledby="question-settings-heading">
+                <div class="question-aside-heading">
+                    <span class="question-step" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h4m4 0h10M3 17h10m4 0h4" /><circle cx="9" cy="7" r="2" /><circle cx="15" cy="17" r="2" /></svg></span>
+                    <h2 id="question-settings-heading">Thiết lập câu hỏi</h2>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PrimarySkill">Kỹ năng chính <span class="required">*</span></label>
+                    <select asp-for="PrimarySkill" class="form-control" disabled="@(Model.ScoringContentLocked ? "disabled" : null)" required>
+                        <option value="">Chọn kỹ năng</option>
+                        @foreach (var choice in Enum.GetValues<EnglishSkill>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }
+                    </select>
+                    @if (Model.ScoringContentLocked)
+                    {
+                        <input type="hidden" asp-for="PrimarySkill" />
+                    }
+                    <span asp-validation-for="PrimarySkill" class="validation"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Level">Trình độ <span class="required">*</span></label>
+                    <select asp-for="Level" class="form-control" required>
+                        <option value="">Chọn trình độ</option>
+                        @foreach (var level in QuestionLevels.All) { <option value="@level">@level</option> }
+                    </select>
+                    <span asp-validation-for="Level" class="validation"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="StimulusId">Bài đọc và âm thanh <span class="question-field-optional">(tùy chọn)</span></label>
+                    <select asp-for="StimulusId" class="form-control" disabled="@(Model.ScoringContentLocked ? "disabled" : null)" aria-describedby="question-stimulus-help">
+                        <option value="">Không đính kèm</option>
+                        @foreach (var stimulus in Model.Stimuli)
+                        {
+                            <option value="@stimulus.Id" selected="@(Model.StimulusId == stimulus.Id ? "selected" : null)">@stimulus.Label</option>
+                        }
+                    </select>
+                    @if (Model.ScoringContentLocked)
+                    {
+                        <input type="hidden" asp-for="StimulusId" />
+                    }
+                    <span asp-validation-for="StimulusId" class="validation"></span>
+                    <p id="question-stimulus-help">Đính kèm bài đọc hoặc âm thanh nếu cần.</p>
+                </div>
+                <div class="question-type-note">
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
+                    <span>Trắc nghiệm một đáp án</span>
+                </div>
+            </section>
+            <section class="question-editor-card question-writing-tips" aria-labelledby="question-tips-heading">
+                <div class="question-aside-heading">
+                    <span class="question-step" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18v-2a6 6 0 1 1 6 0v2M9 18h6M10 21h4M12 1v1M3 4l1 1m16-1-1 1M1 11h1m20 0h1" /></svg></span>
+                    <h2 id="question-tips-heading">Một câu hỏi tốt</h2>
+                </div>
+                <ul>
+                    <li><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>Nội dung rõ ràng, dễ hiểu</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>Các lựa chọn không trùng lặp</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>Chỉ có một đáp án đúng</li>
+                </ul>
+            </section>
+            <div class="actions question-editor-actions">
+                @if (!Model.IsEdit)
+                {
+                    <a class="question-cancel" asp-controller="TeacherQuestionBank" asp-action="Index">Hủy</a>
+                }
+                <button class="button question-submit" type="submit">@if (!Model.IsEdit) { <span class="question-plus" aria-hidden="true">+</span> }@(Model.IsEdit ? "Lưu thay đổi" : "Tạo câu hỏi")</button>
+            </div>
+        </aside>
     </div>
 </form>

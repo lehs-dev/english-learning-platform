@@ -5,7 +5,7 @@
 - Từ lần Publish/Attempt đầu tiên, giữ nguyên nội dung Question, PrimarySkill,
   StimulusId, giải thích và tập Option (text, đúng/sai, thứ tự/ID).
 - Dấu `ContentLockedAtUtc` là một chiều. Unpublish, bỏ câu khỏi đề, Clone hoặc
-  Archive không xóa dấu này. Level/Difficulty vẫn là metadata được sửa.
+  Archive không xóa dấu này. Level vẫn là metadata được sửa.
 - `QuestionAuthoringService` trả lỗi theo trường; `ContentImmutabilityGuard` chặn
   thêm ở cả `SaveChanges` và `SaveChangesAsync`, kiểm tra dữ liệu đang lưu thật.
   Stimulus dùng chung không được sửa chỉ vì có một Question Draft khác tham chiếu.

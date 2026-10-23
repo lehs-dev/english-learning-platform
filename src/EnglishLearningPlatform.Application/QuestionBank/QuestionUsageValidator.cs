@@ -152,7 +152,6 @@ public sealed class QuestionUsageValidator : IQuestionUsageValidator
             Content = question.Content,
             PrimarySkill = question.PrimarySkill,
             Level = question.Level,
-            Difficulty = question.Difficulty,
             Explanation = question.Explanation,
             StimulusId = question.StimulusId,
             Options = optionRequests

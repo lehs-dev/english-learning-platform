@@ -51,7 +51,7 @@
         row.innerHTML =
             '<input type="hidden" data-question-id />' +
             '<p class="preserve" data-content></p>' +
-            '<label>Points ' +
+            '<label>Điểm ' +
                 '<input type="number" data-points min="0.01" ' +
                     'max="999999.99" step="0.01" value="1" required />' +
             '</label>' +

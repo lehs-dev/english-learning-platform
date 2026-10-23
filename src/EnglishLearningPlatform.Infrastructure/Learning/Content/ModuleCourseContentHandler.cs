@@ -22,7 +22,7 @@ public sealed class ModuleCourseContentHandler(AppDbContext db) : ICourseContent
     public void Validate(ContentInput input, IDictionary<string, string[]> errors)
     {
         if (string.IsNullOrWhiteSpace(input.Title)) errors[nameof(input.Title)] = ["Tên không được để trống."];
-        if (!Enum.IsDefined(input.Visibility)) errors[nameof(input.Visibility)] = ["Visibility không hợp lệ."];
+        if (!Enum.IsDefined(input.Visibility)) errors[nameof(input.Visibility)] = ["Trạng thái hiển thị chương học không hợp lệ."];
     }
 
     public async Task<WriteOutcome> StageSaveAsync(Guid courseId, Guid parentId, Guid? id, ContentInput input, CancellationToken ct)

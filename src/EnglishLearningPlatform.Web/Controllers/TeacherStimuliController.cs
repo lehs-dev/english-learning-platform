@@ -92,7 +92,7 @@ public sealed class TeacherStimuliController : Controller
 
         // Redirect sau POST để refresh không gửi lại thao tác vừa lưu.
         // Dropdown của form Question đã có sẵn cơ chế đọc ngữ liệu cùng owner.
-        TempData["Success"] = "Đã tạo ngữ liệu. Hãy chọn ngữ liệu vừa tạo trong mục Ngữ liệu đọc/nghe.";
+        TempData["Success"] = "Đã lưu nội dung. Hãy chọn bài đọc hoặc âm thanh vừa tạo trong mục Bài đọc và âm thanh.";
         return RedirectToAction(nameof(TeacherQuestionBankController.Create), "TeacherQuestionBank");
     }
 

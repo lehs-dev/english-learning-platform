@@ -551,7 +551,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             .Where(q => q.OwnerTeacherUserId == data.Teacher.Id).OrderBy(q => q.Id).ToListAsync();
         return JsonSerializer.Serialize(questions.Select(q => new
         {
-            q.Id, q.OwnerTeacherUserId, q.Content, q.PrimarySkill, q.Status, q.StimulusId, q.Level, q.Difficulty, q.Explanation, q.UpdatedAtUtc,
+            q.Id, q.OwnerTeacherUserId, q.Content, q.PrimarySkill, q.Status, q.StimulusId, q.Level, q.Explanation, q.UpdatedAtUtc,
             Lock = includeLocks ? q.ContentLockedAtUtc : null,
             Options = q.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex, o.UpdatedAtUtc }),
             Stimulus = q.Stimulus == null ? null : new
@@ -599,7 +599,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
     private static string Content(AssessmentEntity a) => JsonSerializer.Serialize(a.Questions.OrderBy(q => q.OrderIndex).Select(q => new
     {
         q.Id, q.QuestionId, q.OrderIndex, q.Points, q.Question.OwnerTeacherUserId, q.Question.Content,
-        q.Question.PrimarySkill, q.Question.Status, q.Question.Explanation, q.Question.Level, q.Question.Difficulty,
+        q.Question.PrimarySkill, q.Question.Status, q.Question.Explanation, q.Question.Level,
         q.Question.StimulusId, q.Question.UpdatedAtUtc,
         Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.OrderIndex, o.Content, o.IsCorrect, o.UpdatedAtUtc }),
         Stimulus = q.Question.Stimulus == null ? null : new
