@@ -4,6 +4,18 @@ namespace EnglishLearningPlatform.Application.Assessment;
 
 public sealed class ExamScoringService : IExamScoringService
 {
+    private readonly IScoringStrategy scoringStrategy;
+
+    public ExamScoringService() : this(new WeightedExamScoringStrategy())
+    {
+    }
+
+    public ExamScoringService(IScoringStrategy scoringStrategy)
+    {
+        ArgumentNullException.ThrowIfNull(scoringStrategy);
+        this.scoringStrategy = scoringStrategy;
+    }
+
     public ScoringResult Score(
         AssessmentEntity assessment,
         IReadOnlyCollection<QuestionResponse> responses)
@@ -13,31 +25,13 @@ public sealed class ExamScoringService : IExamScoringService
 
         var responseMap = responses
             .GroupBy(x => x.QuestionId)
-            .ToDictionary(x => x.Key, x => x.Last());
+            .ToDictionary(x => x.Key, x => x.Last().SelectedAnswerOptionId);
+        var questions = assessment.Questions.Select(question => new QuestionScoringItem(
+            question.QuestionId,
+            question.Points,
+            question.Question.Options.Where(option => option.IsCorrect).Select(option => option.Id).ToList()))
+            .ToList();
 
-        decimal score = 0m;
-        decimal maxScore = 0m;
-
-        foreach (var assessmentQuestion in assessment.Questions)
-        {
-            maxScore += assessmentQuestion.Points;
-
-            if (!responseMap.TryGetValue(assessmentQuestion.QuestionId, out var response))
-                continue;
-
-            var isCorrect = assessmentQuestion.Question.Options
-                .Any(option =>
-                    option.IsCorrect &&
-                    option.Id == response.SelectedAnswerOptionId);
-
-            if (isCorrect)
-                score += assessmentQuestion.Points;
-        }
-
-        var percentage = maxScore <= 0m
-            ? 0m
-            : Math.Round(score / maxScore * 100m, 2);
-
-        return new ScoringResult(score, maxScore, percentage);
+        return scoringStrategy.CalculateScore(questions, responseMap);
     }
 }

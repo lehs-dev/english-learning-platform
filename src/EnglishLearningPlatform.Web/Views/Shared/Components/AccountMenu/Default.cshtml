@@ -2,9 +2,6 @@
 
 @if (Model is not null)
 {
-    <button class="icon-button notification-button" type="button" aria-label="Thông báo" disabled>
-        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#bell")"></use></svg>
-    </button>
     <details class="account-menu" data-account-menu>
         <summary class="account-trigger" aria-label="Mở menu tài khoản của @Model.FullName">
             <span class="avatar" aria-hidden="true">@Model.Initial</span>
@@ -18,7 +15,7 @@
             }
             <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
-                Xem profile
+                Hồ sơ cá nhân
             </a>
             <form asp-controller="Account" asp-action="Logout" method="post">
                 <button class="dropdown-item logout-item" type="submit">

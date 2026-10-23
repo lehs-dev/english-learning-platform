@@ -9,7 +9,8 @@ services:
       ASPNETCORE_URLS: http://0.0.0.0:8080
       ConnectionStrings__DefaultConnection: "Server=db,1433;Database=EnglishLearningDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in local .env};TrustServerCertificate=True;MultipleActiveResultSets=true"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - devnet
 
@@ -19,9 +20,15 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in local .env}"
     ports:
-      - "1433:1433"
+      - "127.0.0.1:${ELP_SQL_PORT:-1433}:1433"
     volumes:
       - sqlserver-dev-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -Q 'SELECT 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
     networks:
       - devnet
 

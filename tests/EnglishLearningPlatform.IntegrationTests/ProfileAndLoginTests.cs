@@ -1,7 +1,11 @@
 using System.Net;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -35,12 +39,20 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
 
         var dashboard = WebUtility.HtmlDecode(await client.GetStringAsync(expectedWorkspace));
         Assert.Contains("data-account-menu", dashboard);
-        Assert.Contains("Xem profile", dashboard);
+        var accountMenu = Regex.Match(dashboard, "<details\\b[^>]*data-account-menu[^>]*>.*?</details>",
+            RegexOptions.Singleline);
+        Assert.True(accountMenu.Success);
+        Assert.Contains("href=\"/Profile\"", accountMenu.Value);
+        Assert.Contains("Hồ sơ cá nhân", accountMenu.Value);
         Assert.Contains(user.FullName, dashboard);
 
         var profile = WebUtility.HtmlDecode(await client.GetStringAsync("/Profile"));
         Assert.Contains(user.Email!, profile);
         Assert.Contains(roleLabel, profile);
+        if (role == AppRoles.Student)
+            Assert.Contains("id=\"assessment-results\"", profile);
+        else
+            Assert.DoesNotContain("id=\"assessment-results\"", profile);
 
         var token = await IdentityTestHelpers.GetTokenAsync(client, expectedWorkspace);
         using var logout = await client.PostAsync("/Account/Logout", new FormUrlEncodedContent(
@@ -70,6 +82,83 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         var user = await manager.FindByEmailAsync(email);
         Assert.NotNull(user);
         Assert.Equal(new[] { AppRoles.Student }, await manager.GetRolesAsync(user));
+    }
+
+    [Fact]
+    public async Task Register_PreservesLocalReturnUrl_AndShowsLoginSuccessNotice()
+    {
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        const string returnUrl = "/Practice";
+        var initialLoginHtml = WebUtility.HtmlDecode(await client.GetStringAsync(
+            $"/Account/Login?returnUrl={Uri.EscapeDataString(returnUrl)}"));
+        var registerLink = Regex.Match(initialLoginHtml, "href=\"([^\"]+)\"[^>]*>Đăng ký ngay");
+        Assert.True(registerLink.Success);
+        string getPath = registerLink.Groups[1].Value;
+        string registerHtml = WebUtility.HtmlDecode(await client.GetStringAsync(getPath));
+        Assert.Contains("name=\"ReturnUrl\"", registerHtml);
+        Assert.Contains($"value=\"{returnUrl}\"", registerHtml);
+        Assert.Contains("returnUrl=%2FPractice", registerHtml);
+
+        var token = await IdentityTestHelpers.GetTokenAsync(client, getPath);
+        var email = $"return-url-{Guid.NewGuid():N}@example.test";
+        using var response = await client.PostAsync("/Account/Register", new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                ["FullName"] = "Học viên quay lại", ["Email"] = email,
+                ["Password"] = IdentityTestHelpers.Password, ["ConfirmPassword"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl, ["__RequestVerificationToken"] = token
+            }));
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        var location = response.Headers.Location!;
+        Assert.Contains("/Account/Login?returnUrl=%2FPractice", location.ToString());
+
+        using var loginPage = await client.GetAsync(location);
+        Assert.Equal(HttpStatusCode.OK, loginPage.StatusCode);
+        string loginHtml = WebUtility.HtmlDecode(await loginPage.Content.ReadAsStringAsync());
+        Assert.Contains("Đăng ký thành công. Vui lòng đăng nhập.", loginHtml);
+        Assert.Contains("name=\"ReturnUrl\"", loginHtml);
+        Assert.Contains($"value=\"{returnUrl}\"", loginHtml);
+
+        using var login = await client.PostAsync("/Account/Login", new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                ["Email"] = email, ["Password"] = IdentityTestHelpers.Password, ["ReturnUrl"] = returnUrl,
+                ["__RequestVerificationToken"] = WebUtility.HtmlDecode(Regex.Match(loginHtml,
+                    "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value)
+            }));
+        Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        Assert.Equal(returnUrl, login.Headers.Location!.ToString());
+
+        // ReturnUrl ngoài site không được đưa vào form đăng ký.
+        string unsafeHtml = WebUtility.HtmlDecode(await client.GetStringAsync(
+            "/Account/Register?returnUrl=" + Uri.EscapeDataString("https://example.test/steal")));
+        Assert.DoesNotContain("example.test/steal", unsafeHtml);
+    }
+
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Production")]
+    public async Task Login_DemoPassword_RoundTripsSpecialCharacters_OnlyInDevelopment(string environment)
+    {
+        const string password = "Demo_&\"'\\</script><script>alert('test')</script>\r\n123!";
+        using var app = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment(environment);
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["LearningDemo:Enabled"] = "false", ["LearningDemo:Password"] = password,
+                ["Database:ApplyMigrationsOnStartup"] = "false"
+            }));
+        });
+        using var client = IdentityTestHelpers.CreateClient(app);
+        var html = await client.GetStringAsync("/Account/Login");
+        var literal = Regex.Match(html, "const demoPassword = ([^\\r\\n]+);");
+        Assert.True(literal.Success);
+        var scriptValue = literal.Groups[1].Value;
+        Assert.DoesNotContain("</script>", scriptValue);
+        Assert.Equal(environment == "Development" ? password : null, JsonSerializer.Deserialize<string>(scriptValue));
+        if (environment == "Production")
+            Assert.DoesNotContain("Demo", scriptValue);
     }
 
     [Fact]

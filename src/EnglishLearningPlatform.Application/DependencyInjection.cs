@@ -2,18 +2,26 @@ using EnglishLearningPlatform.Application.Assessment;
 using Microsoft.Extensions.DependencyInjection;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Application.Practice;
+using EnglishLearningPlatform.Application.Stimuli;
 namespace EnglishLearningPlatform.Application;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddScoped<IScoringStrategy, WeightedExamScoringStrategy>();
+        services.AddScoped<EqualWeightPracticeScoringStrategy>();
+        services.AddScoped<IPracticeScoringStrategy>(provider => provider.GetRequiredService<EqualWeightPracticeScoringStrategy>());
         services.AddScoped<IExamScoringService, ExamScoringService>();
         services.AddScoped<ICreateQuestionValidator, CreateQuestionValidator>();
         // Validator chỉ kiểm tra dữ liệu đầu vào, không truy cập database.
         services.AddScoped<ICreatePracticeValidator, CreatePracticeValidator>();
         // Cung cấp validator kiểm tra câu hỏi trước khi sử dụng.
         services.AddScoped<IQuestionUsageValidator, QuestionUsageValidator>();
+        // Validator ngữ liệu chỉ kiểm tra dữ liệu, không truy cập tài nguyên ngoài.
+        services.AddScoped<ICreateStimulusValidator, CreateStimulusValidator>();
+        // Bộ quy tắc chung cho Publish, sửa Published và Start mới.
+        services.AddScoped<IAssessmentDefinitionValidator, AssessmentDefinitionValidator>();
         return services;
     }
 }

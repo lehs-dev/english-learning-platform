@@ -1,0 +1,431 @@
+/* ==========================================================================
+   ESTUDY V2 — HOMEPAGE (CALM PASTEL EDTECH)
+   ========================================================================== */
+
+.landing-page {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    padding-bottom: 24px;
+}
+
+/* 1. Hero Card (Pastel Periwinkle) */
+.homepage-hero-card {
+    background: var(--v2-pastel-periwinkle);
+    border-radius: 26px;
+    padding: 42px 48px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 32px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
+}
+
+.homepage-hero-content {
+    z-index: 2;
+}
+
+.homepage-hero-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--v2-dark);
+    line-height: 1.25;
+    margin-bottom: 14px;
+    letter-spacing: -0.6px;
+}
+
+.homepage-hero-desc {
+    font-size: 14.5px;
+    color: var(--v2-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    max-width: 520px;
+}
+
+.homepage-hero-cta-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.homepage-hero-trust {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 24px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--v2-dark);
+    opacity: 0.85;
+    flex-wrap: wrap;
+}
+
+.homepage-hero-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+/* 2. Section Headers */
+.homepage-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.homepage-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.section-title-large {
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--v2-dark);
+    letter-spacing: -0.3px;
+    margin: 0;
+}
+
+.section-subtitle-clean {
+    font-size: 13.5px;
+    color: var(--v2-text-muted);
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+/* 3. Filter Pills Bar */
+.filter-pills-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-pill-item {
+    background: #F6F7FA;
+    border: none;
+    padding: 7px 16px;
+    border-radius: var(--v2-radius-pill);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--v2-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.filter-pill-item:hover {
+    background: #EBECEF;
+    color: var(--v2-dark);
+}
+
+.filter-pill-item.active {
+    background: var(--v2-dark);
+    color: #FFFFFF;
+}
+
+/* 4. 3-Column Course Grid */
+.homepage-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+}
+
+.course-item-card {
+    background: var(--v2-surface);
+    border: 1px solid var(--v2-border-light);
+    border-radius: 24px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 14px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.course-item-card:hover {
+    border-color: var(--v2-border-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(110, 95, 200, 0.08);
+}
+
+.upcoming-tags-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.upcoming-title-price {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.upcoming-course-name {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--v2-dark);
+    line-height: 1.35;
+    margin: 0;
+}
+
+.upcoming-course-name a {
+    color: inherit;
+    text-decoration: none;
+}
+.upcoming-course-name a:hover {
+    text-decoration: underline;
+}
+
+.upcoming-course-price {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--v2-dark);
+    white-space: nowrap;
+}
+
+.upcoming-course-desc {
+    font-size: 12.5px;
+    color: var(--v2-text-muted);
+    line-height: 1.45;
+    margin: 8px 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.upcoming-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--v2-text-muted);
+    margin-top: 12px;
+}
+
+.upcoming-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.upcoming-meta-item .icon {
+    width: 15px;
+    height: 15px;
+}
+
+.upcoming-bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 1px solid var(--v2-border-light);
+}
+
+.course-teacher-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--v2-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.course-teacher-label .icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* 5. 4-Step Journey Pastel Cards */
+.journey-steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.journey-pastel-card {
+    border-radius: 22px;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 180px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.journey-pastel-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.journey-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.progress-icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--v2-dark);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.journey-num {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--v2-dark);
+    opacity: 0.5;
+}
+
+.journey-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--v2-dark);
+    margin: 0 0 6px;
+}
+
+.journey-desc {
+    font-size: 12.5px;
+    color: var(--v2-text-secondary);
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* 6. Top Articles & Methodology (2 Clean Cards) */
+.articles-cards-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.article-clean-card {
+    background: var(--v2-surface);
+    border: 1px solid var(--v2-border-light);
+    border-radius: 22px;
+    padding: 16px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+}
+
+.article-clean-card:hover {
+    border-color: var(--v2-border-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(110, 95, 200, 0.06);
+    text-decoration: none;
+    color: inherit;
+}
+
+.article-art-box {
+    background: #FAF9FE;
+    border-radius: 16px;
+    height: 135px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    overflow: hidden;
+    position: relative;
+}
+
+.article-clean-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--v2-dark);
+    line-height: 1.4;
+    margin: 0 0 8px;
+}
+
+.article-clean-meta {
+    font-size: 12px;
+    color: var(--v2-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+}
+.article-clean-meta .icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* 7. Homepage Clean CTA Card */
+.homepage-cta-card {
+    background: var(--v2-pastel-periwinkle);
+    border-radius: 26px;
+    padding: 42px 36px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.homepage-cta-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--v2-dark);
+    letter-spacing: -0.4px;
+    margin: 0;
+}
+
+.homepage-cta-desc {
+    font-size: 14.5px;
+    color: var(--v2-text-secondary);
+    max-width: 540px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Responsive Queries */
+@media (max-width: 992px) {
+    .homepage-hero-card {
+        grid-template-columns: 1fr;
+        padding: 32px 24px;
+        text-align: center;
+    }
+    .homepage-hero-cta-group,
+    .homepage-hero-trust {
+        justify-content: center;
+    }
+    .homepage-courses-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .journey-steps-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .homepage-hero-title {
+        font-size: 26px;
+    }
+    .homepage-courses-grid {
+        grid-template-columns: 1fr;
+    }
+    .journey-steps-grid {
+        grid-template-columns: 1fr;
+    }
+    .articles-cards-row {
+        grid-template-columns: 1fr;
+    }
+}

@@ -75,7 +75,7 @@ public sealed partial class CheckoutFlowTests(CheckoutTestFactory factory) : ICl
         Assert.Equal(HttpStatusCode.OK, preview.StatusCode);
         var html = await preview.Content.ReadAsStringAsync();
         Assert.Contains(course.Title, html); Assert.Contains("199.000", html);
-        Assert.Contains("không thu tiền thật", html);
+        Assert.Contains("Thử nghiệm (Sandbox)", html);
         SaveBrowserArtifact("checkout.html", html);
         await AssertCounts(course.Id, 0, 0, 0);
 
@@ -233,7 +233,7 @@ public sealed partial class CheckoutFlowTests(CheckoutTestFactory factory) : ICl
         { ["scenario"] = "success", ["Status"] = "Failed", ["Amount"] = "1", ["__RequestVerificationToken"] = token }));
         Assert.Equal(HttpStatusCode.Redirect, simulation.StatusCode);
         using var result = await client.GetAsync(simulation.Headers.Location);
-        var html = await result.Content.ReadAsStringAsync(); Assert.Contains("Thanh toán thử nghiệm thành công. Bạn đã có thể bắt đầu học.", WebUtility.HtmlDecode(html)); Assert.Contains("Vào học", html);
+        var html = await result.Content.ReadAsStringAsync(); Assert.Contains("Thanh toán mô phỏng thành công.", WebUtility.HtmlDecode(html)); Assert.Contains("Vào phòng học ngay", html);
         SaveBrowserArtifact("success.html", html);
         using var lesson = await client.GetAsync($"/Learning/Lesson/{course.Modules.First().Lessons.First().Id}");
         Assert.Equal(HttpStatusCode.OK, lesson.StatusCode);

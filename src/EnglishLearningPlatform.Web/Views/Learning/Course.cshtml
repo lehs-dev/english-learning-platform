@@ -1,31 +1,119 @@
+@using EnglishLearningPlatform.Domain.Enums
 @model CoursePage
-@{ ViewData["Title"] = Model.Course.Title; }
-@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
-<a asp-action="Index">← Khu học tập</a><div class="page-heading"><div><h1>@Model.Course.Title</h1><span class="badge">@Model.Course.Status</span>
-@if (Model.Progress?.CompletedAtUtc is DateTimeOffset completedAt)
-{
-    <span class="badge course-completed">Đã hoàn thành khóa học</span>
-    <p class="muted">Ngày hoàn thành: <time datetime="@completedAt.ToString("O")">@completedAt.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") (UTC+7)</time></p>
-}</div>
-@if (Model.IsOwner) { <a class="button" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a> }</div>
-@if (Model.Course.Status == CourseStatus.Archived) { <p class="notice">Khóa học đã lưu trữ. Bạn vẫn được đọc nội dung; không ghi progress mới.</p> }
-@if (Model.Course.Status == CourseStatus.Unpublished) { <p class="notice">Khóa học đã ngừng nhận học viên mới. Bạn vẫn có thể tiếp tục học.</p> }
-@if (Model.Progress is not null) { <partial name="_LearningProgress" model="Model.Progress" /> }
-<p class="muted">Chọn bất kỳ bài học khả dụng nào để bắt đầu.</p><partial name="_CourseOutline" model="Model" />
-
-@if (ViewData["Activities"] is CourseActivities activities) { <partial name="_CourseActivities" model="activities" /> }
-
-@if (Model.FinalAssessmentId.HasValue && !Model.IsOwner)
-{
-    <section class="panel" aria-labelledby="final-assessment-title">
-        <h2 id="final-assessment-title">Bài thi kết thúc khóa</h2>
-        @if (ViewData["FinalAssessment"] is EnglishLearningPlatform.Application.Assessment.AssessmentOverviewModel final)
-        {
-            <h3>@final.Title</h3>
-            <partial name="_AssessmentDetails" model="final" />
-            <p class="muted">Hoàn thành tất cả bài học và đạt bài thi kết thúc khóa để nhận trạng thái hoàn thành. Ngày hoàn thành và điểm đã đạt được giữ trong lịch sử.</p>
-            <a class="button" asp-controller="Assessment" asp-action="Take" asp-route-id="@final.AssessmentId">@(final.ActiveAttemptId.HasValue ? "Tiếp tục làm bài" : "Xem bài thi và lịch sử")</a>
-        }
-        else { <p class="notice">Bài thi hiện chưa khả dụng. Kết quả và ngày hoàn thành đã ghi nhận vẫn được lưu.</p> }
-    </section>
+@{
+    ViewData["Title"] = Model.Course.Title;
+    ViewData["ActiveSection"] = "courses";
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+}
+
+<div class="course-study-room">
+    <div style="margin-bottom: 20px;">
+        <a class="button secondary exam-back-btn" asp-action="Index">
+            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+            <span>Khóa học của tôi</span>
+        </a>
+    </div>
+
+    <!-- Course Room Hero Card -->
+    <div class="card-v2" style="padding: 32px; margin-bottom: 24px; position: relative; overflow: hidden; background: linear-gradient(135deg, #FAF9FE 0%, #FFFFFF 100%);">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+            <div style="max-width: 760px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <span class="v2-pill-tag">Phòng học</span>
+                    <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;"><partial name="_UiText" model="Model.Course.Status" /></span>
+                    @if (Model.Progress?.CompletedAtUtc is DateTimeOffset completedAt)
+                    {
+                        <span class="v2-pill-tag" style="background: var(--v2-pastel-periwinkle); color: var(--v2-dark); font-weight: 700;">
+                            Đã hoàn thành khóa học
+                        </span>
+                    }
+                </div>
+                <h1 style="font-size: 28px; font-weight: 800; color: var(--v2-dark); margin: 0 0 10px; letter-spacing: -0.4px;">@Model.Course.Title</h1>
+                <p style="color: var(--v2-text-secondary); margin: 0; font-size: 14.5px; line-height: 1.6;">
+                    @(Model.Course.Teacher is not null ? $"Giảng viên: {Model.Course.Teacher}" : "")
+                </p>
+            </div>
+            @if (Model.IsOwner)
+            {
+                <a class="btn-dark" style="padding: 10px 18px;" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a>
+            }
+        </div>
+
+        @if (Model.Course.Status == CourseStatus.Archived)
+        {
+            <div class="notice" style="margin-top: 20px;">Khóa học đã lưu trữ. Bạn vẫn được đọc nội dung; không ghi tiến độ mới.</div>
+        }
+        @if (Model.Course.Status == CourseStatus.Unpublished)
+        {
+            <div class="notice" style="margin-top: 20px;">Khóa học đã ngừng nhận học viên mới. Bạn vẫn có thể tiếp tục học.</div>
+        }
+
+        @if (Model.Progress is not null)
+        {
+            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--v2-border-light);">
+                <partial name="_LearningProgress" model="Model.Progress" />
+                @if (Model.Progress.TotalLessons > 0 &&
+                     Model.Progress.CompletedLessons >= Model.Progress.TotalLessons &&
+                     Model.Progress.CompletedAtUtc is null)
+                {
+                    <div class="notice" style="margin-top: 14px;" role="status">
+                        Bạn đã hoàn thành tất cả bài học.
+                        @if (Model.FinalAssessmentId.HasValue)
+                        {
+                            <text>Hãy làm bài thi cuối khóa để hoàn tất khóa học.</text>
+                        }
+                        else
+                        {
+                            <text>Khóa học chưa có bài thi cuối khóa.</text>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Course Outline / Syllabus Heading -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="v2-pill-tag">Giáo trình</span>
+            <h2 style="font-size: 20px; font-weight: 800; margin: 0; color: var(--v2-dark);">Nội dung các bài học</h2>
+        </div>
+        <p class="muted" style="margin: 0;">Chọn bài học để bắt đầu học</p>
+    </div>
+
+    <partial name="_CourseOutline" model="Model" />
+
+    @if (ViewData["Activities"] is CourseActivities activities)
+    {
+        <partial name="_CourseActivities" model="activities" />
+    }
+
+    <!-- Final Assessment Card -->
+    @if (Model.FinalAssessmentId.HasValue && !Model.IsOwner)
+    {
+        <section class="card-v2" aria-labelledby="final-assessment-title" style="padding: 32px; margin-top: 28px; background: #FFFDF5; border-color: #FEF3C7;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Đánh giá cuối khóa</span>
+                <h2 id="final-assessment-title" style="margin: 0; font-size: 20px; font-weight: 800; color: var(--v2-dark);">Bài thi kết thúc khóa học</h2>
+            </div>
+            @if (ViewData["FinalAssessment"] is EnglishLearningPlatform.Application.Assessment.AssessmentOverviewModel final)
+            {
+                <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 14px; color: var(--v2-dark);">@final.Title</h3>
+                <partial name="_AssessmentDetails" model="final" />
+                <p style="color: var(--v2-text-secondary); font-size: 13.5px; margin: 16px 0 20px; line-height: 1.6;">
+                    Hoàn thành tất cả bài học và đạt bài thi kết thúc khóa để nhận trạng thái hoàn thành. Ngày hoàn thành và điểm đã đạt được lưu vĩnh viễn trong hồ sơ của bạn.
+                </p>
+                <a class="button" style="padding: 12px 28px; font-size: 14px;" asp-controller="Assessment" asp-action="Take" asp-route-id="@final.AssessmentId">
+                    @(final.ActiveAttemptId.HasValue ? "Tiếp tục làm bài thi" : "Xem thông tin & Bắt đầu làm bài") &rarr;
+                </a>
+            }
+            else
+            {
+                <div class="notice">Bài thi hiện chưa khả dụng. Kết quả và ngày hoàn thành đã ghi nhận vẫn được lưu.</div>
+            }
+        </section>
+    }
+</div>

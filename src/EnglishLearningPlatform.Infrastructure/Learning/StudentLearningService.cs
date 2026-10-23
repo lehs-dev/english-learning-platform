@@ -5,19 +5,87 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.Learning;
 
-public sealed class StudentLearningService(AppDbContext db, ICourseService courses,
+public sealed class StudentLearningService(AppDbContext db, IStudentLearningCourseService courses,
     ILearningAccessService access, TimeProvider time) : IStudentLearningService
 {
     public async Task<LearningOutcome<StudentDashboard>> DashboardAsync(Guid studentId, CancellationToken ct = default)
     {
         var mine = await courses.MyCoursesAsync(studentId, false, ct);
         if (mine.Access != LearningAccessResult.Allowed) return new(mine.Access);
-        var results = await RepresentativeResultsAsync(studentId, ct);
+        var representativeResults = await GetRepresentativeResultsAsync(studentId, ct);
+        if (representativeResults.Access != LearningAccessResult.Allowed) return new(representativeResults.Access);
+        var results = representativeResults.Value!;
         var recommendations = await RecommendationsAsync(studentId, mine.Value!, results, ct);
-        var practiceResults = await db.PracticeSubmissions.AsNoTracking().Where(s => s.StudentUserId == studentId)
+        var practiceResults = await RecentPracticeResultsAsync(studentId, ct);
+        var weekStart = CurrentWeekStart();
+        var weeklyActivities = await WeeklyActivitiesAsync(studentId, weekStart, ct);
+        return new(LearningAccessResult.Allowed, new(mine.Value!, results, recommendations)
+        {
+            PracticeResults = practiceResults,
+            WeekStartDate = weekStart,
+            WeeklyActivities = weeklyActivities
+        });
+    }
+
+    private DateOnly CurrentWeekStart()
+    {
+        var local = time.GetUtcNow().ToOffset(TimeSpan.FromHours(7));
+        var date = DateOnly.FromDateTime(local.DateTime);
+        var daysSinceMonday = ((int)date.DayOfWeek + 6) % 7;
+        return date.AddDays(-daysSinceMonday);
+    }
+
+    private async Task<List<DashboardActivity>> WeeklyActivitiesAsync(Guid studentId,
+        DateOnly weekStart, CancellationToken ct)
+    {
+        var startUtc = new DateTimeOffset(weekStart.ToDateTime(TimeOnly.MinValue), TimeSpan.FromHours(7)).ToUniversalTime();
+        var endUtc = startUtc.AddDays(7);
+        var accessibleLessons = db.Lessons.Effective().Where(l =>
+            (l.Module.Course.Status == CourseStatus.Published || l.Module.Course.Status == CourseStatus.Unpublished ||
+             l.Module.Course.Status == CourseStatus.Archived) &&
+            db.Enrollments.Valid().Any(e => e.StudentUserId == studentId && e.CourseId == l.Module.CourseId));
+        var lessons = await db.LessonProgressEntries.AsNoTracking()
+            .Where(p => p.IsCompleted && p.Enrollment.StudentUserId == studentId &&
+                p.UpdatedAtUtc >= startUtc && p.UpdatedAtUtc < endUtc)
+            .Select(p => new DashboardActivity(DashboardActivityKind.LessonCompleted, p.LessonId,
+                p.Enrollment.CourseId, p.Lesson.Title, p.UpdatedAtUtc!.Value)
+                { CanOpenTarget = accessibleLessons.Any(l => l.Id == p.LessonId) }).ToListAsync(ct);
+        var practices = await db.PracticeSubmissions.AsNoTracking()
+            .Where(s => s.StudentUserId == studentId && s.SubmittedAtUtc >= startUtc && s.SubmittedAtUtc < endUtc)
+            .Select(s => new DashboardActivity(DashboardActivityKind.PracticeSubmitted, s.PracticeId,
+                s.Practice.LessonId.HasValue ? s.Practice.Lesson!.Module.CourseId : s.Practice.Module!.CourseId,
+                s.Practice.Title, s.SubmittedAtUtc)).ToListAsync(ct);
+        var assessments = await db.Attempts.AsNoTracking()
+            .Where(a => a.StudentUserId == studentId && a.Status == AttemptStatus.Graded &&
+                a.FinalizedAtUtc.HasValue && a.FinalizedAtUtc >= startUtc && a.FinalizedAtUtc < endUtc)
+            .Select(a => new DashboardActivity(DashboardActivityKind.AssessmentFinalized, a.Id,
+                a.Assessment.CourseId, a.Assessment.Title, a.FinalizedAtUtc!.Value)).ToListAsync(ct);
+        return lessons.Concat(practices).Concat(assessments)
+            .OrderBy(a => a.OccurredAtUtc).ThenBy(a => a.TargetId).ToList();
+    }
+
+    public async Task<LearningOutcome<PracticeHubPage>> PracticeHubAsync(Guid studentId, CancellationToken ct = default)
+    {
+        var dashboard = await DashboardAsync(studentId, ct);
+        if (dashboard.Access != LearningAccessResult.Allowed) return new(dashboard.Access);
+        var practices = await PracticesAsync(studentId, null, ct);
+        return new(LearningAccessResult.Allowed, new PracticeHubPage(
+            practices, dashboard.Value!.PracticeResults, dashboard.Value.Recommendations));
+    }
+
+    private Task<List<DashboardPracticeResult>> RecentPracticeResultsAsync(Guid studentId, CancellationToken ct) =>
+        db.PracticeSubmissions.AsNoTracking().Where(s => s.StudentUserId == studentId)
             .OrderByDescending(s => s.SubmittedAtUtc).ThenBy(s => s.Id).Take(20)
-            .Select(s => new DashboardPracticeResult(s.PracticeId, s.Practice.Title, s.Score, s.SubmittedAtUtc)).ToListAsync(ct);
-        return new(LearningAccessResult.Allowed, new(mine.Value!, results, recommendations) { PracticeResults = practiceResults });
+            .Select(s => new DashboardPracticeResult(s.PracticeId, s.Practice.Title, s.Score, s.SubmittedAtUtc))
+            .ToListAsync(ct);
+
+    public async Task<LearningOutcome<IReadOnlyList<RepresentativeAssessmentResult>>> GetRepresentativeResultsAsync(
+        Guid studentId, CancellationToken ct = default)
+    {
+        // Profile không cần tải khóa học/gợi ý, nhưng vẫn phải kiểm tra Student trong database.
+        if (!await db.IsStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
+        var results = await RepresentativeResultsAsync(studentId, ct);
+        return new(LearningAccessResult.Allowed, results);
     }
 
     public async Task<LearningOutcome<CourseActivities>> ActivitiesAsync(Guid studentId, Guid courseId, CancellationToken ct = default)
@@ -40,6 +108,7 @@ public sealed class StudentLearningService(AppDbContext db, ICourseService cours
             .Where(p => !courseId.HasValue || (p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId) == courseId)
             .OrderBy(p => p.Title).ThenBy(p => p.Id)
             .Select(p => new { p.Id, CourseId = p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
+                CourseTitle = p.LessonId.HasValue ? p.Lesson!.Module.Course.Title : p.Module!.Course.Title,
                 p.ModuleId, p.LessonId, p.Title, Count = p.Questions.Count }).ToListAsync(ct);
         var ids = rows.Select(p => p.Id).ToArray();
         if (ids.Length == 0) return [];
@@ -49,7 +118,7 @@ public sealed class StudentLearningService(AppDbContext db, ICourseService cours
             .Select(q => new { q.PracticeId, q.Question.PrimarySkill }).Distinct().ToListAsync(ct);
         var groups = skills.ToLookup(q => q.PracticeId, q => q.PrimarySkill);
         return rows.Select(p => new PracticeLink(p.Id, p.CourseId, p.ModuleId, p.LessonId, p.Title, p.Count,
-            groups[p.Id].Order().ToList())).ToList();
+            groups[p.Id].Order().ToList(), p.CourseTitle)).ToList();
     }
 
     private async Task<List<AssessmentLink>> AssessmentLinksAsync(Guid studentId, Guid? courseId, CancellationToken ct)
@@ -73,7 +142,8 @@ public sealed class StudentLearningService(AppDbContext db, ICourseService cours
     private async Task<List<RepresentativeAssessmentResult>> RepresentativeResultsAsync(Guid studentId, CancellationToken ct)
     {
         var attempts = await db.Attempts.AsNoTracking().Where(t => t.StudentUserId == studentId &&
-            t.Status == AttemptStatus.Graded && t.OverallScore.HasValue && t.FinalizedAtUtc.HasValue)
+            t.Status == AttemptStatus.Graded && t.OverallScore.HasValue && t.FinalizedAtUtc.HasValue &&
+            t.FinalizationReason.HasValue)
             .Select(t => new { t.Id, t.AssessmentId, t.Assessment.Title, Score = t.OverallScore!.Value, Finalized = t.FinalizedAtUtc!.Value })
             .ToListAsync(ct);
         // BR11.1: overall and skills come from the same highest-score attempt.

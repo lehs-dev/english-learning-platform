@@ -1,3 +1,12 @@
 @model ResourceContent
-@{ ViewData["Title"] = Model.Title ?? "Resource"; }
-<partial name="_ResourceContent" model="Model" />
+@{ ViewData["Title"] = Model.Title ?? "Tài nguyên"; }
+
+<div class="v2-resource-page" style="max-width: 860px; margin: 24px auto;">
+    <div style="margin-bottom: 20px;">
+        <h1 style="font-size: 28px; font-weight: 800; color: #191A23; letter-spacing: -0.02em; margin: 0 0 8px;">Tài nguyên bài học</h1>
+        <p style="font-size: 14px; color: #64748B; margin: 0;">Tài liệu và học liệu bổ trợ phục vụ quá trình học tập.</p>
+    </div>
+    <div class="v2-card" style="background: #FFFFFF; border: 1px solid var(--v2-border, #E4E4EE); border-radius: 24px; padding: 32px; box-shadow: var(--v2-shadow-card, 0 10px 30px rgba(25, 26, 35, 0.05));">
+        <partial name="_ResourceContent" model="Model" />
+    </div>
+</div>

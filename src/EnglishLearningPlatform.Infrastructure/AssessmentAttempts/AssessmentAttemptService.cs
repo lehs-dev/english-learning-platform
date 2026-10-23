@@ -1,5 +1,6 @@
 using System.Data;
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -13,8 +14,14 @@ namespace EnglishLearningPlatform.Infrastructure.AssessmentAttempts;
 public sealed class AssessmentAttemptService(
     AppDbContext db,
     UserManager<ApplicationUser> users,
-    IExamScoringService scoring) : IAttemptService
+    IExamScoringService scoring,
+    // Dùng chung quy tắc kiểm tra định nghĩa đề với Teacher Publish.
+    IAssessmentDefinitionValidator definitionValidator,
+    TimeProvider timeProvider,
+    IActiveUserValidator? activeUsers = null) : IAttemptService
 {
+    private readonly IActiveUserValidator activeUserValidator = activeUsers ?? new ActiveUserValidator(users);
+
     public async Task<AttemptStartResult> StartAsync(
         Guid studentId,
         Guid assessmentId,
@@ -41,15 +48,11 @@ public sealed class AssessmentAttemptService(
 
         if (snapshot.CourseId is Guid courseId)
         {
-            course = await db.Courses.FromSqlInterpolated(
-                $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}"
-            ).SingleOrDefaultAsync(ct);
+            course = await db.CoursesForUpdate(courseId).SingleOrDefaultAsync(ct);
         }
 
         // Mọi Start cùng Assessment đi qua khóa này.
-        var assessment = await db.Assessments.FromSqlInterpolated(
-            $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {assessmentId}"
-        ).SingleOrDefaultAsync(ct);
+        var assessment = await db.AssessmentsForUpdate(assessmentId).SingleOrDefaultAsync(ct);
 
         if (assessment is null || assessment.CourseId != snapshot.CourseId)
         {
@@ -57,16 +60,7 @@ public sealed class AssessmentAttemptService(
         }
 
         //Quyền Student cũng phải được kiểm tra ở Server
-        var student = await users.FindByIdAsync(studentId.ToString());
-
-        if (student is null || student.AccountStatus != AccountStatus.Active)
-        {
-            return new(AttemptStartStatus.Forbidden);
-        }
-
-        var roles = await users.GetRolesAsync(student);
-
-        if (roles.Count != 1 || roles[0] != AppRoles.Student)
+        if (!await activeUserValidator.IsActiveStudentAsync(studentId, ct))
         {
             return new(AttemptStartStatus.Forbidden);
         }
@@ -90,7 +84,8 @@ public sealed class AssessmentAttemptService(
             }
         }
 
-        var now = DateTimeOffset.UtcNow;
+        // Đồng hồ server được dùng chung với query; test có thể cố định đúng tick deadline.
+        var now = timeProvider.GetUtcNow();
 
         var active = await db.Attempts.SingleOrDefaultAsync(
             a => a.StudentUserId == studentId &&
@@ -162,13 +157,44 @@ public sealed class AssessmentAttemptService(
             }
         }
 
-        //Assessment Published phải có đề hợp lệ.
-        var questionCount = await db.AssessmentQuestions.CountAsync(
-            q => q.AssessmentId == assessmentId, ct
-        );
+        // Assessment Published phải có đề hợp lệ.
+        // Chỉ tới đây khi không có Attempt đang làm cần Resume/finalize.
+        // Không chuyển đoạn kiểm tra này lên trước phần xử lý active Attempt.
 
-        if (questionCount < 5 || assessment.DurationMinutes <= 0)
+        // Đọc dữ liệu thật, gồm Options và Stimulus để kiểm tra toàn bộ đề.
+        // AsNoTracking: các entity này chỉ dùng để kiểm tra, không sửa nội dung.
+        var questions = await db.AssessmentQuestions
+            .AsNoTracking()
+            .Where(item => item.AssessmentId == assessmentId)
+            .Include(item => item.Question)
+                .ThenInclude(question => question.Options)
+            .Include(item => item.Question)
+                .ThenInclude(question => question.Stimulus)
+            .AsSingleQuery()
+            .OrderBy(item => item.OrderIndex)
+            .ThenBy(item => item.Id)
+            .ToListAsync(ct);
+
+        // Đọc các Course đang chọn đề này làm Final.
+        // Cần kiểm tra cả tham chiếu Final, không chỉ CourseId của Assessment.
+        var finalCourses = await db.Courses
+            .AsNoTracking()
+            .Where(item => item.FinalAssessmentId == assessmentId)
+            .ToListAsync(ct);
+
+        // Đây là đề đã Published, không phải lần Publish đầu tiên.
+        // Câu Archived đã thuộc đề vẫn được kiểm tra theo ExistingUse.
+        var definitionErrors = definitionValidator.Validate(
+            assessment,
+            questions,
+            course,
+            finalCourses,
+            isFirstPublish: false);
+
+        if (definitionErrors.Count > 0)
         {
+            // Dừng trước khi tạo Attempt.
+            // Không trả chi tiết lỗi nội dung hoặc đáp án cho Student.
             return new(AttemptStartStatus.Unavailable);
         }
 
@@ -190,10 +216,21 @@ public sealed class AssessmentAttemptService(
     }
 
 
-    public async Task<AttemptFinalizeResult> FinalizeAsync(
+    public Task<AttemptFinalizeResult> FinalizeAsync(
         Guid studentId,
         Guid attemptId,
-        CancellationToken ct = default)
+        CancellationToken ct = default) =>
+        FinalizeCoreAsync(studentId, attemptId, onlyExpired: false, ct);
+
+    public Task<AttemptFinalizeResult> FinalizeExpiredAsync(
+        Guid studentId,
+        Guid attemptId,
+        CancellationToken ct = default) =>
+        FinalizeCoreAsync(studentId, attemptId, onlyExpired: true, ct);
+
+    // Hai đường dùng chung quyền, thứ tự khóa và thao tác chấm; không có công thức chấm thứ hai.
+    private async Task<AttemptFinalizeResult> FinalizeCoreAsync(
+        Guid studentId, Guid attemptId, bool onlyExpired, CancellationToken ct)
     {
         var snapshot = await db.Attempts.AsNoTracking()
             .Where(a => a.Id == attemptId)
@@ -219,21 +256,18 @@ public sealed class AssessmentAttemptService(
         // Course -> Assessment -> Attempt.
         if (snapshot.CourseId is Guid courseId)
         {
-            await db.Courses.FromSqlInterpolated(
-                $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}")
+            await db.CoursesForUpdate(courseId)
                 .SingleOrDefaultAsync(ct);
         }
 
-        var assessment = await db.Assessments.FromSqlInterpolated(
-            $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.AssessmentId}")
+        var assessment = await db.AssessmentsForUpdate(snapshot.AssessmentId)
             .SingleOrDefaultAsync(ct);
 
         if (assessment is null ||
             assessment.CourseId != snapshot.CourseId)
             return new(AttemptFinalizeStatus.Unavailable);
 
-        var attempt = await db.Attempts.FromSqlInterpolated(
-            $"SELECT * FROM Attempts WITH (UPDLOCK, HOLDLOCK) WHERE Id = {attemptId}")
+        var attempt = await db.AttemptsForUpdate(attemptId)
             .SingleOrDefaultAsync(ct);
 
         if (attempt is null ||
@@ -241,20 +275,26 @@ public sealed class AssessmentAttemptService(
             attempt.AssessmentId != assessment.Id)
             return new(AttemptFinalizeStatus.NotFound);
 
-        var student = await users.FindByIdAsync(studentId.ToString());
-
-        if (student is null || student.AccountStatus != AccountStatus.Active)
+        if (!await activeUserValidator.IsActiveStudentAsync(studentId, ct))
             return new(AttemptFinalizeStatus.Forbidden);
 
-        var roles = await users.GetRolesAsync(student);
+        var now = timeProvider.GetUtcNow();
+        if (onlyExpired)
+        {
+            // F5 kết quả đã chấm không sửa timestamp/điểm hoặc chạy lại completion.
+            if (attempt.Status == AttemptStatus.Graded)
+                return new(AttemptFinalizeStatus.AlreadyGraded, attempt.Id,
+                    attempt.OverallScore, attempt.Passed, attempt.FinalizationReason);
 
-        if (roles.Count != 1 || roles[0] != AppRoles.Student)
-            return new(AttemptFinalizeStatus.Forbidden);
+            // Kiểm tra lại SAU khi lấy khóa: không tin deadline/status từ trang hoặc query cũ.
+            if (attempt.Status != AttemptStatus.InProgress || now < attempt.DeadlineUtc)
+                return new(AttemptFinalizeStatus.Unavailable);
+        }
 
         var result = await FinalizeLockedAsync(
             attempt,
             assessment,
-            DateTimeOffset.UtcNow,
+            now,
             ct);
 
         if (result.Status is AttemptFinalizeStatus.Graded or AttemptFinalizeStatus.AlreadyGraded)
@@ -286,15 +326,7 @@ public sealed class AssessmentAttemptService(
         if (snapshot is null || snapshot.StudentUserId != studentId)
             return AttemptSaveStatus.NotFound;
 
-        var student = await users.FindByIdAsync(studentId.ToString());
-
-        if (student is null ||
-            student.AccountStatus != AccountStatus.Active)
-            return AttemptSaveStatus.Forbidden;
-
-        var roles = await users.GetRolesAsync(student);
-
-        if (roles.Count != 1 || roles[0] != AppRoles.Student)
+        if (!await activeUserValidator.IsActiveStudentAsync(studentId, ct))
             return AttemptSaveStatus.Forbidden;
 
         await using var tx = await db.Database.BeginTransactionAsync(
@@ -303,21 +335,18 @@ public sealed class AssessmentAttemptService(
         // Cùng thứ tự khóa với Start và Finalize.
         if (snapshot.CourseId is Guid courseId)
         {
-            await db.Courses.FromSqlInterpolated(
-                $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}")
+            await db.CoursesForUpdate(courseId)
                 .SingleOrDefaultAsync(ct);
         }
 
-        var assessment = await db.Assessments.FromSqlInterpolated(
-            $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.AssessmentId}")
+        var assessment = await db.AssessmentsForUpdate(snapshot.AssessmentId)
             .SingleOrDefaultAsync(ct);
 
         if (assessment is null ||
             assessment.CourseId != snapshot.CourseId)
             return AttemptSaveStatus.Unavailable;
 
-        var attempt = await db.Attempts.FromSqlInterpolated(
-            $"SELECT * FROM Attempts WITH (UPDLOCK, HOLDLOCK) WHERE Id = {attemptId}")
+        var attempt = await db.AttemptsForUpdate(attemptId)
             .SingleOrDefaultAsync(ct);
 
         if (attempt is null ||
@@ -328,7 +357,11 @@ public sealed class AssessmentAttemptService(
         if (attempt.Status != AttemptStatus.InProgress)
             return AttemptSaveStatus.AlreadyFinalized;
 
-        var now = DateTimeOffset.UtcNow;
+        // Kiểm lại trong transaction: quyền lúc mở trang không phải quyền lúc ghi.
+        if (!await HasCurrentCourseAccessAsync(studentId, assessment, ct))
+            return AttemptSaveStatus.Forbidden;
+
+        var now = timeProvider.GetUtcNow();
 
         if (now >= attempt.DeadlineUtc)
         {
@@ -413,6 +446,17 @@ public sealed class AssessmentAttemptService(
         return AttemptSaveStatus.Saved;
     }
 
+
+    // Không xét Published/Archived ở đây: lượt đã Start được hoàn thành khi đề rút.
+    // Chỉ xét scope, cùng owner Course và Enrollment/thanh toán hiện còn hợp lệ.
+    private async Task<bool> HasCurrentCourseAccessAsync(Guid studentId, Assessment assessment, CancellationToken ct)
+    {
+        if (!assessment.CourseId.HasValue)
+            return true; // Đề Independent không yêu cầu Enrollment.
+
+        return await db.Enrollments.Valid().AnyAsync(e => e.StudentUserId == studentId &&
+            e.CourseId == assessment.CourseId && e.Course.OwnerTeacherUserId == assessment.OwnerTeacherUserId, ct);
+    }
 
     private async Task<AttemptFinalizeResult> FinalizeLockedAsync(
         Attempt attempt,

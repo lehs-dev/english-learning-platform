@@ -1,4 +1,6 @@
 using System.Data;
+using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
@@ -10,12 +12,21 @@ using EnglishLearningPlatform.Application.QuestionBank;
 
 namespace EnglishLearningPlatform.Infrastructure.Practices;
 
-// Giữ cách khởi tạo đang có của nhóm, chỉ bổ sung validator qua DI.
-public sealed class PracticeService(AppDbContext db, TimeProvider time, IQuestionUsageValidator questionUsageValidator) : IPracticeService
+public sealed class PracticeService(
+    AppDbContext db,
+    TimeProvider time,
+    IQuestionUsageValidator questionUsageValidator,
+    IActiveUserValidator? activeUserValidator,
+    IPracticeScoringStrategy scoringStrategy) : IPracticeService
 {
+    public PracticeService(AppDbContext db, TimeProvider time, IQuestionUsageValidator questionUsageValidator)
+        : this(db, time, questionUsageValidator, null, new EqualWeightPracticeScoringStrategy())
+    {
+    }
+
     public async Task<LearningOutcome<PracticeSheet>> GetSheetAsync(Guid studentId, Guid practiceId, CancellationToken ct = default)
     {
-        if (!await db.IsStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
+        if (!await IsActiveStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
         var practice = await db.AvailablePractices(studentId).Where(p => p.Id == practiceId)
             .Select(p => new
             {   // Owner lấy từ database, không lấy từ form của Student.
@@ -43,20 +54,20 @@ public sealed class PracticeService(AppDbContext db, TimeProvider time, IQuestio
     public async Task<PracticeSubmitResult> SubmitAsync(Guid studentId, Guid practiceId,
         IReadOnlyList<PracticeResponse> responses, CancellationToken ct = default)
     {
-        if (!await db.IsStudentAsync(studentId, ct)) return new(PracticeSubmitStatus.Forbidden);
+        if (!await IsActiveStudentAsync(studentId, ct)) return new(PracticeSubmitStatus.Forbidden);
         var courseId = await db.Practices.AsNoTracking().Where(p => p.Id == practiceId)
             .Select(p => p.LessonId.HasValue ? (Guid?)p.Lesson!.Module.CourseId : p.Module!.CourseId).SingleOrDefaultAsync(ct);
         if (!courseId.HasValue) return new(PracticeSubmitStatus.NotFound);
 
         // Serialize latest-result writes, and use the same Course-first lock order as learning/assessment.
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
-        await db.Courses.FromSqlInterpolated($"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId.Value}").SingleAsync(ct);
-        var practice = await db.Practices.FromSqlInterpolated($"SELECT * FROM Practices WITH (UPDLOCK, HOLDLOCK) WHERE Id = {practiceId}")
+        await db.CoursesForUpdate(courseId.Value).SingleAsync(ct);
+        var practice = await db.PracticesForUpdate(practiceId)
             .SingleOrDefaultAsync(ct);
         if (practice is null || !await db.AvailablePractices(studentId).AnyAsync(p => p.Id == practiceId, ct))
             return new(PracticeSubmitStatus.Unavailable);
         // Recheck the active role inside the transaction before any result write.
-        if (!await db.IsStudentAsync(studentId, ct)) return new(PracticeSubmitStatus.Forbidden);
+        if (!await IsActiveStudentAsync(studentId, ct)) return new(PracticeSubmitStatus.Forbidden);
         var questions = await QuestionsAsync(practiceId, ct);
                 // Kiểm tra lại trước khi chấm hoặc thay thế kết quả đã lưu.
         if (!ValidQuestions(practice.OwnerTeacherUserId, questions))
@@ -71,7 +82,9 @@ public sealed class PracticeService(AppDbContext db, TimeProvider time, IQuestio
             return new(PracticeSubmitStatus.InvalidAnswers);
 
         var responseMap = responses.ToDictionary(r => r.PracticeQuestionId, r => r.SelectedOptionId);
-        var correct = questions.Count(q => q.Question.Options.Any(o => o.IsCorrect && o.Id == responseMap[q.Id]));
+        var scoringItems = questions.Select(q => new QuestionScoringItem(q.Id, 1m,
+            q.Question.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToList())).ToList();
+        var scoringResult = scoringStrategy.CalculateScore(scoringItems, responseMap);
         var submission = await db.PracticeSubmissions.SingleOrDefaultAsync(s => s.StudentUserId == studentId && s.PracticeId == practiceId, ct);
         if (submission is null)
         {
@@ -82,7 +95,7 @@ public sealed class PracticeService(AppDbContext db, TimeProvider time, IQuestio
         {
             await db.PracticeAnswers.Where(a => a.PracticeSubmissionId == submission.Id).ExecuteDeleteAsync(ct);
         }
-        submission.Score = Math.Round(correct * 100m / questions.Count, 2);
+        submission.Score = scoringResult.Percentage;
         submission.SubmittedAtUtc = time.GetUtcNow();
         submission.UpdatedAtUtc = submission.SubmittedAtUtc;
         foreach (var response in responses.Where(r => r.SelectedOptionId.HasValue))
@@ -95,7 +108,7 @@ public sealed class PracticeService(AppDbContext db, TimeProvider time, IQuestio
 
     public async Task<LearningOutcome<PracticeResult>> GetResultAsync(Guid studentId, Guid practiceId, CancellationToken ct = default)
     {
-        if (!await db.IsStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
+        if (!await IsActiveStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
         // Only this student's latest submitted result reveals practice feedback. It remains
         // readable after withdrawal/archive; it never permits a new practice submission.
         var result = await db.PracticeSubmissions.AsNoTracking().Where(s => s.StudentUserId == studentId && s.PracticeId == practiceId)
@@ -107,9 +120,16 @@ public sealed class PracticeService(AppDbContext db, TimeProvider time, IQuestio
                     s.Answers.Where(a => a.PracticeQuestionId == q.Id).Select(a => a.SelectedOption.Content).FirstOrDefault(),
                     q.Question.Options.Where(o => o.IsCorrect).Select(o => o.Content).FirstOrDefault() ?? "",
                     s.Answers.Any(a => a.PracticeQuestionId == q.Id && a.SelectedOption.IsCorrect),
-                    q.Question.Explanation)).ToList())).SingleOrDefaultAsync(ct);
+                    q.Question.Explanation,
+                    q.Question.Stimulus == null ? null : q.Question.Stimulus.ContentText,
+                    q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Audio
+                        ? q.Question.Stimulus.ResourceUrl : null)).ToList())).SingleOrDefaultAsync(ct);
         return result is null ? new(LearningAccessResult.NotFound) : new(LearningAccessResult.Allowed, result);
     }
+
+    // Legacy callers construct this service without the shared identity validator.
+    private Task<bool> IsActiveStudentAsync(Guid studentId, CancellationToken ct) =>
+        activeUserValidator?.IsActiveStudentAsync(studentId, ct) ?? db.IsStudentAsync(studentId, ct);
 
     private Task<List<PracticeQuestion>> QuestionsAsync(Guid id, CancellationToken ct) => db.PracticeQuestions.AsNoTracking()
         .Where(q => q.PracticeId == id).Include(q => q.Question).ThenInclude(q => q.Options)

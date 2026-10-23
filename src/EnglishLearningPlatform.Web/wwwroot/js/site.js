@@ -18,7 +18,7 @@ document.querySelectorAll("[data-nav-toggle], [data-sidebar-toggle]").forEach((t
     if (!navigation) return;
 
     const isSidebar = navigation.matches(".studio-sidebar, .admin-sidebar");
-    const mobile = window.matchMedia(isSidebar ? "(max-width: 1024px)" : "(max-width: 900px)");
+    const mobile = window.matchMedia("(max-width: 1024px)");
     const backdrop = [...document.querySelectorAll("[data-sidebar-backdrop]")]
         .find((element) => element.getAttribute("aria-controls") === navigation.id);
     const closedLabel = toggle.getAttribute("aria-label") || "Mở thanh điều hướng";

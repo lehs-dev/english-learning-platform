@@ -1,4 +1,10 @@
 using System.Net;
+using System.Text.RegularExpressions;
+using EnglishLearningPlatform.Domain.Entities;
+using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Infrastructure.Identity;
+using EnglishLearningPlatform.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace EnglishLearningPlatform.IntegrationTests;
@@ -66,6 +72,7 @@ public sealed class LandingPageContentTests(IntegrationTestFactory factory) : IC
             html.Contains("highlight", StringComparison.OrdinalIgnoreCase) ||
             html.Contains("feature", StringComparison.OrdinalIgnoreCase) ||
             html.Contains("điểm nổi bật", StringComparison.OrdinalIgnoreCase) ||
+            html.Contains("lộ trình", StringComparison.OrdinalIgnoreCase) ||
             html.Contains("tại sao", StringComparison.OrdinalIgnoreCase) ||
             html.Contains("lợi ích", StringComparison.OrdinalIgnoreCase),
             "Landing page must showcase key platform highlights / feature cards.");
@@ -81,15 +88,40 @@ public sealed class LandingPageContentTests(IntegrationTestFactory factory) : IC
 
         var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
 
-        // Featured courses section / catalog grid
-        Assert.True(
-            html.Contains("Khóa học", StringComparison.OrdinalIgnoreCase) &&
-            (html.Contains("tiêu biểu", StringComparison.OrdinalIgnoreCase) ||
-             html.Contains("nổi bật", StringComparison.OrdinalIgnoreCase) ||
-             html.Contains("catalog", StringComparison.OrdinalIgnoreCase) ||
-             html.Contains("course-card", StringComparison.OrdinalIgnoreCase) ||
-             html.Contains("course-grid", StringComparison.OrdinalIgnoreCase)),
-            "Landing page must display featured courses catalog.");
+        // An empty catalog must offer discovery without inventing course cards.
+        var section = Regex.Match(html, "<section\\b[^>]*aria-labelledby=\"courses-heading\"[^>]*>.*?</section>",
+            RegexOptions.Singleline);
+        Assert.True(section.Success, "Landing page must contain its course discovery section.");
+        // Estudy V2 empty state shows a "preparing" panel without a catalog link.
+        Assert.Contains("Khóa học đang được chuẩn bị", section.Value);
+        Assert.DoesNotContain("class=\"course-card\"", section.Value);
+
+        // Published courses must actually appear once the database has content.
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var course = new Course
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = "LANDING_PUBLISHED_" + Guid.NewGuid().ToString("N"),
+            Status = CourseStatus.Published,
+            Skills = [new CourseSkill { Skill = EnglishSkill.Grammar }]
+        };
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Courses.Add(course);
+            await db.SaveChangesAsync();
+        }
+        using var populatedResponse = await client.GetAsync("/");
+        Assert.Equal(HttpStatusCode.OK, populatedResponse.StatusCode);
+        var populatedHtml = WebUtility.HtmlDecode(await populatedResponse.Content.ReadAsStringAsync());
+        var populatedSection = Regex.Match(populatedHtml, "<section\\b[^>]*aria-labelledby=\"courses-heading\"[^>]*>.*?</section>",
+            RegexOptions.Singleline);
+        Assert.True(populatedSection.Success);
+        Assert.Contains("class=\"homepage-courses-grid\"", populatedSection.Value);
+        Assert.Contains("class=\"course-item-card\"", populatedSection.Value);
+        Assert.Contains(course.Title, populatedSection.Value);
+        Assert.Contains($"/Courses/Details/{course.Id}", populatedSection.Value);
+        Assert.DoesNotContain("Khóa học đang được chuẩn bị", populatedSection.Value);
     }
 
     [Fact]

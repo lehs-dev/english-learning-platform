@@ -57,6 +57,66 @@ public sealed class TeacherQuestionBankController : Controller
         return View(detail);
     }
 
+    /// <summary>
+    /// Nhận yêu cầu lưu trữ câu hỏi.
+    /// Chỉ cho phép POST và phải có antiforgery token hợp lệ.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Archive(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        // Lấy người thực hiện từ thông tin đăng nhập.
+        // Không nhận actorUserId hoặc owner từ form.
+        Guid? actorUserId = CurrentUserId;
+
+        if (!actorUserId.HasValue || actorUserId.Value == Guid.Empty)
+        {
+            return Challenge();
+        }
+
+        // ModelState phát hiện ID không chuyển được thành Guid.
+        if (!ModelState.IsValid || id == Guid.Empty)
+        {
+            return NotFound();
+        }
+
+        // Service kiểm tra lại tài khoản, role và quyền sở hữu.
+        var result = await _questionAuthoringService.ArchiveAsync(
+            actorUserId.Value,
+            id,
+            cancellationToken);
+
+        // Any trả về true nếu danh sách có ít nhất một lỗi phù hợp.
+        if (result.Errors.Any(error => error.Code == "forbidden"))
+        {
+            return Forbid();
+        }
+
+        // Không phân biệt câu hỏi không tồn tại hay thuộc Teacher khác.
+        if (result.Errors.Any(error => error.Code == "not_found"))
+        {
+            return NotFound();
+        }
+
+        if (result.Succeeded)
+        {
+            // TempData giữ thông báo qua lần chuyển trang kế tiếp.
+            TempData["Success"] =
+                "Đã lưu trữ câu hỏi. Nội dung và dữ liệu lịch sử vẫn được giữ nguyên.";
+        }
+        else
+        {
+            TempData["Error"] =
+                "Chưa thể lưu trữ câu hỏi. Vui lòng thử lại sau.";
+        }
+
+        // Chuyển về trang chi tiết sau POST.
+        // Refresh trang chi tiết sẽ không gửi lại thao tác lưu trữ.
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
     // Hiển thị danh sách câu hỏi thuộc Teacher đang đăng nhập.
     [HttpGet]
     public async Task<IActionResult> Index(
@@ -239,33 +299,39 @@ public sealed class TeacherQuestionBankController : Controller
         model.Id = id;
         model.IsEdit = true;
 
+        if (!Request.HasFormContentType) return BadRequest();
+
         var editor = await _questionAuthoringService.GetEditorAsync(CurrentUserId.Value, id, cancellationToken);
         if (editor is null)
         {
             return NotFound();
         }
 
-        // If scoring content is locked and fields were omitted from POST, restore them from persisted editor
+        // Chỉ khôi phục trường KHÔNG GỬI trong form cũ. Giá trị rỗng gửi rõ ràng là một yêu cầu sửa,
+        // không được âm thầm coi như đã lưu thành công khi service phải từ chối thao tác đó.
         if (editor.ScoringContentLocked)
         {
             model.ScoringContentLocked = true;
             model.LockReason = editor.LockReason;
-            if (string.IsNullOrWhiteSpace(model.Content))
+            if (!Request.Form.ContainsKey(nameof(model.Content)))
             {
                 model.Content = editor.Content;
             }
-            if (!model.PrimarySkill.HasValue)
+            if (!Request.Form.ContainsKey(nameof(model.PrimarySkill)))
             {
                 model.PrimarySkill = editor.PrimarySkill;
             }
-            if (!model.StimulusId.HasValue && editor.StimulusId.HasValue)
+            if (!Request.Form.ContainsKey(nameof(model.StimulusId)))
             {
                 model.StimulusId = editor.StimulusId;
             }
-            if (model.Options == null || model.Options.Count == 0)
+            if (!Request.Form.ContainsKey(nameof(model.Explanation))) model.Explanation = editor.Explanation;
+            if ((model.Options == null || model.Options.Count == 0)
+                && !Request.Form.Keys.Any(key => key == nameof(model.Options) || key.StartsWith("Options[", StringComparison.Ordinal)))
             {
                 model.Options = editor.Options.Select(o => new QuestionOptionFormModel { Content = o.Content }).ToList();
-                model.CorrectOptionIndex = editor.Options.Select((o, i) => (Option: o, Index: i)).FirstOrDefault(x => x.Option.IsCorrect).Index;
+                if (!Request.Form.ContainsKey(nameof(model.CorrectOptionIndex)))
+                    model.CorrectOptionIndex = editor.Options.Select((o, i) => (Option: o, Index: i)).FirstOrDefault(x => x.Option.IsCorrect).Index;
             }
         }
 

@@ -43,7 +43,9 @@ public sealed record AssessmentResultView(
 public sealed record SkillScoreBreakdown(
     EnglishSkill Skill,
     decimal Score,
-    int QuestionCount);
+    int QuestionCount,
+    // Server so sánh điểm gốc với ngưỡng 60%, không dùng Score đã làm tròn.
+    bool IsWeak);
 
 public sealed record AssessmentOverviewModel(
     Guid AssessmentId,
@@ -70,4 +72,15 @@ public sealed record AssessmentAttemptHistoryModel(
     DateTimeOffset DeadlineUtc,
     DateTimeOffset? FinalizedAtUtc,
     decimal? OverallScore,
-    bool? Passed);
+    bool? Passed)
+{
+    // Chỉ mở kết quả khi đã chấm và đủ metadata; không tạo link hỏng cho dữ liệu cũ.
+    public bool CanViewResult { get; init; }
+}
+
+// Mỗi nhóm chỉ chứa những lượt của Student đang đăng nhập, không mang theo đề/đáp án.
+public sealed record AssessmentHistoryView(
+    Guid AssessmentId,
+    string AssessmentTitle,
+    AssessmentStatus Status,
+    IReadOnlyList<AssessmentAttemptHistoryModel> Attempts);

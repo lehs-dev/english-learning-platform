@@ -1,0 +1,317 @@
+@model EnglishLearningPlatform.Web.Models.Practice.TeacherPracticeIndexViewModel
+
+@{
+    ViewData["Title"] = "Practice của tôi";
+    ViewData["ActiveSection"] = "practices";
+}
+
+@* Layout Teacher được chọn bởi _ViewStart.cshtml trong cùng thư mục.
+   Không cần viết thêm thẻ html, head hoặc body ở View này. *@
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">TEACHER WORKSPACE</p>
+        <h1>Practice của tôi</h1>
+        <p class="muted">
+            Tìm và xem các bài luyện tập thuộc tài khoản của bạn.
+        </p>
+    </div>
+
+    @* Dùng lại action Create đang có, không tạo Practice bằng GET. *@
+    <a class="button"
+       asp-controller="TeacherPractices"
+       asp-action="Create">
+        + Tạo Practice Draft
+    </a>
+</div>
+
+<partial name="_CourseNotice" />
+
+<section class="panel" aria-labelledby="practice-filter-title">
+    <h2 id="practice-filter-title">Tìm / lọc Practice</h2>
+
+    @* GET đưa bộ lọc lên URL và không ghi dữ liệu.
+       Dùng tên trường phẳng như Search, CourseId...
+       Không trộn với Query.Search hoặc Query.CourseId. *@
+    <form method="get"
+          asp-controller="TeacherPractices"
+          asp-action="Index">
+
+        @* Khi đổi bộ lọc, luôn bắt đầu lại từ trang 1. *@
+        <input type="hidden" name="PageNumber" value="1" />
+
+        <div class="filter-grid">
+            <div>
+                <label for="Search">Tên Practice</label>
+
+                <input type="search"
+                       id="Search"
+                       name="Search"
+                       value="@Model.Query.Search"
+                       placeholder="Ví dụ: grammar" />
+            </div>
+
+            <div>
+                <label for="Status">Trạng thái</label>
+
+                <select id="Status" name="Status">
+                    <option value="">Tất cả trạng thái</option>
+
+                    @* Lấy trạng thái từ enum đã có trong Domain. *@
+                    @foreach (PracticeStatus status in
+                        Enum.GetValues(typeof(PracticeStatus)))
+                    {
+                        if (Model.Query.Status == status)
+                        {
+                            <option value="@status" selected>
+                                @status
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@status">
+                                @status
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="CourseId">Khóa học</label>
+
+                @* asp-items tạo option từ danh sách server cung cấp.
+                   Selected đã được controller thiết lập. *@
+                <select id="CourseId"
+                        name="CourseId"
+                        asp-items="Model.CourseOptions">
+                    <option value="">Tất cả khóa học</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="PageSize">Số bài mỗi trang</label>
+
+                @* Giới hạn trên trình duyệt chỉ hỗ trợ nhập liệu.
+                   Controller và service vẫn kiểm tra lại. *@
+                <input type="number"
+                       id="PageSize"
+                       name="PageSize"
+                       min="1"
+                       max="100"
+                       required
+                       value="@Model.Query.PageSize" />
+            </div>
+        </div>
+
+        <p class="actions">
+            <button type="submit" class="button">
+                Tìm / lọc
+            </button>
+
+            @* Không truyền bộ lọc: trở lại danh sách mặc định. *@
+            <a class="button secondary"
+               asp-controller="TeacherPractices"
+               asp-action="Index">
+                Xóa bộ lọc
+            </a>
+        </p>
+    </form>
+
+    <p class="muted">
+        Draft chưa gắn Lesson hoặc Module vẫn xuất hiện khi xem
+        tất cả khóa học.
+    </p>
+</section>
+
+<p class="muted">
+    Tổng số Practice phù hợp: @Model.Result.TotalCount
+</p>
+
+@if (Model.Result.Items.Count == 0)
+{
+    <section class="panel empty">
+        @if (Model.Result.TotalCount == 0)
+        {
+            <p>
+                Chưa có Practice hoặc không có Practice phù hợp
+                với điều kiện tìm kiếm.
+            </p>
+        }
+        else
+        {
+            @* Có kết quả, nhưng người dùng yêu cầu trang vượt giới hạn. *@
+            <p>Trang bạn yêu cầu không có Practice.</p>
+            <p>Kết quả hiện có @Model.Result.TotalPages trang.</p>
+        }
+    </section>
+}
+else
+{
+    <section class="panel" aria-labelledby="practice-list-title">
+        <h2 id="practice-list-title">Danh sách bài luyện tập</h2>
+
+        @* Các class này đã có CSS trong dự án.
+           Wrapper cho phép cuộn ngang bảng trên màn hình nhỏ.
+           tabindex giúp người dùng bàn phím truy cập vùng cuộn. *@
+        <div class="table-scroll"
+             role="region"
+             aria-label="Bảng danh sách Practice"
+             tabindex="0">
+
+            <table class="report-table">
+                <caption class="visually-hidden">
+                    Các Practice phù hợp với bộ lọc hiện tại
+                </caption>
+
+                <thead>
+                    <tr>
+                        <th scope="col">Tên bài</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Khóa học</th>
+                        <th scope="col">Nơi gắn</th>
+                        <th scope="col">Số câu</th>
+                        <th scope="col">Ngày tạo (UTC)</th>
+                        <th scope="col">Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var practice in Model.Result.Items)
+                    {
+                        <tr>
+                            @* Razor tự mã hóa nội dung.
+                               Không dùng Html.Raw với dữ liệu người dùng. *@
+                           <td>
+                                @* Bấm tên Practice để mở trang câu hỏi.
+                                Server vẫn kiểm tra quyền sở hữu Practice. *@
+                                <a asp-controller="TeacherPracticeQuestions"
+                                asp-action="Index"
+                                asp-route-id="@practice.Id">
+                                    @practice.Title
+                                </a>
+                            </td>
+
+                            <td>
+                                <span class="badge">
+                                    @practice.Status
+                                </span>
+                            </td>
+
+                            <td>
+                                @if (practice.CourseId.HasValue)
+                                {
+                                    <a asp-controller="TeacherCourses"
+                                       asp-action="Manage"
+                                       asp-route-id="@practice.CourseId.Value">
+                                        @practice.CourseTitle
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="muted">
+                                        Chưa gắn khóa học
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @* Chỉ hiển thị parent trực tiếp.
+                                   Practice gắn Lesson không được trình bày
+                                   như đồng thời gắn thêm Module. *@
+                                @if (practice.LessonId.HasValue)
+                                {
+                                    <span>Lesson: @practice.LessonTitle</span>
+                                }
+                                else if (practice.ModuleId.HasValue)
+                                {
+                                    <span>Module: @practice.ModuleTitle</span>
+                                }
+                                else
+                                {
+                                    <span class="muted">
+                                        Chưa gắn Lesson/Module
+                                    </span>
+                                }
+                            </td>
+
+                            <td>@practice.QuestionCount</td>
+
+                            <td>
+                                @* Hiển thị UTC rõ ràng, không phụ thuộc
+                                   múi giờ của máy chạy ứng dụng. *@
+                                @practice.CreatedAtUtc.UtcDateTime.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td>
+                                @if (practice.Status == PracticeStatus.Draft || practice.Status == PracticeStatus.Published)
+                                {
+                                    <a class="button secondary small" asp-controller="TeacherPracticePreview"
+                                       asp-action="Index" asp-route-id="@practice.Id">Preview</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+
+@* Không có kết quả thì không hiển thị Trang 1/0. *@
+@if (Model.Result.TotalPages > 0)
+{
+    <nav class="actions pagination"
+         aria-label="Phân trang Practice">
+
+        @if (Model.Result.PageNumber <= Model.Result.TotalPages)
+        {
+            @if (Model.Result.PageNumber > 1)
+            {
+                @* Giữ nguyên tất cả bộ lọc khi chuyển trang. *@
+                <a class="button secondary"
+                   asp-controller="TeacherPractices"
+                   asp-action="Index"
+                   asp-route-PageNumber="@(Model.Result.PageNumber - 1)"
+                   asp-route-PageSize="@Model.Result.PageSize"
+                   asp-route-Search="@Model.Query.Search"
+                   asp-route-Status="@Model.Query.Status"
+                   asp-route-CourseId="@Model.Query.CourseId">
+                    ← Trang trước
+                </a>
+            }
+
+            <span class="muted">
+                Trang @Model.Result.PageNumber / @Model.Result.TotalPages
+            </span>
+
+            @if (Model.Result.PageNumber < Model.Result.TotalPages)
+            {
+                <a class="button secondary"
+                   asp-controller="TeacherPractices"
+                   asp-action="Index"
+                   asp-route-PageNumber="@(Model.Result.PageNumber + 1)"
+                   asp-route-PageSize="@Model.Result.PageSize"
+                   asp-route-Search="@Model.Query.Search"
+                   asp-route-Status="@Model.Query.Status"
+                   asp-route-CourseId="@Model.Query.CourseId">
+                    Trang sau →
+                </a>
+            }
+        }
+        else
+        {
+            @* Người dùng có thể sửa URL thành số trang rất lớn.
+               Cho quay lại trang đầu mà vẫn giữ bộ lọc. *@
+            <a class="button secondary"
+               asp-controller="TeacherPractices"
+               asp-action="Index"
+               asp-route-PageNumber="1"
+               asp-route-PageSize="@Model.Result.PageSize"
+               asp-route-Search="@Model.Query.Search"
+               asp-route-Status="@Model.Query.Status"
+               asp-route-CourseId="@Model.Query.CourseId">
+                Về trang đầu
+            </a>
+        }
+    </nav>
+}

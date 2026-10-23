@@ -41,7 +41,7 @@ public sealed class LearningCommerceJourneyTests(CheckoutTestFactory factory) : 
         using var failed = await PostAsync(student, $"/Checkout/Simulate/{failedOrder}", new() { ["scenario"] = "failed" });
         Assert.Equal(HttpStatusCode.Redirect, failed.StatusCode);
         using var failedPage = await student.GetAsync($"/Checkout/Order/{failedOrder}");
-        Assert.Contains("Thanh toán thất bại", WebUtility.HtmlDecode(await failedPage.Content.ReadAsStringAsync()));
+        Assert.Contains("Giao dịch thất bại", WebUtility.HtmlDecode(await failedPage.Content.ReadAsStringAsync()));
         await AssertRowsAsync(data, 1, 1, 0);
         AssertDenied(await student.GetAsync($"/Learning/Lesson/{data.First.Id}"));
 

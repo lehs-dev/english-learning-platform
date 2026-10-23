@@ -132,31 +132,32 @@ public sealed class PracticeQuestionValidationTests : IClassFixture<IntegrationT
     {
         using IServiceScope scope = _factory.Services.CreateScope();
         AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        Question question = await db.Questions.Include(q => q.Options)
-            .Include(q => q.Stimulus).SingleAsync(q => q.Id == data.QuestionId);
+        // Đây là corruption test của dữ liệu legacy/ngoài ứng dụng, không phải thao tác Teacher.
+        // Dùng SQL có chủ đích vì SaveChanges hiện chặn mọi sửa nội dung đã dùng.
+        var questions = db.Questions.Where(q => q.Id == data.QuestionId);
         Stimulus? newStimulus = null;
 
         switch (fault)
         {
             case "blank_content":
-                question.Content = "   ";
+                await questions.ExecuteUpdateAsync(set => set.SetProperty(q => q.Content, "   "));
                 break;
             case "blank_option":
-                question.Options.Single(o => o.Id == data.WrongOptionId).Content = "   ";
+                await db.QuestionOptions.Where(o => o.Id == data.WrongOptionId).ExecuteUpdateAsync(set => set.SetProperty(o => o.Content, "   "));
                 break;
             case "one_option":
                 // Xóa option chưa từng được chọn, không phá FK của kết quả cũ.
-                db.QuestionOptions.Remove(question.Options.Single(o => o.Id == data.WrongOptionId));
+                await db.QuestionOptions.Where(o => o.Id == data.WrongOptionId).ExecuteDeleteAsync();
                 break;
             case "no_options":
-                db.QuestionOptions.RemoveRange(question.Options);
+                await db.QuestionOptions.Where(o => o.QuestionId == data.QuestionId).ExecuteDeleteAsync();
                 break;
             case "no_correct":
-                question.Options.Single(o => o.Id == data.CorrectOptionId).IsCorrect = false;
+                await db.QuestionOptions.Where(o => o.Id == data.CorrectOptionId).ExecuteUpdateAsync(set => set.SetProperty(o => o.IsCorrect, false));
                 break;
             case "foreign_question":
                 var otherTeacher = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);
-                question.OwnerTeacherUserId = otherTeacher.Id;
+                await questions.ExecuteUpdateAsync(set => set.SetProperty(q => q.OwnerTeacherUserId, otherTeacher.Id));
                 break;
             case "foreign_stimulus":
                 var stimulusOwner = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);
@@ -166,32 +167,26 @@ public sealed class PracticeQuestionValidationTests : IClassFixture<IntegrationT
                     StimulusType = StimulusType.Passage,
                     ContentText = "Another teacher's passage."
                 };
-                question.Stimulus = newStimulus;
                 break;
             case "listening_without_audio":
-                question.PrimarySkill = EnglishSkill.Listening;
-                question.Stimulus = null;
-                question.StimulusId = null;
+                await questions.ExecuteUpdateAsync(set => set.SetProperty(q => q.PrimarySkill, EnglishSkill.Listening)
+                    .SetProperty(q => q.StimulusId, (Guid?)null));
                 break;
             case "listening_with_passage":
-                question.PrimarySkill = EnglishSkill.Listening;
                 newStimulus = new Stimulus
                 {
                     OwnerTeacherUserId = data.TeacherId,
                     StimulusType = StimulusType.Passage,
                     ContentText = "A passage is not listening audio."
                 };
-                question.Stimulus = newStimulus;
                 break;
             case "invalid_audio_url":
-                question.PrimarySkill = EnglishSkill.Listening;
                 newStimulus = new Stimulus
                 {
                     OwnerTeacherUserId = data.TeacherId,
                     StimulusType = StimulusType.Audio,
                     ResourceUrl = "https://"
                 };
-                question.Stimulus = newStimulus;
                 break;
             case "undefined_stimulus_type":
                 newStimulus = new Stimulus
@@ -200,19 +195,20 @@ public sealed class PracticeQuestionValidationTests : IClassFixture<IntegrationT
                     StimulusType = (StimulusType)999,
                     ContentText = "Invalid stimulus type."
                 };
-                question.Stimulus = newStimulus;
                 break;
             default:
                 throw new ArgumentException("Unknown test fault.", nameof(fault));
         }
 
-        // Đánh dấu rõ entity mới là Added trước khi cập nhật FK của Question.
-        // Gán navigation có GUID sẵn vào entity đã tracked không thay thế Add.
+        // Chèn Stimulus lỗi trước, rồi sửa FK bằng SQL để mô phỏng DB legacy hỏng.
         if (newStimulus != null)
         {
             db.Stimuli.Add(newStimulus);
+            await db.SaveChangesAsync();
+            await questions.ExecuteUpdateAsync(set => set.SetProperty(q => q.StimulusId, (Guid?)newStimulus.Id));
+            if (fault == "listening_with_passage" || fault == "invalid_audio_url")
+                await questions.ExecuteUpdateAsync(set => set.SetProperty(q => q.PrimarySkill, EnglishSkill.Listening));
         }
-        await db.SaveChangesAsync();
     }
 
     [Theory]

@@ -1,21 +1,58 @@
-@model IReadOnlyList<CourseSummary>
-@{ ViewData["Title"] = "Khóa đã tham gia"; }
-<div class="page-heading"><h1>Khóa đã tham gia</h1><div class="actions"><a class="button" asp-action="Dashboard">Tiến độ học tập</a><a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a></div></div>
-@if (Model.Count == 0) { <p class="panel empty">Bạn chưa tham gia khóa học nào.</p> }
-<div class="course-grid">
-@foreach (var course in Model)
-{
-    <article class="panel course-card">
-        <h2>@course.Title</h2><span class="badge">@course.Status</span>
-        <partial name="_CourseSummary" model="course" />
-        @if (course.Progress is not null) { <partial name="_LearningProgress" model="course.Progress" /> }
-        <div class="actions">
-            <a class="button secondary" asp-action="Course" asp-route-id="@course.Id">Xem khóa học</a>
-            @if (course.Progress?.ContinueLessonId is Guid lessonId)
-            {
-                <a class="button" asp-action="Continue" asp-route-id="@course.Id">@(course.Status == CourseStatus.Archived ? "Xem bài học" : "Tiếp tục học")</a>
-            }
-        </div>
-    </article>
+@model StudentCoursesPage
+@{
+    Layout = "_LayoutStudent";
+    ViewData["Title"] = "Khóa học của tôi";
+    ViewData["ActiveSection"] = "courses";
+    ViewData["CatalogController"] = "Learning";
+    var enrolledCourses = Model.EnrolledCourses
+        .OrderBy(course => course.Progress?.CompletedAtUtc is not null)
+        .ThenByDescending(course => course.Progress?.CompletedLessons ?? 0)
+        .ThenBy(course => course.Title).ToArray();
 }
+<div class="course-library">
+    <div class="page-heading course-library-heading">
+        <div>
+            <h1>Khóa học của tôi</h1>
+            <p>Tiếp tục khóa đang học hoặc tìm thêm nội dung phù hợp với bạn.</p>
+        </div>
+        <a class="button secondary" href="#discover-courses">Khám phá khóa học <span aria-hidden="true">↓</span></a>
+    </div>
+    <section class="enrolled-courses-section" aria-labelledby="enrolled-title">
+        <div class="course-section-heading">
+            <h2 id="enrolled-title">Khóa đã tham gia</h2>
+            <span class="muted">@enrolledCourses.Length khóa học</span>
+        </div>
+        @if (enrolledCourses.Length == 0)
+        {
+            <div class="enrolled-empty">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                <div>
+                    <h3>Bạn chưa tham gia khóa học nào</h3>
+                    <p>Khám phá các khóa học bên dưới và chọn một khóa để bắt đầu.</p>
+                </div>
+                <a class="button" href="#discover-courses">Tìm khóa học</a>
+            </div>
+        }
+        else
+        {
+            <div class="course-grid" data-enrolled-courses>
+                @foreach (var course in enrolledCourses)
+                {
+                    <partial name="_EnrolledCourseCard" model="course" />
+                }
+            </div>
+        }
+    </section>
+    <section class="discovery-section" id="discover-courses" aria-labelledby="discovery-title">
+        <div class="course-section-heading">
+            <div>
+                <h2 id="discovery-title">Khám phá thêm khóa học</h2>
+                <p>Tìm khóa học mới theo trình độ, kỹ năng hoặc chủ đề yêu thích.</p>
+            </div>
+        </div>
+        <partial name="_CourseCatalog" model="Model.Catalog" />
+    </section>
 </div>
+@section Scripts {
+    <script src="~/js/catalog.js" asp-append-version="true" defer></script>
+}

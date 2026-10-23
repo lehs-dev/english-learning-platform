@@ -13,7 +13,7 @@
 }
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
-<header class="admin-heading"><div><p class="eyebrow">KHÔNG GIAN QUẢN TRỊ</p><h1>Giao dịch thanh toán</h1><p>Tra cứu đơn hàng và đối chiếu trạng thái thanh toán.</p></div></header>
+<header class="admin-heading"><div><h1>Giao dịch thanh toán</h1><p>Tra cứu đơn hàng và đối chiếu trạng thái thanh toán.</p></div></header>
 <partial name="_AdminNav" />
 <section class="admin-surface">
     <form method="get" asp-action="Transactions" class="admin-filters">
@@ -33,9 +33,9 @@
         </tbody></table></div>
     }
     <nav class="actions admin-pagination" aria-label="Phân trang giao dịch">
-        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)">← Trước</a> }
+        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a> }
         <span aria-current="page">Trang @Model.Page / @Model.Pages</span>
-        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau →</a> }
+        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a> }
     </nav>
 </section>
 </div>

@@ -219,19 +219,16 @@ public sealed class PaidEnrollmentAssessmentAccessTests(CheckoutTestFactory fact
             Assert.Equal((decimal)expectedOverall, result.OverallScore);
             Assert.True(result.Passed);
             finalizedAt = result.FinalizedAtUtc;
-            Assert.Collection(result.SkillBreakdowns.OrderBy(skill => skill.Skill),
-                vocabulary =>
-                {
-                    Assert.Equal(EnglishSkill.Vocabulary, vocabulary.Skill);
-                    Assert.Equal(2, vocabulary.QuestionCount);
-                    Assert.Equal((decimal)expectedVocabulary, vocabulary.Score);
-                },
-                grammar =>
-                {
-                    Assert.Equal(EnglishSkill.Grammar, grammar.Skill);
-                    Assert.Equal(3, grammar.QuestionCount);
-                    Assert.Equal(100m, grammar.Score);
-                });
+            var grammar = Assert.Single(result.SkillBreakdowns);
+            Assert.Equal(EnglishSkill.Grammar, grammar.Skill);
+            Assert.Equal(3, grammar.QuestionCount);
+            Assert.Equal(100m, grammar.Score);
+            Assert.False(grammar.IsWeak);
+            // Chỉ ẩn Vocabulary 2 câu khi trả kết quả; không bỏ kiểm tra điểm đã lưu.
+            var vocabulary = await db.AttemptSkillResults.AsNoTracking().SingleAsync(skill =>
+                skill.AttemptId == attemptId && skill.Skill == EnglishSkill.Vocabulary);
+            Assert.Equal(2, vocabulary.QuestionCount);
+            Assert.Equal((decimal)expectedVocabulary, vocabulary.Score);
             Assert.Null(await queries.GetTakingSheetAsync(data.StudentId, attemptId));
             var overview = await queries.GetAssessmentOverviewAsync(data.StudentId, data.Assessment.Id);
             Assert.NotNull(overview);

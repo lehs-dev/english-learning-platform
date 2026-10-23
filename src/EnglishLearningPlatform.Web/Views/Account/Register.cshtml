@@ -1,4 +1,4 @@
-﻿@model EnglishLearningPlatform.Web.Models.Account.RegisterViewModel
+@model EnglishLearningPlatform.Web.Models.Account.RegisterViewModel
 @{
     ViewData["Title"] = "Đăng ký";
     ViewData["PageClass"] = "auth-page";
@@ -10,15 +10,16 @@
     <partial name="_AuthAside" />
     <div class="auth-form-panel">
         <div class="auth-heading">
-            <span class="section-kicker">BẮT ĐẦU HÀNH TRÌNH CỦA BẠN</span>
+
             <h1 id="auth-title">Tạo tài khoản</h1>
             <p>Tham gia Estudy với tài khoản học viên miễn phí.</p>
         </div>
         @if (ViewBag.SuccessMessage is not null)
         {
-            <div class="notice notice-success" role="status">@ViewBag.SuccessMessage <a asp-action="Login">Đăng nhập ngay →</a></div>
+            <div class="notice notice-success" role="status">@ViewBag.SuccessMessage <a asp-action="Login">Đăng nhập ngay<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></div>
         }
         <form class="account-form" asp-controller="Account" asp-action="Register" method="post">
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
             <div class="validation-summary" asp-validation-summary="ModelOnly" role="alert"></div>
             <div class="form-field">
                 <label asp-for="FullName">Họ và tên</label>
@@ -53,7 +54,7 @@
             </div>
             <button class="button button-primary button-full" type="submit">Tạo tài khoản <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
         </form>
-        <p class="auth-switch">Bạn đã có tài khoản? <a asp-controller="Account" asp-action="Login">Đăng nhập</a></p>
+        <p class="auth-switch">Bạn đã có tài khoản? <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Đăng nhập</a></p>
     </div>
 </section>
 <p class="auth-copyright">© 2026 Estudy. Cùng bạn chinh phục tiếng Anh.</p>

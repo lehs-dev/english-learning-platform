@@ -1,37 +1,42 @@
 @model AuthoringModel
 @{ var coursePage = Model.Page; var courseId = coursePage.Course.Id; ViewData["Title"] = "Nội dung · " + coursePage.Course.Title; }
-<a asp-controller="TeacherCourses" asp-action="Index">← Khóa học của tôi</a>
-<div class="page-heading"><div><h1>@coursePage.Course.Title</h1><span class="badge">@coursePage.Course.Status</span><partial name="_CourseSummary" model="coursePage.Course" /></div><div class="actions"><a asp-controller="TeacherCourses" asp-action="Edit" asp-route-id="@courseId">Sửa metadata / giá</a><a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">Preview</a></div></div>
+<a class="button secondary back-link" asp-controller="TeacherCourses" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học của tôi</a>
+<div class="page-heading"><div><h1>@coursePage.Course.Title</h1><span class="badge"><partial name="_UiText" model="coursePage.Course.Status" /></span><partial name="_CourseSummary" model="coursePage.Course" /></div><div class="actions"><a asp-controller="TeacherCourses" asp-action="Edit" asp-route-id="@courseId">Sửa thông tin / giá</a><a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">Xem trước</a></div></div>
 <partial name="_CourseNotice" />
 <p><a class="button secondary" asp-action="Students" asp-route-id="@courseId">Học viên, tiến độ và thống kê</a></p>
-@if (coursePage.EnrollmentCount > 0) { <p class="notice">Khóa học có @coursePage.EnrollmentCount học viên. Thay đổi cấu trúc hoặc ẩn nội dung ảnh hưởng bài học khả dụng; Enrollment và progress được giữ nguyên.</p> }
+@if (coursePage.EnrollmentCount > 0) { <p class="notice">Khóa học có @coursePage.EnrollmentCount học viên. Thay đổi cấu trúc hoặc ẩn nội dung ảnh hưởng bài học khả dụng; Quyền tham gia và tiến độ đã ghi nhận được giữ nguyên.</p> }
 <section class="panel"><h2>Xuất bản khóa học</h2>
-@if (coursePage.PublishErrors.Count > 0) { <p>Cần sửa trước khi Publish:</p><ul class="validation">@foreach (var error in coursePage.PublishErrors) { <li>@error</li> }</ul> } else { <p>Khóa học đủ điều kiện Publish.</p> }
+@if (coursePage.PublishErrors.Count > 0) { <p>Cần sửa trước khi xuất bản:</p><ul class="validation">@foreach (var error in coursePage.PublishErrors) { <li>@error</li> }</ul> } else { <p>Khóa học đủ điều kiện xuất bản.</p> }
 <div class="actions">
-<form method="post" asp-controller="TeacherCourses" asp-action="Publish" asp-route-id="@courseId"><button class="button">Publish</button></form>
-<form method="post" asp-controller="TeacherCourses" asp-action="Unpublish" asp-route-id="@courseId"><button class="button secondary">Unpublish</button></form>
-<form method="post" asp-controller="TeacherCourses" asp-action="Archive" asp-route-id="@courseId"><button class="button secondary">Archive</button></form></div></section>
-<div class="page-heading"><h2>Cấu trúc và tài nguyên</h2><a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId">+ Module</a></div>
-@if (coursePage.Modules.Count == 0) { <p class="panel empty">Chưa có Module. Thêm Module đầu tiên.</p> }
+<form method="post" asp-controller="TeacherCourses" asp-action="Publish" asp-route-id="@courseId"><button class="button">Xuất bản</button></form>
+<form method="post" asp-controller="TeacherCourses" asp-action="Unpublish" asp-route-id="@courseId"><button class="button secondary">Ngừng xuất bản</button></form>
+<form method="post" asp-controller="TeacherCourses" asp-action="Archive" asp-route-id="@courseId"><button class="button secondary">Lưu trữ</button></form></div></section>
+<section class="panel">
+    <h2>Final Assessment</h2>
+    <p>@(coursePage.FinalAssessmentId.HasValue ? "Course đã có Final. Mở trang quản lý để xem đề và điều kiện khóa." : "Course chưa dùng Final; hoàn thành dựa trên các bài học khả dụng.")</p>
+    <a class="button secondary" asp-controller="TeacherCourseFinal" asp-action="Edit" asp-route-id="@courseId">Chọn / quản lý Final</a>
+</section>
+<div class="page-heading"><h2>Cấu trúc và tài nguyên</h2><a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId">Thêm chương học</a></div>
+@if (coursePage.Modules.Count == 0) { <p class="panel empty">Chưa có Chương học. Thêm Chương học đầu tiên.</p> }
 @for (var mi = 0; mi < coursePage.Modules.Count; mi++) {
     var module = coursePage.Modules[mi];
-    <section class="panel module-panel"><div class="content-row"><h3>@module.Title <span class="badge">@module.Visibility</span></h3><div class="actions"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId" asp-route-id="@module.Id">Sửa Module</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Module, courseId, coursePage.Modules.Select(m => m.Id).ToArray(), mi)" /></div></div><p class="preserve">@module.Description</p>
-    <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id">+ Lesson</a>
+    <section class="panel module-panel"><div class="content-row"><h3>@module.Title <span class="badge"><partial name="_UiText" model="module.Visibility" /></span></h3><div class="actions"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId" asp-route-id="@module.Id">Sửa chương học</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Module, courseId, coursePage.Modules.Select(m => m.Id).ToArray(), mi)" /></div></div><p class="preserve">@module.Description</p>
+    <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id">Thêm bài học</a>
         @* Truyền Course và Module để form chọn sẵn đúng parent. *@
         <a class="button small secondary"
         asp-controller="TeacherPractices"
         asp-action="Create"
         asp-route-courseId="@courseId"
         asp-route-moduleId="@module.Id">
-            + Practice cho Module
+            Tạo bài luyện tập cho chương
         </a>
     @if (module.Lessons.Count == 0)
     {
-        <p class="empty">Module chưa có bài học. Chọn + Lesson để thêm bài học.</p>
+        <p class="empty">Chương học chưa có bài học. Chọn Bài học để thêm bài học.</p>
     }
     @for (var li = 0; li < module.Lessons.Count; li++) {
         var lesson = module.Lessons[li]; var resources = Model.Resources.GetValueOrDefault(lesson.Id) ?? [];
-        <section class="lesson-editor"><div class="content-row"><h4>@lesson.Title <span class="badge">@lesson.Status</span></h4><div class="actions"><a asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">Preview</a><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id" asp-route-id="@lesson.Id">Sửa Lesson</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Lesson, module.Id, module.Lessons.Select(l => l.Id).ToArray(), li)" /></div></div>
+        <section class="lesson-editor"><div class="content-row"><h4>@lesson.Title <span class="badge"><partial name="_UiText" model="lesson.Status" /></span></h4><div class="actions"><a asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">Xem trước</a><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id" asp-route-id="@lesson.Id">Sửa bài học</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Lesson, module.Id, module.Lessons.Select(l => l.Id).ToArray(), li)" /></div></div>
 
         @* Chọn sẵn Lesson, không truyền thêm ModuleId.
    Practice không được đồng thời có cả hai parent. *@
@@ -41,17 +46,17 @@
         asp-action="Create"
         asp-route-courseId="@courseId"
         asp-route-lessonId="@lesson.Id">
-            + Practice cho Lesson
+            Tạo bài luyện tập cho bài học
         </a>
     </p>
         @if (resources.Count == 0)
         {
-            <p class="empty">Bài học chưa có tài nguyên. Chọn + Resource để thêm nội dung.</p>
+            <p class="empty">Bài học chưa có tài nguyên. Chọn Tài nguyên để thêm nội dung.</p>
         }
         @for (var ri = 0; ri < resources.Count; ri++) {
             var resource = resources[ri];
-            <div class="resource-row"><span>@(resource.Title ?? "Resource") <span class="badge">@resource.Type</span></span><div class="actions"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id" asp-route-id="@resource.Id">Sửa</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Resource, lesson.Id, resources.Select(r => r.Id).ToArray(), ri)" /><form method="post" asp-controller="TeacherCourses" asp-action="DeleteResource" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id" asp-route-id="@resource.Id"><button class="button small danger">Xóa resource</button></form></div></div>
+            <div class="resource-row"><span>@(resource.Title ?? "Tài nguyên") <span class="badge"><partial name="_UiText" model="resource.Type" /></span></span><div class="actions"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id" asp-route-id="@resource.Id">Sửa</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Resource, lesson.Id, resources.Select(r => r.Id).ToArray(), ri)" /><form method="post" asp-controller="TeacherCourses" asp-action="DeleteResource" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id" asp-route-id="@resource.Id"><button class="button small danger">Xóa tài nguyên</button></form></div></div>
         }
-        <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id">+ Resource</a></section>
+        <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id">Thêm tài nguyên</a></section>
     }</section>
 }

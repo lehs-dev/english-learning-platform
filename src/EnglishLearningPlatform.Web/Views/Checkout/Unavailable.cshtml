@@ -1,12 +1,15 @@
 @{ ViewData["Title"] = "Chưa thể mua khóa học"; }
 @section Styles { <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" /> }
-<div class="checkout-page">
-    <header class="checkout-heading">
-        <h1>Chưa thể mua khóa học</h1>
+<div class="checkout-page" style="max-width: 620px; margin: 40px auto;">
+    <header class="checkout-heading" style="text-align: center; margin-bottom: 24px;">
+        <h1 style="font-size: 28px; font-weight: 800; color: #191A23; letter-spacing: -0.02em;">Chưa thể mua khóa học</h1>
     </header>
     <partial name="_CourseNotice" />
-    <section class="panel checkout-card">
-        <p class="notice" role="status">Khóa học hiện không đủ điều kiện mua. Vui lòng chọn khóa học khác.</p>
-        <a class="button secondary" asp-controller="Courses" asp-action="Index">Về danh mục khóa học</a>
+    <section class="panel checkout-card" style="border-radius: 28px; border: 1px solid var(--v2-border, #E4E4EE); box-shadow: var(--v2-shadow-card, 0 10px 30px rgba(25, 26, 35, 0.05)); padding: 40px 32px; background: #FFFFFF; text-align: center;">
+        <div style="width: 68px; height: 68px; border-radius: 20px; background: #FFFBEB; color: #D97706; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <svg class="icon" style="width: 34px; height: 34px;" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg>
+        </div>
+        <p class="notice" role="status" style="font-size: 15px; color: #64748B; margin: 0 0 28px; line-height: 1.6;">Khóa học hiện không đủ điều kiện mua hoặc đang được điều chỉnh nội dung. Vui lòng chọn khóa học khác.</p>
+        <a class="button button-primary" asp-controller="Courses" asp-action="Index" style="border-radius: 14px; padding: 12px 24px; font-weight: 700;">Về danh mục khóa học</a>
     </section>
 </div>

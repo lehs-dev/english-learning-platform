@@ -28,4 +28,6 @@ public sealed class RegisterViewModel
     [Compare(nameof(Password), ErrorMessage = "Mật khẩu xác nhận không khớp.")]
     [Display(Name = "Xác nhận mật khẩu")]
     public string ConfirmPassword { get; set; } = string.Empty;
+
+    public string? ReturnUrl { get; set; }
 }

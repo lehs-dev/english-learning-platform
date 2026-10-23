@@ -1,0 +1,26 @@
+@model CourseSummary
+@{
+    var skill = Model.Skills.FirstOrDefault();
+    var (theme, title, icon, word) = skill switch
+    {
+        EnglishSkill.Listening => ("listening", "Nghe hiểu", "graduation", "Listening"),
+        EnglishSkill.Reading => ("reading", "Đọc hiểu", "eye", "Reading"),
+        EnglishSkill.Grammar => ("grammar", "Ngữ pháp", "check-circle", "Grammar"),
+        _ => ("vocabulary", "Từ vựng", "search", "Vocabulary")
+    };
+    var themePillClass = skill switch
+    {
+        EnglishSkill.Listening => "pill-tag-purple",
+        EnglishSkill.Reading => "pill-tag-mint",
+        EnglishSkill.Grammar => "pill-tag-orange",
+        _ => "pill-tag-pink"
+    };
+}
+<div class="course-cover cover-@theme" aria-hidden="true">
+    <div class="cover-brand">
+        <span class="pill-tag @themePillClass">@title</span>
+        <span class="cover-level-badge"><partial name="_UiText" model="Model.Level" /></span>
+    </div>
+    <strong>@word</strong>
+    <span class="cover-caption">Estudy · @Model.LessonCount bài học</span>
+</div>

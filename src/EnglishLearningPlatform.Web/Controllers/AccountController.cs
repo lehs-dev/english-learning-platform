@@ -12,23 +12,32 @@ public sealed class AccountController : Controller
     private readonly IRegistrationService _registrationService;
     private readonly ILoginService _loginService;
     private readonly ILogoutService _logoutService;
+    private readonly IConfiguration _configuration;
+    private readonly IWebHostEnvironment _environment;
 
     public AccountController(
         IRegistrationService registrationService,
         ILoginService loginService,
-        ILogoutService logoutService)
+        ILogoutService logoutService,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         _registrationService = registrationService;
         _loginService = loginService;
         _logoutService = logoutService;
+        _configuration = configuration;
+        _environment = environment;
     }
 
     [AllowAnonymous]
     [HttpGet]
-    public IActionResult Register()
+    public IActionResult Register(string? returnUrl = null)
     {
         ViewBag.SuccessMessage = TempData["SuccessMessage"];
-        return View();
+        return View(new RegisterViewModel
+        {
+            ReturnUrl = RoleNavigation.IsValidReturnUrl(Url, returnUrl) ? returnUrl : null
+        });
     }
 
     [AllowAnonymous]
@@ -38,6 +47,7 @@ public sealed class AccountController : Controller
     {
         if (!ModelState.IsValid)
         {
+            model.ReturnUrl = RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl) ? model.ReturnUrl : null;
             return View(model);
         }
 
@@ -57,16 +67,22 @@ public sealed class AccountController : Controller
             return View(model);
         }
 
-        TempData["SuccessMessage"] = "Đăng ký thành công.";
+        TempData["SuccessMessage"] = "Đăng ký thành công. Vui lòng đăng nhập.";
 
-        return RedirectToAction(nameof(Register));
+        return RedirectToAction(nameof(Login), new
+        {
+            returnUrl = RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl) ? model.ReturnUrl : null
+        });
     }
 
     [AllowAnonymous]
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
-        return View(new LoginViewModel { ReturnUrl = returnUrl });
+        return LoginView(new LoginViewModel
+        {
+            ReturnUrl = RoleNavigation.IsValidReturnUrl(Url, returnUrl) ? returnUrl : null
+        });
     }
 
     [AllowAnonymous]
@@ -75,7 +91,7 @@ public sealed class AccountController : Controller
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid)
-            return View(model);
+            return LoginView(model);
 
         var result = await _loginService.LoginAsync(
             new LoginRequest(model.Email, model.Password, model.RememberMe));
@@ -93,7 +109,16 @@ public sealed class AccountController : Controller
             : "Không thể đăng nhập. Vui lòng kiểm tra thông tin hoặc trạng thái tài khoản.";
 
         ModelState.AddModelError(string.Empty, message);
-        return View(model);
+        return LoginView(model);
+    }
+
+    private ViewResult LoginView(LoginViewModel model)
+    {
+        if (!RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl)) model.ReturnUrl = null;
+        model.DemoPassword = _environment.IsDevelopment()
+            ? _configuration["LearningDemo:Password"]
+            : null;
+        return View(nameof(Login), model);
     }
 
     [Authorize]

@@ -13,6 +13,23 @@ namespace EnglishLearningPlatform.IntegrationTests;
 /// </summary>
 public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
+    [Theory]
+    [InlineData(AppRoles.Teacher, "teacher-studio", "teacher-sidebar")]
+    [InlineData(AppRoles.Admin, "admin-body", "admin-sidebar")]
+    public async Task CourseDiscovery_KeepsRoleSidebarAndActiveCatalogLink(string role, string bodyClass, string sidebarClass)
+    {
+        var user = await IdentityTestHelpers.CreateUserAsync(factory, role);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, user);
+        using var response = await client.GetAsync("/Courses");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Contains(bodyClass, html);
+        Assert.Contains(sidebarClass, html);
+        AssertActiveNavigationLink(html, "/Courses");
+        Assert.DoesNotContain("homepage-canvas-frame", html);
+    }
+
     [Fact]
     public async Task GuestLayout_Navbar_ContainsNoRoleConditionalLinks()
     {
@@ -107,7 +124,8 @@ public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : I
         foreach (var (path, activeLink) in new[]
         {
             ("/TeacherQuestionBank", "/TeacherQuestionBank"),
-            ("/TeacherPractices/Create", "/TeacherCourses#practices")
+            ("/TeacherPractices", "/TeacherPractices"),
+            ("/TeacherPractices/Create", "/TeacherPractices")
         })
         {
             using var sectionResponse = await client.GetAsync(path);

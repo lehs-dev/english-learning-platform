@@ -1,8 +1,13 @@
 @{
     var activeSection = ViewData["ActiveSection"] as string;
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var isAdminPage = string.Equals(currentController, "Admin", StringComparison.OrdinalIgnoreCase);
+    var isCatalog = string.Equals(currentController, "Courses", StringComparison.OrdinalIgnoreCase);
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
-    var isTransactions = string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
-    var isUsers = string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase);
+    var isTransactions = isAdminPage && string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
+    var isUsers = isAdminPage && string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase);
+    var isOverview = isAdminPage && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
+    var isAudit = isAdminPage && string.Equals(currentAction, "Audit", StringComparison.OrdinalIgnoreCase);
     var title = ViewData["Title"] as string ?? "Quản trị";
 }
 <!DOCTYPE html>
@@ -10,8 +15,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#176bff" />
     <title>@title - Estudy Quản trị</title>
+    <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
@@ -23,22 +29,24 @@
     <div class="admin-shell">
         <aside class="admin-sidebar" id="admin-sidebar" aria-label="Điều hướng quản trị">
             <div class="admin-sidebar-header">
-                <a class="admin-brand" asp-controller="Admin" asp-action="Transactions" aria-label="Estudy Admin Console">
+                <a class="admin-brand" asp-controller="Admin" asp-action="Transactions" aria-label="Estudy - Quản trị">
                     <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
                     <span class="admin-brand-text">Estudy</span>
                 </a>
-                <span class="admin-role-badge">Admin</span>
-                <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng thanh điều hướng quản trị">✕</button>
+                <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng thanh điều hướng quản trị"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
             </div>
 
-            <div class="admin-system-status" role="status" aria-label="Trạng thái hệ thống: Trực tuyến">
-                <span class="status-dot status-online" aria-hidden="true"></span>
-                <span class="status-text">Hệ thống: Trực tuyến</span>
-            </div>
+            <p class="workspace-caption">Không gian quản trị</p>
 
             <nav class="admin-nav" aria-label="Thực đơn quản trị">
                 <div class="admin-nav-section">
-                    <span class="admin-nav-heading">QUẢN TRỊ NỀN TẢNG</span>
+                    <span class="admin-nav-heading">Quản trị nền tảng</span>
+                    <a class="admin-nav-link @(isOverview ? "is-active" : "")"
+                       asp-controller="Admin" asp-action="Index"
+                       aria-current="@(isOverview ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
+                        <span>Tổng quan</span>
+                    </a>
                     <a class="admin-nav-link @(isTransactions ? "is-active" : "")"
                        asp-controller="Admin"
                        asp-action="Transactions"
@@ -53,25 +61,26 @@
                         <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
                         <span>Người dùng</span>
                     </a>
+                    <a class="admin-nav-link @(isAudit ? "is-active" : "")"
+                       asp-controller="Admin" asp-action="Audit"
+                       aria-current="@(isAudit ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
+                        <span>Nhật ký</span>
+                    </a>
                 </div>
 
                 <div class="admin-nav-section">
-                    <span class="admin-nav-heading">LIÊN KẾT NHANH</span>
-                    <a class="admin-nav-link"
+                    <span class="admin-nav-heading">Liên kết nhanh</span>
+                    <a class="admin-nav-link @(isCatalog ? "is-active" : "")"
                        asp-controller="Courses"
                        asp-action="Index"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       aria-label="Xem danh mục khóa học (mở trong tab mới)">
+                       aria-current="@(isCatalog ? "page" : null)">
                         <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
                         <span>Xem danh mục khóa học</span>
                     </a>
                 </div>
             </nav>
 
-            <div class="admin-sidebar-footer">
-                @await Component.InvokeAsync("AccountMenu")
-            </div>
         </aside>
 
         <div class="sidebar-backdrop" data-admin-backdrop data-sidebar-backdrop aria-controls="admin-sidebar" hidden></div>
@@ -89,7 +98,8 @@
                     </ol>
                 </nav>
                 <div class="admin-topbar-actions">
-                    <span class="admin-env-badge">Production Console</span>
+                    <span class="admin-env-badge">Quản trị</span>
+                    @await Component.InvokeAsync("AccountMenu")
                 </div>
             </header>
 
@@ -121,9 +131,7 @@
                 @RenderBody()
             </main>
 
-            <footer class="admin-footer">
-                <span>&copy; @DateTime.UtcNow.Year Estudy Enterprise Console · Clean Architecture Administration</span>
-            </footer>
+            <partial name="_SiteFooter" />
         </div>
     </div>
     <script src="~/js/site.js" asp-append-version="true" defer></script>

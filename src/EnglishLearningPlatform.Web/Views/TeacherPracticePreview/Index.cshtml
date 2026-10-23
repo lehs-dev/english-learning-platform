@@ -1,0 +1,69 @@
+@model EnglishLearningPlatform.Application.Practice.TeacherPracticePreview
+@{
+    Layout = "_LayoutTeacher";
+    ViewData["Title"] = "Preview Practice";
+    ViewData["ActiveSection"] = "practices";
+}
+@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+
+<div class="page-heading">
+    <div><h1>Preview Practice</h1><p>@Model.Title</p></div>
+    <a class="button secondary" asp-controller="TeacherPracticeQuestions" asp-action="Index" asp-route-id="@Model.PracticeId">Về trang soạn câu hỏi</a>
+</div>
+<p class="notice" role="status">Đây là đề đã lưu. Bấm thử lựa chọn không lưu đáp án, không tạo lượt làm hoặc kết quả và không Publish Practice.</p>
+<section class="panel">
+    <h2>Cấu hình đã lưu</h2>
+    <dl class="assessment-details">
+        <div><dt>Trạng thái</dt><dd>@Model.Status</dd></div>
+        <div><dt>Nơi gắn</dt><dd>@Model.ParentTitle</dd></div>
+        <div><dt>Số câu hỏi</dt><dd>@Model.Questions.Count câu</dd></div>
+        <div><dt>Cách chấm</dt><dd>Các câu có trọng số bằng nhau; làm lại không giới hạn.</dd></div>
+    </dl>
+    <p class="preserve">@Model.Description</p>
+</section>
+@if (Model.Warnings.Count > 0)
+{
+    <section class="panel" aria-label="Các phần cần kiểm tra">
+        <h2>Các phần cần kiểm tra</h2>
+        <ul>@foreach (var warning in Model.Warnings) { <li>@warning</li> }</ul>
+    </section>
+}
+<nav class="panel actions" aria-label="Điều hướng câu hỏi Preview">
+    @for (int i = 0; i < Model.Questions.Count; i++)
+    {
+        <a class="button secondary" href="#preview-practice-@(i + 1)">Câu @(i + 1)</a>
+    }
+</nav>
+<div class="exam-questions-column">
+    @for (int i = 0; i < Model.Questions.Count; i++)
+    {
+        var question = Model.Questions[i];
+        <fieldset class="exam-question-card" id="preview-practice-@(i + 1)">
+            <legend>Câu @(i + 1) — <partial name="_UiText" model="question.Skill" /></legend>
+            @if (!string.IsNullOrWhiteSpace(question.Passage))
+            {
+                <div class="exam-stimulus-box"><strong>Bài đọc / Ngữ cảnh</strong><div class="preserve">@question.Passage</div></div>
+            }
+            <div class="exam-question-content preserve">@question.Content</div>
+            @if (question.AudioUrl != null)
+            {
+                <div class="exam-audio-box">
+                    <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)"></audio>
+                    <partial name="_ExternalStimulusAudioNotice" model="question.AudioUrl" />
+                </div>
+            }
+            @* Không nằm trong form và không có script Submit: lựa chọn chỉ tồn tại trên trang. *@
+            <div class="exam-options-list">
+                @for (int optionIndex = 0; optionIndex < question.Options.Count; optionIndex++)
+                {
+                    var option = question.Options[optionIndex];
+                    <label class="exam-option-card" for="preview-practice-@i-@optionIndex">
+                        <input type="radio" class="exam-option-radio" id="preview-practice-@i-@optionIndex" name="PreviewAnswers[@i]" value="@option.Id" />
+                        <span class="exam-option-badge">@((char)('A' + optionIndex))</span>
+                        <span class="exam-option-text preserve">@option.Content</span>
+                    </label>
+                }
+            </div>
+        </fieldset>
+    }
+</div>

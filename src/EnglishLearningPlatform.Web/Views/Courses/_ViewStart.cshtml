@@ -1,0 +1,6 @@
+@{
+    Layout = User.IsInRole("Student") ? "_LayoutStudent"
+        : User.IsInRole("Teacher") ? "_LayoutTeacher"
+        : User.IsInRole("Admin") ? "_LayoutAdmin"
+        : "_Layout";
+}

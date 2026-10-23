@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace EnglishLearningPlatform.Web.Models.Account;
 
@@ -16,4 +17,7 @@ public sealed class LoginViewModel
     public bool RememberMe { get; set; }
 
     public string? ReturnUrl { get; set; }
+
+    [BindNever]
+    public string? DemoPassword { get; set; }
 }

@@ -1,4 +1,11 @@
 @model CourseSummary
-<p class="muted">@Model.Teacher · @Model.Level · @string.Join(" / ", Model.Skills) · @string.Join(", ", Model.Topics)</p>
-<span class="badge">@(Model.IsPaid ? "Paid" : "Free")</span>
-<strong>@(Model.IsPaid ? Model.Price.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " VND" : "Miễn phí")</strong>
+<div class="course-teacher-meta">
+    <p class="course-teacher"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg><span>@Model.Teacher</span></p>
+    <p class="course-meta">@Model.ModuleCount chương · @Model.LessonCount bài học</p>
+</div>
+<div class="course-tags">
+    @foreach (var skill in Model.Skills) { <span class="pill-tag pill-tag-purple"><partial name="_UiText" model="skill" /></span> }
+</div>
+<div class="course-price">
+    <strong>@(Model.IsPaid ? Model.Price.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " ₫" : "Miễn phí")</strong>
+</div>

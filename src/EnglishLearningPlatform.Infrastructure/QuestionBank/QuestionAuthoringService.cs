@@ -1,5 +1,6 @@
 using System.Data;
 using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -14,24 +15,10 @@ public sealed class QuestionAuthoringService(
     AppDbContext db,
     UserManager<ApplicationUser> userManager,
     ICreateQuestionValidator validator,
-    ILogger<QuestionAuthoringService> logger) : IQuestionAuthoringService
+    ILogger<QuestionAuthoringService> logger,
+    IActiveUserValidator? activeUsers = null) : IQuestionAuthoringService
 {
-    private async Task<bool> IsActiveTeacherAsync(Guid userId)
-    {
-        if (userId == Guid.Empty)
-        {
-            return false;
-        }
-
-        var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user is null || user.AccountStatus != AccountStatus.Active)
-        {
-            return false;
-        }
-
-        var roles = await userManager.GetRolesAsync(user);
-        return roles.Count == 1 && roles[0] == AppRoles.Teacher;
-    }
+    private readonly IActiveUserValidator activeUserValidator = activeUsers ?? new ActiveUserValidator(userManager, db);
 
     public async Task<QuestionEditor?> GetEditorAsync(
         Guid actorUserId,
@@ -40,7 +27,7 @@ public sealed class QuestionAuthoringService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!await IsActiveTeacherAsync(actorUserId))
+        if (!await activeUserValidator.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return null;
         }
@@ -90,7 +77,7 @@ public sealed class QuestionAuthoringService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!await IsActiveTeacherAsync(actorUserId))
+        if (!await activeUserValidator.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return Array.Empty<QuestionStimulusOption>();
         }
@@ -107,6 +94,106 @@ public sealed class QuestionAuthoringService(
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Chuyển câu hỏi sang Archived.
+    /// Chỉ đổi trạng thái, không xóa hoặc sửa nội dung chấm.
+    /// </summary>
+    public async Task<QuestionWriteResult> ArchiveAsync(
+        Guid actorUserId,
+        Guid questionId,
+        CancellationToken cancellationToken = default)
+    {
+        // Nếu request đã bị hủy thì dừng trước khi xử lý database.
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            // Gom việc kiểm tra quyền và cập nhật vào cùng transaction.
+            // Serializable giữ dữ liệu đã đọc ổn định trong quá trình xử lý.
+            // await using bảo đảm transaction được giải phóng khi thoát hàm.
+            await using var transaction =
+                await db.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable,
+                    cancellationToken);
+
+            // Dùng lại helper đã có trong file:
+            // tài khoản phải đang hoạt động và có đúng role Teacher.
+            if (!await activeUserValidator.IsActiveTeacherAsync(actorUserId, cancellationToken))
+            {
+                return QuestionWriteResult.Failure(new[]
+                {
+                    new QuestionError(
+                        string.Empty,
+                        "forbidden",
+                        "Bạn không có quyền lưu trữ câu hỏi.")
+                });
+            }
+
+            // Kiểm tra cả ID câu hỏi và owner ngay trong truy vấn.
+            // Không cho Teacher lưu trữ câu hỏi của người khác.
+            var question = await db.Questions.SingleOrDefaultAsync(
+                q => q.Id == questionId
+                    && q.OwnerTeacherUserId == actorUserId,
+                cancellationToken);
+
+            if (question == null)
+            {
+                // Dùng chung thông báo cho câu hỏi không tồn tại
+                // và câu hỏi thuộc Teacher khác để tránh lộ dữ liệu.
+                return QuestionWriteResult.Failure(new[]
+                {
+                    new QuestionError(
+                        string.Empty,
+                        "not_found",
+                        "Câu hỏi không tồn tại.")
+                });
+            }
+
+            // Đã lưu trữ thì xem như thành công.
+            // Gửi lại request không làm thay đổi thời gian cập nhật.
+            if (question.Status == QuestionStatus.Archived)
+            {
+                return QuestionWriteResult.Success(question.Id);
+            }
+
+            // Chỉ thay đổi hai trường này.
+            // Không đụng tới nội dung, Option, Stimulus hoặc bài làm.
+            question.Status = QuestionStatus.Archived;
+            question.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+            await db.SaveChangesAsync(cancellationToken);
+
+            // Chỉ xác nhận transaction sau khi lưu thành công.
+            await transaction.CommitAsync(cancellationToken);
+
+            return QuestionWriteResult.Success(question.Id);
+        }
+        catch (OperationCanceledException)
+            when (cancellationToken.IsCancellationRequested)
+        {
+            // Request bị hủy không được coi là lỗi lưu database thông thường.
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Ghi chi tiết lỗi cho người phát triển tra cứu.
+            // Không ghi nội dung câu hỏi hoặc đáp án vào log.
+            logger.LogError(
+                ex,
+                "Question archive failed for {QuestionId}.",
+                questionId);
+
+            // Người dùng chỉ nhận thông báo chung, không nhận lỗi nội bộ.
+            return QuestionWriteResult.Failure(new[]
+            {
+                new QuestionError(
+                    string.Empty,
+                    "integration_error",
+                    "Chưa thể lưu trữ câu hỏi. Vui lòng thử lại sau.")
+            });
+        }
+    }
+
     public async Task<QuestionWriteResult> UpdateAsync(
         Guid actorUserId,
         Guid questionId,
@@ -116,7 +203,7 @@ public sealed class QuestionAuthoringService(
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!await IsActiveTeacherAsync(actorUserId))
+        if (!await activeUserValidator.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return QuestionWriteResult.Failure(
             [
@@ -192,7 +279,9 @@ public sealed class QuestionAuthoringService(
                     new QuestionError(
                         nameof(CreateQuestionRequest.StimulusId),
                         "locked",
-                        "Không thể đổi Stimulus của câu hỏi đã bị khóa.")
+                        "Không thể đổi Stimulus của câu hỏi đã bị khóa."),
+                    new QuestionError(nameof(CreateQuestionRequest.Explanation), "locked",
+                        "Không thể đổi giải thích của câu hỏi đã dùng; hãy tạo Question mới.")
                 ]);
             }
 
@@ -244,11 +333,35 @@ public sealed class QuestionAuthoringService(
 
     private async Task<string?> GetLockReasonAsync(Guid questionId, CancellationToken cancellationToken)
     {
-        var questionStatus = await db.Questions
+        // Chỉ đọc hai thông tin cần để xác định câu hỏi có bị khóa không.
+        // new { ... } tạo đối tượng chứa kết quả đọc, không tạo bản ghi database.
+        var questionState = await db.Questions
             .AsNoTracking()
             .Where(q => q.Id == questionId)
-            .Select(q => q.Status)
+            .Select(q => new
+            {
+                q.Status,
+                q.ContentLockedAtUtc
+            })
             .SingleOrDefaultAsync(cancellationToken);
+
+        // Không tìm thấy Question thì không có thông tin khóa.
+        // Quyền sở hữu và sự tồn tại đã được phương thức gọi kiểm tra riêng.
+        if (questionState == null)
+        {
+            return null;
+        }
+
+        // Dấu khóa đã lưu được ưu tiên kiểm tra.
+        // Không mở khóa chỉ vì trạng thái hoặc liên kết hiện tại thay đổi.
+        if (questionState.ContentLockedAtUtc.HasValue)
+        {
+            return "Nội dung chấm của câu hỏi đã bị khóa để bảo toàn "
+                + "nội dung đã công bố và dữ liệu lịch sử.";
+        }
+
+        // Giữ tên biến cũ để các kiểm tra phía dưới tiếp tục hoạt động.
+        QuestionStatus questionStatus = questionState.Status;
 
         if (questionStatus == QuestionStatus.Published)
         {
@@ -316,7 +429,7 @@ public sealed class QuestionAuthoringService(
     {
         if (question.Content != request.Content ||
             question.PrimarySkill != request.PrimarySkill ||
-            question.StimulusId != request.StimulusId)
+            question.StimulusId != request.StimulusId || question.Explanation != request.Explanation)
         {
             return false;
         }
