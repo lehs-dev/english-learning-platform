@@ -20,7 +20,6 @@
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
 <header class="admin-heading"><div><h1>Nhật ký quản trị</h1><p>Theo dõi người thực hiện và các thay đổi trên tài khoản.</p></div></header>
-<partial name="_AdminNav" />
 <section class="admin-surface">
 <div asp-validation-summary="All" class="notice error" role="alert"></div>
 <form method="get" class="admin-filters"><div class="admin-search"><label for="search">Tìm trong nhật ký</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Email người thực hiện hoặc tài khoản…" /></div><div class="admin-date-filter"><label for="fromDate">Ngày thao tác từ</label><input type="date" id="fromDate" name="fromDate" value="@ViewData["FromDate"]" min="0001-01-02" max="9999-12-30" /></div>

@@ -3,7 +3,6 @@
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
 <header class="admin-heading"><div><h1>Tạo tài khoản giáo viên</h1><p>Cấp tài khoản để giáo viên quản lý nội dung và khóa học.</p></div><a class="button secondary" asp-action="Users"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Danh sách tài khoản</a></header>
-<partial name="_AdminNav" />
 <div class="admin-create-grid">
 <section class="admin-surface admin-create-form"><div class="admin-list-heading"><h2>Thông tin giáo viên</h2><span>Vui lòng nhập đầy đủ</span></div>
 <form asp-action="CreateTeacher" method="post" class="admin-editor">

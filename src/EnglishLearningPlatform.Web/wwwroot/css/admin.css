@@ -7,14 +7,19 @@
     --admin-border: var(--v2-border-light);
     --admin-muted: var(--v2-text-muted);
     padding-bottom: 36px;
+    font-size: 14px;
+    line-height: 1.6;
 }
+
+.admin-heading > div { min-width: 0; }
+.admin-heading p { max-width: 70ch; }
 
 .admin-heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 24px;
-    margin: 8px 0 28px;
+    margin: 0 0 20px;
     flex-wrap: wrap;
 }
 
@@ -196,7 +201,11 @@
     padding: 18px 24px;
     background: #FFFFFF;
     border-top: 1px solid var(--v2-border-light);
+    flex-wrap: wrap;
 }
+
+.admin-list-heading > span { color: var(--v2-text-secondary); font-size: 13px; line-height: 1.6; }
+.admin-count { white-space: nowrap; }
 
 .admin-list-heading h2 {
     font-size: 16px;
@@ -243,8 +252,13 @@
     padding: 18px 24px;
     border-bottom: 1px solid var(--v2-border-light);
     vertical-align: middle;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    line-height: 1.65;
 }
+
+.admin-table :where(.admin-email, .admin-order-id) { overflow-wrap: anywhere; }
+.admin-table .admin-amount { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.admin-table :where(.admin-role, .admin-badge) { word-break: normal; }
 
 .admin-table tr:last-child td {
     border-bottom: 0;
@@ -284,7 +298,7 @@
 .admin-email {
     display: block;
     margin-top: 2px;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--v2-text-muted);
 }
 
@@ -382,7 +396,38 @@
     border-top: 1px solid var(--v2-border-light);
     font-size: 13px;
     color: var(--v2-text-secondary);
+    flex-wrap: wrap;
 }
+.admin-pagination > div { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Keep field labels, helper text and actions in distinct reading groups. */
+.admin-editor { display: grid; gap: 20px; padding: 24px; }
+.admin-editor > div:not(.admin-form-actions):not(.notice) { display: grid; gap: 8px; min-width: 0; }
+.admin-editor label, .admin-filters label { font-size: 13px; line-height: 1.5; }
+.admin-field-help, .admin-help { margin: 0; font-size: 13px; line-height: 1.7; color: var(--v2-text-secondary); }
+.admin-editor .admin-help { display: block; padding: 14px 16px; background: #FAF9FE; border-radius: 12px; }
+.admin-form-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; padding-top: 4px; }
+.admin-editor .field-validation-error { font-size: 13px; color: #991B1B; }
+.admin-page .validation-summary-valid { display: none; }
+.admin-page .validation-summary-errors { margin: 16px 24px; line-height: 1.7; }
+.admin-editor .validation-summary-errors { margin: 0; }
+.admin-dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.admin-dialog-heading h2 { margin: 0; font-size: 22px; line-height: 1.4; }
+.admin-dialog-user { margin: 16px 0 24px; overflow-wrap: anywhere; }
+.admin-dialog-user :where(strong, span) { display: block; }
+.admin-dialog-user span { margin-top: 4px; font-size: 13px; color: var(--v2-text-secondary); }
+.admin-dialog .admin-editor { padding: 0; }
+.admin-close { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border: 1px solid var(--v2-border-light); border-radius: 10px; background: white; cursor: pointer; }
+.admin-audit-change { display: grid; gap: 12px; min-width: 180px; }
+.admin-audit-change > span { display: block; }
+.admin-audit-change small { display: block; margin-bottom: 3px; color: var(--v2-text-secondary); font-size: 12px; font-weight: 600; }
+.admin-create-note h3 { margin: 20px 0 12px; font-size: 16px; line-height: 1.5; }
+.admin-create-note ol { padding-left: 22px; margin: 12px 0 20px; }
+.admin-create-note li + li { margin-top: 10px; }
+.admin-create-note hr { border: 0; border-top: 1px solid #C8C1EF; margin: 22px 0; }
+.admin-empty { padding: 40px 24px; text-align: center; }
+.admin-empty h3 { margin: 0 0 8px; font-size: 18px; line-height: 1.5; }
+.admin-empty p { margin: 0 0 12px; color: var(--v2-text-secondary); }
 
 /* Shortcuts & Sections */
 .admin-section {
@@ -489,6 +534,25 @@
 }
 
 @media (max-width: 640px) {
+    .admin-heading { gap: 16px; margin-bottom: 20px; }
+    .admin-list-heading { align-items: flex-start; gap: 6px; padding: 18px 16px; }
+    .admin-list-heading h2 { font-size: 16px; line-height: 1.5; flex-wrap: wrap; }
+    .admin-list-heading > span { flex-basis: 100%; }
+    .admin-editor { padding: 20px 16px; }
+    .admin-form-actions { justify-content: flex-start; }
+    .admin-create-note { padding: 22px 20px; }
+    .admin-dialog { padding: 22px 18px; }
+    .admin-responsive, .admin-responsive tbody { display: block; width: 100%; }
+    .admin-responsive thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .admin-responsive tr { display: block; padding: 16px; border-bottom: 1px solid var(--v2-border-light); }
+    .admin-responsive td { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 9px 0; border: 0; overflow-wrap: anywhere; }
+    .admin-responsive td::before { content: attr(data-label); color: var(--v2-text-secondary); font-size: 13px; font-weight: 600; }
+    .admin-responsive .admin-identity { min-width: 0; }
+    .admin-responsive td:has(.admin-identity) { display: block; padding-bottom: 16px; }
+    .admin-responsive td:has(.admin-identity)::before { display: none; }
+    .admin-identity > div { min-width: 0; }
+    .admin-responsive :where(.admin-badge, .admin-role, .admin-edit-button) { justify-self: start; align-self: start; }
+    .admin-responsive .admin-audit-change { min-width: 0; }
     .admin-summary {
         grid-template-columns: 1fr;
     }
