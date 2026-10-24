@@ -524,6 +524,11 @@
 }
 
 /* Responsive */
+.admin-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.admin-nav a { padding: 10px 14px; border-radius: 10px; }
+.admin-nav a[aria-current="page"] { background: var(--v2-pastel-periwinkle); font-weight: 700; }
+.admin-count { white-space: nowrap; flex-shrink: 0; }
+.admin-list-heading > span { font-size: 12px; }
 @media (max-width: 1000px) {
     .admin-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -534,24 +539,23 @@
 }
 
 @media (max-width: 640px) {
-    .admin-heading { gap: 16px; margin-bottom: 20px; }
-    .admin-list-heading { align-items: flex-start; gap: 6px; padding: 18px 16px; }
-    .admin-list-heading h2 { font-size: 16px; line-height: 1.5; flex-wrap: wrap; }
-    .admin-list-heading > span { flex-basis: 100%; }
-    .admin-editor { padding: 20px 16px; }
-    .admin-form-actions { justify-content: flex-start; }
-    .admin-create-note { padding: 22px 20px; }
-    .admin-dialog { padding: 22px 18px; }
+    /* Keep wide account/audit records inside the viewport without hiding data. */
+    .admin-page, .admin-surface, .admin-table-wrap { min-width: 0; max-width: 100%; }
+    .admin-list-heading { flex-wrap: wrap; padding: 18px 16px; }
+    .admin-nav { gap: 2px; }
+    .admin-nav a { padding: 10px 8px; font-size: 12px; }
     .admin-responsive, .admin-responsive tbody { display: block; width: 100%; }
     .admin-responsive thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-    .admin-responsive tr { display: block; padding: 16px; border-bottom: 1px solid var(--v2-border-light); }
-    .admin-responsive td { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 9px 0; border: 0; overflow-wrap: anywhere; }
-    .admin-responsive td::before { content: attr(data-label); color: var(--v2-text-secondary); font-size: 13px; font-weight: 600; }
+    .admin-responsive tbody { padding: 0 16px; box-sizing: border-box; }
+    .admin-responsive tr { display: block; padding: 16px 0; border-bottom: 1px solid var(--v2-border-light); }
+    .admin-responsive tr:last-child { border-bottom: 0; }
+    .admin-responsive td { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 10px; padding: 8px 0; border: 0; min-width: 0; white-space: normal; }
+    .admin-responsive td::before { content: attr(data-label); font-size: 12px; color: var(--v2-text-secondary); }
+    .admin-responsive td:first-child { display: block; padding-bottom: 14px; }
+    .admin-responsive td:first-child::before { display: none; }
     .admin-responsive .admin-identity { min-width: 0; }
-    .admin-responsive td:has(.admin-identity) { display: block; padding-bottom: 16px; }
-    .admin-responsive td:has(.admin-identity)::before { display: none; }
     .admin-identity > div { min-width: 0; }
-    .admin-responsive :where(.admin-badge, .admin-role, .admin-edit-button) { justify-self: start; align-self: start; }
+    .admin-responsive .admin-badge, .admin-responsive .admin-role { justify-self: start; }
     .admin-responsive .admin-audit-change { min-width: 0; }
     .admin-summary {
         grid-template-columns: 1fr;
@@ -570,4 +574,22 @@
     .admin-table th {
         padding: 12px 16px;
     }
+}
+
+/* PR #62 responsive refinements for the admin date-filter pages.
+   Kept as a trailing block so this branch merges cleanly with the
+   account/audit responsive rules that landed in #61. */
+@media (max-width: 640px) {
+    .admin-heading { gap: 16px; margin-bottom: 20px; }
+    .admin-list-heading { align-items: flex-start; gap: 6px; }
+    .admin-list-heading h2 { font-size: 16px; line-height: 1.5; flex-wrap: wrap; }
+    .admin-list-heading > span { flex-basis: 100%; }
+    .admin-editor { padding: 20px 16px; }
+    .admin-form-actions { justify-content: flex-start; }
+    .admin-create-note { padding: 22px 20px; }
+    .admin-dialog { padding: 22px 18px; }
+    .admin-responsive td { overflow-wrap: anywhere; }
+    .admin-responsive td:has(.admin-identity) { display: block; padding-bottom: 16px; }
+    .admin-responsive td:has(.admin-identity)::before { display: none; }
+    .admin-responsive .admin-edit-button { justify-self: start; align-self: start; }
 }
