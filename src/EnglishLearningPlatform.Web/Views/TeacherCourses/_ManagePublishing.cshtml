@@ -1,0 +1,28 @@
+@model CoursePage
+@{
+    var course = Model.Course;
+    var isPublished = course.Status == CourseStatus.Published;
+    var hasErrors = Model.PublishErrors.Count > 0;
+}
+<section class="course-manage-card course-manage-publishing" aria-labelledby="course-publish-heading">
+    <div class="course-manage-card-heading"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#send")"></use></svg><h2 id="course-publish-heading">Xuất bản khóa học</h2><span class="course-manage-badge status-@course.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="course.Status" /></span></div>
+    <div class="course-publish-readiness @(hasErrors ? "has-errors" : "is-ready")" id="course-publish-readiness">
+        <svg class="icon" aria-hidden="true"><use href="@Url.Content(hasErrors ? "~/images/icons.svg#warning" : "~/images/icons.svg#check-circle")"></use></svg>
+        <div>
+            <h3>@(hasErrors ? "Chưa đủ điều kiện xuất bản" : isPublished ? "Khóa học đang được xuất bản" : "Đã đủ điều kiện xuất bản")</h3>
+            @if (hasErrors)
+            {
+                <ul>@foreach (var error in Model.PublishErrors) { <li>@error</li> }</ul>
+            }
+            else { <p>@(isPublished ? "Học viên có thể tìm và tham gia khóa học trong danh mục." : "Nội dung hợp lệ. Bạn có thể xuất bản để học viên tham gia.")</p> }
+        </div>
+    </div>
+    <form method="post" asp-controller="TeacherCourses" asp-action="Publish" asp-route-id="@course.Id" class="course-publish-form">
+        <button class="button course-publish-button" type="submit" disabled="@(hasErrors || isPublished)" aria-describedby="course-publish-readiness"><svg class="icon" aria-hidden="true"><use href="@Url.Content(hasErrors ? "~/images/icons.svg#lock" : "~/images/icons.svg#send")"></use></svg>@(isPublished ? "Đã xuất bản khóa học" : "Xuất bản khóa học")</button>
+    </form>
+    <div class="course-publish-secondary-actions">
+        <form method="post" asp-controller="TeacherCourses" asp-action="Unpublish" asp-route-id="@course.Id"><button class="button secondary" type="submit" disabled="@(!isPublished)"><span aria-hidden="true">Ⅱ</span>Ngừng xuất bản</button></form>
+        <form method="post" asp-controller="TeacherCourses" asp-action="Archive" asp-route-id="@course.Id"><button class="button secondary" type="submit" disabled="@(course.Status == CourseStatus.Archived)"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#archive")"></use></svg>Lưu trữ</button></form>
+    </div>
+    <p class="course-publish-help">@(hasErrors ? "Hoàn thiện các điều kiện trên để xuất bản khóa học." : isPublished ? "Bạn có thể ngừng xuất bản hoặc lưu trữ khi cần." : "Xuất bản là thao tác riêng sau khi hoàn thiện nội dung.")</p>
+</section>

@@ -23,14 +23,14 @@ public sealed class CourseContentOrderPlan
         error = null;
         if (ids is null || ids.Length != entries.Count || ids.Distinct().Count() != ids.Length || entries.Any(e => !ids.Contains(e.Id)))
         {
-            error = "Thứ tự phải chứa đúng mỗi ID của cùng parent một lần.";
+            error = "Danh sách sắp xếp phải chứa đủ các mục trong cùng một chương hoặc bài học, mỗi mục đúng một lần.";
             return false;
         }
         // Temporary values stay below every existing and final index in either save.
         var start = Math.Min(-1L, entries.Count == 0 ? -1L : (long)entries.Min(e => e.Index) - entries.Count - 1);
         if (start < int.MinValue)
         {
-            error = "OrderIndex vượt giới hạn; cần chuẩn hóa dữ liệu.";
+            error = "Thứ tự nội dung vượt giới hạn cho phép; cần chuẩn hóa lại dữ liệu sắp xếp.";
             return false;
         }
         plan = new(entries, ids, (int)start);

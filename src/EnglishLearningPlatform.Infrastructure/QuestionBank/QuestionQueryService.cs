@@ -101,12 +101,6 @@ public class QuestionQueryService : IQuestionQueryService
             string level = request.Level.Trim();
             query = query.Where(question => question.Level == level);
         }
-        // Lọc theo đúng một difficulty được chọn
-        if (!string.IsNullOrWhiteSpace(request.Difficulty))
-        {
-            string difficulty = request.Difficulty.Trim();
-            query = query.Where(question => question.Difficulty == difficulty);
-        }
             // Đếm sau khi áp dụng owner và toàn bộ bộ lọc,
         // nhưng trước khi lấy một trang.
         int totalCount = await query.CountAsync(cancellationToken);
@@ -131,7 +125,6 @@ public class QuestionQueryService : IQuestionQueryService
             Id = question.Id,
             Content = question.Content,
             Level = question.Level,
-            Difficulty = question.Difficulty,
             PrimarySkill = question.PrimarySkill,
             Status = question.Status,
             OptionCount = question.Options.Count,
@@ -179,7 +172,6 @@ public class QuestionQueryService : IQuestionQueryService
             Id = question.Id,
             Content = question.Content,
             Level = question.Level,
-            Difficulty = question.Difficulty,
             PrimarySkill = question.PrimarySkill,
             Status = question.Status,
             Explanation = question.Explanation,

@@ -127,7 +127,6 @@ erDiagram
         string content
         string primary_skill
         string level "nullable"
-        string difficulty "nullable"
         string explanation "nullable"
         string status
         datetime created_at

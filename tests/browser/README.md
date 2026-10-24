@@ -1,5 +1,17 @@
 # Browser UAT
 
+## Popup đăng nhập và đăng ký
+
+Sau `npm ci` và `npx playwright install chromium`, chạy `npm run test:auth-modal`.
+Suite chạy tuần tự với một Chromium, dùng dialog/aside, CSS và JavaScript production
+cùng form HTML giữ tên trường MVC và CSRF. Các case kiểm tra mở/chuyển form giữ URL
+và ReturnUrl, lỗi xác thực, payload CSRF, đăng ký thành công, chuyển trang sau đăng nhập,
+focus bàn phím, Escape/backdrop/nút đóng, URL Account mở trực tiếp và màn hình 320/390px.
+Fixture giả response HTTP, không cần database; không thay thế integration tests
+cho Razor, xác thực tài khoản, CSRF và chuyển hướng backend.
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` tùy chọn chỉ tới Chromium đã cài.
+`ELP_AUTH_MODAL_SCREENSHOTS` chọn thư mục lưu ảnh fixture đăng nhập desktop và đăng ký 390px.
+
 ## Luồng Student theo từng nhóm nhỏ
 
 Từ thư mục gốc, `bash scripts/test-student-flow.sh --group auth` build bằng một
@@ -128,3 +140,15 @@ unset LearningDemo__Password
 Trong Docker có thể chạy bằng image `mcr.microsoft.com/playwright:v1.64.0-noble` trên cùng Compose network, URL `http://web:8080`. Sao chép các file suite vào runner và chạy `npm ci`, `node uat.mjs`. Caller phải truyền `ELP_UAT_CANDIDATE`, `ELP_UAT_CLEAN`, `ELP_UAT_SOURCE_DIGEST`, `ELP_UAT_IMAGE_ID` từ bản nguồn và image đã kiểm tra. Đối chiếu label `org.opencontainers.image.revision` với SHA trước run. Không dùng SHA base làm SHA của source chưa commit.
 
 Suite thực thi các bước qua Chromium, kiểm tra CSRF, paid/free access, resume giữ deadline/answers, 80% score, completion, ownership và Admin isolation. Đây là **automated browser UAT**, không thay chữ ký nghiệm thu hay rehearsal của thành viên.
+
+## Kiểm tra giao diện ngân hàng câu hỏi
+
+Chạy trên ứng dụng dùng cơ sở dữ liệu trình diễn riêng, đã bật dữ liệu mẫu và cấu hình mật khẩu qua `LearningDemo__Password`. Bài kiểm tra tạo 12 câu hỏi mới để kiểm tra sáu trình độ A1–C2, tìm/lọc, phân trang, sửa câu hỏi, menu điều hướng và bố cục trên máy tính/điện thoại; không đặt lại dữ liệu.
+
+```powershell
+$env:ELP_UAT_URL = 'http://127.0.0.1:5108'
+$env:ELP_UAT_RESULTS = 'artifacts/question-bank-review'
+node tests/browser/question-bank-uat.mjs
+```
+
+Ảnh chụp và `ket-qua.json` được lưu ở thư mục kết quả. Đường dẫn kết quả tương đối được tính từ thư mục đang chạy lệnh.

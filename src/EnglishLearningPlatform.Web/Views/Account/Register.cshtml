@@ -2,11 +2,12 @@
 @{
     ViewData["Title"] = "Đăng ký";
     ViewData["PageClass"] = "auth-page";
+    if (Context.Request.Headers["X-Auth-Modal"] == "true")
+    {
+        Layout = null;
+    }
 }
-@section Styles {
-    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
-}
-<section class="auth-shell register-shell" aria-labelledby="auth-title">
+<section class="auth-shell register-shell" data-auth-panel aria-labelledby="auth-title">
     <partial name="_AuthAside" />
     <div class="auth-form-panel">
         <div class="auth-heading">

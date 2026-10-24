@@ -1,19 +1,30 @@
 @model EnglishLearningPlatform.Web.Models.QuestionBank.QuestionFormViewModel
 @{
     ViewData["Title"] = "Tạo câu hỏi";
-    ViewData["PageClass"] = "question-bank-page";
+    ViewData["PageClass"] = "question-bank-page question-editor-page";
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
 }
 
-<div class="page-heading">
+<nav class="question-editor-breadcrumb" aria-label="Đường dẫn điều hướng">
+    <a asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Ngân hàng câu hỏi</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">Tạo câu hỏi</span>
+</nav>
+
+<div class="page-heading question-editor-heading">
     <div>
         <h1>Tạo câu hỏi</h1>
-        <p>Soạn câu hỏi, các lựa chọn và phần giải thích đáp án.</p>
+        <p>Soạn nội dung, thêm lựa chọn và thiết lập đáp án đúng.</p>
     </div>
-    <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Quay lại ngân hàng câu hỏi</a>
+    <div class="actions">
+        <button class="button secondary" type="submit" form="question-editor-form" title="Lưu câu hỏi hợp lệ vào ngân hàng ở trạng thái bản nháp">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>Lưu nháp
+        </button>
+        <button class="button question-submit" type="submit" form="question-editor-form"><span class="question-plus" aria-hidden="true">+</span>Tạo câu hỏi</button>
+    </div>
 </div>
 
 <partial name="_Form" model="Model" />

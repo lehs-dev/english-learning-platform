@@ -18,7 +18,9 @@ document.querySelectorAll("[data-nav-toggle], [data-sidebar-toggle]").forEach((t
     if (!navigation) return;
 
     const isSidebar = navigation.matches(".studio-sidebar, .admin-sidebar");
-    const mobile = window.matchMedia("(max-width: 1024px)");
+    const mobile = window.matchMedia(document.body.classList.contains("question-bank-focus-page")
+        ? "(min-width: 0px)"
+        : "(max-width: 1024px)");
     const backdrop = [...document.querySelectorAll("[data-sidebar-backdrop]")]
         .find((element) => element.getAttribute("aria-controls") === navigation.id);
     const closedLabel = toggle.getAttribute("aria-label") || "Mở thanh điều hướng";
@@ -95,15 +97,16 @@ document.querySelectorAll("[data-nav-toggle], [data-sidebar-toggle]").forEach((t
     setOpen(false);
 });
 
-document.querySelectorAll("[data-password-toggle]").forEach((button) => {
-    button.addEventListener("click", () => {
-        const input = document.getElementById(button.dataset.passwordToggle);
+document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-password-toggle]");
+    if (button) {
+        const input = button.closest("form")?.querySelector(`[id="${button.dataset.passwordToggle}"]`);
         if (!input) return;
         const showPassword = input.type === "password";
         input.type = showPassword ? "text" : "password";
         button.setAttribute("aria-pressed", String(showPassword));
         button.setAttribute("aria-label", showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu");
-    });
+    }
 });
 
 document.querySelectorAll("[data-local-date]").forEach((element) => {

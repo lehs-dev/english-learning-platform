@@ -14,7 +14,6 @@ public sealed class QuestionListItemTests
         item.Id = guid;
         item.Content = "What is the capital of France?";
         item.Level = "A1";
-        item.Difficulty = "Easy";
         item.PrimarySkill = EnglishSkill.Reading;
         item.Status = QuestionStatus.Published;
         item.OptionCount = 4;
@@ -22,18 +21,17 @@ public sealed class QuestionListItemTests
         Assert.Equal(guid, item.Id);
         Assert.Equal("What is the capital of France?", item.Content);
         Assert.Equal("A1", item.Level);
-        Assert.Equal("Easy", item.Difficulty);
         Assert.Equal(EnglishSkill.Reading, item.PrimarySkill);
         Assert.Equal(QuestionStatus.Published, item.Status);
         Assert.Equal(4, item.OptionCount);
         Assert.Equal(createdAt, item.CreatedAtUtc);
     }
-    // Level và Difficulty là metadata tùy chọn.
+    // Level là metadata tùy chọn.
     // Khi không được cung cấp, chúng phải giữ giá trị null.
     [Fact]
     public void QuestionListItem_WithoutOptionalMetadata_HasNullMetadata()
     {
-        // Arrange: không gán Level và Difficulty.
+        // Arrange: không gán Level.
         QuestionListItem item = new QuestionListItem
         {
             Id = Guid.NewGuid(),
@@ -46,6 +44,5 @@ public sealed class QuestionListItemTests
 
         // Assert: không tự tạo metadata mà Teacher chưa khai báo.
         Assert.Null(item.Level);
-        Assert.Null(item.Difficulty);
     }
 }

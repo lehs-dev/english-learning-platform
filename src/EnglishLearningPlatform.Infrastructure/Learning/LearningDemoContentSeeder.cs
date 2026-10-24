@@ -189,7 +189,6 @@ internal static class LearningDemoContentSeeder
                     Content = definition.Content,
                     PrimarySkill = definition.Skill,
                     Level = definition.Level,
-                    Difficulty = definition.Difficulty,
                     Explanation = definition.Explanation,
                     Status = QuestionStatus.Published,
                     StimulusId = definition.StimulusId,
@@ -233,7 +232,6 @@ internal static class LearningDemoContentSeeder
                 Content = definition.Content,
                 PrimarySkill = definition.Skill,
                 Level = definition.Level,
-                Difficulty = definition.Difficulty,
                 Explanation = definition.Explanation,
                 Status = QuestionStatus.Draft,
                 StimulusId = definition.StimulusId,
@@ -483,7 +481,7 @@ internal static class LearningDemoContentSeeder
     ];
 
     private sealed record QuestionSeed(string Content, EnglishSkill Skill, Guid? StimulusId,
-        string Explanation, string[] Options, int CorrectOption, string Level = "Intermediate", string Difficulty = "Medium");
+        string Explanation, string[] Options, int CorrectOption, string Level = "Intermediate");
 
     private sealed record LessonDefinition(string Title, string Content);
     private sealed record ModuleDefinition(string Title, string Description, LessonDefinition[] Lessons);

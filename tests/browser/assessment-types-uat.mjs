@@ -95,6 +95,7 @@ async function invalidConfiguration(page, id, label, change) {
 
 async function createQuestion(page, index, skill) {
   await page.goto('/TeacherQuestionBank/Create');
+  await page.locator('#Level').selectOption('A1');
   await page.locator('#Content').fill(`${runId} question ${index}`);
   await page.locator('#PrimarySkill').selectOption(String(skill));
   const options = page.locator('[data-option-row] input[name$=".Content"]');

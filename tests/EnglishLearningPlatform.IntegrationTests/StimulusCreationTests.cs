@@ -234,7 +234,7 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
             using var questionPost = await teacherClient.PostAsync("/TeacherQuestionBank/Create",
                 new FormUrlEncodedContent(new Dictionary<string, string>
                 {
-                    ["Content"] = content, ["PrimarySkill"] = ((int)skill).ToString(),
+                    ["Content"] = content, ["PrimarySkill"] = ((int)skill).ToString(), ["Level"] = "A1",
                     ["StimulusId"] = stimulusId.ToString(), ["Options[0].Content"] = "Choice A",
                     ["Options[1].Content"] = "Choice B", ["CorrectOptionIndex"] = "0",
                     ["__RequestVerificationToken"] = token

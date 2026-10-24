@@ -47,7 +47,7 @@ public sealed class ResourceCourseContentHandler(AppDbContext db) : ICourseConte
             lesson.Resources.Where(r => r.Id != id).Any(r => !CourseRules.ValidResource(r.ResourceType, r.ContentText, r.ResourceUrl))))
             return new(LearningAccessResult.Allowed, courseId, new Dictionary<string, string[]>
             {
-                [""] = ["Không thể xóa resource cuối của Lesson Published. Chuyển Lesson về Draft/Hidden trước."]
+                [""] = ["Không thể xóa tài nguyên cuối cùng hoặc để lại tài nguyên không hợp lệ trong bài học đã xuất bản. Hãy chuyển bài học về bản nháp hoặc ẩn trước."]
             });
         db.LessonResources.Remove(lesson.Resources.Single(r => r.Id == id));
         return WriteOutcome.Ok(courseId);

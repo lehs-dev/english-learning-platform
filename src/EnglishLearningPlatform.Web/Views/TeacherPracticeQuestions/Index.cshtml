@@ -20,7 +20,7 @@
     @if (Model.Editor.Status == PracticeStatus.Draft || Model.Editor.Status == PracticeStatus.Published)
     {
         <a class="button" asp-controller="TeacherPracticePreview" asp-action="Index"
-           asp-route-id="@Model.Editor.PracticeId" data-editor-navigation>Preview Practice đã lưu</a>
+           asp-route-id="@Model.Editor.PracticeId" data-editor-navigation>Xem trước bài luyện tập đã lưu</a>
     }
     <a class="button secondary"
        asp-controller="TeacherPractices"
@@ -34,7 +34,7 @@
 
     <p>
         Trạng thái:
-        <span class="badge">@Model.Editor.Status</span>
+        <span class="badge"><partial name="_UiText" model="Model.Editor.Status" /></span>
     </p>
 
     <p>
@@ -123,7 +123,7 @@
 </section>
 <section class="panel" aria-labelledby="question-filter-title">
     <h2 id="question-filter-title">
-        Tìm câu hỏi trong Question Bank
+        Tìm câu hỏi trong ngân hàng câu hỏi
     </h2>
 
     @* GET chỉ tìm kiếm, không ghi dữ liệu.
@@ -168,13 +168,13 @@
                         if (Model.Query.PrimarySkill == skill)
                         {
                             <option value="@skill" selected>
-                                @skill
+                                <partial name="_UiText" model="skill" />
                             </option>
                         }
                         else
                         {
                             <option value="@skill">
-                                @skill
+                                <partial name="_UiText" model="skill" />
                             </option>
                         }
                     }
@@ -184,21 +184,13 @@
             <div>
                 <label for="Level">Trình độ</label>
 
-                <input type="text"
-                       id="Level"
-                       name="Level"
-                       value="@Model.Query.Level"
-                       placeholder="Ví dụ: Beginner" />
-            </div>
-
-            <div>
-                <label for="Difficulty">Độ khó</label>
-
-                <input type="text"
-                       id="Difficulty"
-                       name="Difficulty"
-                       value="@Model.Query.Difficulty"
-                       placeholder="Ví dụ: Easy" />
+                <select id="Level" name="Level">
+                    <option value="">Tất cả</option>
+                    @foreach (var level in QuestionLevels.All)
+                    {
+                        <option value="@level" selected="@(Model.Query.Level == level)">@level</option>
+                    }
+                </select>
             </div>
 
             <div>
@@ -213,13 +205,13 @@
                         if (Model.Query.Status == status)
                         {
                             <option value="@status" selected>
-                                @status
+                                <partial name="_UiText" model="status" />
                             </option>
                         }
                         else
                         {
                             <option value="@status">
-                                @status
+                                <partial name="_UiText" model="status" />
                             </option>
                         }
                     }
@@ -262,7 +254,7 @@
     </p>
 
     <p class="muted">
-        Câu hỏi Archived không được thêm mới vào Practice.
+        Câu hỏi đã lưu trữ không được thêm vào bài luyện tập mới.
     </p>
 
     @if (Model.Result.Items.Count == 0)
@@ -293,7 +285,6 @@
                         <th scope="col">Nội dung</th>
                         <th scope="col">Kỹ năng</th>
                         <th scope="col">Trình độ</th>
-                        <th scope="col">Độ khó</th>
                         <th scope="col">Trạng thái</th>
                         <th scope="col">Số lựa chọn</th>
                         <th scope="col">Chi tiết</th>
@@ -306,10 +297,9 @@
                     {
                         <tr>
                             <td class="preserve" data-question-content>@question.Content</td>
-                            <td>@question.PrimarySkill</td>
-                            <td>@question.Level</td>
-                            <td>@question.Difficulty</td>
-                            <td>@question.Status</td>
+                            <td><partial name="_UiText" model="question.PrimarySkill" /></td>
+                            <td>@QuestionLevels.Display(question.Level)</td>
+                            <td><partial name="_UiText" model="question.Status" /></td>
                             <td>@question.OptionCount</td>
 
                             <td>
@@ -372,8 +362,6 @@
             <input type="hidden" name="Level"
                    value="@Model.Query.Level" />
 
-            <input type="hidden" name="Difficulty"
-                   value="@Model.Query.Difficulty" />
 
             <input type="hidden" name="Status"
                    value="@Model.Query.Status" />

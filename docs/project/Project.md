@@ -650,10 +650,10 @@ Sau này khi thiết kế kỹ thuật, có thể tái sử dụng chung engine 
 | -------- | ------------------------------ | ---------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------- |
 | **TC21** | Xem Question Bank              | Đã đăng nhập Teacher         | Xem / tìm / lọc câu hỏi                                        | Chỉ phạm vi được phép                                                          | Có danh sách câu hỏi               |
 | **TC22** | Tạo câu hỏi                    | Teacher hợp lệ               | Nhập nội dung MCQ → tạo các lựa chọn → chọn đúng 1 đáp án đúng → gán PrimarySkill/metadata → lưu | Chỉ Single-choice MCQ trong MVP; Question Bank không lưu point toàn cục; Question thuộc Question Bank của chính Teacher (BR12, BR16, TBR07) | Có Question mới |
-| **TC23** | Phân loại câu hỏi              | Có Question                  | Gán đúng 1 `PrimarySkill` (Reading/Listening/Vocabulary/Grammar), level, difficulty… | `PrimarySkill` là cơ sở duy nhất để tính Skill Score trong MVP (BR15) | Question có ngữ nghĩa rõ |
+| **TC23** | Phân loại câu hỏi              | Có Question                  | Gán đúng 1 `PrimarySkill` (Reading/Listening/Vocabulary/Grammar), level | `PrimarySkill` là cơ sở duy nhất để tính Skill Score trong MVP (BR15) | Question có ngữ nghĩa rõ |
 | **TC24** | Sửa câu hỏi | Có quyền sở hữu | Chỉnh nội dung / đáp án | Tuân TBR05: Question đã dùng trong Assessment/Practice Published hoặc có dữ liệu làm bài thì nội dung, Option, PrimarySkill và Stimulus liên quan bị khóa; tạo Question mới để sửa | Question được cập nhật an toàn |
 | **TC25** | Archive câu hỏi                | Không muốn dùng tiếp         | Chuyển `Archived` | Không hard-delete nếu đã từng được sử dụng; Assessment/Practice lịch sử vẫn tham chiếu được (TBR05) | Không xuất hiện khi tạo nội dung mới |
-| **TC26** | Tìm / lọc câu hỏi              | Có Question Bank             | Filter theo skill, level, type, difficulty…                    | —                                                                              | Dễ tạo đề                          |
+| **TC26** | Tìm / lọc câu hỏi              | Có Question Bank             | Filter theo skill, level, type                    | —                                                                              | Dễ tạo đề                          |
 | **TC27** | Tạo nhanh câu hỏi khi soạn bài | Đang tạo Practice/Assessment | Chọn “Create new question” → tạo → tự thêm vào Bank            | Không tạo bản câu hỏi riêng nằm ngoài Bank                                     | Workflow nhanh nhưng vẫn nhất quán |
 
 **Practice / Assessment**
@@ -1198,7 +1198,7 @@ Phần này kiểm tra hai nhánh của BR14 và sự khác nhau giữa Current 
 
 | Mã AC         | Liên kết            | Given                                                             | When                                                           | Then                                                                                                         |
 | ------------- | ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **AC-QBK-09** | FR-QBK-04           | Teacher có Question                                               | Teacher gán PrimarySkill, level, difficulty và metadata hợp lệ | Metadata được lưu và có thể dùng để tìm kiếm/lọc.                                                            |
+| **AC-QBK-09** | FR-QBK-04           | Teacher có Question                                               | Teacher gán PrimarySkill, level và metadata hợp lệ | Metadata được lưu và có thể dùng để tìm kiếm/lọc.                                                            |
 | **AC-QBK-10** | FR-QBK-05           | Question Bank có Question thuộc nhiều skill/level                 | Teacher lọc theo `Reading`                                     | Chỉ các Question phù hợp điều kiện lọc trong Question Bank của Teacher được hiển thị.                        |
 | **AC-QBK-11** | FR-QBK-05           | Teacher có nhiều Question                                         | Teacher tìm kiếm bằng từ khóa phù hợp                          | Hệ thống trả các Question phù hợp trong phạm vi ownership của Teacher.                                       |
 | **AC-QBK-12** | FR-QBK-06, TBR05    | Question chưa được dùng hoặc không còn muốn dùng cho nội dung mới | Teacher Archive Question                                       | Question chuyển `Archived` và không còn xuất hiện trong danh sách chọn Question cho Assessment/Practice mới. |
@@ -1800,7 +1800,6 @@ erDiagram
         string content
         string primary_skill
         string level "nullable"
-        string difficulty "nullable"
         string explanation "nullable"
         string status
         datetime created_at

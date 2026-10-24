@@ -1,16 +1,168 @@
 @model CourseEditModel
-@{ ViewData["Title"] = Model.Id.HasValue ? "Sửa khóa học" : "Tạo khóa học nháp"; }
-<a class="button secondary back-link" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học của tôi</a><h1>@ViewData["Title"]</h1>
-<form method="post" asp-action="Edit" asp-route-id="@Model.Id" class="panel editor-form">
-<div asp-validation-summary="All" class="validation" role="alert"></div>
-<label asp-for="Input.Title">Tên khóa học</label><input asp-for="Input.Title" maxlength="200" required /><span asp-validation-for="Input.Title" class="validation"></span>
-<label asp-for="Input.Description">Mô tả</label><textarea asp-for="Input.Description" maxlength="4000" rows="4"></textarea><span asp-validation-for="Input.Description" class="validation"></span>
-<label asp-for="Input.Objectives">Mục tiêu</label><textarea asp-for="Input.Objectives" maxlength="4000" rows="4"></textarea><span asp-validation-for="Input.Objectives" class="validation"></span>
-<label asp-for="Input.Level">Cấp độ</label><select asp-for="Input.Level">@foreach (var choice in Enum.GetValues<CourseLevel>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }</select><span asp-validation-for="Input.Level" class="validation"></span>
-<fieldset><legend>Kỹ năng</legend><div class="actions">@foreach (var skill in Enum.GetValues<EnglishSkill>()) { <label class="check"><input type="checkbox" name="Input.Skills" value="@skill" checked="@(Model.Input.Skills?.Contains(skill) == true)" /> <partial name="_UiText" model="skill" /></label> }</div></fieldset><span asp-validation-for="Input.Skills" class="validation"></span>
-<label asp-for="Input.Topics">Chủ đề (ngăn cách bằng dấu phẩy)</label><input asp-for="Input.Topics" maxlength="4000" placeholder="Travel, Business, Everyday English" /><span asp-validation-for="Input.Topics" class="validation"></span>
-<label asp-for="Input.IsPaid">Loại khóa</label><select asp-for="Input.IsPaid" data-price-type><option value="false">Miễn phí</option><option value="true">Có phí</option></select>
-<label asp-for="Input.Price">Giá (VND)</label><input asp-for="Input.Price" type="number" min="0" step="0.01" max="9999999999999999.99" data-price /><span asp-validation-for="Input.Price" class="validation"></span><p class="muted">Miễn phí có giá 0. Có phí cần giá dương. Xuất bản là thao tác riêng sau khi thêm nội dung.</p>
-<div class="actions"><button class="button">Lưu khóa học</button><a asp-action="Index">Hủy</a></div>
+@{
+    var isNew = !Model.Id.HasValue;
+    var title = isNew ? "Tạo khóa học" : "Chỉnh sửa khóa học";
+    var cancelUrl = isNew ? Url.Action("Index") : Url.Action("Manage", new { id = Model.Id });
+    ViewData["Title"] = title;
+    ViewData["PageClass"] = "course-editor-page";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/course-editor.css" asp-append-version="true" />
+}
+
+<nav class="course-editor-breadcrumb" aria-label="Đường dẫn điều hướng">
+    <a asp-action="Index">Khóa học</a><span aria-hidden="true">/</span><span aria-current="page">@title</span>
+</nav>
+<div class="course-editor-heading">
+    <div>
+        <div class="course-editor-title">
+            <h1>@title</h1>
+            @if (isNew) { <span class="course-draft-badge"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg>Bản nháp</span> }
+        </div>
+        <p>@(isNew ? "Bắt đầu với thông tin cơ bản, sau đó xây dựng nội dung của bạn." : "Cập nhật thông tin để học viên hiểu rõ hơn về khóa học của bạn.")</p>
+    </div>
+    <div class="course-editor-actions">
+        <a class="button secondary" href="@cancelUrl">Hủy</a>
+        <button class="button" type="submit" form="course-editor-form"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>@(isNew ? "Lưu và tiếp tục" : "Lưu thay đổi")</button>
+    </div>
+</div>
+@if (isNew)
+{
+    <ol class="course-editor-steps" aria-label="Các bước tạo khóa học">
+        <li class="is-current" aria-current="step"><span>1</span>Thông tin khóa học</li>
+        <li><span>2</span>Nội dung bài học</li>
+        <li><span>3</span>Xuất bản</li>
+    </ol>
+}
+
+<form method="post" asp-action="Edit" asp-route-id="@Model.Id" id="course-editor-form" class="course-editor-form" data-course-editor>
+    <div asp-validation-summary="All" class="validation course-editor-errors" role="alert"></div>
+    <div class="course-editor-grid">
+        <div class="course-editor-fields">
+            <section class="course-editor-card" aria-labelledby="course-basics-heading">
+                <div class="course-card-heading">
+                    <span class="course-section-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg></span>
+                    <div><h2 id="course-basics-heading">Thông tin cơ bản</h2><p>Giúp học viên hiểu rõ khóa học của bạn.</p></div>
+                </div>
+                <div class="course-field">
+                    <div class="course-label-row"><label asp-for="Input.Title">Tên khóa học <span class="course-required" aria-hidden="true">*</span></label><span class="course-field-count" data-course-title-count>@(Model.Input.Title?.Length ?? 0)/200</span></div>
+                    <input asp-for="Input.Title" maxlength="200" required aria-required="true" placeholder="Ví dụ: Tiếng Anh giao tiếp cho người mới bắt đầu" data-course-title />
+                    <span asp-validation-for="Input.Title" class="validation"></span>
+                </div>
+                <div class="course-field">
+                    <label asp-for="Input.Description">Mô tả khóa học</label>
+                    <textarea asp-for="Input.Description" maxlength="4000" rows="2" placeholder="Giới thiệu nội dung và những điều học viên sẽ nhận được." data-course-description></textarea>
+                    <span asp-validation-for="Input.Description" class="validation"></span>
+                </div>
+                <div class="course-field">
+                    <label asp-for="Input.Objectives">Mục tiêu học tập</label>
+                    <textarea asp-for="Input.Objectives" maxlength="4000" rows="2" placeholder="Mỗi dòng là một mục tiêu học tập cụ thể."></textarea>
+                    <span asp-validation-for="Input.Objectives" class="validation"></span>
+                </div>
+            </section>
+            <section class="course-editor-card" aria-labelledby="course-classification-heading">
+                <div class="course-card-heading">
+                    <span class="course-section-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+                    <h2 id="course-classification-heading">Phân loại khóa học</h2>
+                </div>
+                <div class="course-field course-inline-field">
+                    <label asp-for="Input.Level">Cấp độ</label>
+                    <select asp-for="Input.Level" data-course-level>
+                        @foreach (var choice in Enum.GetValues<CourseLevel>())
+                        {
+                            <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.Level" class="validation"></span>
+                </div>
+                <fieldset class="course-skills">
+                    <legend>Kỹ năng</legend>
+                    <div class="course-skill-grid">
+                        @foreach (var skill in Enum.GetValues<EnglishSkill>())
+                        {
+                            <label class="course-choice course-skill-choice">
+                                <input type="checkbox" name="Input.Skills" value="@skill" checked="@(Model.Input.Skills?.Contains(skill) == true)" data-course-skill />
+                                <span><partial name="_UiText" model="skill" /></span>
+                            </label>
+                        }
+                    </div>
+                </fieldset>
+                <span asp-validation-for="Input.Skills" class="validation"></span>
+                <div class="course-field">
+                    <label asp-for="Input.Topics" data-course-topics-label>Chủ đề <span class="course-label-hint">(ngăn cách bằng dấu phẩy)</span></label>
+                    <div class="course-topic-editor" data-course-topics-editor>
+                        <input asp-for="Input.Topics" maxlength="4000" placeholder="Ví dụ: Giao tiếp hằng ngày, Du lịch" aria-describedby="course-topics-help" data-course-topics />
+                    </div>
+                    <span asp-validation-for="Input.Topics" class="validation" id="course-topics-error"></span>
+                    <p class="course-help" id="course-topics-help">Nhấn Enter hoặc dấu phẩy để thêm chủ đề. Mỗi chủ đề tối đa 120 ký tự.</p>
+                </div>
+            </section>
+            <section class="course-editor-card" aria-labelledby="course-tuition-heading">
+                <div class="course-card-heading">
+                    <span class="course-section-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg></span>
+                    <h2 id="course-tuition-heading">Học phí</h2>
+                </div>
+                <fieldset class="course-tuition-options">
+                    <legend class="visually-hidden">Loại học phí</legend>
+                    <label class="course-choice course-tuition-choice">
+                        <input asp-for="Input.IsPaid" type="radio" value="false" data-price-type />
+                        <span><strong>Miễn phí</strong><small>Học viên tham gia miễn phí</small></span>
+                    </label>
+                    <label class="course-choice course-tuition-choice">
+                        <input asp-for="Input.IsPaid" type="radio" value="true" id="Input_IsPaid_True" data-price-type />
+                        <span><strong>Có phí</strong><small>Thiết lập giá cho khóa học</small></span>
+                    </label>
+                </fieldset>
+                <span asp-validation-for="Input.IsPaid" class="validation"></span>
+                <div class="course-field course-inline-field course-price-field">
+                    <label asp-for="Input.Price">Giá khóa học (đồng)</label>
+                    <div>
+                        <div class="course-price-input"><input asp-for="Input.Price" type="number" min="0" step="0.01" max="9999999999999999.99" aria-describedby="course-price-help" data-price /><span aria-hidden="true">đồng</span></div>
+                        <span asp-validation-for="Input.Price" class="validation"></span>
+                        <p class="course-help" id="course-price-help" data-course-price-help>Khóa học miễn phí có giá 0 đồng.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <aside class="course-editor-aside" aria-label="Xem trước và hướng dẫn">
+            <section class="course-editor-card course-preview" aria-labelledby="course-preview-heading">
+                <div class="course-card-heading">
+                    <span class="course-section-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg></span>
+                    <div><h2 id="course-preview-heading">Xem trước khóa học</h2><p>Thẻ hiển thị trong danh mục.</p></div>
+                </div>
+                <article class="course-preview-tile">
+                    <div class="course-preview-cover">
+                        <img src="~/images/course-editor-cover.svg" alt="" width="480" height="240" />
+                        <span class="course-preview-level"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg><span data-course-preview-level><partial name="_UiText" model="Model.Input.Level" /></span></span>
+                    </div>
+                    <div class="course-preview-body">
+                        <h3 data-course-preview-title>@(string.IsNullOrWhiteSpace(Model.Input.Title) ? "Tên khóa học của bạn" : Model.Input.Title)</h3>
+                        <p data-course-preview-description>@(string.IsNullOrWhiteSpace(Model.Input.Description) ? "Mô tả ngắn giúp học viên hiểu nội dung và lựa chọn khóa học phù hợp." : Model.Input.Description)</p>
+                        <div class="course-preview-skills" data-course-preview-skills>
+                            @foreach (var skill in Model.Input.Skills ?? [])
+                            {
+                                <span><partial name="_UiText" model="skill" /></span>
+                            }
+                        </div>
+                        <div class="course-preview-price" data-course-preview-pricing>
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
+                            <strong data-course-preview-price>@(Model.Input.IsPaid ? Model.Input.Price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " đồng" : "Miễn phí")</strong>
+                        </div>
+                    </div>
+                </article>
+            </section>
+            <div class="course-editor-tip">
+                <div class="course-tip-main"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#sparkles")"></use></svg><div><h2>Một khởi đầu rõ ràng</h2><p>Tên dễ hiểu và mục tiêu cụ thể giúp học viên chọn đúng khóa học.</p></div></div>
+                <div class="course-tip-note"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg><p>@(isNew ? "Bản nháp chỉ hiển thị với bạn. Bạn có thể xuất bản sau khi thêm nội dung." : "Sau khi lưu, bạn sẽ trở lại trang quản lý nội dung khóa học.")</p></div>
+            </div>
+        </aside>
+    </div>
+    <div class="course-editor-savebar">
+        <p><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg>@(isNew ? "Lưu bản nháp để tiếp tục thêm bài học" : "Lưu thông tin và trở lại nội dung khóa học")</p>
+        <button class="button" type="submit">@(isNew ? "Lưu và tiếp tục" : "Lưu thay đổi")<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
+    </div>
 </form>
-@section Scripts { <script src="~/js/course-editor.js" asp-append-version="true" defer></script> }
+@section Scripts {
+    <script src="~/js/course-editor.js" asp-append-version="true" defer></script>
+}

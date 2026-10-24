@@ -6,7 +6,6 @@ public sealed class QuestionListItem
     public Guid Id {get; set;}
     public string Content {get; set;} = string.Empty;
     public string? Level {get; set;}
-    public string? Difficulty {get; set;}
     public EnglishSkill PrimarySkill {get; set;}
     public QuestionStatus Status {get; set;}
 

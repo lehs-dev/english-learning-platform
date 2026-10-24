@@ -304,9 +304,11 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
                 .SetProperty(a => a.TargetSkill, EnglishSkill.Reading));
             db.Questions.Add(NewQuestion(data.Teacher.Id, "WRONG_SKILL_HIDDEN", EnglishSkill.Grammar));
             await db.SaveChangesAsync();
+            await db.Questions.Where(q => q.OwnerTeacherUserId == data.Teacher.Id)
+                .ExecuteUpdateAsync(set => set.SetProperty(q => q.Level, "A1"));
         }
         using var client = await LoginAsync(data.Teacher);
-        string path = Path(data) + "?Search=TASK2&Level=Beginner&Difficulty=Easy&PrimarySkill=Grammar&PageSize=1";
+        string path = Path(data) + "?Search=TASK2&Level=A1&Difficulty=Easy&PrimarySkill=Grammar&PageSize=1";
         using var page = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
         Assert.True(page.Headers.CacheControl!.NoStore);
@@ -321,8 +323,8 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
         Assert.Equal("2", query["PageNumber"].ToString());
         Assert.Equal("Reading", query["PrimarySkill"].ToString());
         Assert.Equal("TASK2", query["Search"].ToString());
-        Assert.Equal("Beginner", query["Level"].ToString());
-        Assert.Equal("Easy", query["Difficulty"].ToString());
+        Assert.Equal("A1", query["Level"].ToString());
+        Assert.False(query.ContainsKey("Difficulty"));
         using var nextPage = await client.GetAsync(href);
         Assert.Equal(HttpStatusCode.OK, nextPage.StatusCode);
         Assert.Contains(data.FirstId.ToString(), SelectedList(await nextPage.Content.ReadAsStringAsync()));
@@ -488,7 +490,7 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
         return new Question
         {
             OwnerTeacherUserId = ownerId, Content = content, PrimarySkill = skill,
-            Level = "Beginner", Difficulty = "Easy",
+            Level = "Beginner",
             Options = new List<QuestionOption>
             {
                 new QuestionOption { Content = "Correct", IsCorrect = true, OrderIndex = 0 },

@@ -68,20 +68,20 @@ public sealed record WriteOutcome(LearningAccessResult Access, Guid Id, IReadOnl
 }
 public sealed class CourseInput
 {
-    [Required, StringLength(200)] public string Title { get; set; } = "";
-    [StringLength(4000)] public string? Description { get; set; }
-    [StringLength(4000)] public string? Objectives { get; set; }
-    [EnumDataType(typeof(CourseLevel))] public CourseLevel Level { get; set; } = CourseLevel.Beginner;
+    [Required(ErrorMessage = "Vui lòng nhập tên khóa học."), StringLength(200, ErrorMessage = "Tên khóa học tối đa 200 ký tự.")] public string Title { get; set; } = "";
+    [StringLength(4000, ErrorMessage = "Mô tả khóa học tối đa 4.000 ký tự.")] public string? Description { get; set; }
+    [StringLength(4000, ErrorMessage = "Mục tiêu học tập tối đa 4.000 ký tự.")] public string? Objectives { get; set; }
+    [EnumDataType(typeof(CourseLevel), ErrorMessage = "Cấp độ khóa học không hợp lệ.")] public CourseLevel Level { get; set; } = CourseLevel.Beginner;
     public EnglishSkill[] Skills { get; set; } = [];
-    [StringLength(4000)] public string? Topics { get; set; }
+    [StringLength(4000, ErrorMessage = "Danh sách chủ đề tối đa 4.000 ký tự.")] public string? Topics { get; set; }
     public bool IsPaid { get; set; }
     public decimal Price { get; set; }
 }
 public enum ContentKind { Module, Lesson, Resource }
 public sealed class ContentInput
 {
-    [StringLength(200)] public string? Title { get; set; }
-    [StringLength(4000)] public string? Description { get; set; }
+    [StringLength(200, ErrorMessage = "Tên nội dung tối đa 200 ký tự.")] public string? Title { get; set; }
+    [StringLength(4000, ErrorMessage = "Mô tả tối đa 4.000 ký tự.")] public string? Description { get; set; }
     public ModuleVisibility Visibility { get; set; } = ModuleVisibility.Visible;
     public LessonStatus Status { get; set; } = LessonStatus.Draft;
     public LessonResourceType ResourceType { get; set; } = LessonResourceType.Text;

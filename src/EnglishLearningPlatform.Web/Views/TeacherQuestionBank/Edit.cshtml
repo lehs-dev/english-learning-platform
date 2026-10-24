@@ -1,25 +1,43 @@
 @model EnglishLearningPlatform.Web.Models.QuestionBank.QuestionFormViewModel
 @{
     ViewData["Title"] = "Chỉnh sửa câu hỏi";
-    ViewData["PageClass"] = "question-bank-page";
+    ViewData["PageClass"] = "question-bank-page question-editor-page question-edit-page" + (Model.ScoringContentLocked ? " question-locked-page" : "");
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
 }
 
-<div class="page-heading">
+<nav class="question-editor-breadcrumb" aria-label="Đường dẫn điều hướng">
+    <a asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Ngân hàng câu hỏi</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">Chỉnh sửa câu hỏi</span>
+</nav>
+
+<div class="page-heading question-editor-heading">
     <div>
-        <h1>Chỉnh sửa câu hỏi</h1>
-        <p>Trạng thái: <strong><partial name="_UiText" model="Model.Status" /></strong></p>
+        <div class="question-edit-title">
+            <h1>Chỉnh sửa câu hỏi</h1>
+            <span class="question-edit-status"><partial name="_UiText" model="Model.Status" /></span>
+        </div>
+        <p>@(Model.ScoringContentLocked ? "Cập nhật thông tin phân loại cho câu hỏi." : "Cập nhật nội dung, lựa chọn và thiết lập câu hỏi.")</p>
     </div>
     <div class="actions">
-        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Details" asp-route-id="@Model.Id">Xem chi tiết</a>
-        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Quay lại ngân hàng câu hỏi</a>
+        <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Details" asp-route-id="@Model.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem chi tiết</a>
+        <button class="button question-submit" type="submit" form="question-editor-form"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>Lưu thay đổi</button>
     </div>
 </div>
 
-<partial name="_Form" model="Model" />
+@if (Model.ScoringContentLocked)
+{
+    <partial name="_LockedForm" model="Model" />
+}
+else
+{
+    <partial name="_Form" model="Model" />
+}
+
+<a class="question-edit-cancel" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Hủy chỉnh sửa</a>
 
 @section Scripts {
     <script src="~/js/question-bank.js" asp-append-version="true" defer></script>

@@ -1,13 +1,22 @@
 @model ContentEditModel
-@{ ViewData["Title"] = (Model.Id.HasValue ? "Sửa " : "Thêm ") + (Model.Kind == ContentKind.Module ? "chương học" : Model.Kind == ContentKind.Lesson ? "bài học" : "tài nguyên"); }
+@{
+    ViewData["Title"] = (Model.Id.HasValue ? "Sửa " : "Thêm ") + (Model.Kind == ContentKind.Module ? "chương học" : Model.Kind == ContentKind.Lesson ? "bài học" : "tài nguyên");
+    if (Model.Kind == ContentKind.Module) ViewData["PageClass"] = "module-editor-page";
+}
+@section Styles {
+    @if (Model.Kind == ContentKind.Module) { <link rel="stylesheet" href="~/css/module-editor.css" asp-append-version="true" /> }
+}
+@if (Model.Kind == ContentKind.Module)
+{
+    <partial name="_ModuleForm" model="Model" />
+}
+else
+{
 <a class="button secondary back-link" asp-action="Manage" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Quản lý nội dung</a><h1>@ViewData["Title"]</h1>
 <form method="post" asp-action="Content" asp-route-courseId="@Model.CourseId" asp-route-kind="@Model.Kind" asp-route-parentId="@Model.ParentId" asp-route-id="@Model.Id" class="panel editor-form">
 <div asp-validation-summary="All" class="validation" role="alert"></div>
 <label asp-for="Input.Title">Tên @(Model.Kind == ContentKind.Resource ? "tài nguyên (tùy chọn)" : (Model.Kind == ContentKind.Module ? "chương học" : "bài học"))</label><input asp-for="Input.Title" maxlength="200" /><span asp-validation-for="Input.Title" class="validation"></span>
-@if (Model.Kind == ContentKind.Module) {
-    <label asp-for="Input.Description">Mô tả</label><textarea asp-for="Input.Description" maxlength="4000" rows="4"></textarea><span asp-validation-for="Input.Description" class="validation"></span>
-    <label asp-for="Input.Visibility">Hiển thị</label><select asp-for="Input.Visibility">@foreach (var choice in Enum.GetValues<ModuleVisibility>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }</select><span asp-validation-for="Input.Visibility" class="validation"></span>
-} else if (Model.Kind == ContentKind.Lesson) {
+@if (Model.Kind == ContentKind.Lesson) {
     <label asp-for="Input.Status">Trạng thái</label><select asp-for="Input.Status">@foreach (var choice in Enum.GetValues<LessonStatus>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }</select><span asp-validation-for="Input.Status" class="validation"></span>
     <p class="muted">Tạo Bài học bản nháp, thêm tài nguyên, sau đó chuyển sang đã xuất bản.</p>
 } else {
@@ -17,4 +26,8 @@
 }
 <div class="actions"><button class="button">Lưu nội dung</button><a asp-action="Manage" asp-route-id="@Model.CourseId">Hủy</a></div>
 </form>
-@section Scripts { <script src="~/js/course-editor.js" asp-append-version="true" defer></script> }
+}
+@section Scripts {
+    @if (Model.Kind == ContentKind.Module) { <script src="~/js/module-editor.js" asp-append-version="true" defer></script> }
+    else { <script src="~/js/course-editor.js" asp-append-version="true" defer></script> }
+}

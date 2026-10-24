@@ -1,62 +1,75 @@
 @model AuthoringModel
-@{ var coursePage = Model.Page; var courseId = coursePage.Course.Id; ViewData["Title"] = "Nội dung · " + coursePage.Course.Title; }
-<a class="button secondary back-link" asp-controller="TeacherCourses" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học của tôi</a>
-<div class="page-heading"><div><h1>@coursePage.Course.Title</h1><span class="badge"><partial name="_UiText" model="coursePage.Course.Status" /></span><partial name="_CourseSummary" model="coursePage.Course" /></div><div class="actions"><a asp-controller="TeacherCourses" asp-action="Edit" asp-route-id="@courseId">Sửa thông tin / giá</a><a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">Xem trước</a></div></div>
-<partial name="_CourseNotice" />
-<p><a class="button secondary" asp-action="Students" asp-route-id="@courseId">Học viên, tiến độ và thống kê</a></p>
-@if (coursePage.EnrollmentCount > 0) { <p class="notice">Khóa học có @coursePage.EnrollmentCount học viên. Thay đổi cấu trúc hoặc ẩn nội dung ảnh hưởng bài học khả dụng; Quyền tham gia và tiến độ đã ghi nhận được giữ nguyên.</p> }
-<section class="panel"><h2>Xuất bản khóa học</h2>
-@if (coursePage.PublishErrors.Count > 0) { <p>Cần sửa trước khi xuất bản:</p><ul class="validation">@foreach (var error in coursePage.PublishErrors) { <li>@error</li> }</ul> } else { <p>Khóa học đủ điều kiện xuất bản.</p> }
-<div class="actions">
-<form method="post" asp-controller="TeacherCourses" asp-action="Publish" asp-route-id="@courseId"><button class="button">Xuất bản</button></form>
-<form method="post" asp-controller="TeacherCourses" asp-action="Unpublish" asp-route-id="@courseId"><button class="button secondary">Ngừng xuất bản</button></form>
-<form method="post" asp-controller="TeacherCourses" asp-action="Archive" asp-route-id="@courseId"><button class="button secondary">Lưu trữ</button></form></div></section>
-<section class="panel">
-    <h2>Final Assessment</h2>
-    <p>@(coursePage.FinalAssessmentId.HasValue ? "Course đã có Final. Mở trang quản lý để xem đề và điều kiện khóa." : "Course chưa dùng Final; hoàn thành dựa trên các bài học khả dụng.")</p>
-    <a class="button secondary" asp-controller="TeacherCourseFinal" asp-action="Edit" asp-route-id="@courseId">Chọn / quản lý Final</a>
-</section>
-<div class="page-heading"><h2>Cấu trúc và tài nguyên</h2><a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId">Thêm chương học</a></div>
-@if (coursePage.Modules.Count == 0) { <p class="panel empty">Chưa có Chương học. Thêm Chương học đầu tiên.</p> }
-@for (var mi = 0; mi < coursePage.Modules.Count; mi++) {
-    var module = coursePage.Modules[mi];
-    <section class="panel module-panel"><div class="content-row"><h3>@module.Title <span class="badge"><partial name="_UiText" model="module.Visibility" /></span></h3><div class="actions"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId" asp-route-id="@module.Id">Sửa chương học</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Module, courseId, coursePage.Modules.Select(m => m.Id).ToArray(), mi)" /></div></div><p class="preserve">@module.Description</p>
-    <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id">Thêm bài học</a>
-        @* Truyền Course và Module để form chọn sẵn đúng parent. *@
-        <a class="button small secondary"
-        asp-controller="TeacherPractices"
-        asp-action="Create"
-        asp-route-courseId="@courseId"
-        asp-route-moduleId="@module.Id">
-            Tạo bài luyện tập cho chương
-        </a>
-    @if (module.Lessons.Count == 0)
+@{
+    var coursePage = Model.Page;
+    var course = coursePage.Course;
+    var courseId = course.Id;
+    var emblem = course.Skills.Order().Cast<EnglishSkill?>().FirstOrDefault() switch
     {
-        <p class="empty">Chương học chưa có bài học. Chọn Bài học để thêm bài học.</p>
-    }
-    @for (var li = 0; li < module.Lessons.Count; li++) {
-        var lesson = module.Lessons[li]; var resources = Model.Resources.GetValueOrDefault(lesson.Id) ?? [];
-        <section class="lesson-editor"><div class="content-row"><h4>@lesson.Title <span class="badge"><partial name="_UiText" model="lesson.Status" /></span></h4><div class="actions"><a asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">Xem trước</a><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id" asp-route-id="@lesson.Id">Sửa bài học</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Lesson, module.Id, module.Lessons.Select(l => l.Id).ToArray(), li)" /></div></div>
-
-        @* Chọn sẵn Lesson, không truyền thêm ModuleId.
-   Practice không được đồng thời có cả hai parent. *@
-    <p>
-        <a class="button small secondary"
-        asp-controller="TeacherPractices"
-        asp-action="Create"
-        asp-route-courseId="@courseId"
-        asp-route-lessonId="@lesson.Id">
-            Tạo bài luyện tập cho bài học
-        </a>
-    </p>
-        @if (resources.Count == 0)
-        {
-            <p class="empty">Bài học chưa có tài nguyên. Chọn Tài nguyên để thêm nội dung.</p>
-        }
-        @for (var ri = 0; ri < resources.Count; ri++) {
-            var resource = resources[ri];
-            <div class="resource-row"><span>@(resource.Title ?? "Tài nguyên") <span class="badge"><partial name="_UiText" model="resource.Type" /></span></span><div class="actions"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id" asp-route-id="@resource.Id">Sửa</a><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Resource, lesson.Id, resources.Select(r => r.Id).ToArray(), ri)" /><form method="post" asp-controller="TeacherCourses" asp-action="DeleteResource" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id" asp-route-id="@resource.Id"><button class="button small danger">Xóa tài nguyên</button></form></div></div>
-        }
-        <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id">Thêm tài nguyên</a></section>
-    }</section>
+        EnglishSkill.Listening => "headphones", EnglishSkill.Reading => "book",
+        EnglishSkill.Vocabulary => "pencil", EnglishSkill.Grammar => "clipboard-check", _ => "graduation"
+    };
+    ViewData["Title"] = "Nội dung · " + course.Title;
+    ViewData["PageClass"] = "course-manage-page";
 }
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/course-manage.css" asp-append-version="true" />
+}
+
+<nav class="course-manage-breadcrumb" aria-label="Đường dẫn điều hướng">
+    <a asp-controller="TeacherCourses" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học của tôi</a>
+    <span aria-hidden="true">/</span><span aria-current="page">Quản lý nội dung</span>
+</nav>
+
+<header class="course-manage-overview">
+    <div class="course-manage-overview-main">
+        <span class="course-manage-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#" + emblem)"></use></svg></span>
+        <div class="course-manage-course-info">
+            <div class="course-manage-title"><h1>@course.Title</h1><span class="course-manage-badge status-@course.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="course.Status" /></span></div>
+            <div class="course-manage-meta">
+                <span class="course-manage-teacher"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>@course.Teacher</span>
+                <span class="course-manage-skill-list">@foreach (var skill in course.Skills.Order()) { <span class="course-manage-skill"><partial name="_UiText" model="skill" /></span> }</span>
+                <strong>@(course.IsPaid ? course.Price.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " ₫" : "Miễn phí")</strong>
+            </div>
+        </div>
+        <div class="course-manage-overview-actions">
+            <a class="button secondary" asp-controller="TeacherCourses" asp-action="Edit" asp-route-id="@courseId"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>Sửa thông tin / giá</a>
+            <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem trước</a>
+        </div>
+    </div>
+    <div class="course-manage-overview-footer">
+        <nav class="course-manage-tabs" aria-label="Quản lý khóa học">
+            <a class="is-active" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@courseId" aria-current="page"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>Nội dung khóa học</a>
+            <a asp-controller="TeacherCourses" asp-action="Students" asp-route-id="@courseId"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#users")"></use></svg>Học viên, tiến độ và thống kê</a>
+        </nav>
+        <p>@course.ModuleCount chương <span aria-hidden="true">·</span> @course.LessonCount bài học</p>
+    </div>
+</header>
+
+@if (coursePage.EnrollmentCount > 0)
+{
+    <p class="course-manage-enrollment-note"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#info")"></use></svg><span>Khóa học có @coursePage.EnrollmentCount học viên. Thay đổi cấu trúc hoặc ẩn nội dung có thể thay đổi bài học khả dụng. Quyền tham gia và tiến độ đã ghi nhận được giữ nguyên.</span></p>
+}
+
+<div class="course-manage-grid">
+    <div class="course-manage-content">
+        <partial name="~/Views/TeacherCourses/_ManageStructure.cshtml" model="Model" />
+        <div class="course-manage-guidance"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#info")"></use></svg><div><h2>Xây dựng nội dung theo từng bước</h2><p>Thêm chương học, bài học và tài nguyên. Dùng nút Lên / Xuống để sắp xếp trước khi xuất bản.</p></div></div>
+    </div>
+    <aside class="course-manage-aside" aria-label="Xuất bản và đánh giá cuối khóa">
+        <partial name="~/Views/TeacherCourses/_ManagePublishing.cshtml" model="coursePage" />
+        <section class="course-manage-card course-manage-final" aria-labelledby="course-final-heading">
+            <div class="course-manage-card-heading"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg><h2 id="course-final-heading">Bài kiểm tra cuối khóa</h2><span class="course-manage-badge">Tùy chọn</span></div>
+            <p class="course-final-state"><span class="course-final-dot @(coursePage.FinalAssessmentId.HasValue ? "is-configured" : "")" aria-hidden="true"></span>@(coursePage.FinalAssessmentId.HasValue ? "Đã chọn bài kiểm tra cuối khóa" : "Chưa thiết lập bài kiểm tra")</p>
+            <p>@(coursePage.FinalAssessmentId.HasValue ? "Học viên cần hoàn thành các bài học khả dụng và đạt bài kiểm tra cuối khóa để hoàn thành khóa học." : "Khóa học hiện được hoàn thành dựa trên các bài học khả dụng.")</p>
+            <a class="button secondary course-final-link" asp-controller="TeacherCourseFinal" asp-action="Edit" asp-route-id="@courseId">Chọn / quản lý bài kiểm tra<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
+        </section>
+        <p class="course-manage-visibility-note"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg><span>@(course.Status switch
+            {
+                CourseStatus.Draft => "Bản nháp chỉ hiển thị với bạn.",
+                CourseStatus.Published => "Khóa học đang hiển thị trong danh mục.",
+                CourseStatus.Unpublished => "Khóa học đã ngừng xuất bản. Học viên đã tham gia vẫn có quyền học.",
+                _ => "Khóa học đã được lưu trữ. Học viên đã tham gia vẫn có quyền học."
+            })</span></p>
+    </aside>
+</div>

@@ -316,7 +316,7 @@ public sealed class TeacherCourseFinalTests(IntegrationTestFactory factory) : IC
         Assert.Contains("tải lại", WebUtility.HtmlDecode(await stale.Content.ReadAsStringAsync()), StringComparison.OrdinalIgnoreCase);
         Assert.Equal(data.First.Id, (await CourseAsync(data)).FinalAssessmentId);
         using var manage = await client.GetAsync("/TeacherCourses/Manage/" + data.Course.Id);
-        Assert.Contains("Chọn / quản lý Final", WebUtility.HtmlDecode(await manage.Content.ReadAsStringAsync()));
+        Assert.Contains("Chọn / quản lý bài kiểm tra", WebUtility.HtmlDecode(await manage.Content.ReadAsStringAsync()));
 
         // Kiểm tra controller lifecycle mới bằng HTTP; đây không phải test browser.
         using var list = await client.GetAsync("/TeacherAssessments");
