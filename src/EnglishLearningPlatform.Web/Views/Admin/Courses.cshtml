@@ -3,26 +3,38 @@
 @{
     ViewData["Title"] = "Tra cứu khóa học";
     var selected = ViewData["Status"] as CourseStatus?;
+    var fromDate = ViewData["FromDate"] as string;
+    var toDate = ViewData["ToDate"] as string;
+    var sort = ViewData["Sort"] as AdminCourseSort? ?? AdminCourseSort.Newest;
+    var sortHelp = sort switch {
+        AdminCourseSort.Popular => "Số lượt đăng ký khóa học giảm dần · Toàn lịch sử",
+        AdminCourseSort.TeacherPopular => "Tổng lượt đăng ký các khóa của giảng viên giảm dần · Toàn lịch sử",
+        _ => "Ngày tạo mới nhất trước · Giờ Việt Nam (UTC+7)"
+    };
     static string StatusLabel(CourseStatus status) => status switch {
         CourseStatus.Published => "Công khai", CourseStatus.Draft => "Bản nháp",
         CourseStatus.Unpublished => "Đã ẩn", CourseStatus.Archived => "Lưu trữ", _ => "Khác" };
 }
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
-<header class="admin-heading"><div><h1>Tra cứu khóa học</h1><p>Đối chiếu trạng thái và số lượt đăng ký. Nội dung khóa học do giáo viên quản lý.</p></div><a class="button secondary" asp-action="Index">Về tổng quan</a></header>
+<header class="admin-heading"><div><h1>Tra cứu khóa học</h1><p>Toàn bộ khóa học: công khai, bản nháp, đã ẩn và lưu trữ. Nội dung do giảng viên quản lý.</p></div></header>
 <section class="admin-surface">
+    <div asp-validation-summary="All" class="notice error" role="alert"></div>
     <form method="get" asp-action="Courses" class="admin-filters">
-        <div class="admin-search"><label for="search">Tìm khóa học</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Tên khóa, tên hoặc email giáo viên…" /></div>
+        <div class="admin-search"><label for="search">Tìm khóa học</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Tên khóa, tên hoặc email giảng viên…" /></div>
         <div><label for="status">Trạng thái khóa học</label><select id="status" name="status"><option value="">Tất cả trạng thái</option>@foreach (var status in Enum.GetValues<CourseStatus>()) { <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option> }</select></div>
+        <div class="admin-date-filter"><label for="fromDate">Ngày tạo từ</label><input type="date" id="fromDate" name="fromDate" value="@fromDate" min="0001-01-02" max="9999-12-30" /></div>
+        <div class="admin-date-filter"><label for="toDate">Đến hết ngày</label><input type="date" id="toDate" name="toDate" value="@toDate" min="0001-01-02" max="9999-12-30" /></div>
+        <div><label for="sort">Sắp xếp theo</label><select id="sort" name="sort" aria-describedby="course-sort-help"><option value="Newest" selected="@(sort == AdminCourseSort.Newest)">Khóa học mới nhất</option><option value="Popular" selected="@(sort == AdminCourseSort.Popular)">Khóa học phổ biến</option><option value="TeacherPopular" selected="@(sort == AdminCourseSort.TeacherPopular)">Lượt đăng ký của giảng viên</option></select></div>
         <div class="admin-filter-actions"><button class="button" type="submit">Tìm kiếm</button><a asp-action="Courses">Đặt lại</a></div>
     </form>
-    <div class="admin-list-heading"><h2>Danh sách khóa học <span class="admin-count">@Model.Total</span></h2><span>Chế độ chỉ xem</span></div>
+    <div class="admin-list-heading"><h2>Danh sách khóa học <span class="admin-count">@Model.Total</span></h2><span id="course-sort-help">@sortHelp</span></div>
     @if (Model.Items.Count == 0) { <div class="admin-empty"><h3>Không có khóa học phù hợp</h3><p>Thử từ khóa hoặc trạng thái khác.</p></div> }
     else {
         <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Khóa học toàn hệ thống</caption>
-        <thead><tr><th>Khóa học</th><th>Giáo viên</th><th>Trạng thái</th><th>Đăng ký</th><th>Hoàn thành</th><th>Ngày tạo</th></tr></thead><tbody>
+        <thead><tr><th>Khóa học</th><th>Giảng viên</th><th>Trạng thái</th><th>Đăng ký</th><th>Hoàn thành</th><th>Ngày tạo</th></tr></thead><tbody>
         @foreach (var item in Model.Items) {
-            <tr><td data-label="Khóa học"><strong>@item.Title</strong></td><td data-label="Giáo viên"><div>@item.TeacherName<span class="admin-email">@item.TeacherEmail</span></div></td>
+            <tr><td data-label="Khóa học"><strong>@item.Title</strong></td><td data-label="Giảng viên"><div>@item.TeacherName<span class="admin-email">@item.TeacherEmail</span>@if(sort == AdminCourseSort.TeacherPopular) { <span class="admin-email">@item.TeacherEnrollmentCount lượt đăng ký các khóa</span> }</div></td>
                 <td data-label="Trạng thái"><span class="admin-role">@StatusLabel(item.Status)</span></td>
                 <td data-label="Đăng ký"><a asp-action="Enrollments" asp-route-courseId="@item.Id" aria-label="Xem @item.EnrollmentCount lượt đăng ký của @item.Title">@item.EnrollmentCount lượt</a></td>
                 <td data-label="Hoàn thành"><a asp-action="Enrollments" asp-route-courseId="@item.Id" asp-route-completed="true" aria-label="Xem @item.CompletedEnrollmentCount lượt hoàn thành của @item.Title">@item.CompletedEnrollmentCount lượt</a></td>
@@ -31,7 +43,7 @@
         </tbody></table></div>
     }
     <nav class="admin-pagination" aria-label="Phân trang khóa học"><span>Trang @Model.Page / @Model.Pages</span><div>
-    @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)">Trước</a> }
-    @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau</a> }
+    @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate" asp-route-sort="@sort" asp-route-page="@(Model.Page - 1)">Trước</a> }
+    @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate" asp-route-sort="@sort" asp-route-page="@(Model.Page + 1)">Sau</a> }
     </div></nav>
 </section></div>

@@ -15,12 +15,14 @@
         EnglishSkill.Grammar => "pill-tag-orange",
         _ => "pill-tag-pink"
     };
+    if (Model.Skills.Count > 1) title = "Nhiều kỹ năng";
+    if (Model.Skills.Count == 0) title = "Tiếng Anh";
 }
 <div class="course-cover cover-@theme" aria-hidden="true">
     <div class="cover-brand">
         <span class="pill-tag @themePillClass">@title</span>
         <span class="cover-level-badge"><partial name="_UiText" model="Model.Level" /></span>
     </div>
-    <strong>@word</strong>
+    <strong>@Model.Title</strong>
     <span class="cover-caption">Estudy · @Model.LessonCount bài học</span>
 </div>

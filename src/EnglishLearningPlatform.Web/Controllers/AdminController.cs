@@ -11,7 +11,8 @@ namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Policy = AuthorizationPolicies.Admin)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AdminController(IAdminQueryService queries, IAdminManagementService management,
-    IAdminDashboardQueryService dashboard, IAdminOverviewDetailQueryService details) : Controller
+    IAdminDashboardQueryService dashboard, IAdminOverviewDetailQueryService details,
+    IAdminRevenueQueryService revenue) : Controller
 {
     private Guid? UserId => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
@@ -38,35 +39,92 @@ public sealed class AdminController(IAdminQueryService queries, IAdminManagement
         if (!UserId.HasValue) return Challenge();
         ViewData["ActiveSection"] = "admin";
         var result = await dashboard.GetAsync(UserId.Value, ct);
-        return result is null ? Forbid() : View(result);
+        if (result is null) return Forbid();
+        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var month = new AdminDateRange(new(today.Year, today.Month, 1), today);
+        var monthRevenue = await revenue.GetAsync(UserId.Value, month, ct: ct);
+        return monthRevenue is null ? Forbid() : View(new AdminDashboardViewModel(result, new(monthRevenue, "day", 1), today));
     }
 
     [HttpGet]
-    public async Task<IActionResult> Courses(string? search, CourseStatus? status, int page = 1, CancellationToken ct = default)
+    public async Task<IActionResult> Revenue(DateOnly? fromDate = null, DateOnly? toDate = null,
+        string? currency = null, string? groupBy = "day", int page = 1, CancellationToken ct = default, string? period = null)
     {
         if (!UserId.HasValue) return Challenge();
-        if (!ModelState.IsValid || status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
+        groupBy ??= "day";
+        period ??= fromDate.HasValue || toDate.HasValue ? "custom" : "month";
+        currency = string.IsNullOrWhiteSpace(currency) ? "VND" : currency.Trim().ToUpperInvariant();
+        if (InvalidNonDateFilter || groupBy is not ("day" or "month") ||
+            currency != "VND" || period is not ("all" or "custom" or "week" or "month" or "year"))
+            return BadRequest();
+        ViewData["ActiveSection"] = "admin";
+        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        ViewData["VietnamToday"] = today.ToString("yyyy-MM-dd");
+        var range = AdminRevenueRanges.Resolve(period, today, fromDate, toDate);
+        fromDate = range.FromDate;
+        toDate = range.ToDate;
+        var dates = PrepareDates(fromDate, toDate);
+        if (!ModelState.IsValid)
+            return View(new AdminRevenueViewModel(new(new(fromDate, toDate), currency, [], [], []), groupBy, 1, period));
+        var result = await revenue.GetAsync(UserId.Value, dates, currency, ct);
+        return result is null ? Forbid() : View(new AdminRevenueViewModel(result, groupBy, page, period));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Courses(string? search, CourseStatus? status, int page = 1, CancellationToken ct = default,
+        DateOnly? fromDate = null, DateOnly? toDate = null, AdminCourseSort sort = AdminCourseSort.Newest)
+    {
+        if (!UserId.HasValue) return Challenge();
+        if (InvalidNonDateFilter || status.HasValue && !Enum.IsDefined(status.Value) || !Enum.IsDefined(sort)) return BadRequest();
         ViewData["ActiveSection"] = "admin";
         ViewData["Status"] = status;
-        var result = await details.CoursesAsync(UserId.Value, search, status, page, ct);
+        ViewData["Sort"] = sort;
+        var dates = PrepareDates(fromDate, toDate);
+        var result = await details.CoursesAsync(UserId.Value, search, status, page, ct, dates, sort);
+        if (result is not null && !ModelState.IsValid) result = result with { Items = [], Total = 0, Page = 1, Pages = 1 };
         return result is null ? Forbid() : View(result);
     }
 
     [HttpGet]
     public async Task<IActionResult> Enrollments(string? search, bool? completed, int page = 1,
-        CancellationToken ct = default, Guid? courseId = null)
+        CancellationToken ct = default, Guid? courseId = null, DateOnly? fromDate = null, DateOnly? toDate = null)
     {
         if (!UserId.HasValue) return Challenge();
-        if (!ModelState.IsValid || courseId == Guid.Empty) return BadRequest();
+        if (InvalidNonDateFilter || courseId == Guid.Empty) return BadRequest();
         ViewData["ActiveSection"] = "admin";
         ViewData["Completed"] = completed;
         ViewData["CourseId"] = courseId;
-        var result = await details.EnrollmentsAsync(UserId.Value, search, completed, page, ct, courseId);
+        var dates = PrepareDates(fromDate, toDate);
+        var result = await details.EnrollmentsAsync(UserId.Value, search, completed, page, ct, courseId, dates);
+        if (result is not null && !ModelState.IsValid) result = result with { Items = [], Total = 0, Page = 1, Pages = 1 };
         return result is null ? Forbid() : View(result);
     }
 
     [HttpGet]
     public IActionResult CreateTeacher() { ViewData["ActiveSection"] = "admin"; return View(new CreateTeacherInput()); }
+
+    [HttpGet]
+    public IActionResult CreateUser() { ViewData["ActiveSection"] = "admin"; return View(new CreateAdminUserInput()); }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateUser(CreateAdminUserInput input, CancellationToken ct)
+    {
+        if (!UserId.HasValue) return Challenge();
+        ViewData["ActiveSection"] = "admin";
+        if (ModelState.IsValid)
+        {
+            var result = await management.CreateUserAsync(UserId.Value, input.FullName, input.Email, input.Password, input.Role, ct);
+            if (result.Success) { TempData["AdminSuccess"] = "Đã tạo người dùng."; return RedirectToAction(nameof(Users)); }
+            ModelState.AddModelError("", result.Error!);
+        }
+        input.Password = "";
+        if (ModelState.TryGetValue(nameof(input.Password), out var passwordState))
+        {
+            passwordState.RawValue = null;
+            passwordState.AttemptedValue = null;
+        }
+        return View(input);
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateTeacher(CreateTeacherInput input, CancellationToken ct)

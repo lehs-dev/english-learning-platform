@@ -1,0 +1,28 @@
+@model EnglishLearningPlatform.Web.Models.Admin.CreateAdminUserInput
+@{ ViewData["Title"] = "Tạo người dùng"; }
+@section Styles {
+    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+}
+<div class="admin-page admin-create-user-page">
+<section class="auth-shell admin-account-shell" aria-labelledby="create-user-title">
+<aside class="auth-aside">
+    <svg class="auth-mark" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
+    <h2>Một tài khoản.<br />Đúng vai trò.</h2>
+    <p>Thêm thành viên để cùng học tập, giảng dạy và quản lý trên Estudy.</p>
+    <ul class="auth-steps"><li>Học viên khám phá và học các khóa học</li><li>Giảng viên xây dựng nội dung giảng dạy</li><li>Quản trị viên quản lý toàn hệ thống</li></ul>
+    <p class="auth-aside-note">Mỗi tài khoản được gán một vai trò.</p>
+</aside>
+<div class="auth-form-panel">
+<header class="auth-heading"><h1 id="create-user-title">Tạo người dùng</h1><p>Nhập thông tin và chọn vai trò cho tài khoản mới.</p></header>
+<form asp-action="CreateUser" method="post" class="account-form admin-account-form">
+    <div asp-validation-summary="All" class="notice error" role="alert"></div>
+    <div class="form-field"><label asp-for="FullName"></label><input asp-for="FullName" autocomplete="name" placeholder="Nhập họ và tên" required aria-describedby="name-error" /><span asp-validation-for="FullName" id="name-error" class="field-error"></span></div>
+    <div class="form-field"><label asp-for="Email"></label><input asp-for="Email" type="email" autocomplete="off" placeholder="Nhập địa chỉ email" required aria-describedby="email-error" /><span asp-validation-for="Email" id="email-error" class="field-error"></span></div>
+    <div class="form-field"><label asp-for="Role"></label><select asp-for="Role" aria-describedby="role-help role-error"><option value="Student">Học viên</option><option value="Teacher">Giảng viên</option><option value="Admin">Quản trị viên</option></select><span asp-validation-for="Role" id="role-error" class="field-error"></span><p id="role-help" class="admin-field-help">Chỉ chọn Quản trị viên khi cần cấp quyền quản lý hệ thống.</p></div>
+    <div class="form-field"><label asp-for="Password"></label><div class="password-field"><input type="password" id="Password" name="Password" autocomplete="new-password" placeholder="Tạo mật khẩu ban đầu" minlength="8" maxlength="128" required aria-describedby="password-help password-error" /><button type="button" class="password-toggle" data-password-toggle="Password" aria-label="Hiện mật khẩu" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg></button></div><span asp-validation-for="Password" id="password-error" class="field-error"></span><p id="password-help" class="admin-field-help">Ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p></div>
+    <button class="button button-primary button-full" type="submit">Tạo người dùng <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
+    <a class="back-home" asp-action="Users"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Về danh sách người dùng</a>
+</form>
+</div>
+</section></div>

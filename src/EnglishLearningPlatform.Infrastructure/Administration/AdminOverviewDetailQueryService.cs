@@ -11,11 +11,15 @@ public sealed class AdminOverviewDetailQueryService(AppDbContext db) : IAdminOve
     private const int PageSize = 20;
 
     public async Task<AdminPage<AdminCourseOverview>?> CoursesAsync(Guid actorId, string? search, CourseStatus? status,
-        int page, CancellationToken ct = default)
+        int page, CancellationToken ct = default, AdminDateRange? dates = null, AdminCourseSort sort = AdminCourseSort.Newest)
     {
         if (!await db.HasActiveRoleAsync(actorId, AppRoles.Admin, ct)) return null;
         if (status.HasValue && !Enum.IsDefined(status.Value))
             throw new ArgumentException("Invalid course status.", nameof(status));
+        dates ??= new(null, null);
+        if (!dates.IsValid || !Enum.IsDefined(sort)) throw new ArgumentException("Invalid course filters.");
+        var start = dates.StartUtc;
+        var end = dates.EndExclusiveUtc;
 
         var term = Search(search);
         // Do not filter the teacher's current role/status: match the Dashboard's historical counts.
@@ -26,7 +30,9 @@ public sealed class AdminOverviewDetailQueryService(AppDbContext db) : IAdminOve
                     {
                         Course = course,
                         TeacherName = teacher != null ? teacher.FullName : "",
-                        TeacherEmail = teacher != null ? teacher.Email ?? "" : ""
+                        TeacherEmail = teacher != null ? teacher.Email ?? "" : "",
+                        Enrollments = course.Enrollments.Count(),
+                        TeacherEnrollments = db.Enrollments.Count(e => e.Course.OwnerTeacherUserId == course.OwnerTeacherUserId)
                     };
         if (term.Length > 0)
         {
@@ -35,24 +41,35 @@ public sealed class AdminOverviewDetailQueryService(AppDbContext db) : IAdminOve
                 row.TeacherEmail.Contains(term) || (isId && row.Course.Id == courseId));
         }
         if (status.HasValue) query = query.Where(row => row.Course.Status == status.Value);
+        if (start.HasValue) query = query.Where(row => row.Course.CreatedAtUtc >= start.Value);
+        if (end.HasValue) query = query.Where(row => row.Course.CreatedAtUtc < end.Value);
 
         var total = await query.CountAsync(ct);
         var pages = Math.Max(1, (int)Math.Ceiling(total / (double)PageSize));
         page = Math.Clamp(page, 1, pages);
         // Count, filter and pagination run in SQL; correlated counts do not load Enrollment rows.
-        var items = await query.OrderByDescending(row => row.Course.CreatedAtUtc).ThenByDescending(row => row.Course.Id)
+        var ordered = sort switch {
+            AdminCourseSort.Popular => query.OrderByDescending(row => row.Enrollments).ThenByDescending(row => row.Course.CreatedAtUtc).ThenByDescending(row => row.Course.Id),
+            AdminCourseSort.TeacherPopular => query.OrderByDescending(row => row.TeacherEnrollments).ThenByDescending(row => row.Enrollments).ThenByDescending(row => row.Course.CreatedAtUtc).ThenByDescending(row => row.Course.Id),
+            _ => query.OrderByDescending(row => row.Course.CreatedAtUtc).ThenByDescending(row => row.Course.Id)
+        };
+        var items = await ordered
             .Skip((page - 1) * PageSize).Take(PageSize)
             .Select(row => new AdminCourseOverview(row.Course.Id, row.Course.Title, row.TeacherName,
                 row.TeacherEmail, row.Course.Status, row.Course.CreatedAtUtc,
-                row.Course.Enrollments.Count(), row.Course.Enrollments.Count(e => e.CompletedAtUtc.HasValue)))
+                row.Enrollments, row.Course.Enrollments.Count(e => e.CompletedAtUtc.HasValue), row.TeacherEnrollments))
             .ToListAsync(ct);
         return new(items, term, page, pages, total);
     }
 
     public async Task<AdminPage<AdminEnrollmentOverview>?> EnrollmentsAsync(Guid actorId, string? search, bool? completed,
-        int page, CancellationToken ct = default, Guid? courseId = null)
+        int page, CancellationToken ct = default, Guid? courseId = null, AdminDateRange? dates = null)
     {
         if (!await db.HasActiveRoleAsync(actorId, AppRoles.Admin, ct)) return null;
+        dates ??= new(null, null);
+        if (!dates.IsValid) throw new ArgumentException("Invalid enrollment date range.", nameof(dates));
+        var start = dates.StartUtc;
+        var end = dates.EndExclusiveUtc;
 
         var term = Search(search);
         var query = from enrollment in db.Enrollments.AsNoTracking()
@@ -73,6 +90,8 @@ public sealed class AdminOverviewDetailQueryService(AppDbContext db) : IAdminOve
         if (completed.HasValue)
             query = query.Where(row => row.Enrollment.CompletedAtUtc.HasValue == completed.Value);
         if (courseId.HasValue) query = query.Where(row => row.Enrollment.CourseId == courseId.Value);
+        if (start.HasValue) query = query.Where(row => row.Enrollment.EnrolledAtUtc >= start.Value);
+        if (end.HasValue) query = query.Where(row => row.Enrollment.EnrolledAtUtc < end.Value);
 
         var total = await query.CountAsync(ct);
         var pages = Math.Max(1, (int)Math.Ceiling(total / (double)PageSize));

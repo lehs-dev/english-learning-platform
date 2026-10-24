@@ -13,7 +13,7 @@ public sealed record AdminDashboardSummary(
     int Courses, int PublishedCourses, int DraftCourses,
     int Enrollments, int CompletedEnrollments,
     int Orders, int SucceededOrders,
-    int UnpublishedCourses = 0, int ArchivedCourses = 0)
+    int UnpublishedCourses = 0, int ArchivedCourses = 0, int Admins = 0)
 {
     public int IncompleteEnrollments => Math.Max(0, Enrollments - CompletedEnrollments);
     public decimal? CompletionRate => Enrollments == 0 ? null
