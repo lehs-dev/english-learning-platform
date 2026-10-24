@@ -1,5 +1,12 @@
 /* Bốn không gian cùng token; cấu trúc drawer giữ nguyên data/aria của site.js. */
 body.sidebar-open { overflow: hidden; }
+/* Compact Admin shell; Teacher and Student keep their existing dimensions. */
+body.admin-body { --sidebar-width: 220px; }
+.admin-body .admin-sidebar { padding: 18px 12px; gap: 14px; }
+.admin-body .admin-sidebar .admin-nav { gap: 20px; }
+.admin-body .admin-nav-heading { margin-top: 4px; font-size: 11px; letter-spacing: .2px; }
+.admin-body .admin-sidebar .admin-nav-link { gap: 10px; padding: 10px 12px; }
+.admin-body .admin-content { padding-block: 24px; }
 .studio-shell, .admin-shell { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); min-height: 100dvh; }
 .studio-sidebar, .admin-sidebar { position: sticky; top: 0; display: flex; flex-direction: column; gap: var(--space-4); width: var(--sidebar-width); height: 100dvh; padding: 24px 16px; border-right: 1px solid var(--v2-border-light); background: #FFFFFF; color: var(--v2-dark); }
 .studio-sidebar-header, .admin-sidebar-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 44px; padding-inline: 8px; }
