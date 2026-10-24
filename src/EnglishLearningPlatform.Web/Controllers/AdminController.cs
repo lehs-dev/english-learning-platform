@@ -10,7 +10,8 @@ namespace EnglishLearningPlatform.Web.Controllers;
 
 [Authorize(Policy = AuthorizationPolicies.Admin)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class AdminController(IAdminQueryService queries, IAdminManagementService management) : Controller
+public sealed class AdminController(IAdminQueryService queries, IAdminManagementService management,
+    IAdminDashboardQueryService dashboard, IAdminOverviewDetailQueryService details) : Controller
 {
     private Guid? UserId => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
@@ -36,13 +37,32 @@ public sealed class AdminController(IAdminQueryService queries, IAdminManagement
     {
         if (!UserId.HasValue) return Challenge();
         ViewData["ActiveSection"] = "admin";
-        var all = await queries.UsersAsync(UserId.Value, null, null, 1, ct);
-        if (all is null) return Forbid();
-        var locked = await queries.UsersAsync(UserId.Value, null, AccountStatus.Locked, 1, ct);
-        var disabled = await queries.UsersAsync(UserId.Value, null, AccountStatus.Disabled, 1, ct);
-        var transactions = await queries.TransactionsAsync(UserId.Value, null, null, 1, ct);
-        if (locked is null || disabled is null || transactions is null) return Forbid();
-        return View(new AdminDashboard(all.Total, locked!.Total, disabled!.Total, transactions!.Total));
+        var result = await dashboard.GetAsync(UserId.Value, ct);
+        return result is null ? Forbid() : View(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Courses(string? search, CourseStatus? status, int page = 1, CancellationToken ct = default)
+    {
+        if (!UserId.HasValue) return Challenge();
+        if (!ModelState.IsValid || status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
+        ViewData["ActiveSection"] = "admin";
+        ViewData["Status"] = status;
+        var result = await details.CoursesAsync(UserId.Value, search, status, page, ct);
+        return result is null ? Forbid() : View(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Enrollments(string? search, bool? completed, int page = 1,
+        CancellationToken ct = default, Guid? courseId = null)
+    {
+        if (!UserId.HasValue) return Challenge();
+        if (!ModelState.IsValid || courseId == Guid.Empty) return BadRequest();
+        ViewData["ActiveSection"] = "admin";
+        ViewData["Completed"] = completed;
+        ViewData["CourseId"] = courseId;
+        var result = await details.EnrollmentsAsync(UserId.Value, search, completed, page, ct, courseId);
+        return result is null ? Forbid() : View(result);
     }
 
     [HttpGet]

@@ -434,6 +434,44 @@
     margin-top: 32px;
 }
 
+.admin-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    padding: 24px;
+    margin: 0;
+}
+.admin-metrics dt { color: var(--v2-text-secondary); font-size: 13px; line-height: 1.6; }
+.admin-metrics dd { margin: 6px 0 0; color: var(--v2-dark); font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.admin-metrics .admin-metric-action { margin-top: 8px; font-size: 13px; font-weight: 600; line-height: 1.6; }
+.admin-metric-action a { display: inline-block; padding-block: 4px; text-underline-offset: 3px; }
+.admin-overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.admin-overview-grid > section { min-width: 0; }
+.admin-overview-grid .admin-list-heading { align-items: flex-start; }
+.admin-overview-grid .admin-list-heading > a { font-size: 13px; }
+.admin-overview-grid .admin-metrics-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.admin-completion-summary, .admin-course-distribution { padding: 0 24px 24px; }
+.admin-completion-summary > div { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.admin-completion-summary :where(a, p) { font-size: 13px; }
+.admin-completion-summary p { margin: 0; color: var(--v2-text-secondary); }
+.admin-completion-summary progress { display: block; width: 100%; height: 10px; accent-color: #176bff; margin: 0 0 12px; }
+.admin-distribution-row { display: grid; grid-template-columns: 95px minmax(0, 1fr) 36px; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 13px; }
+.admin-distribution-row meter { width: 100%; height: 12px; }
+.admin-distribution-row meter::-webkit-meter-bar { background: #eef0f7; border: 0; border-radius: 6px; }
+.admin-distribution-row meter::-webkit-meter-optimum-value { background: #176bff; border-radius: 6px; }
+.admin-distribution-row meter::-moz-meter-bar { background: #176bff; border-radius: 6px; }
+.admin-distribution-row span { text-align: right; font-variant-numeric: tabular-nums; }
+.admin-list-note { padding: 12px 24px; margin: 0; font-size: 13px; border-bottom: 1px solid var(--v2-border-light); }
+@media (max-width: 1100px) { .admin-overview-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+    .admin-completion-summary, .admin-course-distribution { padding-inline: 16px; }
+    .admin-list-note { padding-inline: 16px; }
+    .admin-distribution-row { grid-template-columns: 80px minmax(0, 1fr) 30px; gap: 8px; }
+}
+.admin-metrics-note { margin: 0; padding: 0 24px 24px; color: var(--v2-text-secondary); font-size: 13px; line-height: 1.7; }
+@media (max-width: 1000px) { .admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 400px) { .admin-metrics { grid-template-columns: minmax(0, 1fr); padding: 20px 16px; gap: 16px; } }
+
 .admin-shortcuts {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
