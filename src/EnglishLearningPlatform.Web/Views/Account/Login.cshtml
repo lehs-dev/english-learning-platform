@@ -2,11 +2,12 @@
 @{
     ViewData["Title"] = "Đăng nhập";
     ViewData["PageClass"] = "auth-page";
+    if (Context.Request.Headers["X-Auth-Modal"] == "true")
+    {
+        Layout = null;
+    }
 }
-@section Styles {
-    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
-}
-<section class="auth-shell" aria-labelledby="auth-title">
+<section class="auth-shell" data-auth-panel aria-labelledby="auth-title">
     <partial name="_AuthAside" />
     <div class="auth-form-panel">
         <div class="auth-heading">
@@ -18,7 +19,7 @@
         {
             <div class="notice notice-success" role="status">@successMessage</div>
         }
-        <div class="demo-account-shortcuts" aria-label="Chọn tài khoản demo">
+        <div class="demo-account-shortcuts" data-demo-password="@Model.DemoPassword" aria-label="Chọn tài khoản demo">
             <span class="demo-account-label">Chuyển nhanh tài khoản demo</span>
             <div class="demo-account-buttons">
                 <button type="button" class="demo-account-button" data-demo-email="student1@demo.example.test" aria-pressed="false">Học viên</button>
@@ -55,27 +56,3 @@
     </div>
 </section>
 <p class="auth-copyright">© 2026 Estudy. Cùng bạn chinh phục tiếng Anh.</p>
-@section Scripts {
-    <script>
-        const demoPassword = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemoPassword));
-        document.querySelectorAll("[data-demo-email]").forEach((button) => {
-            button.addEventListener("click", () => {
-                const emailInput = document.getElementById("Email");
-                const passwordInput = document.getElementById("Password");
-                emailInput.value = button.dataset.demoEmail;
-                passwordInput.value = demoPassword || "";
-                [emailInput, passwordInput].forEach((input) => {
-                    input.dispatchEvent(new Event("input", { bubbles: true }));
-                    input.dispatchEvent(new Event("change", { bubbles: true }));
-                });
-                if (passwordInput.value) {
-                    document.querySelector(".account-form button[type='submit']").focus();
-                } else {
-                    passwordInput.focus();
-                }
-                document.querySelectorAll("[data-demo-email]").forEach((item) => item.setAttribute("aria-pressed", "false"));
-                button.setAttribute("aria-pressed", "true");
-            });
-        });
-    </script>
-}

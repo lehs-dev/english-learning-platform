@@ -45,9 +45,9 @@ public sealed class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+        model.ReturnUrl = RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl) ? model.ReturnUrl : null;
         if (!ModelState.IsValid)
         {
-            model.ReturnUrl = RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl) ? model.ReturnUrl : null;
             return View(model);
         }
 
@@ -98,6 +98,14 @@ public sealed class AccountController : Controller
 
         if (result.Status == LoginStatus.Succeeded)
         {
+            if (Request.Headers["X-Auth-Modal"] == "true")
+            {
+                var redirectUrl = RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl)
+                    ? Url.Content(model.ReturnUrl!)
+                    : Url.Content("~" + RoleNavigation.GetWorkspaceUrl(result.Role));
+                return Json(new { redirectUrl });
+            }
+
             if (RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl))
                 return LocalRedirect(model.ReturnUrl!);
 

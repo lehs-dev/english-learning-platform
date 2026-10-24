@@ -1,5 +1,17 @@
 # Browser UAT
 
+## Popup đăng nhập và đăng ký
+
+Sau `npm ci` và `npx playwright install chromium`, chạy `npm run test:auth-modal`.
+Suite chạy tuần tự với một Chromium, dùng dialog/aside, CSS và JavaScript production
+cùng form HTML giữ tên trường MVC và CSRF. Các case kiểm tra mở/chuyển form giữ URL
+và ReturnUrl, lỗi xác thực, payload CSRF, đăng ký thành công, chuyển trang sau đăng nhập,
+focus bàn phím, Escape/backdrop/nút đóng, URL Account mở trực tiếp và màn hình 320/390px.
+Fixture giả response HTTP, không cần database; không thay thế integration tests
+cho Razor, xác thực tài khoản, CSRF và chuyển hướng backend.
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` tùy chọn chỉ tới Chromium đã cài.
+`ELP_AUTH_MODAL_SCREENSHOTS` chọn thư mục lưu ảnh fixture đăng nhập desktop và đăng ký 390px.
+
 ## Luồng Student theo từng nhóm nhỏ
 
 Từ thư mục gốc, `bash scripts/test-student-flow.sh --group auth` build bằng một

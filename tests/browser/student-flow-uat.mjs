@@ -70,6 +70,13 @@ async function go(page, path, status = 200) {
 async function navigate(page, control) {
   await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), control.click()]);
 }
+async function authForm(page, action) {
+  const dialog = page.locator('[data-auth-dialog][open]');
+  await dialog.getByRole('heading', {
+    name: action === 'Register' ? 'Tạo tài khoản' : 'Đăng nhập', exact: true
+  }).waitFor({ state: 'visible' });
+  await dialog.locator(`form.account-form[action$="/Account/${action}" i]`).waitFor({ state: 'visible' });
+}
 async function screenshot(page, name) {
   if (/^\/Account(?:\/|$)/i.test(new URL(page.url()).pathname)
     || await page.locator('input[type="password"]').count()) return;
@@ -105,15 +112,24 @@ async function signIn(page, email, credential = studentPassword) {
 }
 async function register(page, { fromLogin = false } = {}) {
   const email = `student-uat-${current.name}-${randomUUID()}@example.test`;
-  if (fromLogin) await navigate(page, page.locator('.auth-switch a'));
-  else await go(page, '/Account/Register');
+  if (fromLogin) {
+    const currentUrl = page.url();
+    await page.locator('.auth-switch a').click();
+    await authForm(page, 'Register');
+    assert.equal(page.url(), currentUrl, 'Switching auth forms must keep the current page.');
+  } else {
+    await go(page, '/Account/Register');
+    await authForm(page, 'Register');
+  }
   await credentials(async () => {
     await page.locator('#FullName').fill('Student UAT');
     await page.locator('#Email').fill(email);
     await page.locator('#Password').fill(studentPassword);
     await page.locator('#ConfirmPassword').fill(studentPassword);
-    await navigate(page, page.locator('form.account-form button[type="submit"]'));
-    assert.equal(new URL(page.url()).pathname, '/Account/Login');
+    const currentUrl = page.url();
+    await page.locator('form.account-form button[type="submit"]').click();
+    await authForm(page, 'Login');
+    assert.equal(page.url(), currentUrl, 'Registration must show login inside the current popup.');
     assert.match(await page.locator('.notice-success').innerText(), /Đăng ký thành công/);
   });
   await signIn(page, email);
@@ -249,7 +265,10 @@ const work = {
     let course;
     await step('Guest selected course survives UI registration and sign-in', async () => {
       course = await detail(page, freeTitle);
-      await navigate(page, page.getByRole('link', { name: /^Đăng nhập để tham gia/ }));
+      const currentUrl = page.url();
+      await page.getByRole('link', { name: /^Đăng nhập để tham gia/ }).click();
+      await authForm(page, 'Login');
+      assert.equal(page.url(), currentUrl, 'Opening login must keep the selected course visible.');
       assert.equal(await page.locator('input[name="ReturnUrl"]').inputValue(), course.path);
       await register(page, { fromLogin: true });
       assert.equal(new URL(page.url()).pathname, course.path);

@@ -11,6 +11,7 @@
     <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="canvas-body @ViewData["PageClass"]">
@@ -62,7 +63,9 @@
         <main class="container page-content" id="main-content" tabindex="-1">@RenderBody()</main>
         <partial name="_SiteFooter" />
     </div>
+    <partial name="_AuthModal" />
     <script src="~/js/site.js" asp-append-version="true" defer></script>
+    <script src="~/js/auth-modal.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
