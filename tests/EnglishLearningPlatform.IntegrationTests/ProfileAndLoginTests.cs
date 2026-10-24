@@ -152,13 +152,171 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         });
         using var client = IdentityTestHelpers.CreateClient(app);
         var html = await client.GetStringAsync("/Account/Login");
-        var literal = Regex.Match(html, "const demoPassword = ([^\\r\\n]+);");
-        Assert.True(literal.Success);
-        var scriptValue = literal.Groups[1].Value;
-        Assert.DoesNotContain("</script>", scriptValue);
-        Assert.Equal(environment == "Development" ? password : null, JsonSerializer.Deserialize<string>(scriptValue));
-        if (environment == "Production")
-            Assert.DoesNotContain("Demo", scriptValue);
+        var attribute = Regex.Match(html, "data-demo-password=\"([^\"]*)\"");
+        if (environment == "Development")
+        {
+            Assert.True(attribute.Success);
+            Assert.DoesNotContain("</script>", attribute.Groups[1].Value);
+            Assert.Equal(password, WebUtility.HtmlDecode(attribute.Groups[1].Value));
+        }
+        else
+        {
+            Assert.True(!attribute.Success || string.IsNullOrEmpty(attribute.Groups[1].Value));
+            Assert.DoesNotContain("Demo_", html);
+        }
+    }
+
+    [Theory]
+    [InlineData("/Account/Login")]
+    [InlineData("/Account/Register")]
+    public async Task ModalAccountForm_RendersPanelWithAntiforgery_AndPreservesOnlyLocalReturnUrl(string path)
+    {
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var response = await SendModalAsync(client, HttpMethod.Get,
+            path + "?returnUrl=" + Uri.EscapeDataString("/Practice?skill=Reading"));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+        Assert.Contains("data-auth-panel", html);
+        Assert.Contains("name=\"__RequestVerificationToken\"", html);
+        Assert.Contains("value=\"/Practice?skill=Reading\"", html);
+        Assert.DoesNotContain("<html", html);
+        Assert.DoesNotContain("site-header", html);
+
+        using var unsafeResponse = await SendModalAsync(client, HttpMethod.Get,
+            path + "?returnUrl=" + Uri.EscapeDataString("https://attacker.example/steal"));
+        Assert.Equal(HttpStatusCode.OK, unsafeResponse.StatusCode);
+        Assert.DoesNotContain("attacker.example", await unsafeResponse.Content.ReadAsStringAsync());
+    }
+
+    [Theory]
+    [InlineData("/Account/Login")]
+    [InlineData("/Account/Register")]
+    public async Task ModalAccountForm_InvalidInput_ReturnsValidationInPanel(string path)
+    {
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, path);
+        using var response = await SendModalAsync(client, HttpMethod.Post, path,
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["Email"] = "invalid-email", ["ReturnUrl"] = "/Practice",
+                ["__RequestVerificationToken"] = token
+            }));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+        Assert.Contains("data-auth-panel", html);
+        Assert.Contains("Email không hợp lệ.", html);
+        Assert.Contains("value=\"invalid-email\"", html);
+        Assert.Contains("value=\"/Practice\"", html);
+        Assert.DoesNotContain("<html", html);
+        using var profile = await client.GetAsync("/Profile");
+        Assert.Equal(HttpStatusCode.Redirect, profile.StatusCode);
+    }
+
+    [Fact]
+    public async Task ModalLogin_InvalidCredentials_ReturnsValidationWithoutLoggingIn()
+    {
+        var user = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, "/Account/Login");
+        using var response = await SendModalAsync(client, HttpMethod.Post, "/Account/Login",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["Email"] = user.Email!, ["Password"] = "Wrong_123!",
+                ["ReturnUrl"] = "https://attacker.example/steal", ["__RequestVerificationToken"] = token
+            }));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+        Assert.Contains("data-auth-panel", html);
+        Assert.Contains("Không thể đăng nhập", html);
+        Assert.DoesNotContain("attacker.example", html);
+        using var profile = await client.GetAsync("/Profile");
+        Assert.Equal(HttpStatusCode.Redirect, profile.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(AppRoles.Student, null, "/Learning/Dashboard")]
+    [InlineData(AppRoles.Teacher, null, "/TeacherCourses")]
+    [InlineData(AppRoles.Admin, null, "/Admin/Transactions")]
+    [InlineData(AppRoles.Student, "/Practice?skill=Reading", "/Practice?skill=Reading")]
+    [InlineData(AppRoles.Student, "https://attacker.example/steal", "/Learning/Dashboard")]
+    [InlineData(AppRoles.Student, "//attacker.example/steal", "/Learning/Dashboard")]
+    [InlineData(AppRoles.Student, "/", "/Learning/Dashboard")]
+    public async Task ModalLogin_Success_ReturnsServerValidatedRedirect_AndAuthenticates(
+        string role, string? returnUrl, string expectedRedirect)
+    {
+        var user = await IdentityTestHelpers.CreateUserAsync(factory, role);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, "/Account/Login");
+        using var response = await SendModalAsync(client, HttpMethod.Post, "/Account/Login",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["Email"] = user.Email!, ["Password"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl ?? string.Empty, ["__RequestVerificationToken"] = token
+            }));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        using var result = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(expectedRedirect, result.RootElement.GetProperty("redirectUrl").GetString());
+        using var profile = await client.GetAsync("/Profile");
+        Assert.Equal(HttpStatusCode.OK, profile.StatusCode);
+    }
+
+    [Fact]
+    public async Task ModalRegister_Success_OpensLoginWithNotice_AndPreservesReturnUrl()
+    {
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, "/Account/Register");
+        var email = $"modal-register-{Guid.NewGuid():N}@example.test";
+        const string returnUrl = "/Practice?skill=Reading";
+        using var response = await SendModalAsync(client, HttpMethod.Post, "/Account/Register",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["FullName"] = "Học viên popup", ["Email"] = email,
+                ["Password"] = IdentityTestHelpers.Password, ["ConfirmPassword"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl, ["__RequestVerificationToken"] = token
+            }));
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.StartsWith("/Account/Login?returnUrl=", response.Headers.Location!.ToString());
+        using var loginPage = await SendModalAsync(client, HttpMethod.Get, response.Headers.Location.ToString());
+        Assert.Equal(HttpStatusCode.OK, loginPage.StatusCode);
+        var html = WebUtility.HtmlDecode(await loginPage.Content.ReadAsStringAsync());
+        Assert.Contains("data-auth-panel", html);
+        Assert.Contains("Đăng ký thành công. Vui lòng đăng nhập.", html);
+        Assert.Contains("action=\"/Account/Login\"", html);
+        Assert.Contains($"value=\"{returnUrl}\"", html);
+        Assert.DoesNotContain("<html", html);
+
+        var loginToken = Regex.Match(html,
+            "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value;
+        Assert.False(string.IsNullOrWhiteSpace(loginToken));
+        using var login = await SendModalAsync(client, HttpMethod.Post, "/Account/Login",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["Email"] = email, ["Password"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl, ["__RequestVerificationToken"] = loginToken
+            }));
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        using var result = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
+        Assert.Equal(returnUrl, result.RootElement.GetProperty("redirectUrl").GetString());
+    }
+
+    [Theory]
+    [InlineData("/Account/Login")]
+    [InlineData("/Account/Register")]
+    public async Task ModalAccountMutation_WithoutAntiforgeryToken_IsRejected(string path)
+    {
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var response = await SendModalAsync(client, HttpMethod.Post, path,
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["Email"] = "guest@example.test", ["Password"] = IdentityTestHelpers.Password
+            }));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -249,5 +407,13 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         Assert.Contains("Không thể đăng nhập", WebUtility.HtmlDecode(await login.Content.ReadAsStringAsync()));
         using var profile = await client.GetAsync("/Profile");
         Assert.Equal(HttpStatusCode.Redirect, profile.StatusCode);
+    }
+
+    private static async Task<HttpResponseMessage> SendModalAsync(
+        HttpClient client, HttpMethod method, string path, HttpContent? content = null)
+    {
+        using var request = new HttpRequestMessage(method, path) { Content = content };
+        request.Headers.Add("X-Auth-Modal", "true");
+        return await client.SendAsync(request);
     }
 }

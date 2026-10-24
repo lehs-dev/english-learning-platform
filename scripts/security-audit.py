@@ -43,6 +43,10 @@ def harmless(value, path):
     # References to configuration/test helpers do not contain a credential.
     if re.fullmatch(r"(?:[A-Za-z_]\w*\.)+[A-Za-z_]\w*", value):
         return True
+    # Razor implicit expressions (@Model.DemoPassword) reference a server-side
+    # property; the rendered value is supplied by configuration, never a literal.
+    if re.fullmatch(r"@(?:[A-Za-z_]\w*\.)+[A-Za-z_]\w*", value):
+        return True
     if value in {"configuration[", "builder.Configuration[", "options[", "string.Empty", "null", "true", "false", "new"}:
         return True
     if value.startswith("[System.Net.NetworkCredential]::new("):
@@ -104,6 +108,8 @@ def self_test():
         ('Password', 'Teacher!123Abc', 'tests/EnglishLearningPlatform.IntegrationTests/AdminManagementTests.cs', False),
         ('Password', 'Teacher!123Abc', 'tests/OtherTests.cs', True),
         ('Password', 'Teacher!123Abc', 'src/config.json', True),
+        ('Password', '@Model.DemoPassword', 'src/View.cshtml', False),
+        ('Password', '@live_credential', 'src/View.cshtml', True),
         ('Password', 'OtherCredential123!', 'tests/EnglishLearningPlatform.IntegrationTests/AdminManagementTests.cs', True),
         ('SigningSecret', 'Secret', 'tests/Fixture.cs', False),
         ('key', '-' * 5 + 'BEGIN PRIVATE KEY' + '-' * 5, 'key.pem', True),

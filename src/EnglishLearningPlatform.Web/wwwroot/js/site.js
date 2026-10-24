@@ -95,15 +95,16 @@ document.querySelectorAll("[data-nav-toggle], [data-sidebar-toggle]").forEach((t
     setOpen(false);
 });
 
-document.querySelectorAll("[data-password-toggle]").forEach((button) => {
-    button.addEventListener("click", () => {
-        const input = document.getElementById(button.dataset.passwordToggle);
+document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-password-toggle]");
+    if (button) {
+        const input = button.closest("form")?.querySelector(`[id="${button.dataset.passwordToggle}"]`);
         if (!input) return;
         const showPassword = input.type === "password";
         input.type = showPassword ? "text" : "password";
         button.setAttribute("aria-pressed", String(showPassword));
         button.setAttribute("aria-label", showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu");
-    });
+    }
 });
 
 document.querySelectorAll("[data-local-date]").forEach((element) => {
