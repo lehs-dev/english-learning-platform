@@ -33,7 +33,7 @@ public sealed class CreateStimulusValidator : ICreateStimulusValidator
         if (request.StimulusType == StimulusType.Passage)
         {
             if (request.AudioContent != null)
-                errors[nameof(request.AudioContent)] = new[] { "Passage không dùng file audio." };
+                errors[nameof(request.AudioContent)] = new[] { "Đoạn đọc không dùng tệp âm thanh." };
             if (string.IsNullOrWhiteSpace(request.ContentText))
             {
                 errors[nameof(request.ContentText)] = new[] { "Đoạn đọc phải có nội dung." };
@@ -42,7 +42,7 @@ public sealed class CreateStimulusValidator : ICreateStimulusValidator
             // Không âm thầm bỏ dữ liệu gửi nhầm sang loại ngữ liệu khác.
             if (!string.IsNullOrWhiteSpace(request.ResourceUrl))
             {
-                errors[nameof(request.ResourceUrl)] = new[] { "Đoạn đọc không dùng URL âm thanh. Hãy để trống trường này." };
+                errors[nameof(request.ResourceUrl)] = new[] { "Đoạn đọc không dùng đường dẫn âm thanh. Hãy để trống trường này." };
             }
         }
         else
@@ -50,9 +50,9 @@ public sealed class CreateStimulusValidator : ICreateStimulusValidator
             if (request.AudioContent != null)
             {
                 if (StimulusAudioContent.DetectContentType(request.AudioContent) == null)
-                    errors[nameof(request.AudioContent)] = new[] { "Chọn file MP3, WAV hoặc Ogg hợp lệ, tối đa 10 MiB." };
+                    errors[nameof(request.AudioContent)] = new[] { "Chọn tệp MP3, WAV hoặc Ogg hợp lệ, tối đa 10 MiB." };
                 if (!string.IsNullOrWhiteSpace(request.ResourceUrl))
-                    errors[nameof(request.ResourceUrl)] = new[] { "Chỉ chọn một nguồn: upload file hoặc URL ngoài." };
+                    errors[nameof(request.ResourceUrl)] = new[] { "Chỉ chọn một nguồn: tải tệp lên hoặc dùng đường dẫn ngoài." };
                 if (!string.IsNullOrWhiteSpace(request.ContentText))
                     errors[nameof(request.ContentText)] = new[] { "Âm thanh không dùng nội dung đoạn đọc." };
                 return errors;
@@ -65,17 +65,17 @@ public sealed class CreateStimulusValidator : ICreateStimulusValidator
 
             if (string.IsNullOrWhiteSpace(request.ResourceUrl))
             {
-                errors[nameof(request.ResourceUrl)] = new[] { "Âm thanh phải có URL tài nguyên." };
+                errors[nameof(request.ResourceUrl)] = new[] { "Âm thanh phải có đường dẫn tài nguyên." };
             }
             else if (request.ResourceUrl.Length > 2048)
             {
-                errors[nameof(request.ResourceUrl)] = new[] { "URL âm thanh không được vượt quá 2048 ký tự." };
+                errors[nameof(request.ResourceUrl)] = new[] { "Đường dẫn âm thanh không được vượt quá 2048 ký tự." };
             }
             else if (!CourseRules.ValidResource(
                 LessonResourceType.Audio, null, request.ResourceUrl.Trim()))
             {
                 // Dùng lại rule HTTP/HTTPS của dự án, không suy đoán loại file qua phần đuôi.
-                errors[nameof(request.ResourceUrl)] = new[] { "URL âm thanh phải là địa chỉ HTTP/HTTPS tuyệt đối hợp lệ." };
+                errors[nameof(request.ResourceUrl)] = new[] { "Đường dẫn âm thanh phải là địa chỉ HTTP/HTTPS tuyệt đối hợp lệ." };
             }
         }
 

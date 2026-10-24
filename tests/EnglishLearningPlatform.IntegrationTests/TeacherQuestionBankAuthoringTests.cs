@@ -20,6 +20,7 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
         string token)
     {
         fields["__RequestVerificationToken"] = token;
+        fields.TryAdd("Level", "A1");
         return await client.PostAsync(path, new FormUrlEncodedContent(fields));
     }
 
@@ -60,7 +61,6 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
         Assert.Equal(QuestionStatus.Draft, question.Status);
         Assert.Equal(EnglishSkill.Grammar, question.PrimarySkill);
         Assert.Equal("A2", question.Level);
-        Assert.Equal("Easy", question.Difficulty);
         Assert.Equal("Went is the irregular past tense of go.", question.Explanation);
         Assert.Equal(2, question.Options.Count);
 
@@ -138,7 +138,7 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var html = await response.Content.ReadAsStringAsync();
         var decodedHtml = WebUtility.HtmlDecode(html);
-        Assert.Contains("Stimulus không tồn tại hoặc không thuộc quyền sở hữu của bạn.", decodedHtml);
+        Assert.Contains("Ngữ liệu không tồn tại hoặc không thuộc quyền sở hữu của bạn.", decodedHtml);
     }
 
     [Fact]
@@ -203,7 +203,6 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
                 Content = "Original Content " + Guid.NewGuid().ToString("N"),
                 PrimarySkill = EnglishSkill.Grammar,
                 Level = "A1",
-                Difficulty = "Easy",
                 Status = QuestionStatus.Draft,
                 Options =
                 [
@@ -248,7 +247,6 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
         Assert.Equal(updatedContent, updatedQuestion.Content);
         Assert.Equal(EnglishSkill.Vocabulary, updatedQuestion.PrimarySkill);
         Assert.Equal("B2", updatedQuestion.Level);
-        Assert.Equal("Hard", updatedQuestion.Difficulty);
         Assert.Equal("New detailed explanation.", updatedQuestion.Explanation);
 
         var options = updatedQuestion.Options.OrderBy(o => o.OrderIndex).ToList();
@@ -263,7 +261,7 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
     {
         // TBR05: Câu hỏi nằm trong Assessment đã từng Published rồi Unpublished (Status = Unpublished),
         // và chưa có Attempt nào, vẫn phải KHÓA nội dung chấm (Content, PrimarySkill, Options, Stimulus).
-        // Level/Difficulty vẫn được sửa; Explanation được giữ nguyên theo T5 để bảo toàn phản hồi cũ.
+        // Level vẫn được sửa; Explanation được giữ nguyên theo T5 để bảo toàn phản hồi cũ.
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
 
         Guid questionId;
@@ -277,7 +275,6 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
                 Content = originalContent,
                 PrimarySkill = EnglishSkill.Grammar,
                 Level = "B1",
-                Difficulty = "Medium",
                 Explanation = "Original explanation",
                 Status = QuestionStatus.Draft,
                 Options =
@@ -318,7 +315,7 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
         using var getResponse = await client.GetAsync($"/TeacherQuestionBank/Edit/{questionId}");
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
         var getHtml = await getResponse.Content.ReadAsStringAsync();
-        Assert.Contains("Nội dung chấm đã bị khóa (TBR05)", getHtml);
+        Assert.Contains("Nội dung câu hỏi đã bị khóa", WebUtility.HtmlDecode(getHtml));
 
         var token = await IdentityTestHelpers.GetTokenAsync(client, $"/TeacherQuestionBank/Edit/{questionId}");
 
@@ -384,7 +381,6 @@ public sealed class TeacherQuestionBankAuthoringTests(IntegrationTestFactory fac
             Assert.Equal(originalContent, savedQuestion.Content);
             Assert.Equal(EnglishSkill.Grammar, savedQuestion.PrimarySkill);
             Assert.Equal("C1", savedQuestion.Level);
-            Assert.Equal("Hard", savedQuestion.Difficulty);
             Assert.Equal("Original explanation", savedQuestion.Explanation);
 
             var options = savedQuestion.Options.OrderBy(o => o.OrderIndex).ToList();

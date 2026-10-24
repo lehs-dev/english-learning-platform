@@ -19,7 +19,6 @@ public sealed class QuestionCreationServiceTests(
         Content = "Choose the correct answer.",
         PrimarySkill = EnglishSkill.Grammar,
         Level = "Beginner",
-        Difficulty = "Easy",
         Explanation = "Option 2 is correct.",
         Options =
         [
@@ -69,7 +68,6 @@ public sealed class QuestionCreationServiceTests(
         Assert.Equal(request.Content, question.Content);
         Assert.Equal(EnglishSkill.Grammar, question.PrimarySkill);
         Assert.Equal(request.Level, question.Level);
-        Assert.Equal(request.Difficulty, question.Difficulty);
         Assert.Equal(request.Explanation, question.Explanation);
         Assert.Null(question.StimulusId);
         Assert.Equal(QuestionStatus.Draft, question.Status);

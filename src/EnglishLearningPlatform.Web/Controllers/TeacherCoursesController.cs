@@ -20,10 +20,13 @@ public sealed class TeacherCoursesController(ICourseAuthoringService courses, IT
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
     [HttpGet]
-    public async Task<IActionResult> Index(CancellationToken ct)
+    public async Task<IActionResult> Index([FromQuery] TeacherCourseListQuery query, CancellationToken ct)
     {
         var result = await learning.MyCoursesAsync(UserId, true, ct);
-        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        var model = TeacherCourseListModel.Create(result.Value!, query);
+        ModelState.Clear();
+        return View(model);
     }
     [HttpGet]
     public async Task<IActionResult> Edit(Guid? id, CancellationToken ct)
@@ -69,6 +72,16 @@ public sealed class TeacherCoursesController(ICourseAuthoringService courses, IT
     public async Task<IActionResult> Content(Guid courseId, ContentKind kind, Guid parentId, Guid? id,
         [Bind(Prefix = "Input")] ContentInput input, CancellationToken ct)
     {
+        if (kind == ContentKind.Module)
+        {
+            if (string.IsNullOrWhiteSpace(input.Title))
+                ModelState.TryAddModelError("Input.Title", "Vui lòng nhập tên chương học.");
+            if (ModelState.TryGetValue("Input.Visibility", out var visibility) && visibility.Errors.Count > 0)
+            {
+                visibility.Errors.Clear();
+                visibility.Errors.Add("Trạng thái hiển thị chương học không hợp lệ.");
+            }
+        }
         if (!ModelState.IsValid)
         {
             var check = await courses.ContentInputAsync(UserId, courseId, kind, parentId, id, ct);

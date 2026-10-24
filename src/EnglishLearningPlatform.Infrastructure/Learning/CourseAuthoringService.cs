@@ -57,10 +57,10 @@ public sealed class CourseAuthoringService(
         if (allowed != LearningAccessResult.Allowed) return WriteOutcome.Denied(allowed);
         input.Title = input.Title?.Trim() ?? "";
         var errors = Validate(input);
-        if (!CourseRules.ValidPrice(input.IsPaid, input.Price)) errors[nameof(input.Price)] = ["Free: giá phải bằng 0. Paid: giá phải dương, tối đa 2 chữ số thập phân và trong giới hạn decimal(18,2)."];
+        if (!CourseRules.ValidPrice(input.IsPaid, input.Price)) errors[nameof(input.Price)] = ["Khóa học miễn phí phải có giá 0 đồng. Khóa học có phí phải có giá lớn hơn 0, tối đa 2 chữ số thập phân và không vượt quá 9.999.999.999.999.999,99 đồng."];
         if (input.Skills is null || input.Skills.Any(s => !Enum.IsDefined(s))) errors[nameof(input.Skills)] = ["Kỹ năng không hợp lệ."];
         var topics = (input.Topics ?? "").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        if (topics.Any(t => t.Length > 120)) errors[nameof(input.Topics)] = ["Mỗi topic tối đa 120 ký tự."];
+        if (topics.Any(t => t.Length > 120)) errors[nameof(input.Topics)] = ["Mỗi chủ đề tối đa 120 ký tự."];
         if (errors.Count > 0) return Invalid(id ?? Guid.Empty, errors);
         var course = id.HasValue ? await db.Courses.Include(c => c.Skills).Include(c => c.Topics).SingleAsync(c => c.Id == id, ct) : new Course { OwnerTeacherUserId = userId };
         if (!id.HasValue) db.Courses.Add(course);
@@ -70,7 +70,13 @@ public sealed class CourseAuthoringService(
         foreach (var old in course.Skills.Where(s => !skillSet.Contains(s.Skill)).ToList()) db.CourseSkills.Remove(old);
         foreach (var skill in skillSet.Where(s => course.Skills.All(old => old.Skill != s))) course.Skills.Add(new CourseSkill { Skill = skill });
         foreach (var old in course.Topics.Where(t => !topics.Contains(t.Topic, StringComparer.OrdinalIgnoreCase)).ToList()) db.CourseTopics.Remove(old);
-        foreach (var topic in topics.Where(t => course.Topics.All(old => !old.Topic.Equals(t, StringComparison.OrdinalIgnoreCase)))) course.Topics.Add(new CourseTopic { Topic = topic });
+        foreach (var topic in topics.Where(t => course.Topics.All(old => !old.Topic.Equals(t, StringComparison.OrdinalIgnoreCase))))
+        {
+            var added = new CourseTopic { Course = course, CourseId = course.Id, Topic = topic };
+            course.Topics.Add(added);
+            // IDs are assigned by BaseEntity; explicitly mark new topics as inserts when editing a tracked course.
+            db.CourseTopics.Add(added);
+        }
         await db.SaveChangesAsync(ct);
         return WriteOutcome.Ok(course.Id);
     }

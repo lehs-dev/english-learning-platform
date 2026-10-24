@@ -1,77 +1,124 @@
 @model EnglishLearningPlatform.Web.Models.Assessment.TeacherCourseFinalViewModel
 @{
     Layout = "_LayoutTeacher";
-    ViewData["Title"] = "Final Assessment của Course";
+    ViewData["Title"] = "Bài kiểm tra cuối khóa";
     ViewData["ActiveSection"] = "courses";
+    ViewData["PageClass"] = "course-final-page";
+    var editor = Model.Editor;
 }
 @section Styles {
-    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/course-final.css" asp-append-version="true" />
 }
-<div class="page-heading">
-    <div><h1>Final Assessment</h1><p>@Model.Editor.CourseTitle</p></div>
-    <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Editor.CourseId">Về quản lý Course</a>
-</div>
-<section class="panel" data-final-editor data-can-change="@Model.Editor.CanChangeFinal.ToString().ToLowerInvariant()">
-    <h2>Final hiện tại</h2>
-    <dl class="assessment-details">
-        <div><dt>Course</dt><dd>@Model.Editor.CourseStatus</dd></div>
-        <div><dt>Final</dt><dd data-current-final>@(Model.Editor.FinalAssessmentTitle ?? "Không dùng Final")</dd></div>
-        @if (Model.Editor.FinalAssessmentId.HasValue)
+
+<nav class="course-final-breadcrumb" aria-label="Đường dẫn điều hướng">
+    <a asp-controller="TeacherCourses" asp-action="Index">Khóa học của tôi</a><span aria-hidden="true">/</span>
+    <a asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@editor.CourseId">Nội dung khóa học</a><span aria-hidden="true">/</span><span aria-current="page">Bài kiểm tra cuối khóa</span>
+</nav>
+<header class="course-final-heading">
+    <div><h1>Bài kiểm tra cuối khóa</h1><p>Chọn bài kiểm tra để đánh giá kết quả học tập và ghi nhận hoàn thành khóa học.</p></div>
+    <div class="course-final-heading-actions">
+        <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@editor.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Nội dung khóa học</a>
+        @if (editor.CanChangeFinal)
         {
-            <div><dt>Trạng thái đề</dt><dd>@Model.Editor.FinalAssessmentStatus</dd></div>
+            <button class="button" type="submit" form="course-final-form"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>Lưu lựa chọn</button>
         }
-    </dl>
-    <div asp-validation-summary="All" class="validation" role="alert"></div>
-    @if (!Model.Editor.CanChangeFinal)
+    </div>
+</header>
+
+<div class="course-final-course">
+    <span class="course-final-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+    <div><span>Khóa học</span><h2>@editor.CourseTitle</h2></div>
+    <span class="course-final-badge status-@editor.CourseStatus.ToString().ToLowerInvariant()"><partial name="_UiText" model="editor.CourseStatus" /></span>
+</div>
+
+<div asp-validation-summary="All" class="validation course-final-errors" role="alert"></div>
+@if (!editor.CanChangeFinal)
+{
+    <div class="course-final-lock" data-final-lock><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg><div><h2>Lựa chọn đã được khóa</h2><p>@editor.LockReason</p></div></div>
+}
+
+<div class="course-final-grid" data-final-editor data-can-change="@editor.CanChangeFinal.ToString().ToLowerInvariant()" data-saved-final="@editor.FinalAssessmentId">
+    <div class="course-final-main">
+        <section class="course-final-card course-final-current" aria-labelledby="course-final-current-heading">
+            <div class="course-final-card-heading"><span class="course-final-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span><div><h2 id="course-final-current-heading">Bài kiểm tra đang sử dụng</h2><p>Thông tin đã lưu cho khóa học này.</p></div><span class="course-final-badge">@(editor.FinalAssessmentId.HasValue ? "Đã thiết lập" : "Chưa thiết lập")</span></div>
+            <div class="course-final-current-content">
+                <h3 data-current-final>@(editor.FinalAssessmentTitle ?? "Chưa sử dụng bài kiểm tra cuối khóa")</h3>
+                @if (editor.FinalAssessmentId.HasValue)
+                {
+                    <p class="course-final-current-status">Trạng thái đề <span class="course-final-badge"><partial name="_UiText" model="editor.FinalAssessmentStatus!" /></span></p>
+                }
+                else { <p>Học viên hoàn thành khóa học khi học xong toàn bộ bài học khả dụng.</p> }
+                @if (editor.FinalAssessmentId.HasValue && editor.FinalAssessmentStatus == AssessmentStatus.Published)
+                {
+                    <a class="course-final-preview-link" asp-controller="TeacherAssessmentPreview" asp-action="Index" asp-route-id="@editor.FinalAssessmentId" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem trước bài đang sử dụng<span class="visually-hidden"> (mở trong thẻ mới)</span></a>
+                }
+            </div>
+        </section>
+
+    @if (editor.CanChangeFinal)
     {
-        <p class="notice" data-final-lock>@Model.Editor.LockReason</p>
-    }
-    else
-    {
-        <form id="course-final-form" class="editor-form" method="post" asp-action="Edit"
-              asp-route-id="@Model.Editor.CourseId" asp-antiforgery="true">
+        <form id="course-final-form" class="course-final-card course-final-form" method="post" asp-action="Edit" asp-route-id="@editor.CourseId" asp-antiforgery="true">
+            <div class="course-final-card-heading"><span class="course-final-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#settings")"></use></svg></span><div><h2>Thiết lập bài kiểm tra</h2><p>Chọn đề phù hợp hoặc để khóa học chỉ tính theo bài học.</p></div></div>
             @* Version và Final cũ không được tự nâng lên khi một tab cũ gửi lỗi. *@
             <input type="hidden" name="Input.ExpectedUpdatedAtUtc" value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" />
             <input type="hidden" name="Input.ExpectedFinalAssessmentId" value="@Model.Input.ExpectedFinalAssessmentId" />
-            <label asp-for="Input.FinalAssessmentId">Chọn Final</label>
-            <select asp-for="Input.FinalAssessmentId">
-                <option value="">Không dùng Final / Gỡ Final</option>
-                @foreach (var item in Model.Editor.Assessments)
+            <label asp-for="Input.FinalAssessmentId">Bài kiểm tra cuối khóa <span class="course-final-optional">(tùy chọn)</span></label>
+            <select asp-for="Input.FinalAssessmentId" aria-describedby="course-final-choice-help" data-final-choice>
+                <option value="">Không sử dụng bài kiểm tra cuối khóa</option>
+                @foreach (var item in editor.Assessments)
                 {
-                    <option value="@item.Id">@item.Title — @item.AssessmentType — Điểm đạt @item.PassingScore.ToString("0.##")%</option>
+                    var kind = item.AssessmentType == AssessmentType.SkillAssessment ? "Đánh giá kỹ năng" : "Đề luyện thi";
+                    var score = item.PassingScore.ToString("0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
+                    <option value="@item.Id" data-title="@item.Title" data-kind="@kind" data-score="@score" data-preview="@Url.Action("Index", "TeacherAssessmentPreview", new { id = item.Id })">@item.Title — @kind — Điểm đạt @score%</option>
                 }
                 @* Không âm thầm chọn Gỡ Final nếu liên kết cũ không còn trong danh sách đích. *@
-                @if (Model.Editor.FinalAssessmentId.HasValue
-                    && !Model.Editor.Assessments.Any(item => item.Id == Model.Editor.FinalAssessmentId.Value))
+                @if (editor.FinalAssessmentId.HasValue && !editor.Assessments.Any(item => item.Id == editor.FinalAssessmentId.Value))
                 {
-                    <option value="@Model.Editor.FinalAssessmentId">@Model.Editor.FinalAssessmentTitle — Final hiện tại</option>
+                    <option value="@editor.FinalAssessmentId" data-title="@editor.FinalAssessmentTitle" data-unavailable="true" data-preview="@(editor.FinalAssessmentStatus == AssessmentStatus.Published ? Url.Action("Index", "TeacherAssessmentPreview", new { id = editor.FinalAssessmentId }) : null)">@editor.FinalAssessmentTitle — Bài đang sử dụng, cần kiểm tra lại</option>
                 }
                 @* Giữ lựa chọn bị từ chối, không tự đổi sang Gỡ Final khi đề vừa mất điều kiện. *@
                 @if (Model.Input.FinalAssessmentId.HasValue
-                    && Model.Input.FinalAssessmentId != Model.Editor.FinalAssessmentId
-                    && !Model.Editor.Assessments.Any(item => item.Id == Model.Input.FinalAssessmentId.Value))
+                    && Model.Input.FinalAssessmentId != editor.FinalAssessmentId
+                    && !editor.Assessments.Any(item => item.Id == Model.Input.FinalAssessmentId.Value))
                 {
-                    <option value="@Model.Input.FinalAssessmentId">Lựa chọn không còn hợp lệ — hãy chọn lại</option>
+                    <option value="@Model.Input.FinalAssessmentId" data-unavailable="true" data-title="Lựa chọn không còn hợp lệ">Lựa chọn không còn hợp lệ — hãy chọn lại</option>
                 }
             </select>
             <span asp-validation-for="Input.FinalAssessmentId" class="validation"></span>
-            <p class="muted">Chỉ có đề Published, cùng Course/Teacher, thuộc Skill Assessment hoặc Practice Exam và có PassingScore.</p>
-            @if (Model.Editor.Assessments.Count == 0)
+            <p class="course-final-help" id="course-final-choice-help">Đề được kiểm tra lại khi lưu. Xem trước để chắc chắn nội dung phù hợp với khóa học.</p>
+            @if (editor.Assessments.Count == 0)
             {
-                <p class="notice">Chưa có đề đủ điều kiện. Hãy tạo đề, gắn đúng Course, đặt PassingScore và Publish trước.</p>
+                <div class="course-final-empty"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg><div><h3>Chưa có đề phù hợp để chọn</h3><p>Chuẩn bị đề, gắn vào khóa học này, đặt điểm đạt và xuất bản trước khi chọn làm bài kiểm tra cuối khóa.</p><a asp-controller="TeacherAssessments" asp-action="Index">Mở danh sách bài kiểm tra<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></div></div>
             }
-            <p class="notice">Final là vai trò trong Course, không phải loại bài thứ tư. Hãy Preview thật kỹ: từ Attempt đầu tiên, không được thay/gỡ Final hoặc dùng clone để thay.</p>
-            <p class="muted">Không có Final: hoàn thành khi học xong toàn bộ bài khả dụng. Có Final: cần thêm kết quả đạt Final. Mốc hoàn thành đã ghi trong quá khứ không bị xóa.</p>
-            <div class="actions">
-                <button class="button" type="submit">Lưu Final</button>
-                <a class="button secondary" asp-action="Edit" asp-route-id="@Model.Editor.CourseId">Tải lại trang</a>
+            <div class="course-final-selection" data-final-selection hidden aria-live="polite">
+                <div class="course-final-selection-top"><span data-selection-label>Lựa chọn hiện tại</span><span class="course-final-badge" data-selection-state></span></div>
+                <h3 data-selection-title></h3><p data-selection-description></p>
+                <div class="course-final-selection-meta" data-selection-meta><span data-selection-kind></span><span>Điểm đạt <strong data-selection-score></strong></span></div>
+                <a class="course-final-preview-link" data-selection-preview target="_blank" rel="noopener" hidden><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem trước đề đã chọn<span class="visually-hidden"> (mở trong thẻ mới)</span></a>
             </div>
+            <div class="course-final-savebar"><a asp-action="Edit" asp-route-id="@editor.CourseId">Tải lại trang</a><button class="button" type="submit"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>Lưu lựa chọn</button></div>
         </form>
     }
-    @if (Model.Editor.FinalAssessmentId.HasValue
-        && Model.Editor.FinalAssessmentStatus == EnglishLearningPlatform.Domain.Enums.AssessmentStatus.Published)
+    else
     {
-        <p><a class="button secondary" asp-controller="TeacherAssessmentPreview" asp-action="Index"
-              asp-route-id="@Model.Editor.FinalAssessmentId" target="_blank" rel="noopener">Preview Final hiện tại</a></p>
+        <div class="course-final-readonly"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg><div><h2>Thông tin chỉ xem</h2><p>Lựa chọn được giữ nguyên để bảo toàn điều kiện hoàn thành và kết quả học viên.</p><a asp-action="Edit" asp-route-id="@editor.CourseId">Tải lại trạng thái</a></div></div>
     }
-</section>
+    </div>
+    <aside class="course-final-aside" aria-label="Hướng dẫn bài kiểm tra cuối khóa">
+        <section class="course-final-card" aria-labelledby="course-final-criteria-heading">
+            <div class="course-final-card-heading"><span class="course-final-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg></span><h2 id="course-final-criteria-heading">Điều kiện chọn đề</h2></div>
+            <ul class="course-final-criteria"><li>Đề đã được xuất bản.</li><li>Thuộc khóa học này và do bạn quản lý.</li><li>Là bài đánh giá kỹ năng hoặc đề luyện thi.</li><li>Có điểm đạt hợp lệ từ 0% đến 100%.</li></ul>
+        </section>
+        <section class="course-final-card course-final-completion" aria-labelledby="course-final-completion-heading">
+            <div class="course-final-card-heading"><span class="course-final-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg></span><h2 id="course-final-completion-heading">Hoàn thành khóa học</h2></div>
+            <div><h3>Không dùng bài kiểm tra</h3><p>Hoàn thành toàn bộ bài học khả dụng.</p></div>
+            <div><h3>Có bài kiểm tra cuối khóa</h3><p>Hoàn thành toàn bộ bài học khả dụng và đạt bài kiểm tra đã chọn.</p></div>
+            <p class="course-final-history">Các mốc hoàn thành đã ghi nhận trước đó vẫn được giữ nguyên.</p>
+        </section>
+        <div class="course-final-tip"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg><p>Hãy xem trước đề trước khi lưu. Từ lượt làm đầu tiên, bài kiểm tra cuối khóa không thể thay hoặc gỡ, kể cả bằng một bản sao.</p></div>
+    </aside>
+</div>
+
+@section Scripts {
+    <script src="~/js/course-final.js" asp-append-version="true" defer></script>
+}
