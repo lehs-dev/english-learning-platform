@@ -29,8 +29,15 @@ public sealed class AdminManagementService(AppDbContext db, UserManager<Applicat
             ActorSnapshot = actor.Email ?? actor.Id.ToString(), TargetSnapshot = target.Email ?? target.Id.ToString(),
             Action = action, BeforeData = before, AfterData = after });
 
-    public async Task<AdminChangeResult> CreateTeacherAsync(Guid actorId, string name, string email, string password, CancellationToken ct = default)
+    public Task<AdminChangeResult> CreateTeacherAsync(Guid actorId, string name, string email, string password, CancellationToken ct = default)
+        => CreateAccountAsync(actorId, name, email, password, AppRoles.Teacher, "CreateTeacher", ct);
+
+    public Task<AdminChangeResult> CreateUserAsync(Guid actorId, string name, string email, string password, string role, CancellationToken ct = default)
+        => CreateAccountAsync(actorId, name, email, password, role, "CreateUser", ct);
+
+    private async Task<AdminChangeResult> CreateAccountAsync(Guid actorId, string name, string email, string password, string role, string action, CancellationToken ct)
     {
+        if (!AppRoles.All.Contains(role, StringComparer.Ordinal)) return new(false, "Vai trò không hợp lệ.");
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await LockAsync(ct);
         if (!await IsAdmin(actorId, ct)) return new(false, "Bạn không có quyền quản trị.");
@@ -39,10 +46,10 @@ public sealed class AdminManagementService(AppDbContext db, UserManager<Applicat
         var target = new ApplicationUser { FullName = name, Email = email, UserName = email };
         var created = await users.CreateAsync(target, password);
         if (!created.Succeeded) return new(false, "Không tạo được tài khoản: email có thể đã tồn tại hoặc mật khẩu chưa đáp ứng yêu cầu.");
-        var assigned = await users.AddToRoleAsync(target, AppRoles.Teacher);
-        if (!assigned.Succeeded) return new(false, "Không gán được vai trò Teacher.");
+        var assigned = await users.AddToRoleAsync(target, role);
+        if (!assigned.Succeeded) return new(false, "Không gán được vai trò.");
         var actor = await db.Users.SingleAsync(u => u.Id == actorId, ct);
-        Audit(actor, target, "CreateTeacher", null, JsonSerializer.Serialize(new { Role = AppRoles.Teacher, Status = target.AccountStatus.ToString() }));
+        Audit(actor, target, action, null, JsonSerializer.Serialize(new { Role = role, Status = target.AccountStatus.ToString() }));
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return new(true);

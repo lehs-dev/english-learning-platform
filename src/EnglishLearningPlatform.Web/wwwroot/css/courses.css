@@ -114,6 +114,7 @@
 }
 
 .course-cover > strong {
+    overflow-wrap: anywhere;
     font-size: 26px;
     font-weight: 800;
     letter-spacing: -0.5px;

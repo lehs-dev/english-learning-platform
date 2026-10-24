@@ -120,6 +120,9 @@ public static class DependencyInjection
         services.TryAddScoped<IPracticeScoringStrategy>(provider => provider.GetRequiredService<EqualWeightPracticeScoringStrategy>());
         services.AddScoped<IExamScoringService, ExamScoringService>();
         services.AddScoped<IAdminQueryService, AdminQueryService>();
+        services.AddScoped<IAdminDashboardQueryService, AdminDashboardQueryService>();
+        services.AddScoped<IAdminRevenueQueryService, AdminRevenueQueryService>();
+        services.AddScoped<IAdminOverviewDetailQueryService, AdminOverviewDetailQueryService>();
         services.AddScoped<IAdminManagementService, AdminManagementService>();
         services.AddScoped<IStudentLearningService, StudentLearningService>();
         services.AddScoped<ITeacherCourseReportService, TeacherCourseReportService>();

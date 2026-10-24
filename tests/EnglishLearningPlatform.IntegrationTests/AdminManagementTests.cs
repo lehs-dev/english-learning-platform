@@ -12,6 +12,77 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class AdminManagementTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
+    [Theory]
+    [InlineData(AppRoles.Student)]
+    [InlineData(AppRoles.Teacher)]
+    [InlineData(AppRoles.Admin)]
+    public async Task CreateUser_MvcAssignsExactlyRequestedRole_HashesPassword_AndAuditsOnce(string role)
+    {
+        var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, admin);
+        using var csrf = await client.PostAsync("/Admin/CreateUser", new FormUrlEncodedContent([]));
+        Assert.Equal(HttpStatusCode.BadRequest, csrf.StatusCode);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, "/Admin/CreateUser");
+        var email = $"managed-{Guid.NewGuid():N}@example.test";
+        const string password = "TestOnly_Admin123!";
+        var form = new Dictionary<string,string> { ["__RequestVerificationToken"] = token,
+            ["FullName"] = "Managed user", ["Email"] = email, ["Password"] = password, ["Role"] = role };
+        using var response = await client.PostAsync("/Admin/CreateUser", new FormUrlEncodedContent(form));
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        using var scope = factory.Services.CreateScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var target = await users.FindByEmailAsync(email);
+        Assert.NotNull(target);
+        Assert.Equal(new[] {role}, await users.GetRolesAsync(target));
+        Assert.True(await users.CheckPasswordAsync(target,password));
+        using var duplicate = await client.PostAsync("/Admin/CreateUser", new FormUrlEncodedContent(form));
+        Assert.Equal(HttpStatusCode.OK, duplicate.StatusCode);
+        Assert.DoesNotContain(password, await duplicate.Content.ReadAsStringAsync());
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var audit = Assert.Single(await db.AuditLogs.Where(a=>a.TargetUserId==target.Id).ToListAsync());
+        Assert.Equal("CreateUser",audit.Action);
+        Assert.DoesNotContain(password,audit.AfterData!);
+        Assert.DoesNotContain(target.PasswordHash!,audit.AfterData!);
+        Assert.Equal(1,await db.Users.CountAsync(u=>u.Email==email));
+    }
+
+    [Theory]
+    [InlineData(AppRoles.Student)]
+    [InlineData(AppRoles.Teacher)]
+    public async Task CreateUser_NonAdminCannotCreateAnyRole(string role)
+    {
+        var actor=await IdentityTestHelpers.CreateUserAsync(factory,role);
+        using var scope=factory.Services.CreateScope();
+        var service=scope.ServiceProvider.GetRequiredService<IAdminManagementService>();
+        Assert.False((await service.CreateUserAsync(actor.Id,"Forbidden user",$"denied-{Guid.NewGuid():N}@example.test","TestOnly_Admin123!",AppRoles.Admin)).Success);
+        using var client=IdentityTestHelpers.CreateClient(factory);
+        using var login=await IdentityTestHelpers.LoginAsync(client,actor);
+        using var response=await client.GetAsync("/Admin/CreateUser");
+        Assert.Contains("AccessDenied",response.Headers.Location!.ToString());
+    }
+
+    [Fact]
+    public async Task CreateUser_RejectsUnknownRoleWithoutPersistingUser()
+    {
+        var admin=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Admin);
+        using var scope=factory.Services.CreateScope();
+        var service=scope.ServiceProvider.GetRequiredService<IAdminManagementService>();
+        var email=$"bad-role-{Guid.NewGuid():N}@example.test";
+        Assert.False((await service.CreateUserAsync(admin.Id,"Invalid role",email,"TestOnly_Admin123!","Guest")).Success);
+        Assert.False(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Users.AnyAsync(u=>u.Email==email));
+        using var client=IdentityTestHelpers.CreateClient(factory);
+        using var login=await IdentityTestHelpers.LoginAsync(client,admin);
+        var token=await IdentityTestHelpers.GetTokenAsync(client,"/Admin/CreateUser");
+        using var response=await client.PostAsync("/Admin/CreateUser",new FormUrlEncodedContent(new Dictionary<string,string>{
+            ["__RequestVerificationToken"]=token,["FullName"]="Invalid form",["Email"]=email,["Role"]="Guest",["Password"]="short"}));
+        var html=await response.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.OK,response.StatusCode);
+        Assert.Contains("validation-summary-errors",html);
+        Assert.DoesNotContain("value=\"short\"",html);
+        Assert.False(await scope.ServiceProvider.GetRequiredService<AppDbContext>().Users.AnyAsync(u=>u.Email==email));
+    }
+
     [Fact]
     public async Task CreateTeacher_HashesPassword_AssignsOnlyTeacher_AuditsAndRejectsDuplicate()
     {

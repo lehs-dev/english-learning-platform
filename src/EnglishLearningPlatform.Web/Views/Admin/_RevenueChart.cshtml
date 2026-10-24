@@ -1,0 +1,8 @@
+@model EnglishLearningPlatform.Web.Models.Admin.AdminRevenueViewModel
+<figure class="admin-line-chart" data-revenue-line-chart>
+    <figcaption>Doanh thu thanh toán thành công · @(Model.GroupBy == "month" ? "Theo tháng" : "Theo ngày")</figcaption>
+    <div class="admin-line-chart-canvas"></div>
+    <p class="admin-field-help">Đơn vị: VND. Di chuột hoặc chạm vào điểm để xem số tiền và số đơn.</p>
+    <output class="admin-chart-detail" aria-live="polite"></output>
+    <script type="application/json" class="admin-chart-data">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartPoints.Select(p => new { label = p.Period.ToString(Model.GroupBy == "month" ? "MM/yyyy" : "dd/MM/yyyy"), amount = p.Revenue, orders = p.PaidOrders })))</script>
+</figure>

@@ -1,13 +1,14 @@
 @model CatalogPage
 @{
-    ViewData["Title"] = "Khám phá khóa học";
+    var isAdmin = User.IsInRole("Admin");
+    ViewData["Title"] = isAdmin ? "Danh mục công khai" : "Khám phá khóa học";
 }
 <div class="course-library">
     <section id="discover-courses" aria-labelledby="discovery-title">
         <div class="page-heading course-library-heading">
             <div>
-                <h1 id="discovery-title">Khám phá khóa học</h1>
-                <p>Chọn kỹ năng và tìm khóa học phù hợp với mục tiêu của bạn.</p>
+                <h1 id="discovery-title">@(isAdmin ? "Danh mục khóa học công khai" : "Khám phá khóa học")</h1>
+                <p>@(isAdmin ? "Xem cách khóa học xuất hiện với người học. Chỉ hiển thị khóa công khai có giảng viên đang không bị vô hiệu hóa." : "Chọn kỹ năng và tìm khóa học phù hợp với mục tiêu của bạn.")</p>
             </div>
             @if (User.IsInRole("Teacher"))
             {

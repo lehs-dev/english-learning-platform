@@ -9,7 +9,7 @@
 }
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
-<header class="admin-heading"><div><h1>Quản lý tài khoản</h1><p>Tìm kiếm, phân quyền và quản lý trạng thái người dùng.</p></div><a class="button" asp-action="CreateTeacher">Tạo giảng viên</a></header>
+<header class="admin-heading"><div><h1>Quản lý tài khoản</h1><p>Tìm kiếm, phân quyền và quản lý trạng thái người dùng.</p></div><a class="button" asp-action="CreateUser">Tạo người dùng</a></header>
 @if (TempData["AdminSuccess"] is string success) { <p class="notice" role="status">@success</p> }
 @if (TempData["AdminError"] is string error) { <p class="notice error" role="alert">@error</p> }
 <section class="admin-surface">

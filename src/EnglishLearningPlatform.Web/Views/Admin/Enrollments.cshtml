@@ -1,0 +1,42 @@
+@using EnglishLearningPlatform.Application.Administration
+@model AdminPage<AdminEnrollmentOverview>
+@{
+    ViewData["Title"] = "Lượt đăng ký khóa học";
+    var selected = ViewData["Completed"] as bool?;
+    var courseId = ViewData["CourseId"] as Guid?;
+    var fromDate = ViewData["FromDate"] as string;
+    var toDate = ViewData["ToDate"] as string;
+}
+@section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
+<div class="admin-page">
+<header class="admin-heading"><div><h1>Lượt đăng ký khóa học</h1><p>Mỗi dòng là một học viên đăng ký một khóa học. Mốc hoàn thành được giữ theo lịch sử.</p></div></header>
+<section class="admin-surface">
+    <div asp-validation-summary="All" class="notice error" role="alert"></div>
+    <form method="get" asp-action="Enrollments" class="admin-filters">
+        @if (courseId.HasValue) { <input type="hidden" name="courseId" value="@courseId" /> }
+        <div class="admin-search"><label for="search">Tìm lượt đăng ký</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Tên khóa, tên hoặc email học viên…" /></div>
+        <div><label for="completed">Hoàn thành khóa học</label><select id="completed" name="completed"><option value="">Tất cả</option><option value="true" selected="@(selected == true)">Đã hoàn thành</option><option value="false" selected="@(selected == false)">Chưa hoàn thành</option></select></div>
+        <div class="admin-date-filter"><label for="fromDate">Ngày đăng ký từ</label><input type="date" id="fromDate" name="fromDate" value="@fromDate" min="0001-01-02" max="9999-12-30" /></div>
+        <div class="admin-date-filter"><label for="toDate">Đến hết ngày</label><input type="date" id="toDate" name="toDate" value="@toDate" min="0001-01-02" max="9999-12-30" /></div>
+        <div class="admin-filter-actions"><button class="button" type="submit">Tìm kiếm</button><a asp-action="Enrollments">Đặt lại</a></div>
+    </form>
+    <p class="admin-report-explanation">Lọc theo ngày đăng ký khóa học, giờ Việt Nam (UTC+7), bao gồm hết ngày kết thúc. Có thể chỉ chọn ngày bắt đầu hoặc ngày kết thúc.</p>
+    <div class="admin-list-heading"><h2>@(courseId.HasValue ? "Đăng ký của khóa đã chọn" : "Tất cả lượt đăng ký") <span class="admin-count">@Model.Total</span></h2><span>Thời gian Việt Nam · UTC+7</span></div>
+    @if (courseId.HasValue) { <p class="admin-list-note">@if (Model.Items.Count > 0) { <strong>@Model.Items[0].CourseTitle</strong><span> · </span> }<a asp-action="Courses" asp-route-search="@courseId">Xem khóa đang lọc</a> · <a asp-action="Enrollments" asp-route-search="@Model.Search" asp-route-completed="@selected" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Bỏ lọc khóa học</a></p> }
+    @if (Model.Items.Count == 0) { <div class="admin-empty"><h3>Không có lượt đăng ký phù hợp</h3><p>Thử từ khóa hoặc điều kiện hoàn thành khác.</p></div> }
+    else {
+        <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Lượt đăng ký và hoàn thành khóa học</caption>
+        <thead><tr><th>Học viên</th><th>Khóa học</th><th>Ngày đăng ký</th><th>Hoàn thành</th><th>Ngày hoàn thành</th></tr></thead><tbody>
+        @foreach (var item in Model.Items) {
+            <tr><td data-label="Học viên"><div><strong>@item.StudentName</strong><span class="admin-email">@item.StudentEmail</span></div></td><td data-label="Khóa học">@item.CourseTitle</td>
+                <td data-label="Ngày đăng ký" class="admin-date">@item.EnrolledAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</td>
+                <td data-label="Hoàn thành"><span class="admin-badge @(item.CompletedAtUtc.HasValue ? "status-active" : "payment-pending")">@(item.CompletedAtUtc.HasValue ? "Đã hoàn thành" : "Chưa hoàn thành")</span></td>
+                <td data-label="Ngày hoàn thành" class="admin-date">@(item.CompletedAtUtc?.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") ?? "—")</td></tr>
+        }
+        </tbody></table></div>
+    }
+    <nav class="admin-pagination" aria-label="Phân trang lượt đăng ký"><span>Trang @Model.Page / @Model.Pages</span><div>
+    @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-completed="@selected" asp-route-courseId="@courseId" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate" asp-route-page="@(Model.Page - 1)">Trước</a> }
+    @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-completed="@selected" asp-route-courseId="@courseId" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate" asp-route-page="@(Model.Page + 1)">Sau</a> }
+    </div></nav>
+</section></div>
