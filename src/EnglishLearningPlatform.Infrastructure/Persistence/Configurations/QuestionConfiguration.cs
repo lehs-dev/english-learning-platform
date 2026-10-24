@@ -22,7 +22,6 @@ public sealed class QuestionConfiguration : IEntityTypeConfiguration<Question>
         e.Property(x => x.Content).HasMaxLength(4000).IsRequired();
         e.Property(x => x.PrimarySkill).HasConversion<string>().HasMaxLength(24).IsRequired();
         e.Property(x => x.Level).HasMaxLength(32);
-        e.Property(x => x.Difficulty).HasMaxLength(32);
         e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16).IsRequired();
         // Lưu thời điểm khóa bằng kiểu datetimeoffset của SQL Server.
         // Cho phép NULL vì Question mới chưa bị khóa nội dung.

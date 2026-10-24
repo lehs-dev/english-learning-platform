@@ -57,7 +57,7 @@ public sealed class QuestionCreationService(
                     new QuestionError(
                         nameof(request.StimulusId),
                         "invalid",
-                        "Stimulus không tồn tại hoặc không thuộc quyền sở hữu của bạn.")
+                        "Ngữ liệu không tồn tại hoặc không thuộc quyền sở hữu của bạn.")
                 ]);
             }
         }
@@ -69,7 +69,6 @@ public sealed class QuestionCreationService(
             Content = request.Content,
             PrimarySkill = request.PrimarySkill!.Value,
             Level = request.Level,
-            Difficulty = request.Difficulty,
             Explanation = request.Explanation,
             StimulusId = request.StimulusId,
             Status = QuestionStatus.Draft

@@ -19,7 +19,6 @@ public sealed class QuestionUsageValidatorTests
             Content = "Choose the correct answer.",
             PrimarySkill = EnglishSkill.Reading,
             Level = "Beginner",
-            Difficulty = "Easy",
             Explanation = "Option 2 is correct.",
             Status = QuestionStatus.Draft
         };
@@ -334,19 +333,10 @@ public sealed class QuestionUsageValidatorTests
     [Theory]
     [InlineData(nameof(Question.Level), 32)]
     [InlineData(nameof(Question.Level), 33)]
-    [InlineData(nameof(Question.Difficulty), 32)]
-    [InlineData(nameof(Question.Difficulty), 33)]
     public void ValidateForNewUse_MetadataLength_EnforcesExistingBoundary(string field, int length)
     {
         Question question = CreateValidQuestion();
-        if (field == nameof(Question.Level))
-        {
-            question.Level = new string('a', length);
-        }
-        else
-        {
-            question.Difficulty = new string('a', length);
-        }
+        question.Level = new string('a', length);
 
         var errors = _validator.ValidateForNewUse(question.OwnerTeacherUserId, question);
 
@@ -630,7 +620,6 @@ public sealed class QuestionUsageValidatorTests
         Assert.Equal(question.Content, request.Content);
         Assert.Equal(question.PrimarySkill, request.PrimarySkill);
         Assert.Equal(question.Level, request.Level);
-        Assert.Equal(question.Difficulty, request.Difficulty);
         Assert.Equal(question.Explanation, request.Explanation);
         Assert.Equal(stimulus.Id, request.StimulusId);
         QuestionOption[] options = question.Options.ToArray();
@@ -681,7 +670,6 @@ public sealed class QuestionUsageValidatorTests
         Assert.Equal(EnglishSkill.Reading, question.PrimarySkill);
         Assert.Equal("Choose the correct answer.", question.Content);
         Assert.Equal("Beginner", question.Level);
-        Assert.Equal("Easy", question.Difficulty);
         Assert.Equal("Option 2 is correct.", question.Explanation);
         Assert.Same(originalOptions, question.Options);
         Assert.Equal(2, question.Options.Count);
@@ -822,7 +810,6 @@ public sealed class QuestionUsageValidatorTests
     [InlineData("blank_option", "Options[0].Content", "required")]
     [InlineData("long_option", "Options[0].Content", "max_length")]
     [InlineData("long_level", "Level", "max_length")]
-    [InlineData("long_difficulty", "Difficulty", "max_length")]
     [InlineData("no_options", "Options", "min_count")]
     [InlineData("one_option", "Options", "min_count")]
     [InlineData("no_correct", "Options", "exactly_one_correct")]
@@ -880,9 +867,6 @@ public sealed class QuestionUsageValidatorTests
                 break;
             case "long_level":
                 question.Level = new string('a', 33);
-                break;
-            case "long_difficulty":
-                question.Difficulty = new string('a', 33);
                 break;
             case "no_options":
                 question.Options.Clear();

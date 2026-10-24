@@ -5,7 +5,8 @@
     var isCatalog = string.Equals(currentController, "Courses", StringComparison.OrdinalIgnoreCase);
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
     var isTransactions = isAdminPage && string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
-    var isUsers = isAdminPage && string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase);
+    var isUsers = isAdminPage && (string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(currentAction, "CreateTeacher", StringComparison.OrdinalIgnoreCase));
     var isOverview = isAdminPage && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
     var isAudit = isAdminPage && string.Equals(currentAction, "Audit", StringComparison.OrdinalIgnoreCase);
     var title = ViewData["Title"] as string ?? "Quản trị";
@@ -29,14 +30,12 @@
     <div class="admin-shell">
         <aside class="admin-sidebar" id="admin-sidebar" aria-label="Điều hướng quản trị">
             <div class="admin-sidebar-header">
-                <a class="admin-brand" asp-controller="Admin" asp-action="Transactions" aria-label="Estudy - Quản trị">
+                <a class="admin-brand" asp-controller="Admin" asp-action="Index" aria-label="Estudy - Quản trị">
                     <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
                     <span class="admin-brand-text">Estudy</span>
                 </a>
                 <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng thanh điều hướng quản trị"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
             </div>
-
-            <p class="workspace-caption">Không gian quản trị</p>
 
             <nav class="admin-nav" aria-label="Thực đơn quản trị">
                 <div class="admin-nav-section">
@@ -92,7 +91,7 @@
                 </button>
                 <nav class="admin-breadcrumbs" aria-label="Thanh điều hướng phân cấp">
                     <ol class="breadcrumb-list">
-                        <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Transactions">Quản trị</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Index">Quản trị</a></li>
                         <li class="breadcrumb-separator" aria-hidden="true">/</li>
                         <li class="breadcrumb-item is-active" aria-current="page">@title</li>
                     </ol>

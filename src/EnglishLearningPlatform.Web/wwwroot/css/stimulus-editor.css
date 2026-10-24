@@ -1,0 +1,93 @@
+.stimulus-editor-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+.stimulus-editor-page .question-editor-heading { margin-bottom: 18px; }
+.stimulus-form fieldset { min-width: 0; border: 0; border-radius: 0; }
+.stimulus-form .question-section-heading { align-items: center; margin-bottom: 10px; }
+.stimulus-form .question-section-heading h2 { margin: 0; font-size: 18px; }
+.stimulus-type-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.stimulus-form .stimulus-type-choice { display: flex; align-items: center; gap: 16px; min-width: 0; min-height: 86px; padding: 14px 16px; border: 1px solid #d0dced; border-radius: 9px; color: var(--ink); background: #fff; cursor: pointer; }
+.stimulus-type-choice:has(input:checked) { border-color: #5b94ff; background: #f0f6ff; }
+.stimulus-type-choice:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 3px; }
+.stimulus-type-choice > input { flex: 0 0 19px; width: 19px; height: 19px; margin: 0; accent-color: var(--primary); }
+.stimulus-choice-icon { display: inline-grid; flex: 0 0 48px; place-items: center; width: 48px; height: 48px; border-radius: 11px; color: var(--ink); background: #f5f7fb; }
+.stimulus-choice-icon .icon { width: 27px; height: 27px; }
+.stimulus-type-choice:has(input:checked) .stimulus-choice-icon { color: var(--primary); background: #e4efff; }
+.stimulus-type-choice > span:last-child { min-width: 0; }
+.stimulus-type-choice strong { display: block; margin-bottom: 2px; font-size: 16px; font-weight: 700; }
+.stimulus-type-choice > span > span { display: block; color: #7889a8; font-size: 13px; font-weight: 400; line-height: 1.5; }
+.stimulus-form .stimulus-info-section { padding-bottom: 26px; }
+.stimulus-form .form-group { gap: 6px; }
+.stimulus-form .form-group > label { font-size: 14px; }
+.stimulus-editor-page .question-form.stimulus-form input[type=text],
+.stimulus-editor-page .question-form.stimulus-form input[type=url] { margin: 0; min-height: 46px; border-radius: 8px; font-size: 14px; }
+.stimulus-form .stimulus-field-help { margin: 4px 0 0; color: #7889a8; font-size: 12px; line-height: 1.7; }
+.stimulus-form .question-text-editor textarea { height: 228px; min-height: 160px; padding: 14px 16px; font-size: 15px; }
+.stimulus-form .stimulus-mode-panel { padding-bottom: 28px; }
+.stimulus-mode-panel[hidden], .stimulus-preview-mode[hidden], .stimulus-file-info[hidden], [data-preview-audio-player][hidden] { display: none; }
+.stimulus-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.stimulus-form-footer > p { flex: 1; margin: 0; color: #7889a8; font-size: 12px; line-height: 1.7; }
+.stimulus-form-footer .actions { flex-shrink: 0; align-items: center; gap: 24px; margin: 0; }
+.stimulus-editor-page .stimulus-form-footer .button { padding-inline: 16px; font-size: 12px; }
+.stimulus-preview-card .question-aside-heading { flex-wrap: wrap; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.stimulus-preview-badge { margin-left: auto; padding: 7px 13px; border-radius: 9px; color: var(--primary); background: #edf4ff; font-size: 12px; font-weight: 600; }
+.stimulus-preview-mode { min-width: 0; margin-top: 15px; padding: 24px 21px; border: 1px solid #e2eafb; border-radius: 10px; background: #fcfdff; }
+.stimulus-preview-mode h3 { margin: 0 0 20px; color: var(--ink); font-size: 24px; line-height: 1.5; overflow-wrap: anywhere; }
+.stimulus-passage-preview { min-height: 360px; max-height: 660px; overflow-y: auto; }
+.stimulus-passage-preview p { margin: 0; color: #304575; font-size: 16px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
+.stimulus-passage-preview.is-empty p { color: #8695af; }
+.stimulus-preview-footer { display: flex; align-items: center; gap: 14px; margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); }
+.stimulus-preview-footer p { margin: 0; color: #7889a8; font-size: 13px; }
+.stimulus-preview-footer .question-step { flex-basis: 40px; }
+.stimulus-editor-page .stimulus-ready-card { display: flex; align-items: flex-start; gap: 14px; padding: 18px 20px; border-color: #c8ddff; background: #f0f6ff; }
+.stimulus-ready-card h2 { margin: 4px 0 8px; font-size: 17px; line-height: 1.5; }
+.stimulus-ready-card p { margin: 0; color: #7889a8; font-size: 13px; line-height: 1.7; }
+.stimulus-upload-zone { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 18px; border: 1px dashed #99b9ef; border-radius: 10px; background: #f7faff; text-align: center; }
+.stimulus-upload-zone.is-dragging { border-color: var(--primary); background: #eaf2ff; }
+.stimulus-upload-icon { display: inline-grid; place-items: center; width: 50px; height: 50px; margin-bottom: 4px; border-radius: 12px; color: var(--primary); background: #e7f0ff; }
+.stimulus-upload-icon .icon { width: 28px; height: 28px; }
+.stimulus-upload-zone label { color: var(--ink); cursor: pointer; }
+.stimulus-upload-zone p { margin: 0; color: #7889a8; font-size: 12px; }
+.stimulus-form #audioFile { width: 100%; max-width: 340px; margin: 8px 0 0; padding: 6px; border: 1px solid #d0dced; border-radius: 8px; background: #fff; color: #5e7293; font-size: 12px; }
+.stimulus-form #audioFile::file-selector-button { margin-right: 10px; padding: 7px 12px; border: 0; border-radius: 5px; background: #eaf2ff; color: #145bd5; font: inherit; cursor: pointer; }
+.stimulus-file-info { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; }
+.stimulus-file-info > span { min-width: 0; overflow-wrap: anywhere; }
+.stimulus-file-info button { flex: 0 0 auto; padding: 5px; border: 0; background: transparent; color: var(--primary); font-size: 12px; cursor: pointer; }
+.stimulus-form [data-audio-error]:empty { display: none; }
+.stimulus-external-source { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 13px; }
+.stimulus-external-source summary { color: #566b90; cursor: pointer; }
+.stimulus-external-source[open] summary { margin-bottom: 14px; }
+.stimulus-form .stimulus-external-source input { margin-top: 7px; }
+.stimulus-reselect-note { margin: 12px 0; padding: 10px; border-radius: 7px; color: #8a570d; background: #fff5de; font-size: 12px; }
+.stimulus-audio-preview { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 310px; text-align: center; }
+.stimulus-audio-art { display: inline-grid; place-items: center; width: 86px; height: 86px; margin-bottom: 22px; border-radius: 24px; color: var(--primary); background: #e8f1ff; }
+.stimulus-audio-art .icon { width: 42px; height: 42px; }
+.stimulus-audio-preview h3 { max-width: 100%; margin-bottom: 10px; font-size: 20px; }
+.stimulus-audio-preview > p { margin: 0; color: #7889a8; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.stimulus-audio-preview audio { width: 100%; margin: 22px 0 8px; }
+.stimulus-audio-preview .stimulus-field-help { margin-top: 8px; }
+
+@media (max-width: 1350px) {
+    .stimulus-type-choice { gap: 12px; }
+    .stimulus-form .stimulus-type-choice { padding-inline: 12px; }
+    .stimulus-form-footer { flex-wrap: wrap; }
+    .stimulus-form-footer > p { flex-basis: 100%; }
+    .stimulus-form-footer .actions { width: 100%; justify-content: flex-end; }
+    .stimulus-type-choice strong { font-size: 14px; }
+    .stimulus-type-choice > span > span { font-size: 12px; }
+    .stimulus-choice-icon { flex-basis: 40px; width: 40px; height: 44px; }
+    .stimulus-preview-mode { padding: 20px 16px; }
+}
+@media (max-width: 1100px) {
+    .stimulus-type-choices { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+    .stimulus-editor-grid { grid-template-columns: minmax(0, 1fr); }
+    .stimulus-form .question-section-heading h2 { font-size: 16px; }
+    .stimulus-form-footer .actions { justify-content: space-between; gap: 16px; }
+    .stimulus-editor-page .stimulus-form-footer .button { padding-inline: 12px; font-size: 11px; }
+    .stimulus-form .question-text-editor textarea { height: 260px; font-size: 14px; }
+    .stimulus-preview-mode h3 { font-size: 21px; }
+    .stimulus-passage-preview p { font-size: 14px; }
+    .stimulus-passage-preview { min-height: 220px; max-height: 520px; }
+    .stimulus-ready-card h2 { font-size: 15px; }
+    .stimulus-editor-page .stimulus-ready-card { padding: 16px 14px; }
+}

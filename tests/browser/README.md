@@ -140,3 +140,15 @@ unset LearningDemo__Password
 Trong Docker có thể chạy bằng image `mcr.microsoft.com/playwright:v1.64.0-noble` trên cùng Compose network, URL `http://web:8080`. Sao chép các file suite vào runner và chạy `npm ci`, `node uat.mjs`. Caller phải truyền `ELP_UAT_CANDIDATE`, `ELP_UAT_CLEAN`, `ELP_UAT_SOURCE_DIGEST`, `ELP_UAT_IMAGE_ID` từ bản nguồn và image đã kiểm tra. Đối chiếu label `org.opencontainers.image.revision` với SHA trước run. Không dùng SHA base làm SHA của source chưa commit.
 
 Suite thực thi các bước qua Chromium, kiểm tra CSRF, paid/free access, resume giữ deadline/answers, 80% score, completion, ownership và Admin isolation. Đây là **automated browser UAT**, không thay chữ ký nghiệm thu hay rehearsal của thành viên.
+
+## Kiểm tra giao diện ngân hàng câu hỏi
+
+Chạy trên ứng dụng dùng cơ sở dữ liệu trình diễn riêng, đã bật dữ liệu mẫu và cấu hình mật khẩu qua `LearningDemo__Password`. Bài kiểm tra tạo 12 câu hỏi mới để kiểm tra sáu trình độ A1–C2, tìm/lọc, phân trang, sửa câu hỏi, menu điều hướng và bố cục trên máy tính/điện thoại; không đặt lại dữ liệu.
+
+```powershell
+$env:ELP_UAT_URL = 'http://127.0.0.1:5108'
+$env:ELP_UAT_RESULTS = 'artifacts/question-bank-review'
+node tests/browser/question-bank-uat.mjs
+```
+
+Ảnh chụp và `ket-qua.json` được lưu ở thư mục kết quả. Đường dẫn kết quả tương đối được tính từ thư mục đang chạy lệnh.

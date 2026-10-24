@@ -14,11 +14,13 @@
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
 <header class="admin-heading"><div><h1>Giao dịch thanh toán</h1><p>Tra cứu đơn hàng và đối chiếu trạng thái thanh toán.</p></div></header>
-<partial name="_AdminNav" />
 <section class="admin-surface">
-    <form method="get" asp-action="Transactions" class="admin-filters">
+    <div asp-validation-summary="All" class="notice error" role="alert"></div>
+<form method="get" asp-action="Transactions" class="admin-filters">
         <div class="admin-search"><label for="search">Tìm giao dịch</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Email, khóa học hoặc mã đơn…" /></div>
         <div><label for="status">Trạng thái thanh toán</label><select id="status" name="status"><option value="">Tất cả</option>@foreach (var status in Enum.GetValues<PaymentStatus>()) { <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option> }</select></div>
+        <div class="admin-date-filter"><label for="fromDate">Ngày tạo giao dịch từ</label><input type="date" id="fromDate" name="fromDate" value="@ViewData["FromDate"]" min="0001-01-02" max="9999-12-30" /></div>
+        <div class="admin-date-filter"><label for="toDate">Đến ngày</label><input type="date" id="toDate" name="toDate" value="@ViewData["ToDate"]" min="0001-01-02" max="9999-12-30" /></div>
         <div class="admin-filter-actions"><button class="button" type="submit">Tìm kiếm</button><a asp-action="Transactions">Đặt lại</a></div>
     </form>
     <div class="admin-list-heading"><h2>Đơn hàng <span class="admin-count">@Model.Total</span></h2><span>Thời gian Việt Nam · UTC+7</span></div>
@@ -33,9 +35,9 @@
         </tbody></table></div>
     }
     <nav class="actions admin-pagination" aria-label="Phân trang giao dịch">
-        @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a> }
+        @if (Model.Page > 1) { <a class="button secondary" asp-route-fromDate="@ViewData["FromDate"]" asp-route-toDate="@ViewData["ToDate"]" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Trước</a> }
         <span aria-current="page">Trang @Model.Page / @Model.Pages</span>
-        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a> }
+        @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-fromDate="@ViewData["FromDate"]" asp-route-toDate="@ViewData["ToDate"]" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a> }
     </nav>
 </section>
 </div>

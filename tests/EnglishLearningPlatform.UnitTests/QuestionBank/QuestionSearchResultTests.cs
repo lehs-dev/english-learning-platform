@@ -15,7 +15,6 @@ public class QuestionSearchResultTests
             Id = Guid.NewGuid(),
             Content = "What is the capital of France?",
             Level = "Beginner",
-            Difficulty = "Easy",
             PrimarySkill = EnglishSkill.Reading,
             Status = QuestionStatus.Published,
             OptionCount = 4,

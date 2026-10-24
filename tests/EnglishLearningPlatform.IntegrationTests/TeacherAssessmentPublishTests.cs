@@ -412,7 +412,7 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
             Questions = assessment.Questions.OrderBy(q => q.OrderIndex).Select(q => new
             {
                 q.Id, q.QuestionId, q.OrderIndex, q.Points, q.Question.Content, q.Question.PrimarySkill,
-                q.Question.Level, q.Question.Difficulty, q.Question.Explanation, q.Question.Status,
+                q.Question.Level, q.Question.Explanation, q.Question.Status,
                 q.Question.OwnerTeacherUserId, q.Question.StimulusId,
                 Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.OrderIndex, o.IsCorrect }),
                 Stimulus = q.Question.Stimulus == null ? null : new
@@ -494,7 +494,7 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
             {
                 OwnerTeacherUserId = teacher.Id, Content = "TASK4_QUESTION_" + index,
                 PrimarySkill = index == 1 && type != AssessmentType.SkillAssessment ? EnglishSkill.Listening : EnglishSkill.Reading,
-                Level = "Beginner", Difficulty = "Easy", Explanation = "A saved explanation.",
+                Level = "Beginner", Explanation = "A saved explanation.",
                 Stimulus = index == 0 || index == 2 ? passage : index == 1 ? audio : null,
                 Options = new List<QuestionOption>
                 {

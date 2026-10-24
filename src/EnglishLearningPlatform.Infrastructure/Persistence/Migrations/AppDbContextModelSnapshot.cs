@@ -892,10 +892,6 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Difficulty")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<string>("Explanation")
                         .HasColumnType("nvarchar(max)");
 

@@ -49,7 +49,7 @@ public sealed class TeacherCourseFinalController(ITeacherCourseFinalService serv
             if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
             if (result.Success)
             {
-                TempData["Success"] = "Đã lưu Final và cập nhật điều kiện hoàn thành Course.";
+                TempData["Success"] = "Đã lưu bài kiểm tra cuối khóa và cập nhật điều kiện hoàn thành khóa học.";
                 return RedirectToAction(nameof(Edit), new { id });
             }
             foreach (var error in result.Errors)

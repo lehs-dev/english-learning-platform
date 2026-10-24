@@ -10,7 +10,6 @@ public sealed class CreateQuestionValidatorTests
         Content = "Choose the correct answer.",
         PrimarySkill = EnglishSkill.Reading,
         Level = "Beginner",
-        Difficulty = "Easy",
         Options = 
         [
             new QuestionOptionRequest("Option 1", false),
@@ -32,7 +31,6 @@ public sealed class CreateQuestionValidatorTests
             Content = "",
             PrimarySkill = null,
             Level = new string('a', 33),
-            Difficulty = new string('b', 33),
             Options = [new QuestionOptionRequest("Option 1", false)]
         });
         Assert.NotEmpty(errors);
@@ -276,7 +274,6 @@ public sealed class CreateQuestionValidatorTests
         var request = validRequest with
         {
             Level = value,
-            Difficulty = value
         };
 
         var errors = _validator.Validate(request);
@@ -289,7 +286,6 @@ public sealed class CreateQuestionValidatorTests
         var request = validRequest with
         {
             Level = new string('a', 32),
-            Difficulty = new string('b', 32)
         };
 
         var errors = _validator.Validate(request);
@@ -308,20 +304,6 @@ public sealed class CreateQuestionValidatorTests
 
         Assert.Contains(errors, error =>
             error.Field == nameof(CreateQuestionRequest.Level)
-            && error.Code == "max_length");
-    }
-    [Fact]
-    public void Validate_DifficultyOverLimit_ReturnsMaxLengthError()
-    {
-        var request = validRequest with
-        {
-            Difficulty = new string('b', 33)
-        };
-
-        var errors = _validator.Validate(request);
-
-        Assert.Contains(errors, error =>
-            error.Field == nameof(CreateQuestionRequest.Difficulty)
             && error.Code == "max_length");
     }
     [Fact]

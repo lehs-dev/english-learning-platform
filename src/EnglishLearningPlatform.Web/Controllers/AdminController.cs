@@ -14,6 +14,23 @@ public sealed class AdminController(IAdminQueryService queries, IAdminManagement
 {
     private Guid? UserId => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
+    private bool InvalidNonDateFilter => ModelState.Any(entry =>
+        !entry.Key.Equals("fromDate", StringComparison.OrdinalIgnoreCase) &&
+        !entry.Key.Equals("toDate", StringComparison.OrdinalIgnoreCase) && entry.Value!.Errors.Count > 0);
+
+    private AdminDateRange? PrepareDates(DateOnly? fromDate, DateOnly? toDate)
+    {
+        ViewData["FromDate"] = fromDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        ViewData["ToDate"] = toDate?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        var dates = new AdminDateRange(fromDate, toDate);
+        if (!ModelState.IsValid || !dates.IsValid)
+        {
+            ModelState.AddModelError("", "Ngày không hợp lệ. Từ ngày phải nhỏ hơn hoặc bằng đến ngày (phạm vi 02/01/0001–30/12/9999).");
+            return null;
+        }
+        return dates;
+    }
+
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken ct)
     {
@@ -58,35 +75,38 @@ public sealed class AdminController(IAdminQueryService queries, IAdminManagement
     }
 
     [HttpGet]
-    public async Task<IActionResult> Audit(string? search, int page = 1, CancellationToken ct = default)
+    public async Task<IActionResult> Audit(string? search, int page = 1, CancellationToken ct = default, DateOnly? fromDate = null, DateOnly? toDate = null)
     {
         if (!UserId.HasValue) return Challenge();
         ViewData["ActiveSection"] = "admin";
-        var result = await management.AuditAsync(UserId.Value, search, page, ct);
-        return result is null ? Forbid() : View(result);
+        var dates = PrepareDates(fromDate, toDate);
+        var result = await queries.AuditAsync(UserId.Value, search, page, ct, dates);
+        return result is null ? Forbid() : View(ModelState.IsValid ? result : result with { Items = [], Total = 0, Page = 1, Pages = 1 });
     }
 
     [HttpGet]
-    public async Task<IActionResult> Transactions(string? search, PaymentStatus? status, int page = 1, CancellationToken ct = default)
+    public async Task<IActionResult> Transactions(string? search, PaymentStatus? status, int page = 1, CancellationToken ct = default, DateOnly? fromDate = null, DateOnly? toDate = null)
     {
         if (!UserId.HasValue) return Challenge();
-        if (!ModelState.IsValid || status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
+        if (InvalidNonDateFilter || status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
         ViewData["ActiveSection"] = "admin";
+        var dates = PrepareDates(fromDate, toDate);
         ViewData["Status"] = status;
-        var result = await queries.TransactionsAsync(UserId.Value, search, status, page, ct);
-        return result is null ? Forbid() : View(result);
+        var result = await queries.TransactionsAsync(UserId.Value, search, status, page, ct, dates);
+        return result is null ? Forbid() : View(ModelState.IsValid ? result : result with { Items = [], Total = 0, Page = 1, Pages = 1 });
     }
 
     [HttpGet]
-    public async Task<IActionResult> Users(string? search, AccountStatus? status, int page = 1, CancellationToken ct = default, string? role = null)
+    public async Task<IActionResult> Users(string? search, AccountStatus? status, int page = 1, CancellationToken ct = default, string? role = null, DateOnly? fromDate = null, DateOnly? toDate = null)
     {
         if (!UserId.HasValue) return Challenge();
-        if (!ModelState.IsValid || status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
+        if (InvalidNonDateFilter || status.HasValue && !Enum.IsDefined(status.Value)) return BadRequest();
         ViewData["ActiveSection"] = "admin";
+        var dates = PrepareDates(fromDate, toDate);
         ViewData["Status"] = status;
         if (!string.IsNullOrEmpty(role) && !new[] { "Student", "Teacher", "Admin" }.Contains(role)) return BadRequest();
         ViewData["Role"] = role;
-        var result = await queries.UsersAsync(UserId.Value, search, status, page, ct, role);
-        return result is null ? Forbid() : View(result);
+        var result = await queries.UsersAsync(UserId.Value, search, status, page, ct, role, dates);
+        return result is null ? Forbid() : View(ModelState.IsValid ? result : result with { Items = [], Total = 0, Page = 1, Pages = 1 });
     }
 }

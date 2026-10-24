@@ -32,16 +32,16 @@ public sealed class AdminAuditForwardingTests
         public Task<AdminPage<AdminAudit>?> Result { get; } = result;
         public (Guid Actor, string? Search, int Page, CancellationToken Cancellation) Arguments { get; private set; }
 
-        public Task<AdminPage<AdminAudit>?> AuditAsync(Guid actorId, string? search, int page, CancellationToken ct = default)
+        public Task<AdminPage<AdminAudit>?> AuditAsync(Guid actorId, string? search, int page, CancellationToken ct = default, AdminDateRange? dates = null)
         {
             Arguments = (actorId, search, page, ct);
             return Result;
         }
 
         public Task<AdminPage<AdminTransaction>?> TransactionsAsync(Guid actorId, string? search, PaymentStatus? status,
-            int page, CancellationToken ct = default) => throw new NotSupportedException();
+            int page, CancellationToken ct = default, AdminDateRange? dates = null) => throw new NotSupportedException();
 
         public Task<AdminPage<AdminUser>?> UsersAsync(Guid actorId, string? search, AccountStatus? status,
-            int page, CancellationToken ct = default, string? role = null) => throw new NotSupportedException();
+            int page, CancellationToken ct = default, string? role = null, AdminDateRange? dates = null) => throw new NotSupportedException();
     }
 }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="180" viewBox="0 0 260 180" fill="none">
+  <defs><linearGradient id="folder" x1="115" y1="98" x2="140" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="#e1edff"/><stop offset="1" stop-color="#bad2ff"/></linearGradient></defs>
+  <path d="M38 150C7 118 32 84 65 62c32-21 44-11 68-31 29-24 62-19 74 13 15 37 44 40 40 72-4 34-35 49-65 51H70c-13 0-24-5-32-17Z" fill="#eff6ff"/>
+  <ellipse cx="132" cy="164" rx="77" ry="6" fill="#dce9ff"/>
+  <g stroke="#176bff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m79 83-5-45 59-6 8 71" fill="#fff"/><path d="m88 51 29-3m-27 14 35-3m-33 14 24-2" stroke="#8cb3ff"/>
+    <path d="m133 95 8-46 58 11-12 72" fill="#fff"/><path d="m153 66 29 5m-31 8 28 5m-31 8 19 4" stroke="#8cb3ff"/>
+    <path d="M59 85h39l12 15h79c5 0 8 4 7 9l-8 48H65L55 94c-1-5 1-9 4-9Z" fill="#d9e7ff"/>
+    <path d="M70 161h116c3 0 6-2 7-6l12-59c1-5-2-8-7-8h-45l-10 15H68c-5 0-8 3-7 8l5 45c0 3 2 5 4 5Z" fill="url(#folder)"/>
+    <path d="m215 39 3-10m8 20 10-7"/>
+  </g>
+</svg>
