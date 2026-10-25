@@ -1,0 +1,37 @@
+@using EnglishLearningPlatform.Application.Administration
+@model AdminPage<AdminCourseOverview>
+@{
+    ViewData["Title"] = "Tra cứu khóa học";
+    var selected = ViewData["Status"] as CourseStatus?;
+    static string StatusLabel(CourseStatus status) => status switch {
+        CourseStatus.Published => "Công khai", CourseStatus.Draft => "Bản nháp",
+        CourseStatus.Unpublished => "Đã ẩn", CourseStatus.Archived => "Lưu trữ", _ => "Khác" };
+}
+@section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
+<div class="admin-page">
+<header class="admin-heading"><div><h1>Tra cứu khóa học</h1><p>Đối chiếu trạng thái và số lượt đăng ký. Nội dung khóa học do giáo viên quản lý.</p></div><a class="button secondary" asp-action="Index">Về tổng quan</a></header>
+<section class="admin-surface">
+    <form method="get" asp-action="Courses" class="admin-filters">
+        <div class="admin-search"><label for="search">Tìm khóa học</label><input id="search" name="search" value="@Model.Search" maxlength="120" placeholder="Tên khóa, tên hoặc email giáo viên…" /></div>
+        <div><label for="status">Trạng thái khóa học</label><select id="status" name="status"><option value="">Tất cả trạng thái</option>@foreach (var status in Enum.GetValues<CourseStatus>()) { <option value="@status" selected="@(selected == status)">@StatusLabel(status)</option> }</select></div>
+        <div class="admin-filter-actions"><button class="button" type="submit">Tìm kiếm</button><a asp-action="Courses">Đặt lại</a></div>
+    </form>
+    <div class="admin-list-heading"><h2>Danh sách khóa học <span class="admin-count">@Model.Total</span></h2><span>Chế độ chỉ xem</span></div>
+    @if (Model.Items.Count == 0) { <div class="admin-empty"><h3>Không có khóa học phù hợp</h3><p>Thử từ khóa hoặc trạng thái khác.</p></div> }
+    else {
+        <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Khóa học toàn hệ thống</caption>
+        <thead><tr><th>Khóa học</th><th>Giáo viên</th><th>Trạng thái</th><th>Đăng ký</th><th>Hoàn thành</th><th>Ngày tạo</th></tr></thead><tbody>
+        @foreach (var item in Model.Items) {
+            <tr><td data-label="Khóa học"><strong>@item.Title</strong></td><td data-label="Giáo viên"><div>@item.TeacherName<span class="admin-email">@item.TeacherEmail</span></div></td>
+                <td data-label="Trạng thái"><span class="admin-role">@StatusLabel(item.Status)</span></td>
+                <td data-label="Đăng ký"><a asp-action="Enrollments" asp-route-courseId="@item.Id" aria-label="Xem @item.EnrollmentCount lượt đăng ký của @item.Title">@item.EnrollmentCount lượt</a></td>
+                <td data-label="Hoàn thành"><a asp-action="Enrollments" asp-route-courseId="@item.Id" asp-route-completed="true" aria-label="Xem @item.CompletedEnrollmentCount lượt hoàn thành của @item.Title">@item.CompletedEnrollmentCount lượt</a></td>
+                <td data-label="Ngày tạo" class="admin-date">@item.CreatedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</td></tr>
+        }
+        </tbody></table></div>
+    }
+    <nav class="admin-pagination" aria-label="Phân trang khóa học"><span>Trang @Model.Page / @Model.Pages</span><div>
+    @if (Model.Page > 1) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page - 1)">Trước</a> }
+    @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-search="@Model.Search" asp-route-status="@selected" asp-route-page="@(Model.Page + 1)">Sau</a> }
+    </div></nav>
+</section></div>

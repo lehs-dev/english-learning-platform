@@ -9,6 +9,8 @@
         string.Equals(currentAction, "CreateTeacher", StringComparison.OrdinalIgnoreCase));
     var isOverview = isAdminPage && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
     var isAudit = isAdminPage && string.Equals(currentAction, "Audit", StringComparison.OrdinalIgnoreCase);
+    var isAdminCourses = isAdminPage && string.Equals(currentAction, "Courses", StringComparison.OrdinalIgnoreCase);
+    var isEnrollments = isAdminPage && string.Equals(currentAction, "Enrollments", StringComparison.OrdinalIgnoreCase);
     var title = ViewData["Title"] as string ?? "Quản trị";
 }
 <!DOCTYPE html>
@@ -59,6 +61,12 @@
                        aria-current="@(isUsers ? "page" : null)">
                         <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
                         <span>Người dùng</span>
+                    </a>
+                    <a class="admin-nav-link @(isAdminCourses ? "is-active" : "")" asp-controller="Admin" asp-action="Courses" aria-current="@(isAdminCourses ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg><span>Khóa học</span>
+                    </a>
+                    <a class="admin-nav-link @(isEnrollments ? "is-active" : "")" asp-controller="Admin" asp-action="Enrollments" aria-current="@(isEnrollments ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><span>Lượt đăng ký</span>
                     </a>
                     <a class="admin-nav-link @(isAudit ? "is-active" : "")"
                        asp-controller="Admin" asp-action="Audit"
