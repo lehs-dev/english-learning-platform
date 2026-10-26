@@ -1,5 +1,57 @@
 # Browser UAT
 
+## Popup đăng nhập và đăng ký
+
+Sau `npm ci` và `npx playwright install chromium`, chạy `npm run test:auth-modal`.
+Suite chạy tuần tự với một Chromium, dùng dialog/aside, CSS và JavaScript production
+cùng form HTML giữ tên trường MVC và CSRF. Các case kiểm tra mở/chuyển form giữ URL
+và ReturnUrl, lỗi xác thực, payload CSRF, đăng ký thành công, chuyển trang sau đăng nhập,
+focus bàn phím, Escape/backdrop/nút đóng, URL Account mở trực tiếp và màn hình 320/390px.
+Fixture giả response HTTP, không cần database; không thay thế integration tests
+cho Razor, xác thực tài khoản, CSRF và chuyển hướng backend.
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` tùy chọn chỉ tới Chromium đã cài.
+`ELP_AUTH_MODAL_SCREENSHOTS` chọn thư mục lưu ảnh fixture đăng nhập desktop và đăng ký 390px.
+
+## Luồng Student theo từng nhóm nhỏ
+
+Từ thư mục gốc, `bash scripts/test-student-flow.sh --group auth` build bằng một
+MSBuild worker rồi chạy từng lớp với `tests/low-memory.runsettings`. Các nhóm
+khác: `catalog`, `learning`, `practice`, `checkout`, `assessment`, `completion`.
+Thêm `--no-build` sau khi đã build source mới nhất; `--list` chỉ xem lớp được chọn.
+Mặc định script chạy các nhóm .NET tuần tự, không chạy một suite lớn song song;
+lớp dùng chung giữa các nhóm chỉ chạy một lần. `ELP_TEST_SQLSERVER` có thể trỏ tới
+server local, nhưng fixture luôn tạo và dọn database GUID riêng.
+
+Sau khi cài dependencies/Chromium, chạy fixture autosave riêng:
+
+```bash
+node --test --test-concurrency=1 tests/browser/assessment-ui.test.mjs
+```
+
+Fixture dùng tên `Answers[n]`, question IDs, CSRF và `Answers.Index` giống Razor;
+kiểm tra payload sparse, lưu lỗi/thử lại, hai tab, hàng đợi, xác nhận nộp và hết giờ.
+
+`student-flow-uat.mjs` kiểm tra UI thật trên **app Development/database mới riêng**
+đã bật `LearningDemo:Enabled` và `CheckoutSandbox:Enabled`. Mật khẩu seed chỉ
+truyền qua environment; không chạy lên database đang làm việc. Mỗi nhóm tạo
+Student mới bằng form, không sửa SQL hoặc giả response. Chạy từng lệnh riêng:
+
+```bash
+export ELP_STUDENT_UAT_ISOLATED=true
+export ELP_UAT_URL=http://127.0.0.1:<port-app-test>
+export ELP_UAT_RESULTS=TestResults/student-browser/auth
+# LearningDemo__Password phải có trong environment và khớp demo seed.
+node tests/browser/student-flow-uat.mjs --group auth
+```
+
+Đổi nhóm và thư mục kết quả lần lượt thành `learning`, `practice`, `assessment`,
+`checkout`, `responsive`. Suite chỉ nhận URL loopback và cờ môi trường cách ly.
+Mỗi lượt dùng một Chromium, đóng context sau nhóm; hai tab Assessment cùng context
+kiểm tra autosave từ index khác 0 và giữ đáp án của tab còn lại. Learning đi tới
+Final và trạng thái hoàn thành khóa; Assessment có audio nội bộ, resume, điểm và
+quyền riêng tư; responsive kiểm tra 320/390px. JSON ghi hash source trước/sau và
+ảnh không chụp trang Account. Caller chịu trách nhiệm dọn app/database test.
+
 ## Ba loại Assessment trên web thật
 
 `npm run test:assessment-types` mở Chromium và thao tác form của ứng dụng thật:
@@ -58,7 +110,7 @@ không xác minh việc render Razor, phân quyền hay dữ liệu backend; cá
 ## Kiểm thử giao diện Attempt riêng
 
 Sau `npm ci` và `npx playwright install chromium`, chạy `npm run test:assessment`.
-Chín test dùng Chromium thật với HTML fixture và script `assessment.js` của ứng dụng:
+Mười một test dùng Chromium thật với HTML fixture và script `assessment.js` của ứng dụng:
 xác nhận/hủy nộp với câu bỏ trống, lưu thủ công, hết deadline khi dialog đang mở,
 và nộp đáp án mới nhất sau lỗi autosave. Bổ sung kiểm tra thứ tự tự lưu,
 chỉ báo đã lưu sau xác nhận của server cho lựa chọn mới nhất, phục hồi sau lỗi

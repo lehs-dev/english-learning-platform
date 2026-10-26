@@ -1,14 +1,66 @@
-@model EnglishLearningPlatform.Web.Models.Admin.AdminDashboard
-@{ ViewData["Title"] = "Tổng quan quản trị"; }
+@model EnglishLearningPlatform.Application.Administration.AdminDashboardSummary
+@{
+    ViewData["Title"] = "Tổng quan quản trị";
+    var courseStates = new[] {
+        (Status: CourseStatus.Published, Label: "Công khai", Count: Model.PublishedCourses),
+        (Status: CourseStatus.Draft, Label: "Bản nháp", Count: Model.DraftCourses),
+        (Status: CourseStatus.Unpublished, Label: "Đã ẩn", Count: Model.UnpublishedCourses),
+        (Status: CourseStatus.Archived, Label: "Lưu trữ", Count: Model.ArchivedCourses)
+    };
+}
 @section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
 <div class="admin-page">
 <header class="admin-heading"><div><h1>Tổng quan hệ thống</h1><p>Theo dõi tài khoản, giao dịch và các hoạt động quản trị.</p></div><a class="button" asp-action="CreateTeacher">Tạo giảng viên</a></header>
-<partial name="_AdminNav" />
 <div class="admin-summary">
     <article class="admin-stat"><span class="admin-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></span><p>Tổng tài khoản</p><strong>@Model.Users</strong><a asp-action="Users">Xem danh sách<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></article>
     <article class="admin-stat"><span class="admin-stat-icon amber" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span><p>Tài khoản đã khóa</p><strong>@Model.Locked</strong><a asp-action="Users" asp-route-status="Locked">Kiểm tra tài khoản<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></article>
     <article class="admin-stat"><span class="admin-stat-icon rose" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></svg></span><p>Đã vô hiệu hóa</p><strong>@Model.Disabled</strong><a asp-action="Users" asp-route-status="Disabled">Xem chi tiết<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></article>
-    <article class="admin-stat"><span class="admin-stat-icon green" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg></span><p>Đơn giao dịch</p><strong>@Model.Transactions</strong><a asp-action="Transactions">Tra cứu giao dịch<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></article>
+    <article class="admin-stat"><span class="admin-stat-icon green" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg></span><p>Đơn giao dịch</p><strong>@Model.Orders</strong><a asp-action="Transactions">Tra cứu giao dịch<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a></article>
+</div>
+<div class="admin-overview-grid">
+<section class="admin-surface" aria-labelledby="dashboard-people-title">
+    <div class="admin-list-heading"><h2 id="dashboard-people-title">Người dùng</h2><a asp-action="Users">Tất cả tài khoản →</a></div>
+    <dl class="admin-metrics admin-metrics-pair">
+        <div><dt>Học viên</dt><dd data-metric="students">@Model.Students</dd><dd class="admin-metric-action"><a asp-action="Users" asp-route-role="Student">Xem học viên →</a></dd></div>
+        <div><dt>Giáo viên</dt><dd data-metric="teachers">@Model.Teachers</dd><dd class="admin-metric-action"><a asp-action="Users" asp-route-role="Teacher">Xem giáo viên →</a></dd></div>
+    </dl>
+    <p class="admin-metrics-note">Bao gồm tài khoản bị khóa hoặc vô hiệu hóa. Mở danh sách để đối chiếu từng vai trò.</p>
+</section>
+<section class="admin-surface" aria-labelledby="dashboard-learning-title">
+    <div class="admin-list-heading"><h2 id="dashboard-learning-title">Đăng ký và hoàn thành</h2><a asp-action="Enrollments">Xem đăng ký →</a></div>
+    <dl class="admin-metrics admin-metrics-pair">
+        <div><dt>Lượt đăng ký</dt><dd data-metric="enrollments">@Model.Enrollments</dd><dd class="admin-metric-action"><a asp-action="Enrollments">Xem tất cả →</a></dd></div>
+        <div><dt>Đã hoàn thành</dt><dd data-metric="completed-enrollments">@Model.CompletedEnrollments</dd><dd class="admin-metric-action"><a asp-action="Enrollments" asp-route-completed="true">Xem hoàn thành →</a></dd></div>
+    </dl>
+    <div class="admin-completion-summary">
+        @if (Model.CompletionRate.HasValue) {
+            <div><span>Tỷ lệ hoàn thành</span><strong data-metric="completion-rate">@Model.CompletionRate.Value.ToString("0.#", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))%</strong></div>
+            <progress max="@Model.Enrollments" value="@Model.CompletedEnrollments" aria-label="Tỷ lệ lượt đăng ký đã hoàn thành"></progress>
+            <a asp-action="Enrollments" asp-route-completed="false">@Model.IncompleteEnrollments lượt chưa hoàn thành →</a>
+        } else { <p>Chưa có lượt đăng ký để tính tỷ lệ hoàn thành.</p> }
+    </div>
+</section>
+<section class="admin-surface" aria-labelledby="dashboard-courses-title">
+    <div class="admin-list-heading"><h2 id="dashboard-courses-title">Khóa học</h2><a asp-action="Courses">Tra cứu khóa học →</a></div>
+    <dl class="admin-metrics admin-metrics-pair">
+        <div><dt>Tổng khóa học</dt><dd data-metric="courses">@Model.Courses</dd><dd class="admin-metric-action"><a asp-action="Courses">Xem tất cả →</a></dd></div>
+        <div><dt>Bản nháp cần theo dõi</dt><dd data-metric="draft-courses">@Model.DraftCourses</dd><dd class="admin-metric-action"><a asp-action="Courses" asp-route-status="Draft">Xem bản nháp →</a></dd></div>
+    </dl>
+    <div class="admin-course-distribution">
+        @foreach (var state in courseStates) {
+            <div class="admin-distribution-row"><a asp-action="Courses" asp-route-status="@state.Status">@state.Label</a><meter min="0" max="@Math.Max(1, Model.Courses)" value="@state.Count" aria-label="@state.Count khóa @state.Label"></meter><span data-metric="@(state.Status == CourseStatus.Published ? "published-courses" : null)">@state.Count</span></div>
+        }
+        @if (Model.Courses == 0) { <p>Chưa có khóa học trong hệ thống.</p> }
+    </div>
+</section>
+<section class="admin-surface" aria-labelledby="dashboard-payments-title">
+    <div class="admin-list-heading"><h2 id="dashboard-payments-title">Thanh toán</h2><a asp-action="Transactions">Tra cứu giao dịch →</a></div>
+    <dl class="admin-metrics admin-metrics-pair">
+        <div><dt>Tổng đơn hàng</dt><dd>@Model.Orders</dd><dd class="admin-metric-action"><a asp-action="Transactions">Xem đơn hàng →</a></dd></div>
+        <div><dt>Đơn thanh toán thành công</dt><dd data-metric="succeeded-orders">@Model.SucceededOrders</dd></div>
+    </dl>
+    <p class="admin-metrics-note">Một đơn có nhiều lần thử thanh toán vẫn chỉ được tính một lần khi đã có thanh toán thành công.</p>
+</section>
 </div>
 <section class="admin-section"><div class="admin-list-heading"><h2>Công việc quản trị</h2><span>Truy cập nhanh</span></div><div class="admin-shortcuts">
     <a asp-action="Users"><h3>Quản lý người dùng</h3><p>Tìm tài khoản, cập nhật vai trò và trạng thái hoạt động.</p><span>Mở danh sách →</span></a>

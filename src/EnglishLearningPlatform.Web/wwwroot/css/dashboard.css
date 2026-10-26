@@ -325,6 +325,74 @@
     font-weight: 800;
 }
 
+/* Calendar là nút thật để chọn ngày; cần reset style mặc định của browser. */
+button.calendar-day-col {
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    position: relative;
+}
+
+.calendar-day-col.is-today:not(.active) {
+    box-shadow: inset 0 0 0 1.5px var(--v2-pastel-periwinkle, #DDD9FC);
+}
+
+.calendar-day-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #7C3AED;
+    display: block;
+}
+
+.calendar-day-panel {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--v2-border-light);
+}
+
+.calendar-day-panel-title {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--v2-dark);
+}
+
+.calendar-activity-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.calendar-activity-list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 8px;
+    align-items: baseline;
+    font-size: 12.5px;
+}
+
+.calendar-activity-time {
+    color: var(--v2-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.calendar-activity-list a {
+    color: var(--v2-dark);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.calendar-activity-kind {
+    grid-column: 2;
+    color: var(--v2-text-muted);
+    font-size: 11.5px;
+}
+
 /* Upcoming / Completed Courses Widget */
 .upcoming-courses-card {
     background: var(--v2-surface);

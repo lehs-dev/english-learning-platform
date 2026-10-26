@@ -197,9 +197,7 @@ public sealed class TeacherAssessmentScopeService : ITeacherAssessmentScopeServi
             // Hai yêu cầu chuyển A -> B và B -> A không lấy khóa ngược nhau.
             foreach (Guid courseId in courseIdsToLock.OrderBy(id => id))
             {
-                var course = await _db.Courses
-                    .FromSqlInterpolated(
-                        $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}")
+                var course = await _db.CoursesForUpdate(courseId)
                     .AsNoTracking()
                     .SingleOrDefaultAsync(cancellationToken);
 
@@ -209,9 +207,7 @@ public sealed class TeacherAssessmentScopeService : ITeacherAssessmentScopeServi
                 }
             }
 
-            var assessment = await _db.Assessments
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {assessmentId} AND OwnerTeacherUserId = {actorUserId}")
+            var assessment = await _db.AssessmentsForUpdate(assessmentId, actorUserId)
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (assessment == null)
@@ -399,18 +395,8 @@ public sealed class TeacherAssessmentScopeService : ITeacherAssessmentScopeServi
     // Cookie không đủ: tài khoản thật phải Active và có duy nhất role Teacher.
     private Task<bool> IsActiveTeacherAsync(
         Guid actorUserId,
-        CancellationToken cancellationToken)
-    {
-        return _db.Users.AsNoTracking().AnyAsync(user =>
-            user.Id == actorUserId
-            && user.AccountStatus == AccountStatus.Active
-            && _db.UserRoles.Count(userRole => userRole.UserId == actorUserId) == 1
-            && _db.UserRoles.Any(userRole =>
-                userRole.UserId == actorUserId
-                && _db.Roles.Any(role =>
-                    role.Id == userRole.RoleId && role.Name == AppRoles.Teacher)),
-            cancellationToken);
-    }
+        CancellationToken cancellationToken) =>
+        _db.HasActiveRoleAsync(actorUserId, AppRoles.Teacher, cancellationToken);
 
     private static WriteOutcome Failure(Guid assessmentId, params string[] messages)
     {

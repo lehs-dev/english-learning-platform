@@ -31,10 +31,13 @@ public sealed class AccountController : Controller
 
     [AllowAnonymous]
     [HttpGet]
-    public IActionResult Register()
+    public IActionResult Register(string? returnUrl = null)
     {
         ViewBag.SuccessMessage = TempData["SuccessMessage"];
-        return View();
+        return View(new RegisterViewModel
+        {
+            ReturnUrl = RoleNavigation.IsValidReturnUrl(Url, returnUrl) ? returnUrl : null
+        });
     }
 
     [AllowAnonymous]
@@ -42,6 +45,7 @@ public sealed class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+        model.ReturnUrl = RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl) ? model.ReturnUrl : null;
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -63,16 +67,22 @@ public sealed class AccountController : Controller
             return View(model);
         }
 
-        TempData["SuccessMessage"] = "Đăng ký thành công.";
+        TempData["SuccessMessage"] = "Đăng ký thành công. Vui lòng đăng nhập.";
 
-        return RedirectToAction(nameof(Register));
+        return RedirectToAction(nameof(Login), new
+        {
+            returnUrl = RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl) ? model.ReturnUrl : null
+        });
     }
 
     [AllowAnonymous]
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
-        return LoginView(new LoginViewModel { ReturnUrl = returnUrl });
+        return LoginView(new LoginViewModel
+        {
+            ReturnUrl = RoleNavigation.IsValidReturnUrl(Url, returnUrl) ? returnUrl : null
+        });
     }
 
     [AllowAnonymous]
@@ -88,6 +98,14 @@ public sealed class AccountController : Controller
 
         if (result.Status == LoginStatus.Succeeded)
         {
+            if (Request.Headers["X-Auth-Modal"] == "true")
+            {
+                var redirectUrl = RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl)
+                    ? Url.Content(model.ReturnUrl!)
+                    : Url.Content("~" + RoleNavigation.GetWorkspaceUrl(result.Role));
+                return Json(new { redirectUrl });
+            }
+
             if (RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl))
                 return LocalRedirect(model.ReturnUrl!);
 
@@ -104,6 +122,7 @@ public sealed class AccountController : Controller
 
     private ViewResult LoginView(LoginViewModel model)
     {
+        if (!RoleNavigation.IsValidReturnUrl(Url, model.ReturnUrl)) model.ReturnUrl = null;
         model.DemoPassword = _environment.IsDevelopment()
             ? _configuration["LearningDemo:Password"]
             : null;

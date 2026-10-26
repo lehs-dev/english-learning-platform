@@ -75,6 +75,7 @@
     --v2-pastel-peach: #FED7AA;
     --v2-pastel-pink: #FFC5E3;
     --v2-pastel-mint: #D1F5EA;
+    --v2-pastel-butter: #FEF3C7;
     --v2-border-light: #F1F2F6;
     --v2-border-hover: #E2E4EE;
     --v2-radius-canvas: 34px;
@@ -95,7 +96,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-padding-top: var(--space-6); scrollbar-color: var(--border-strong) var(--page); }
 body { margin: 0; min-height: 100dvh; font-size: var(--text-body); }
-body:not(.teacher-studio):not(.admin-body) { display: flex; flex-direction: column; }
+body:not(.teacher-studio):not(.admin-body):not(.student-workspace-v2) { display: flex; flex-direction: column; }
 body > main { flex: 1; }
 button, input, select, textarea { font: inherit; }
 button, a, input, summary { -webkit-tap-highlight-color: transparent; }
@@ -285,26 +286,26 @@ dialog::backdrop { background: var(--overlay); }
    ========================================================================== */
 
 body.canvas-body {
-    background-color: var(--v2-canvas-bg);
-    min-height: 100vh;
+    background-color: var(--v2-surface);
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 24px 20px 40px;
+    align-items: stretch;
+    padding: 0;
     font-family: var(--v2-font-body);
 }
 
 .v2-canvas-frame {
     background: var(--v2-surface);
-    border-radius: var(--v2-radius-canvas);
-    max-width: 1400px;
+    border-radius: 0;
+    max-width: none;
     width: 100%;
-    box-shadow: var(--v2-shadow-canvas);
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
+.v2-canvas-frame > main { flex: 1; }
+.v2-canvas-frame .container { width: calc(100% - 64px); max-width: none; }
 
 /* V2 Brand Logo */
 .brand-v2 {
@@ -441,6 +442,7 @@ body.canvas-body {
 
 /* Responsive for V2 Canvas Frame */
 @media (max-width: 768px) {
+    .v2-canvas-frame .container { width: calc(100% - 32px); }
     body.canvas-body {
         padding: 0;
         background: #FFFFFF;

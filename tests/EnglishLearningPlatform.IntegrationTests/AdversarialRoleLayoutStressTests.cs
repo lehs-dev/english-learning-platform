@@ -33,8 +33,8 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
 
         // Positive assertions: Student chrome
         Assert.Contains("student-workspace", html);
-        Assert.Contains("dashboard-topbar-clean", html);
-        Assert.Contains("rail-nav-group", html);
+        Assert.Contains("student-topbar", html);
+        Assert.Contains("studio-nav-group", html);
         Assert.Contains("Estudy", html);
         Assert.Contains("Học viên", html);
         Assert.Contains("Bàn học", html);
@@ -43,7 +43,6 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.Contains(student.FullName, html);
 
         // Negative assertions: Strict segregation - No teacher or admin links/chrome
-        Assert.DoesNotContain("studio-sidebar", html);
         Assert.DoesNotContain("teacher-sidebar", html);
         Assert.DoesNotContain("Không gian giảng dạy", html);
         Assert.DoesNotContain("/TeacherCourses", html);
@@ -94,6 +93,11 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
     }
 
     [Theory]
+    [InlineData("/Admin")]
+    [InlineData("/Admin/Audit")]
+    [InlineData("/Admin/CreateTeacher")]
+    [InlineData("/Admin/Courses")]
+    [InlineData("/Admin/Enrollments")]
     [InlineData("/Admin/Transactions")]
     [InlineData("/Admin/Users")]
     public async Task AdminEndpoints_RenderAdminConsoleLayout_WithNoStudentOrTeacherChrome(string endpoint)
@@ -112,12 +116,15 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.Contains("admin-body", html);
         Assert.Contains("admin-shell", html);
         Assert.Contains("admin-sidebar", html);
-        Assert.Contains("Không gian quản trị", html);
+        Assert.Contains("aria-label=\"Điều hướng quản trị\"", html);
+        Assert.Contains("aria-label=\"Thực đơn quản trị\"", html);
+        Assert.Contains("aria-controls=\"admin-sidebar\"", html);
         Assert.Contains("admin-topbar", html);
         Assert.DoesNotContain("Hệ thống: Trực tuyến", html);
         Assert.DoesNotContain("Production Console", html);
         Assert.Contains("/Admin/Transactions", html);
         Assert.Contains("/Admin/Users", html);
+        Assert.Contains("/Admin/Audit", html);
         Assert.Contains("Giao dịch", html);
         Assert.Contains("Người dùng", html);
         Assert.Contains(admin.FullName, html);

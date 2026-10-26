@@ -260,12 +260,9 @@ public sealed class TeacherPracticeQuestionService
                     LearningAccessResult.Forbidden);
             }
 
-            // UPDLOCK giúp các thao tác sửa cùng Practice chờ nhau.
-            // HOLDLOCK giữ khóa đến khi transaction kết thúc.
-            // FromSqlInterpolated truyền các ID thành SQL parameter.
-            var practice = await _db.Practices
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Practices WITH (UPDLOCK, HOLDLOCK) WHERE Id = {practiceId} AND OwnerTeacherUserId = {actorUserId}")
+            // Serialize updates to this Practice until the transaction completes.
+            // The persistence query passes both IDs as SQL parameters.
+            var practice = await _db.PracticesForUpdate(practiceId, actorUserId)
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (practice == null)
@@ -505,9 +502,7 @@ public sealed class TeacherPracticeQuestionService
 
             // Giữ thứ tự khóa Course -> Practice,
             // giống luồng làm bài của Student đang có.
-            var course = await _db.Courses
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId.Value}")
+            var course = await _db.CoursesForUpdate(courseId.Value)
                 .AsNoTracking()
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -523,9 +518,7 @@ public sealed class TeacherPracticeQuestionService
                     "Không được Publish Practice trong Course đã Archived.");
             }
 
-            var practice = await _db.Practices
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Practices WITH (UPDLOCK, HOLDLOCK) WHERE Id = {practiceId} AND OwnerTeacherUserId = {actorUserId}")
+            var practice = await _db.PracticesForUpdate(practiceId, actorUserId)
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (practice == null)
@@ -659,7 +652,7 @@ public sealed class TeacherPracticeQuestionService
                 var stimulus = item.Question.Stimulus;
 
                 if (practice.Status == PracticeStatus.Draft && stimulus?.StimulusType == StimulusType.Audio
-                    && !StimulusAudioResource.TryGetHash(stimulus.ResourceUrl, out _))
+                    && !StimulusAudioUrl.TryGetHash(stimulus.ResourceUrl, out _))
                     return Invalid(practiceId, $"Câu {index + 1}: hãy upload audio bất biến trước khi Publish; URL ngoài có thể bị thay nội dung.");
 
                 if (stimulus != null
@@ -766,15 +759,11 @@ public sealed class TeacherPracticeQuestionService
 
             // Cho phép Unpublish kể cả Course đã Archived.
             // Đây là thao tác rút bài, không phải mở bài mới cho Student.
-            await _db.Courses
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId.Value}")
+            await _db.CoursesForUpdate(courseId.Value)
                 .AsNoTracking()
                 .SingleAsync(cancellationToken);
 
-            var practice = await _db.Practices
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Practices WITH (UPDLOCK, HOLDLOCK) WHERE Id = {practiceId} AND OwnerTeacherUserId = {actorUserId}")
+            var practice = await _db.PracticesForUpdate(practiceId, actorUserId)
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (practice == null)
@@ -872,32 +861,10 @@ public sealed class TeacherPracticeQuestionService
     /// Giữ cùng quy tắc quyền với service tạo Practice hiện có:
     /// tài khoản Active, có đúng một role và role đó là Teacher.
     /// </summary>
-    private async Task<bool> IsActiveTeacherAsync(
+    private Task<bool> IsActiveTeacherAsync(
         Guid userId,
-        CancellationToken cancellationToken)
-    {
-        if (userId == Guid.Empty)
-        {
-            return false;
-        }
-
-        return await _db.Users
-            .AsNoTracking()
-            .AnyAsync(
-                user =>
-                    user.Id == userId
-                    && user.AccountStatus == AccountStatus.Active
-                    && _db.UserRoles.Count(
-                        userRole => userRole.UserId == userId) == 1
-                    && _db.UserRoles.Any(
-                        userRole =>
-                            userRole.UserId == userId
-                            && _db.Roles.Any(
-                                role =>
-                                    role.Id == userRole.RoleId
-                                    && role.Name == AppRoles.Teacher)),
-                cancellationToken);
-    }
+        CancellationToken cancellationToken) =>
+        _db.HasActiveRoleAsync(userId, AppRoles.Teacher, cancellationToken);
 
     /// <summary>
     /// Trả lỗi gắn với danh sách câu hỏi.

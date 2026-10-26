@@ -1,10 +1,16 @@
 @{
     var activeSection = ViewData["ActiveSection"] as string;
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var isAdminPage = string.Equals(currentController, "Admin", StringComparison.OrdinalIgnoreCase);
+    var isCatalog = string.Equals(currentController, "Courses", StringComparison.OrdinalIgnoreCase);
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
-    var isTransactions = string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
-    var isUsers = string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase);
-    var isOverview = string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
-    var isAudit = string.Equals(currentAction, "Audit", StringComparison.OrdinalIgnoreCase);
+    var isTransactions = isAdminPage && string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
+    var isUsers = isAdminPage && (string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(currentAction, "CreateTeacher", StringComparison.OrdinalIgnoreCase));
+    var isOverview = isAdminPage && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
+    var isAudit = isAdminPage && string.Equals(currentAction, "Audit", StringComparison.OrdinalIgnoreCase);
+    var isAdminCourses = isAdminPage && string.Equals(currentAction, "Courses", StringComparison.OrdinalIgnoreCase);
+    var isEnrollments = isAdminPage && string.Equals(currentAction, "Enrollments", StringComparison.OrdinalIgnoreCase);
     var title = ViewData["Title"] as string ?? "Quản trị";
 }
 <!DOCTYPE html>
@@ -26,14 +32,12 @@
     <div class="admin-shell">
         <aside class="admin-sidebar" id="admin-sidebar" aria-label="Điều hướng quản trị">
             <div class="admin-sidebar-header">
-                <a class="admin-brand" asp-controller="Admin" asp-action="Transactions" aria-label="Estudy - Quản trị">
+                <a class="admin-brand" asp-controller="Admin" asp-action="Index" aria-label="Estudy - Quản trị">
                     <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
                     <span class="admin-brand-text">Estudy</span>
                 </a>
                 <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng thanh điều hướng quản trị"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
             </div>
-
-            <p class="workspace-caption">Không gian quản trị</p>
 
             <nav class="admin-nav" aria-label="Thực đơn quản trị">
                 <div class="admin-nav-section">
@@ -58,6 +62,12 @@
                         <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
                         <span>Người dùng</span>
                     </a>
+                    <a class="admin-nav-link @(isAdminCourses ? "is-active" : "")" asp-controller="Admin" asp-action="Courses" aria-current="@(isAdminCourses ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg><span>Khóa học</span>
+                    </a>
+                    <a class="admin-nav-link @(isEnrollments ? "is-active" : "")" asp-controller="Admin" asp-action="Enrollments" aria-current="@(isEnrollments ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><span>Lượt đăng ký</span>
+                    </a>
                     <a class="admin-nav-link @(isAudit ? "is-active" : "")"
                        asp-controller="Admin" asp-action="Audit"
                        aria-current="@(isAudit ? "page" : null)">
@@ -68,12 +78,10 @@
 
                 <div class="admin-nav-section">
                     <span class="admin-nav-heading">Liên kết nhanh</span>
-                    <a class="admin-nav-link"
+                    <a class="admin-nav-link @(isCatalog ? "is-active" : "")"
                        asp-controller="Courses"
                        asp-action="Index"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       aria-label="Xem danh mục khóa học (mở trong tab mới)">
+                       aria-current="@(isCatalog ? "page" : null)">
                         <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
                         <span>Xem danh mục khóa học</span>
                     </a>
@@ -91,7 +99,7 @@
                 </button>
                 <nav class="admin-breadcrumbs" aria-label="Thanh điều hướng phân cấp">
                     <ol class="breadcrumb-list">
-                        <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Transactions">Quản trị</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Index">Quản trị</a></li>
                         <li class="breadcrumb-separator" aria-hidden="true">/</li>
                         <li class="breadcrumb-item is-active" aria-current="page">@title</li>
                     </ol>

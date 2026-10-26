@@ -36,7 +36,9 @@ Các lệnh dưới đây dùng connection string đã cấu hình cho dự án.
 $env:Database__ApplyMigrationsOnStartup = 'false'
 $env:LearningDemo__Enabled = 'false'
 
-  hLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
+dotnet ef migrations script 20261015181741_AddQuestionAndStimulusContentLocks 20261023165551_RemoveQuestionDifficulty --project src/EnglishLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
+
+dotnet ef database update 20261023165551_RemoveQuestionDifficulty --project src/EnglishLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
 ```
 
 Không cần xóa database, tạo lại câu hỏi hoặc sửa migration ban đầu. Trên database đã ở migration ngay trước, SQL chỉ thay đổi cột độ khó và bảng lịch sử migration. Nếu database còn thiếu migration cũ, lệnh cập nhật sẽ chạy cả các migration đang thiếu; cần xem và đánh giá chúng riêng trước khi áp dụng.

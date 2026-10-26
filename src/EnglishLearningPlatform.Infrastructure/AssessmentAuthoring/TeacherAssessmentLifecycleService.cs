@@ -49,14 +49,12 @@ public sealed class TeacherAssessmentLifecycleService : ITeacherAssessmentLifecy
             var courses = new Dictionary<Guid, Course>();
             foreach (Guid courseId in courseIds.Distinct().OrderBy(id => id))
             {
-                var course = await _db.Courses.FromSqlInterpolated(
-                    $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}")
+                var course = await _db.CoursesForUpdate(courseId)
                     .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
                 if (course != null) courses.Add(courseId, course);
             }
 
-            var assessment = await _db.Assessments.FromSqlInterpolated(
-                $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {assessmentId} AND OwnerTeacherUserId = {actorUserId}")
+            var assessment = await _db.AssessmentsForUpdate(assessmentId, actorUserId)
                 .SingleOrDefaultAsync(cancellationToken);
             if (assessment == null) return WriteOutcome.Denied(LearningAccessResult.NotFound);
             await _db.Entry(assessment).ReloadAsync(cancellationToken);
@@ -106,9 +104,8 @@ public sealed class TeacherAssessmentLifecycleService : ITeacherAssessmentLifecy
     }
 
     // Kiểm tra lại quyền trong transaction; không chỉ tin role của cookie cũ.
-    private Task<bool> IsTeacherAsync(Guid id, CancellationToken ct) => _db.Users.AsNoTracking().AnyAsync(u =>
-        u.Id == id && u.AccountStatus == AccountStatus.Active && _db.UserRoles.Count(ur => ur.UserId == id) == 1
-        && _db.UserRoles.Any(ur => ur.UserId == id && _db.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Teacher)), ct);
+    private Task<bool> IsTeacherAsync(Guid id, CancellationToken ct) =>
+        _db.HasActiveRoleAsync(id, AppRoles.Teacher, ct);
 
     private static WriteOutcome Failure(Guid id, params string[] messages) => new(
         LearningAccessResult.Allowed, id, new Dictionary<string, string[]> { [string.Empty] = messages });

@@ -119,14 +119,6 @@ public sealed class StimulusCreationService : IStimulusCreationService
     /// Đọc quyền hiện tại trong database, không chỉ tin role trong cookie đăng nhập.
     /// Giữ quy tắc một tài khoản có đúng một role đang áp dụng trong dự án.
     /// </summary>
-    private Task<bool> IsActiveTeacherAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        return _db.Users.AsNoTracking().AnyAsync(
-            user => user.Id == userId
-                && user.AccountStatus == AccountStatus.Active
-                && _db.UserRoles.Count(userRole => userRole.UserId == userId) == 1
-                && _db.UserRoles.Any(userRole => userRole.UserId == userId
-                    && _db.Roles.Any(role => role.Id == userRole.RoleId && role.Name == AppRoles.Teacher)),
-            cancellationToken);
-    }
+    private Task<bool> IsActiveTeacherAsync(Guid userId, CancellationToken cancellationToken) =>
+        _db.HasActiveRoleAsync(userId, AppRoles.Teacher, cancellationToken);
 }

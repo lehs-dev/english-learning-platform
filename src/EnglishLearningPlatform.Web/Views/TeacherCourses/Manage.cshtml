@@ -17,7 +17,7 @@
 }
 
 <nav class="course-manage-breadcrumb" aria-label="Đường dẫn điều hướng">
-    <a asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học của tôi</a>
+    <a asp-controller="TeacherCourses" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Khóa học của tôi</a>
     <span aria-hidden="true">/</span><span aria-current="page">Quản lý nội dung</span>
 </nav>
 
@@ -33,14 +33,14 @@
             </div>
         </div>
         <div class="course-manage-overview-actions">
-            <a class="button secondary" asp-action="Edit" asp-route-id="@courseId"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>Sửa thông tin / giá</a>
+            <a class="button secondary" asp-controller="TeacherCourses" asp-action="Edit" asp-route-id="@courseId"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>Sửa thông tin / giá</a>
             <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem trước</a>
         </div>
     </div>
     <div class="course-manage-overview-footer">
         <nav class="course-manage-tabs" aria-label="Quản lý khóa học">
-            <a class="is-active" asp-action="Manage" asp-route-id="@courseId" aria-current="page"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>Nội dung khóa học</a>
-            <a asp-action="Students" asp-route-id="@courseId"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#users")"></use></svg>Học viên, tiến độ và thống kê</a>
+            <a class="is-active" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@courseId" aria-current="page"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>Nội dung khóa học</a>
+            <a asp-controller="TeacherCourses" asp-action="Students" asp-route-id="@courseId"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#users")"></use></svg>Học viên, tiến độ và thống kê</a>
         </nav>
         <p>@course.ModuleCount chương <span aria-hidden="true">·</span> @course.LessonCount bài học</p>
     </div>
@@ -53,11 +53,11 @@
 
 <div class="course-manage-grid">
     <div class="course-manage-content">
-        <partial name="_ManageStructure" model="Model" />
+        <partial name="~/Views/TeacherCourses/_ManageStructure.cshtml" model="Model" />
         <div class="course-manage-guidance"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#info")"></use></svg><div><h2>Xây dựng nội dung theo từng bước</h2><p>Thêm chương học, bài học và tài nguyên. Dùng nút Lên / Xuống để sắp xếp trước khi xuất bản.</p></div></div>
     </div>
     <aside class="course-manage-aside" aria-label="Xuất bản và đánh giá cuối khóa">
-        <partial name="_ManagePublishing" model="coursePage" />
+        <partial name="~/Views/TeacherCourses/_ManagePublishing.cshtml" model="coursePage" />
         <section class="course-manage-card course-manage-final" aria-labelledby="course-final-heading">
             <div class="course-manage-card-heading"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg><h2 id="course-final-heading">Bài kiểm tra cuối khóa</h2><span class="course-manage-badge">Tùy chọn</span></div>
             <p class="course-final-state"><span class="course-final-dot @(coursePage.FinalAssessmentId.HasValue ? "is-configured" : "")" aria-hidden="true"></span>@(coursePage.FinalAssessmentId.HasValue ? "Đã chọn bài kiểm tra cuối khóa" : "Chưa thiết lập bài kiểm tra")</p>

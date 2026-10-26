@@ -1,11 +1,13 @@
+using EnglishLearningPlatform.Domain.Authorization;
 using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Domain.Enums;
 
 namespace EnglishLearningPlatform.Domain.Entities;
 
-public sealed class Question : BaseEntity
+public sealed class Question : BaseEntity, IOwnedResource
 {
     public Guid OwnerTeacherUserId { get; set; }
+    Guid IOwnedResource.OwnerUserId => OwnerTeacherUserId;
     public Guid? StimulusId { get; set; }
     public Stimulus? Stimulus { get; set; }
     public string Content { get; set; } = string.Empty;

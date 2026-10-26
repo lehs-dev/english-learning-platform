@@ -102,8 +102,7 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
                 return Failure(courseId, "Bài kiểm tra không thuộc khóa học và giảng viên hiện tại.");
 
             await using var tx = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
-            var course = await _db.Courses.FromSqlInterpolated(
-                $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId} AND OwnerTeacherUserId = {actorUserId}")
+            var course = await _db.CoursesForUpdate(courseId, actorUserId)
                 .SingleOrDefaultAsync(cancellationToken);
             if (course == null) return WriteOutcome.Denied(LearningAccessResult.NotFound);
             await _db.Entry(course).ReloadAsync(cancellationToken);
@@ -123,8 +122,7 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
             var locked = new Dictionary<Guid, Assessment>();
             foreach (Guid id in ids.OrderBy(id => id))
             {
-                var assessment = await _db.Assessments.FromSqlInterpolated(
-                    $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {id}")
+                var assessment = await _db.AssessmentsForUpdate(id)
                     .SingleOrDefaultAsync(cancellationToken);
                 if (assessment == null) return Failure(courseId, "Không tìm thấy bài kiểm tra hợp lệ.");
                 await _db.Entry(assessment).ReloadAsync(cancellationToken);
@@ -200,10 +198,8 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
     }
 
     // Role trong cookie không thay thế quyền hiện tại trong database.
-    private Task<bool> IsTeacherAsync(Guid id, CancellationToken ct) => _db.Users.AsNoTracking().AnyAsync(u =>
-        u.Id == id && u.AccountStatus == AccountStatus.Active
-        && _db.UserRoles.Count(ur => ur.UserId == id) == 1
-        && _db.UserRoles.Any(ur => ur.UserId == id && _db.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Teacher)), ct);
+    private Task<bool> IsTeacherAsync(Guid id, CancellationToken ct) =>
+        _db.HasActiveRoleAsync(id, AppRoles.Teacher, ct);
 
     private static WriteOutcome Failure(Guid id, params string[] messages) => new(
         LearningAccessResult.Allowed, id, new Dictionary<string, string[]> { [string.Empty] = messages });

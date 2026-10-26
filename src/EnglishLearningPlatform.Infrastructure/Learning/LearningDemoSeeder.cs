@@ -1,5 +1,6 @@
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -17,7 +18,8 @@ public static class LearningDemoSeeder
     private const string LegacyPaidDescription = "Khóa trả phí mẫu; chưa tích hợp thanh toán.";
     private const string PaidDescription = "Khóa trả phí mẫu; thanh toán qua Sandbox để mở quyền học.";
 
-    public static async Task SeedAsync(AppDbContext db, UserManager<ApplicationUser> users, string password)
+    public static async Task SeedAsync(AppDbContext db, UserManager<ApplicationUser> users, string password,
+        IStimulusAudioStore? audioStore = null)
     {
         if (string.IsNullOrWhiteSpace(password))
             throw new InvalidOperationException("Set LearningDemo:Password using local user-secrets/environment before enabling the demo seed.");
@@ -68,6 +70,9 @@ public static class LearningDemoSeeder
             await db.SaveChangesAsync();
         }
         await transaction.CommitAsync();
+
+        if (audioStore is not null)
+            await LearningDemoContentSeeder.SeedAsync(db, teacher.Id, student.Id, audioStore);
 
         async Task<ApplicationUser> User(string name, string role)
         {

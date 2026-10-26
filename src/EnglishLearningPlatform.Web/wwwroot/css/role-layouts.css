@@ -1,5 +1,12 @@
 /* Bốn không gian cùng token; cấu trúc drawer giữ nguyên data/aria của site.js. */
 body.sidebar-open { overflow: hidden; }
+/* Compact Admin shell; Teacher and Student keep their existing dimensions. */
+body.admin-body { --sidebar-width: 220px; }
+.admin-body .admin-sidebar { padding: 18px 12px; gap: 14px; }
+.admin-body .admin-sidebar .admin-nav { gap: 20px; }
+.admin-body .admin-nav-heading { margin-top: 4px; font-size: 11px; letter-spacing: .2px; }
+.admin-body .admin-sidebar .admin-nav-link { gap: 10px; padding: 10px 12px; }
+.admin-body .admin-content { padding-block: 24px; }
 .studio-shell, .admin-shell { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); min-height: 100dvh; }
 .studio-sidebar, .admin-sidebar { position: sticky; top: 0; display: flex; flex-direction: column; gap: var(--space-4); width: var(--sidebar-width); height: 100dvh; padding: 24px 16px; border-right: 1px solid var(--v2-border-light); background: #FFFFFF; color: var(--v2-dark); }
 .studio-sidebar-header, .admin-sidebar-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 44px; padding-inline: 8px; }
@@ -273,225 +280,17 @@ body.sidebar-open { overflow: hidden; }
 @media(max-width:760px) { .studio-main .studio-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:600px) { .student-content .stat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.student-content .stat-grid span { font-size:var(--text-small); line-height:1.5; }.student-content .continue-learning-hero { padding:var(--space-6); }.student-content .continue-learning-hero .actions,.student-content .continue-learning-hero .button { width:100%; } }
 
-/* ==========================================================================
-   ESTUDY V2 — STUDENT WORKSPACE (CALM PASTEL & ICON RAIL)
-   ========================================================================== */
-
-.student-workspace-v2 {
-    background-color: var(--v2-canvas-bg);
-}
-
-.dashboard-canvas-frame {
-    background: var(--v2-surface);
-    border-radius: var(--v2-radius-canvas);
-    max-width: 1400px;
-    width: 100%;
-    box-shadow: var(--v2-shadow-canvas);
-    display: grid;
-    grid-template-columns: 82px 1fr;
-    min-height: 900px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    margin: 0 auto;
-    position: relative;
-}
-
-.dashboard-icon-rail {
-    background: var(--v2-surface);
-    border-right: 1px solid var(--v2-border-light);
-    border-top-left-radius: var(--v2-radius-canvas);
-    border-bottom-left-radius: var(--v2-radius-canvas);
-    padding: 24px 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    position: sticky;
-    top: 24px;
-    height: calc(100vh - 48px);
-    max-height: calc(100vh - 48px);
-    align-self: start;
-    z-index: 100;
-    box-sizing: border-box;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-.dashboard-icon-rail::-webkit-scrollbar {
-    display: none;
-}
-
-.rail-logo-glyph {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--v2-dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 12px rgba(25, 26, 35, 0.2);
-    text-decoration: none;
-    flex-shrink: 0;
-}
-.rail-logo-glyph:hover {
-    transform: scale(1.06);
-    text-decoration: none;
-}
-
-.rail-nav-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    margin: auto 0;
-    list-style: none;
-    padding: 0;
-}
-
-.rail-btn {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--v2-text-muted);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    text-decoration: none;
-    position: relative;
-}
-.rail-btn:hover {
-    background: #F6F7FA;
-    color: var(--v2-dark);
-    text-decoration: none;
-}
-.rail-btn.active, .rail-btn.is-active {
-    background: var(--v2-dark);
-    color: #FFFFFF;
-    box-shadow: 0 6px 18px rgba(25, 26, 35, 0.22);
-}
-.rail-btn .icon {
-    width: 20px;
-    height: 20px;
-}
-
-.rail-footer-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.dashboard-main-area {
-    padding: 28px 36px 36px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    background: var(--v2-surface);
-    border-top-right-radius: var(--v2-radius-canvas);
-    border-bottom-right-radius: var(--v2-radius-canvas);
-    min-width: 0;
-}
-
-.dashboard-topbar-clean {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--v2-border-light);
-}
-
-.dashboard-search-clean {
-    position: relative;
-    flex: 1;
-    max-width: 600px;
-}
-
-.dashboard-search-clean input {
-    width: 100%;
-    background: #F6F7FA;
-    border: 1px solid transparent;
-    border-radius: var(--v2-radius-pill);
-    padding: 12px 20px 12px 46px;
-    font-size: 13.5px;
-    color: var(--v2-dark);
-    outline: none;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.dashboard-search-clean input:focus {
-    background: #FFFFFF;
-    border-color: var(--v2-pastel-periwinkle);
-    box-shadow: 0 0 0 3px rgba(221, 217, 252, 0.6);
-}
-
-.dashboard-search-clean .search-icon {
-    position: absolute;
-    left: 17px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--v2-text-muted);
-    pointer-events: none;
-    width: 18px;
-    height: 18px;
-}
-
-.dashboard-topbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* Responsive styles for Student Canvas */
-@media (max-width: 992px) {
-    .dashboard-canvas-frame {
-        grid-template-columns: 1fr;
-        border-radius: 0;
-    }
-    .dashboard-icon-rail {
-        flex-direction: row;
-        flex-wrap: wrap;
-        /* Mobile không được giữ rail sticky cao gần 100vh của desktop: sẽ che nội dung. */
-        position: static;
-        height: auto;
-        max-height: none;
-        width: 100%;
-        padding: 12px 18px;
-        border-right: none;
-        border-bottom: 1px solid var(--v2-border-light);
-    }
-    .rail-nav-group {
-        flex-direction: row;
-        margin: 0 auto;
-        gap: 8px;
-    }
-    .rail-footer-group {
-        flex-direction: row;
-        gap: 8px;
-    }
-    .dashboard-main-area {
-        padding: 20px 16px;
-    }
-    .dashboard-topbar-clean {
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-    .dashboard-search-clean {
-        max-width: 100%;
-        order: 2;
-        width: 100%;
-    }
-    .dashboard-topbar-actions {
-        margin-left: auto;
-    }
+/* Student uses the same full-viewport shell and mobile drawer as Teacher. */
+body.student-workspace-v2 { display: block; background: #FAF9FE; font-family: var(--v2-font-body); }
+.student-sidebar .student-logout { width: 100%; font: inherit; text-align: left; }
+.student-topbar { gap: var(--space-4); }
+.student-course-search { position: relative; flex: 1; max-width: 520px; min-width: 0; }
+.student-course-search input { width: 100%; min-height: 44px; padding: 10px 48px 10px 16px; background: var(--surface-subtle); border-radius: var(--radius-control); }
+.student-course-search .icon-button { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); }
+.student-discover-link { font-size: var(--text-small); font-weight: 600; white-space: nowrap; }
+@media (max-width: 600px) {
+    .student-topbar { flex-wrap: wrap; }
+    .student-topbar .studio-topbar-actions { margin-left: auto; }
+    .student-course-search { order: 3; flex-basis: 100%; max-width: none; }
+    .student-discover-link { font-size: 12px; }
 }

@@ -25,6 +25,15 @@ public sealed class LearningAccessTests(IntegrationTestFactory factory) : IClass
         using var response = await client.GetAsync($"/Learning/ManageCourse/{course.Id}");
         Assert.Equal(canManage ? HttpStatusCode.OK : HttpStatusCode.Redirect, response.StatusCode);
         if (!canManage) Assert.Contains("/Account/AccessDenied", response.Headers.Location!.ToString());
+        if (canManage)
+        {
+            var html = await response.Content.ReadAsStringAsync();
+            Assert.Contains("/TeacherCourses/Content", html);
+            Assert.Contains($"/TeacherCourses/Edit/{course.Id}", html);
+            Assert.Contains($"/TeacherCourses/Publish/{course.Id}", html);
+            Assert.DoesNotContain("/Learning/Content", html);
+            Assert.DoesNotContain("/Learning/Publish", html);
+        }
     }
 
     [Fact]

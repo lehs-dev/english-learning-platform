@@ -18,4 +18,3 @@ public sealed class UpdateAdminUserInput
     [Required] public string Role { get; set; } = "";
     public AccountStatus Status { get; set; }
 }
-public sealed record AdminDashboard(int Users, int Locked, int Disabled, int Transactions);

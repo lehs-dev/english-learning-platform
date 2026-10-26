@@ -9,20 +9,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.Administration;
 
-public sealed class AdminManagementService(AppDbContext db, UserManager<ApplicationUser> users) : IAdminManagementService
+public sealed class AdminManagementService(AppDbContext db, UserManager<ApplicationUser> users, IAdminQueryService queries) : IAdminManagementService
 {
-    private Task<bool> IsAdmin(Guid id, CancellationToken ct) => db.Users.AnyAsync(u => u.Id == id &&
-        u.AccountStatus == AccountStatus.Active && db.UserRoles.Count(r => r.UserId == id) == 1 &&
-        db.UserRoles.Any(ur => ur.UserId == id && db.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Admin)), ct);
+    // Preserve direct construction used by existing consumers; DI supplies the query abstraction.
+    public AdminManagementService(AppDbContext db, UserManager<ApplicationUser> users)
+        : this(db, users, new AdminQueryService(db))
+    {
+    }
+
+    private Task<bool> IsAdmin(Guid id, CancellationToken ct) =>
+        db.HasActiveRoleAsync(id, AppRoles.Admin, ct);
 
     // All administrative writes serialize on the same SQL transaction lock, including concurrent
     // demotions, so the last-active-admin check cannot race with another administrative write.
-    private Task LockAsync(CancellationToken ct) => db.Database.ExecuteSqlRawAsync("""
-        DECLARE @result int;
-        EXEC @result = sp_getapplock @Resource=N'ELP.AdminManagement', @LockMode='Exclusive',
-            @LockOwner='Transaction', @LockTimeout=10000;
-        IF @result < 0 THROW 51000, 'Cannot acquire administration lock.', 1;
-        """, ct);
+    private Task LockAsync(CancellationToken ct) => db.AcquireAdminManagementLockAsync(ct);
 
     private void Audit(ApplicationUser actor, ApplicationUser target, string action, string? before, string after) =>
         db.AuditLogs.Add(new AuditLog { ActorUserId = actor.Id, TargetUserId = target.Id,
@@ -62,9 +62,8 @@ public sealed class AdminManagementService(AppDbContext db, UserManager<Applicat
             (status != AccountStatus.Active || target.LockoutEnd is null && target.AccessFailedCount == 0)) return new(true);
         if (roles[0] == AppRoles.Admin && target.AccountStatus == AccountStatus.Active && (role != AppRoles.Admin || status != AccountStatus.Active))
         {
-            var remaining = await db.Users.CountAsync(u => u.Id != targetId && u.AccountStatus == AccountStatus.Active &&
-                db.UserRoles.Count(r => r.UserId == u.Id) == 1 && db.UserRoles.Any(ur => ur.UserId == u.Id &&
-                    db.Roles.Any(r => r.Id == ur.RoleId && r.Name == AppRoles.Admin)), ct);
+            var remaining = await db.ActiveRoleAssignments().CountAsync(
+                user => user.UserId != targetId && user.Role == AppRoles.Admin, ct);
             if (remaining == 0) return new(false, "Không thể khóa, vô hiệu hóa hoặc đổi vai trò Admin hoạt động cuối cùng.");
         }
         var before = JsonSerializer.Serialize(new { Role = roles[0], Status = target.AccountStatus.ToString(), target.LockoutEnd, target.AccessFailedCount });
@@ -85,18 +84,7 @@ public sealed class AdminManagementService(AppDbContext db, UserManager<Applicat
         return new(true);
     }
 
-    public async Task<AdminPage<AdminAudit>?> AuditAsync(Guid actorId, string? search, int page, CancellationToken ct = default)
-    {
-        if (!await IsAdmin(actorId, ct)) return null;
-        var term = (search ?? "").Trim(); if (term.Length > 120) term = term[..120];
-        var query = db.AuditLogs.AsNoTracking();
-        if (term.Length > 0) query = query.Where(a => a.ActorSnapshot.Contains(term) ||
-            (a.TargetSnapshot != null && a.TargetSnapshot.Contains(term)) || a.Action.Contains(term));
-        var total = await query.CountAsync(ct);
-        var pages = Math.Max(1, (total + 19) / 20); page = Math.Clamp(page, 1, pages);
-        var items = await query.OrderByDescending(a => a.OccurredAtUtc).ThenByDescending(a => a.Id)
-            .Skip((page - 1) * 20).Take(20).Select(a => new AdminAudit(a.ActorSnapshot, a.TargetSnapshot,
-                a.Action, a.BeforeData, a.AfterData, a.OccurredAtUtc)).ToListAsync(ct);
-        return new(items, term, page, pages, total);
-    }
+    // Kept for callers of the original management contract; reads belong to the query service.
+    public Task<AdminPage<AdminAudit>?> AuditAsync(Guid actorId, string? search, int page, CancellationToken ct = default) =>
+        queries.AuditAsync(actorId, search, page, ct);
 }

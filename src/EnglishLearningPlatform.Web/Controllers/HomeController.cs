@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishLearningPlatform.Web.Controllers;
 
-public sealed class HomeController(ICourseService courses) : Controller
+public sealed class HomeController(ICourseCatalogService courses) : Controller
 {
     public async Task<IActionResult> Index(string? section = null, CancellationToken ct = default)
     {

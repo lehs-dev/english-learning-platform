@@ -1,8 +1,10 @@
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.Practice;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -107,6 +109,13 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
             Assert.DoesNotContain($"data-representative-attempt=\"{incomplete.Id}\"", html);
             Assert.Matches(@"Đọc hiểu\s*: 33[,.]33%", html);
             Assert.DoesNotMatch(@"Đọc hiểu\s*: 100%", html);
+        }
+        foreach (string path in new[] { "/Learning/Dashboard", "/Practice" })
+        {
+            string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
+            Assert.Contains($"href=\"/Learning/Course/{data.Course.Id}\"", html);
+            Assert.Contains($"href=\"/Practice/Take/{data.Practice.Id}\"", html);
+            Assert.Contains("Căn cứ từ bài:", html);
         }
     }
 
@@ -385,6 +394,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         await db.Users.Where(u => u.Id == data.Student.Id).ExecuteUpdateAsync(u => u.SetProperty(u => u.AccountStatus, status));
         var learning = scope.ServiceProvider.GetRequiredService<IStudentLearningService>();
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.DashboardAsync(data.Student.Id)).Access);
+        Assert.Equal(LearningAccessResult.Forbidden, (await learning.PracticeHubAsync(data.Student.Id)).Access);
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.AssessmentsAsync(data.Student.Id)).Access);
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.GetRepresentativeResultsAsync(data.Student.Id)).Access);
         var practice = scope.ServiceProvider.GetRequiredService<IPracticeService>();
@@ -413,6 +423,285 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Null(Assert.Single(dashboard.Courses).Progress!.Percentage);
         Assert.Equal(1, dashboard.CompletedCourses);
         Assert.Equal(data.Second.Id, await db.Enrollments.Where(e => e.Id == data.Enrollment.Id).Select(e => e.LastAccessedLessonId).SingleAsync());
+    }
+
+    [Fact]
+    public async Task DashboardAndPracticeHub_UseRealPracticeResultsAndWeeklyCalendarActivities()
+    {
+        var data = await SeedAsync();
+        var now = DateTimeOffset.UtcNow;
+        var gradedAttempt = Graded(data, 80, 2, finalized: now);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.LessonProgressEntries.Add(new LessonProgress
+            {
+                EnrollmentId = data.Enrollment.Id, LessonId = data.First.Id, IsCompleted = true, UpdatedAtUtc = now
+            });
+            db.Attempts.Add(gradedAttempt);
+            await db.SaveChangesAsync();
+            Assert.Equal(PracticeSubmitStatus.Saved, (await scope.ServiceProvider
+                .GetRequiredService<IPracticeService>().SubmitAsync(data.Student.Id, data.Practice.Id, Responses(data))).Status);
+        }
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var learning = scope.ServiceProvider.GetRequiredService<IStudentLearningService>();
+            var dashboard = (await learning.DashboardAsync(data.Student.Id)).Value!;
+            var practiceResult = Assert.Single(dashboard.PracticeResults);
+            Assert.Equal(data.Practice.Id, practiceResult.PracticeId);
+            Assert.Equal(data.Practice.Title, practiceResult.Title);
+            Assert.Equal(DayOfWeek.Monday, dashboard.WeekStartDate.DayOfWeek);
+            Assert.Contains(dashboard.WeeklyActivities, activity =>
+                activity.Kind == DashboardActivityKind.LessonCompleted && activity.TargetId == data.First.Id);
+            Assert.Contains(dashboard.WeeklyActivities, activity =>
+                activity.Kind == DashboardActivityKind.PracticeSubmitted && activity.TargetId == data.Practice.Id);
+            Assert.Contains(dashboard.WeeklyActivities, activity =>
+                activity.Kind == DashboardActivityKind.AssessmentFinalized && activity.TargetId == gradedAttempt.Id);
+            Assert.All(dashboard.WeeklyActivities, activity =>
+            {
+                var localDate = DateOnly.FromDateTime(activity.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).DateTime);
+                Assert.InRange(localDate, dashboard.WeekStartDate, dashboard.WeekStartDate.AddDays(6));
+            });
+
+            var hub = (await learning.PracticeHubAsync(data.Student.Id)).Value!;
+            var practiceLink = Assert.Single(hub.Practices);
+            Assert.Equal(data.Practice.Title, practiceLink.Title);
+            Assert.Equal(data.Course.Title, practiceLink.CourseTitle);
+            Assert.Single(hub.Results);
+        }
+
+        using var client = await ClientAsync(data.Student);
+        string dashboardHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        Assert.Equal(7, System.Text.RegularExpressions.Regex.Matches(dashboardHtml, "data-calendar-day=").Count);
+        Assert.Equal(7, System.Text.RegularExpressions.Regex.Matches(dashboardHtml, "data-calendar-panel=").Count);
+        Assert.Contains("Luyện tập gần đây", dashboardHtml);
+        Assert.Contains(data.Practice.Title, dashboardHtml);
+        Assert.Contains("Xem tất cả (1)", dashboardHtml);
+        Assert.Contains($"href=\"/Practice/Result/{data.Practice.Id}\"", dashboardHtml);
+        // Dashboard không còn thẻ bài viết mẫu không có dữ liệu thật.
+        Assert.DoesNotContain("Mastering Vocabulary", dashboardHtml);
+        Assert.DoesNotContain("Embarking on English", dashboardHtml);
+
+        using var hubResponse = await client.GetAsync("/Practice");
+        Assert.Equal(HttpStatusCode.OK, hubResponse.StatusCode);
+        string hubHtml = WebUtility.HtmlDecode(await hubResponse.Content.ReadAsStringAsync());
+        Assert.Contains("Kết quả luyện tập gần đây", hubHtml);
+        Assert.Contains(data.Practice.Title, hubHtml);
+        Assert.Contains(data.Course.Title, hubHtml);
+        Assert.Contains($"href=\"/Practice/Take/{data.Practice.Id}\"", hubHtml);
+        Assert.Contains($"href=\"/Practice/Result/{data.Practice.Id}\"", hubHtml);
+    }
+
+    [Fact]
+    public async Task CompletedLessons_ShowFinalAssessmentCta_AndContinueGoesToCourse()
+    {
+        var data = await SeedAsync();
+        var now = DateTimeOffset.UtcNow;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Courses.Where(c => c.Id == data.Course.Id)
+                .ExecuteUpdateAsync(u => u.SetProperty(c => c.FinalAssessmentId, data.Assessment.Id));
+            db.LessonProgressEntries.AddRange(
+                new LessonProgress { EnrollmentId = data.Enrollment.Id, LessonId = data.First.Id, IsCompleted = true, UpdatedAtUtc = now },
+                new LessonProgress { EnrollmentId = data.Enrollment.Id, LessonId = data.Second.Id, IsCompleted = true, UpdatedAtUtc = now });
+            await db.SaveChangesAsync();
+        }
+
+        using var client = await ClientAsync(data.Student);
+        using var lesson = await client.GetAsync($"/Learning/Lesson/{data.Second.Id}");
+        Assert.Equal(HttpStatusCode.OK, lesson.StatusCode);
+        string lessonHtml = WebUtility.HtmlDecode(await lesson.Content.ReadAsStringAsync());
+        Assert.Contains("Làm bài thi cuối khóa", lessonHtml);
+        Assert.Contains($"/Assessment/Take/{data.Assessment.Id}", lessonHtml);
+
+        string courseHtml = WebUtility.HtmlDecode(await client.GetStringAsync($"/Learning/Course/{data.Course.Id}"));
+        Assert.Contains("Bạn đã hoàn thành tất cả bài học.", courseHtml);
+        Assert.Contains("Hãy làm bài thi cuối khóa để hoàn tất khóa học.", courseHtml);
+
+        // Continue không được fallback về bài đầu khi mọi lesson đã hoàn thành.
+        using var continuation = await client.GetAsync($"/Learning/Continue/{data.Course.Id}");
+        Assert.Equal(HttpStatusCode.Redirect, continuation.StatusCode);
+        Assert.Equal($"/Learning/Course/{data.Course.Id}", continuation.Headers.Location!.ToString());
+
+        string dashboardHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        Assert.Contains("Hoàn tất khóa", dashboardHtml);
+        Assert.Contains($"href=\"/Learning/Course/{data.Course.Id}\"", dashboardHtml);
+        Assert.DoesNotContain($"href=\"/Learning/Continue/{data.Course.Id}\"", dashboardHtml);
+        string libraryHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning"));
+        Assert.Contains($"href=\"/Learning/Continue/{data.Course.Id}\"", libraryHtml);
+    }
+
+    [Fact]
+    public async Task DashboardAndPracticeHub_KeepOlderFeedbackWhenItsLessonIsHidden()
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var newerPractice = new Practice
+        {
+            ModuleId = data.Module.Id, OwnerTeacherUserId = data.Teacher.Id,
+            Title = "Module practice after lesson practice", Status = PracticeStatus.Published,
+            Questions = Enumerable.Range(0, 2).Select(i => new PracticeQuestion
+                { OrderIndex = i, Question = Question(data.Teacher.Id, EnglishSkill.Reading, i) }).ToList()
+        };
+        db.Practices.Add(newerPractice);
+        await db.SaveChangesAsync();
+        var practices = scope.ServiceProvider.GetRequiredService<IPracticeService>();
+        Assert.Equal(PracticeSubmitStatus.Saved,
+            (await practices.SubmitAsync(data.Student.Id, data.Practice.Id, Responses(data))).Status);
+        var answers = newerPractice.Questions.Select(q =>
+            new PracticeResponse(q.Id, q.Question.Options.Single(o => o.IsCorrect).Id)).ToArray();
+        Assert.Equal(PracticeSubmitStatus.Saved,
+            (await practices.SubmitAsync(data.Student.Id, newerPractice.Id, answers)).Status);
+        Assert.Equal(LearningAccessResult.Allowed, (await scope.ServiceProvider
+            .GetRequiredService<ICourseAuthoringService>().SaveContentAsync(data.Teacher.Id, data.Course.Id,
+                ContentKind.Lesson, data.Module.Id, data.First.Id,
+                new ContentInput { Title = data.First.Title, Status = LessonStatus.Hidden })).Access);
+
+        var hub = (await scope.ServiceProvider.GetRequiredService<IStudentLearningService>()
+            .PracticeHubAsync(data.Student.Id)).Value!;
+        Assert.Equal(newerPractice.Id, Assert.Single(hub.Practices).Id);
+        Assert.Equal(2, hub.Results.Count);
+        Assert.Contains(hub.Results, r => r.PracticeId == data.Practice.Id);
+        Assert.Equal(LearningAccessResult.Allowed,
+            (await practices.GetResultAsync(data.Student.Id, data.Practice.Id)).Access);
+        using var client = await ClientAsync(data.Student);
+        foreach (var path in new[] { "/Learning/Dashboard", "/Practice" })
+        {
+            var html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
+            Assert.Contains($"href=\"/Practice/Result/{data.Practice.Id}\"", html);
+            Assert.Contains($"href=\"/Practice/Result/{newerPractice.Id}\"", html);
+            Assert.DoesNotContain($"href=\"/Practice/Take/{data.Practice.Id}\"", html);
+        }
+    }
+
+    [Fact]
+    public async Task Dashboard_ResumesNewLessonsAfterHistoricalCourseCompletion()
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var courses = scope.ServiceProvider.GetRequiredService<IStudentLearningCourseService>();
+        Assert.Equal(LearningAccessResult.Allowed,
+            (await courses.SetLessonCompletedAsync(data.Student.Id, data.First.Id, true)).Access);
+        Assert.Equal(LearningAccessResult.Allowed,
+            (await courses.SetLessonCompletedAsync(data.Student.Id, data.Second.Id, true)).Access);
+        var completedAt = (await courses.OpenCourseAsync(data.Student.Id, data.Course.Id, false)).Value!.Progress!.CompletedAtUtc;
+        Assert.NotNull(completedAt);
+
+        var authoring = scope.ServiceProvider.GetRequiredService<ICourseAuthoringService>();
+        var lesson = await authoring.SaveContentAsync(data.Teacher.Id, data.Course.Id,
+            ContentKind.Lesson, data.Module.Id, null,
+            new ContentInput { Title = "New lesson after completion", Status = LessonStatus.Draft });
+        Assert.Equal(LearningAccessResult.Allowed, lesson.Access);
+        Assert.Equal(LearningAccessResult.Allowed, (await authoring.SaveContentAsync(data.Teacher.Id,
+            data.Course.Id, ContentKind.Resource, lesson.Id, null,
+            new ContentInput { ResourceType = LessonResourceType.Text, ContentText = "New lesson content" })).Access);
+        Assert.Equal(LearningAccessResult.Allowed, (await authoring.SaveContentAsync(data.Teacher.Id,
+            data.Course.Id, ContentKind.Lesson, data.Module.Id, lesson.Id,
+            new ContentInput { Title = "New lesson after completion", Status = LessonStatus.Published })).Access);
+
+        var dashboard = (await scope.ServiceProvider.GetRequiredService<IStudentLearningService>()
+            .DashboardAsync(data.Student.Id)).Value!;
+        var progress = Assert.Single(dashboard.Courses).Progress!;
+        Assert.Equal(2, progress.CompletedLessons);
+        Assert.Equal(3, progress.TotalLessons);
+        Assert.Equal(completedAt, progress.CompletedAtUtc);
+
+        using var client = await ClientAsync(data.Student);
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        var heroStart = html.IndexOf("hero-promo-banner", StringComparison.Ordinal);
+        var heroEnd = html.IndexOf("</section>", heroStart, StringComparison.Ordinal);
+        var hero = html[heroStart..heroEnd];
+        Assert.Contains($"/Learning/Continue/{data.Course.Id}", hero);
+        Assert.Contains(data.Course.Title, hero);
+        var libraryHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning"));
+        Assert.Contains($"href=\"/Learning/Continue/{data.Course.Id}\"", libraryHtml);
+
+        // Once current lessons are complete, retain the historical date and stop offering resume.
+        Assert.Equal(LearningAccessResult.Allowed,
+            (await courses.SetLessonCompletedAsync(data.Student.Id, lesson.Id, true)).Access);
+        html = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        Assert.DoesNotContain($"/Learning/Continue/{data.Course.Id}", html);
+        libraryHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning"));
+        Assert.DoesNotContain($"href=\"/Learning/Continue/{data.Course.Id}\"", libraryHtml);
+        Assert.Equal(completedAt,
+            (await courses.OpenCourseAsync(data.Student.Id, data.Course.Id, false)).Value!.Progress!.CompletedAtUtc);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Dashboard_CalendarKeepsHistoryWithoutLinkToHiddenLessonOrModule(bool hideModule)
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var courses = scope.ServiceProvider.GetRequiredService<IStudentLearningCourseService>();
+        Assert.Equal(LearningAccessResult.Allowed,
+            (await courses.SetLessonCompletedAsync(data.Student.Id, data.First.Id, true)).Access);
+        var learning = scope.ServiceProvider.GetRequiredService<IStudentLearningService>();
+        var activity = Assert.Single((await learning.DashboardAsync(data.Student.Id)).Value!.WeeklyActivities);
+        Assert.Equal(data.First.Id, activity.TargetId);
+        Assert.True(activity.CanOpenTarget);
+
+        var authoring = scope.ServiceProvider.GetRequiredService<ICourseAuthoringService>();
+        var kind = hideModule ? ContentKind.Module : ContentKind.Lesson;
+        var parentId = hideModule ? data.Course.Id : data.Module.Id;
+        var contentId = hideModule ? data.Module.Id : data.First.Id;
+        var input = hideModule
+            ? new ContentInput { Title = data.Module.Title, Visibility = ModuleVisibility.Hidden }
+            : new ContentInput { Title = data.First.Title, Status = LessonStatus.Hidden };
+        Assert.Equal(LearningAccessResult.Allowed,
+            (await authoring.SaveContentAsync(data.Teacher.Id, data.Course.Id, kind, parentId, contentId, input)).Access);
+
+        activity = Assert.Single((await learning.DashboardAsync(data.Student.Id)).Value!.WeeklyActivities);
+        Assert.Equal(data.First.Title, activity.Title);
+        Assert.False(activity.CanOpenTarget);
+        using var client = await ClientAsync(data.Student);
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        Assert.Contains(data.First.Title, html);
+        Assert.Contains("Bài học hiện không khả dụng", html);
+        Assert.DoesNotContain($"href=\"/Learning/Lesson/{data.First.Id}\"", html);
+        using var unavailable = await client.GetAsync($"/Learning/Lesson/{data.First.Id}");
+        Assert.Contains("/Account/AccessDenied", unavailable.Headers.Location!.ToString());
+
+        input.Visibility = ModuleVisibility.Visible;
+        input.Status = LessonStatus.Published;
+        Assert.Equal(LearningAccessResult.Allowed,
+            (await authoring.SaveContentAsync(data.Teacher.Id, data.Course.Id, kind, parentId, contentId, input)).Access);
+        activity = Assert.Single((await learning.DashboardAsync(data.Student.Id)).Value!.WeeklyActivities);
+        Assert.True(activity.CanOpenTarget);
+        html = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        Assert.Contains($"href=\"/Learning/Lesson/{data.First.Id}\"", html);
+    }
+
+    [Fact]
+    public async Task Dashboard_ZeroLessonCourseShowsNoLessonProgressInsteadOfZeroPercent()
+    {
+        var data = await SeedAsync();
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Enrollments.Add(new Enrollment
+            {
+                StudentUserId = data.Student.Id,
+                Course = new Course
+                {
+                    Title = "Empty course " + Guid.NewGuid().ToString("N"),
+                    OwnerTeacherUserId = data.Teacher.Id,
+                    Status = CourseStatus.Published
+                }
+            });
+            await db.SaveChangesAsync();
+        }
+
+        using var client = await ClientAsync(data.Student);
+        string html = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        int noLessonCards = System.Text.RegularExpressions.Regex.Matches(html, "Chưa có bài học").Count;
+        Assert.Equal(1, noLessonCards);
+        Assert.Contains("<strong>—</strong>", html);
+        Assert.DoesNotContain("0/0 bài", html);
     }
 
     [Fact]
@@ -498,6 +787,97 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Empty((await scope.ServiceProvider.GetRequiredService<IStudentLearningService>().DashboardAsync(other.Id)).Value!.PracticeResults);
     }
 
+    [Theory]
+    [InlineData(StimulusType.Passage)]
+    [InlineData(StimulusType.Audio)]
+    public async Task Practice_ResultKeepsStimulusContextAndPrivacyAfterWithdrawal(StimulusType stimulusType)
+    {
+        var data = await SeedAsync();
+        var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        const string passage = "Practice context <script>alert('context')</script> & reading.";
+        var audioBytes = StimulusAudioTestData.Wav();
+        // A distinct hash prevents another test's content from granting unrelated audio access.
+        Guid.NewGuid().ToByteArray().CopyTo(audioBytes, audioBytes.Length - 16);
+        var created = await scope.ServiceProvider.GetRequiredService<IStimulusCreationService>().CreateAsync(
+            data.Teacher.Id, new CreateStimulusRequest
+            {
+                StimulusType = stimulusType,
+                ContentText = stimulusType == StimulusType.Passage ? passage : null,
+                AudioContent = stimulusType == StimulusType.Audio ? audioBytes : null
+            });
+        Assert.True(created.Success);
+        var stimulus = await db.Stimuli.AsNoTracking().SingleAsync(s => s.Id == created.Id);
+        var practice = new Practice
+        {
+            OwnerTeacherUserId = data.Teacher.Id, Title = "Practice result stimulus context",
+            Status = PracticeStatus.Draft,
+            Questions = Enumerable.Range(0, 2).Select(i =>
+            {
+                var question = Question(data.Teacher.Id,
+                    stimulusType == StimulusType.Audio ? EnglishSkill.Listening : EnglishSkill.Reading, i);
+                question.StimulusId = stimulus.Id;
+                return new PracticeQuestion { OrderIndex = i, Question = question };
+            }).ToList()
+        };
+        db.Practices.Add(practice);
+        await db.SaveChangesAsync();
+        var authoring = scope.ServiceProvider.GetRequiredService<ITeacherPracticeQuestionService>();
+        Assert.True((await authoring.PublishAsync(data.Teacher.Id, practice.Id, data.First.Id, null,
+            practice.UpdatedAtUtc)).Success);
+        Assert.Equal(LearningAccessResult.Allowed, (await scope.ServiceProvider
+            .GetRequiredService<IStudentLearningCourseService>().EnrollFreeAsync(other.Id, data.Course.Id)).Access);
+        var answers = practice.Questions.Select(q =>
+            new PracticeResponse(q.Id, q.Question.Options.Single(o => o.IsCorrect).Id)).ToArray();
+        Assert.Equal(PracticeSubmitStatus.Saved, (await scope.ServiceProvider.GetRequiredService<IPracticeService>()
+            .SubmitAsync(data.Student.Id, practice.Id, answers)).Status);
+
+        using var client = await ClientAsync(data.Student);
+        foreach (var withdrawn in new[] { false, true })
+        {
+            if (withdrawn)
+            {
+                var version = await db.Practices.AsNoTracking().Where(p => p.Id == practice.Id)
+                    .Select(p => p.UpdatedAtUtc).SingleAsync();
+                Assert.True((await authoring.UnpublishAsync(data.Teacher.Id, practice.Id, version)).Success);
+            }
+            using var result = await client.GetAsync($"/Practice/Result/{practice.Id}");
+            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            var html = await result.Content.ReadAsStringAsync();
+            if (stimulusType == StimulusType.Passage)
+            {
+                Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(html,
+                    System.Text.RegularExpressions.Regex.Escape(HtmlEncoder.Default.Encode(passage))).Count);
+                Assert.DoesNotContain(passage, html);
+            }
+            else
+            {
+                Assert.True(StimulusAudioUrl.TryGetHash(stimulus.ResourceUrl, out _));
+                Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(html,
+                    System.Text.RegularExpressions.Regex.Escape($"src=\"{stimulus.ResourceUrl}\"")).Count);
+                Assert.DoesNotContain("Audio từ máy chủ bên ngoài", WebUtility.HtmlDecode(html));
+            }
+        }
+
+        using var outsider = await ClientAsync(other);
+        using var deniedResult = await outsider.GetAsync($"/Practice/Result/{practice.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, deniedResult.StatusCode);
+        if (stimulusType == StimulusType.Audio)
+        {
+            using var audio = await client.GetAsync(stimulus.ResourceUrl);
+            Assert.Equal(HttpStatusCode.OK, audio.StatusCode);
+            Assert.Equal(audioBytes, await audio.Content.ReadAsByteArrayAsync());
+            using var request = new HttpRequestMessage(HttpMethod.Get, stimulus.ResourceUrl);
+            request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(0, 15);
+            using var range = await client.SendAsync(request);
+            Assert.Equal(HttpStatusCode.PartialContent, range.StatusCode);
+            Assert.Equal(audioBytes.Take(16).ToArray(), await range.Content.ReadAsByteArrayAsync());
+            using var deniedAudio = await outsider.GetAsync(stimulus.ResourceUrl);
+            Assert.Equal(HttpStatusCode.NotFound, deniedAudio.StatusCode);
+        }
+    }
+
     [Fact]
     public async Task Practice_MixedCorrectWrongAndBlankAnswers_UseEqualWeightsAndRetakeReplacesLatestResult()
     {
@@ -570,6 +950,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Equal(questions.Select(q => q.Question.Options.Single(o => o.IsCorrect).Id).OrderBy(id => id),
             latest.Answers.Select(a => a.SelectedOptionId).OrderBy(id => id));
     }
+
 
     [Fact]
     public async Task Practice_ConcurrentRetakesKeepOneConsistentLatestSubmission()

@@ -1,3 +1,4 @@
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Domain.Entities;
@@ -159,7 +160,7 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
         {
             Questions = sheet.Questions.Select(question => question with
             {
-                AudioUrl = StimulusAudioResource.TryGetHash(question.AudioUrl, out _) || (Uri.TryCreate(question.AudioUrl, UriKind.Absolute, out var uri) &&
+                AudioUrl = StimulusAudioUrl.TryGetHash(question.AudioUrl, out _) || (Uri.TryCreate(question.AudioUrl, UriKind.Absolute, out var uri) &&
                     (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
                     ) ? question.AudioUrl : null
             }).ToList()
@@ -260,9 +261,6 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
                 db.Enrollments.AsNoTracking().Valid().Any(e =>
                     e.StudentUserId == studentId && e.CourseId == a.CourseId)));
 
-    private Task<bool> IsActiveStudentAsync(Guid studentId, CancellationToken ct) => db.Users.AsNoTracking()
-        .AnyAsync(user => user.Id == studentId && user.AccountStatus == AccountStatus.Active &&
-            db.UserRoles.Count(role => role.UserId == studentId) == 1 &&
-            db.UserRoles.Any(userRole => userRole.UserId == studentId &&
-                db.Roles.Any(role => role.Id == userRole.RoleId && role.Name == AppRoles.Student)), ct);
+    private Task<bool> IsActiveStudentAsync(Guid studentId, CancellationToken ct) =>
+        db.HasActiveRoleAsync(studentId, AppRoles.Student, ct);
 }

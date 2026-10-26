@@ -572,6 +572,161 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         AssertSelectedAnswers(await reload.Content.ReadAsStringAsync(), fields);
     }
 
+    [Fact]
+    public async Task PartialSaveAndEmptySubmit_SendOnlyDirtyAnswers_AndKeepPreviousSavedChoices()
+    {
+        var data = await SeedAsync();
+        using var client = await StudentClient(data.Student);
+        string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        Guid attemptId = await Start(client, data, token);
+        var questions = data.Assessment.Questions.OrderBy(q => q.OrderIndex).ToArray();
+        string QuestionId(int index) => questions[index].Id.ToString();
+        string CorrectOption(int index) => questions[index].Question.Options.Single(o => o.IsCorrect).Id.ToString();
+        string WrongOption(int index) => questions[index].Question.Options.Single(o => !o.IsCorrect).Id.ToString();
+
+        // Tab 1 autosave chỉ câu 0; payload không liệt kê các câu còn lại.
+        using var firstTab = await Post(client, $"/Assessment/Save/{attemptId}", token, new()
+        {
+            ["Answers.Index"] = "0",
+            ["Answers[0].AssessmentQuestionId"] = QuestionId(0),
+            ["Answers[0].SelectedOptionId"] = CorrectOption(0)
+        });
+        Assert.Equal(HttpStatusCode.Redirect, firstTab.StatusCode);
+
+        // Tab 2 autosave chỉ câu 2; đáp án câu 0 của tab 1 phải còn nguyên.
+        using var secondTab = await Post(client, $"/Assessment/Save/{attemptId}", token, new()
+        {
+            // Tên gốc từ Razor, không reindex câu thứ ba thành Answers[0].
+            ["Answers.Index"] = "2",
+            ["Answers[2].AssessmentQuestionId"] = QuestionId(2),
+            ["Answers[2].SelectedOptionId"] = WrongOption(2)
+        });
+        Assert.Equal(HttpStatusCode.Redirect, secondTab.StatusCode);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var answers = await db.AttemptAnswers.AsNoTracking().Where(a => a.AttemptId == attemptId).ToListAsync();
+            Assert.Equal(2, answers.Count);
+            Assert.Equal(CorrectOption(0), answers.Single(a => a.AssessmentQuestionId == questions[0].Id).SelectedOptionId.ToString());
+            Assert.Equal(WrongOption(2), answers.Single(a => a.AssessmentQuestionId == questions[2].Id).SelectedOptionId.ToString());
+        }
+
+        // Bỏ chọn câu 0 và lưu câu 1 trong cùng một payload: chỉ hai câu này thay đổi.
+        using var clearAndSave = await Post(client, $"/Assessment/Save/{attemptId}", token, new()
+        {
+            ["Answers[0].AssessmentQuestionId"] = QuestionId(0),
+            ["Answers[0].SelectedOptionId"] = string.Empty,
+            ["Answers[1].AssessmentQuestionId"] = QuestionId(1),
+            ["Answers[1].SelectedOptionId"] = CorrectOption(1)
+        });
+        Assert.Equal(HttpStatusCode.Redirect, clearAndSave.StatusCode);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var answers = await db.AttemptAnswers.AsNoTracking().Where(a => a.AttemptId == attemptId).ToListAsync();
+            Assert.Equal(2, answers.Count);
+            Assert.DoesNotContain(answers, a => a.AssessmentQuestionId == questions[0].Id);
+            Assert.Equal(CorrectOption(1), answers.Single(a => a.AssessmentQuestionId == questions[1].Id).SelectedOptionId.ToString());
+            Assert.Equal(WrongOption(2), answers.Single(a => a.AssessmentQuestionId == questions[2].Id).SelectedOptionId.ToString());
+        }
+
+        // Tab không còn câu dirty: Submit chỉ gửi CSRF, server chấm đúng các đáp án đã lưu.
+        using var emptySubmit = await Post(client, $"/Assessment/Submit/{attemptId}", token);
+        Assert.Equal(HttpStatusCode.Redirect, emptySubmit.StatusCode);
+        Assert.Equal($"/Assessment/Result/{attemptId}", emptySubmit.Headers.Location!.ToString());
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var attempt = await db.Attempts.AsNoTracking().Include(a => a.Answers)
+                .SingleAsync(a => a.Id == attemptId);
+            Assert.Equal(AttemptStatus.Graded, attempt.Status);
+            Assert.Equal(AttemptFinalizationReason.ManualSubmit, attempt.FinalizationReason);
+            Assert.Equal(20m, attempt.OverallScore);
+            Assert.Equal(2, attempt.Answers.Count);
+            Assert.Equal(CorrectOption(1), attempt.Answers.Single(a => a.AssessmentQuestionId == questions[1].Id).SelectedOptionId.ToString());
+            Assert.Equal(WrongOption(2), attempt.Answers.Single(a => a.AssessmentQuestionId == questions[2].Id).SelectedOptionId.ToString());
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SparseIndexedSaveOrSubmit_BindsOriginalIndicesAndPreservesOtherTabAnswers(bool submit)
+    {
+        var data = await SeedAsync();
+        using var client = await StudentClient(data.Student);
+        string token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.Assessment.Id}");
+        Guid attemptId = await Start(client, data, token);
+        var questions = data.Assessment.Questions.OrderBy(q => q.OrderIndex).ToArray();
+
+        Task<HttpResponseMessage> PostIndexed(string action, params int[] indices)
+        {
+            // FormData của browser có một Answers.Index cho mỗi câu còn dirty,
+            // gồm cả index gốc khác 0 và các index không liên tiếp.
+            var fields = new List<KeyValuePair<string, string>> { new("__RequestVerificationToken", token) };
+            foreach (int index in indices)
+            {
+                fields.Add(new("Answers.Index", index.ToString()));
+                fields.Add(new($"Answers[{index}].AssessmentQuestionId", questions[index].Id.ToString()));
+                fields.Add(new($"Answers[{index}].SelectedOptionId", questions[index].Question.Options.Single(o => o.IsCorrect).Id.ToString()));
+            }
+            return client.PostAsync($"/Assessment/{action}/{attemptId}", new FormUrlEncodedContent(fields));
+        }
+
+        // Tab khác đã lưu câu 1. Save và retry câu 2 không được thay câu 1.
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        using var otherTab = await PostIndexed("Save", 1);
+        Assert.Equal(HttpStatusCode.OK, otherTab.StatusCode);
+        Guid preservedAnswerId;
+        DateTimeOffset preservedSavedAt;
+        using (var scope = factory.Services.CreateScope())
+        {
+            var answer = await scope.ServiceProvider.GetRequiredService<AppDbContext>().AttemptAnswers.AsNoTracking()
+                .SingleAsync(a => a.AttemptId == attemptId);
+            preservedAnswerId = answer.Id;
+            preservedSavedAt = answer.SavedAtUtc;
+        }
+        for (int retry = 0; retry < 2; retry++)
+        {
+            using var autosave = await PostIndexed("Save", 2);
+            Assert.Equal(HttpStatusCode.OK, autosave.StatusCode);
+            using var json = JsonDocument.Parse(await autosave.Content.ReadAsStringAsync());
+            Assert.True(json.RootElement.GetProperty("saved").GetBoolean());
+        }
+
+        // Chỉ câu 2 và 4 còn dirty: payload có gap, không gửi câu 1 đã lưu.
+        client.DefaultRequestHeaders.Accept.Clear();
+        using var response = await PostIndexed(submit ? "Submit" : "Save", 2, 4);
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        if (submit)
+            Assert.Equal($"/Assessment/Result/{attemptId}", response.Headers.Location!.ToString());
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var attempt = await db.Attempts.AsNoTracking().Include(a => a.Answers).SingleAsync(a => a.Id == attemptId);
+            Assert.Equal(submit ? AttemptStatus.Graded : AttemptStatus.InProgress, attempt.Status);
+            Assert.Equal(3, attempt.Answers.Count);
+            foreach (int index in new[] { 1, 2, 4 })
+                Assert.Equal(questions[index].Question.Options.Single(o => o.IsCorrect).Id,
+                    attempt.Answers.Single(a => a.AssessmentQuestionId == questions[index].Id).SelectedOptionId);
+            var preserved = attempt.Answers.Single(a => a.AssessmentQuestionId == questions[1].Id);
+            Assert.Equal(preservedAnswerId, preserved.Id);
+            Assert.Equal(preservedSavedAt, preserved.SavedAtUtc);
+        }
+
+        if (!submit)
+        {
+            using var emptySubmit = await Post(client, $"/Assessment/Submit/{attemptId}", token);
+            Assert.Equal(HttpStatusCode.Redirect, emptySubmit.StatusCode);
+        }
+        using var finalScope = factory.Services.CreateScope();
+        var graded = await finalScope.ServiceProvider.GetRequiredService<AppDbContext>().Attempts.AsNoTracking()
+            .SingleAsync(a => a.Id == attemptId);
+        Assert.Equal(AttemptStatus.Graded, graded.Status);
+        Assert.Equal(60m, graded.OverallScore);
+    }
+
     [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]

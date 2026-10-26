@@ -1,5 +1,6 @@
 using System.Data;
 using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -14,24 +15,10 @@ public sealed class QuestionAuthoringService(
     AppDbContext db,
     UserManager<ApplicationUser> userManager,
     ICreateQuestionValidator validator,
-    ILogger<QuestionAuthoringService> logger) : IQuestionAuthoringService
+    ILogger<QuestionAuthoringService> logger,
+    IActiveUserValidator? activeUsers = null) : IQuestionAuthoringService
 {
-    private async Task<bool> IsActiveTeacherAsync(Guid userId)
-    {
-        if (userId == Guid.Empty)
-        {
-            return false;
-        }
-
-        var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user is null || user.AccountStatus != AccountStatus.Active)
-        {
-            return false;
-        }
-
-        var roles = await userManager.GetRolesAsync(user);
-        return roles.Count == 1 && roles[0] == AppRoles.Teacher;
-    }
+    private readonly IActiveUserValidator activeUserValidator = activeUsers ?? new ActiveUserValidator(userManager, db);
 
     public async Task<QuestionEditor?> GetEditorAsync(
         Guid actorUserId,
@@ -40,7 +27,7 @@ public sealed class QuestionAuthoringService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!await IsActiveTeacherAsync(actorUserId))
+        if (!await activeUserValidator.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return null;
         }
@@ -89,7 +76,7 @@ public sealed class QuestionAuthoringService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!await IsActiveTeacherAsync(actorUserId))
+        if (!await activeUserValidator.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return Array.Empty<QuestionStimulusOption>();
         }
@@ -130,7 +117,7 @@ public sealed class QuestionAuthoringService(
 
             // Dùng lại helper đã có trong file:
             // tài khoản phải đang hoạt động và có đúng role Teacher.
-            if (!await IsActiveTeacherAsync(actorUserId))
+            if (!await activeUserValidator.IsActiveTeacherAsync(actorUserId, cancellationToken))
             {
                 return QuestionWriteResult.Failure(new[]
                 {
@@ -215,7 +202,7 @@ public sealed class QuestionAuthoringService(
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!await IsActiveTeacherAsync(actorUserId))
+        if (!await activeUserValidator.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return QuestionWriteResult.Failure(
             [

@@ -3,6 +3,7 @@
     var routeAction = ViewContext.RouteData.Values["action"]?.ToString();
     var activeSection = routeController switch
     {
+        "courses" => "catalog",
         "teacherquestionbank" => "questionbank",
         "teacherpractices" => "practices",
         "teachercourses" when string.Equals(routeAction, "Students", StringComparison.OrdinalIgnoreCase) => "analytics",
@@ -95,7 +96,7 @@
 
                 <div class="studio-nav-group studio-nav-group--bottom">
                     <span class="studio-nav-label">Liên kết nhanh</span>
-                    <a class="studio-nav-link" asp-controller="Courses" asp-action="Index">
+                    <a class="studio-nav-link @(activeSection == "catalog" ? "is-active" : "")" asp-controller="Courses" asp-action="Index" aria-current="@(activeSection == "catalog" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                         <span>Xem danh mục khóa học</span>
                     </a>

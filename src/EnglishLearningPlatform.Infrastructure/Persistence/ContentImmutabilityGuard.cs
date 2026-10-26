@@ -31,8 +31,7 @@ internal static class ContentImmutabilityGuard
         {
             if (entry.State != EntityState.Deleted && !QuestionFields.Any(p => entry.Property(p).IsModified)) continue;
             Guid id = entry.Entity.Id;
-            var saved = await db.Questions.FromSqlInterpolated(
-                $"SELECT * FROM Questions WITH (UPDLOCK, HOLDLOCK) WHERE Id = {id}").AsNoTracking().SingleOrDefaultAsync(ct);
+            var saved = await db.QuestionsForUpdate(id).AsNoTracking().SingleOrDefaultAsync(ct);
             if (saved == null) continue;
             var next = entry.Entity;
             if (saved.ContentLockedAtUtc.HasValue && saved.ContentLockedAtUtc != next.ContentLockedAtUtc)
@@ -54,8 +53,7 @@ internal static class ContentImmutabilityGuard
             {
                 if (db.ChangeTracker.Entries<Question>().Any(q => q.State == EntityState.Added && q.Entity.Id == id)) continue;
                 // Giữ khóa parent tới sau SaveChanges; Publish không chen vào giữa kiểm tra và ghi.
-                await db.Questions.FromSqlInterpolated(
-                    $"SELECT * FROM Questions WITH (UPDLOCK, HOLDLOCK) WHERE Id = {id}").AsNoTracking().SingleOrDefaultAsync(ct);
+                await db.QuestionsForUpdate(id).AsNoTracking().SingleOrDefaultAsync(ct);
                 if (await IsQuestionLockedAsync(db, id, ct)) throw Locked();
             }
         }
@@ -64,8 +62,7 @@ internal static class ContentImmutabilityGuard
         {
             if (entry.State != EntityState.Deleted && !StimulusFields.Any(p => entry.Property(p).IsModified)) continue;
             Guid id = entry.Entity.Id;
-            var saved = await db.Stimuli.FromSqlInterpolated(
-                $"SELECT * FROM Stimuli WITH (UPDLOCK, HOLDLOCK) WHERE Id = {id}").AsNoTracking().SingleOrDefaultAsync(ct);
+            var saved = await db.StimuliForUpdate(id).AsNoTracking().SingleOrDefaultAsync(ct);
             if (saved == null) continue;
             var next = entry.Entity;
             if (saved.ContentLockedAtUtc.HasValue && saved.ContentLockedAtUtc != next.ContentLockedAtUtc) throw Locked();

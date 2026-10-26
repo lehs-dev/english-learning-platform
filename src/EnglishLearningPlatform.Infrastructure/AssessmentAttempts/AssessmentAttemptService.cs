@@ -1,5 +1,6 @@
 using System.Data;
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -16,8 +17,11 @@ public sealed class AssessmentAttemptService(
     IExamScoringService scoring,
     // Dùng chung quy tắc kiểm tra định nghĩa đề với Teacher Publish.
     IAssessmentDefinitionValidator definitionValidator,
-    TimeProvider timeProvider) : IAttemptService
+    TimeProvider timeProvider,
+    IActiveUserValidator? activeUsers = null) : IAttemptService
 {
+    private readonly IActiveUserValidator activeUserValidator = activeUsers ?? new ActiveUserValidator(users);
+
     public async Task<AttemptStartResult> StartAsync(
         Guid studentId,
         Guid assessmentId,
@@ -44,15 +48,11 @@ public sealed class AssessmentAttemptService(
 
         if (snapshot.CourseId is Guid courseId)
         {
-            course = await db.Courses.FromSqlInterpolated(
-                $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}"
-            ).SingleOrDefaultAsync(ct);
+            course = await db.CoursesForUpdate(courseId).SingleOrDefaultAsync(ct);
         }
 
         // Mọi Start cùng Assessment đi qua khóa này.
-        var assessment = await db.Assessments.FromSqlInterpolated(
-            $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {assessmentId}"
-        ).SingleOrDefaultAsync(ct);
+        var assessment = await db.AssessmentsForUpdate(assessmentId).SingleOrDefaultAsync(ct);
 
         if (assessment is null || assessment.CourseId != snapshot.CourseId)
         {
@@ -60,16 +60,7 @@ public sealed class AssessmentAttemptService(
         }
 
         //Quyền Student cũng phải được kiểm tra ở Server
-        var student = await users.FindByIdAsync(studentId.ToString());
-
-        if (student is null || student.AccountStatus != AccountStatus.Active)
-        {
-            return new(AttemptStartStatus.Forbidden);
-        }
-
-        var roles = await users.GetRolesAsync(student);
-
-        if (roles.Count != 1 || roles[0] != AppRoles.Student)
+        if (!await activeUserValidator.IsActiveStudentAsync(studentId, ct))
         {
             return new(AttemptStartStatus.Forbidden);
         }
@@ -265,21 +256,18 @@ public sealed class AssessmentAttemptService(
         // Course -> Assessment -> Attempt.
         if (snapshot.CourseId is Guid courseId)
         {
-            await db.Courses.FromSqlInterpolated(
-                $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}")
+            await db.CoursesForUpdate(courseId)
                 .SingleOrDefaultAsync(ct);
         }
 
-        var assessment = await db.Assessments.FromSqlInterpolated(
-            $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.AssessmentId}")
+        var assessment = await db.AssessmentsForUpdate(snapshot.AssessmentId)
             .SingleOrDefaultAsync(ct);
 
         if (assessment is null ||
             assessment.CourseId != snapshot.CourseId)
             return new(AttemptFinalizeStatus.Unavailable);
 
-        var attempt = await db.Attempts.FromSqlInterpolated(
-            $"SELECT * FROM Attempts WITH (UPDLOCK, HOLDLOCK) WHERE Id = {attemptId}")
+        var attempt = await db.AttemptsForUpdate(attemptId)
             .SingleOrDefaultAsync(ct);
 
         if (attempt is null ||
@@ -287,14 +275,7 @@ public sealed class AssessmentAttemptService(
             attempt.AssessmentId != assessment.Id)
             return new(AttemptFinalizeStatus.NotFound);
 
-        var student = await users.FindByIdAsync(studentId.ToString());
-
-        if (student is null || student.AccountStatus != AccountStatus.Active)
-            return new(AttemptFinalizeStatus.Forbidden);
-
-        var roles = await users.GetRolesAsync(student);
-
-        if (roles.Count != 1 || roles[0] != AppRoles.Student)
+        if (!await activeUserValidator.IsActiveStudentAsync(studentId, ct))
             return new(AttemptFinalizeStatus.Forbidden);
 
         var now = timeProvider.GetUtcNow();
@@ -345,15 +326,7 @@ public sealed class AssessmentAttemptService(
         if (snapshot is null || snapshot.StudentUserId != studentId)
             return AttemptSaveStatus.NotFound;
 
-        var student = await users.FindByIdAsync(studentId.ToString());
-
-        if (student is null ||
-            student.AccountStatus != AccountStatus.Active)
-            return AttemptSaveStatus.Forbidden;
-
-        var roles = await users.GetRolesAsync(student);
-
-        if (roles.Count != 1 || roles[0] != AppRoles.Student)
+        if (!await activeUserValidator.IsActiveStudentAsync(studentId, ct))
             return AttemptSaveStatus.Forbidden;
 
         await using var tx = await db.Database.BeginTransactionAsync(
@@ -362,21 +335,18 @@ public sealed class AssessmentAttemptService(
         // Cùng thứ tự khóa với Start và Finalize.
         if (snapshot.CourseId is Guid courseId)
         {
-            await db.Courses.FromSqlInterpolated(
-                $"SELECT * FROM Courses WITH (UPDLOCK, HOLDLOCK) WHERE Id = {courseId}")
+            await db.CoursesForUpdate(courseId)
                 .SingleOrDefaultAsync(ct);
         }
 
-        var assessment = await db.Assessments.FromSqlInterpolated(
-            $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {snapshot.AssessmentId}")
+        var assessment = await db.AssessmentsForUpdate(snapshot.AssessmentId)
             .SingleOrDefaultAsync(ct);
 
         if (assessment is null ||
             assessment.CourseId != snapshot.CourseId)
             return AttemptSaveStatus.Unavailable;
 
-        var attempt = await db.Attempts.FromSqlInterpolated(
-            $"SELECT * FROM Attempts WITH (UPDLOCK, HOLDLOCK) WHERE Id = {attemptId}")
+        var attempt = await db.AttemptsForUpdate(attemptId)
             .SingleOrDefaultAsync(ct);
 
         if (attempt is null ||

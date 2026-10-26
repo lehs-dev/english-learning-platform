@@ -17,12 +17,12 @@ namespace EnglishLearningPlatform.Web.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class TeacherPracticesController : Controller
 {
-    private readonly ICourseService _courseService;
+    private readonly IStudentLearningCourseService _courseService;
     private readonly ITeacherPracticeService _practiceService;
     private readonly ITeacherPracticeQueryService _practiceQueryService;
 
     public TeacherPracticesController(
-        ICourseService courseService,
+        IStudentLearningCourseService courseService,
         ITeacherPracticeService practiceService,
         ITeacherPracticeQueryService practiceQueryService)
     {

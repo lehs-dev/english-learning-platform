@@ -2,7 +2,8 @@ param(
     [ValidatePattern('^elp-qa6-[a-z0-9-]+$')]
     [string]$ProjectName = ('elp-qa6-' + (Get-Date -Format 'yyyyMMdd-HHmmss')),
     [ValidateRange(1024, 65535)][int]$WebPort = 18080,
-    [ValidateRange(1024, 65535)][int]$SqlPort = 15433
+    [ValidateRange(1024, 65535)][int]$SqlPort = 15433,
+    [switch]$EnablePaymentSandbox
 )
 $ErrorActionPreference = 'Stop'
 $taskDemoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -26,7 +27,7 @@ $taskDemoValues = @{
     ELP_WEB_PORT = [string]$WebPort; ELP_SQL_PORT = [string]$SqlPort
     ELP_IMAGE_TAG = $ProjectName; ELP_CANDIDATE_SHA = 'development'
     ASPNETCORE_ENVIRONMENT = 'Development'; LearningDemo__Enabled = 'true'
-    Payments__Enabled = 'false'; CheckoutSandbox__Enabled = 'false'
+    Payments__Enabled = 'false'; CheckoutSandbox__Enabled = $(if ($EnablePaymentSandbox) { 'true' } else { 'false' })
     MSSQL_SA_PASSWORD = $env:MSSQL_SA_PASSWORD
     LearningDemo__Password = $env:LearningDemo__Password
 }
@@ -59,7 +60,7 @@ try {
     $taskDemoReady = $false
     for ($taskDemoRetry = 0; $taskDemoRetry -lt 60; $taskDemoRetry++) {
         try {
-            $taskDemoResponse = Invoke-WebRequest "http://127.0.0.1:$WebPort/health" -TimeoutSec 2
+            $taskDemoResponse = Invoke-WebRequest "http://127.0.0.1:$WebPort/health" -TimeoutSec 2 -UseBasicParsing
             if ($taskDemoResponse.StatusCode -eq 200) { $taskDemoReady = $true; break }
         } catch { }
         Start-Sleep -Seconds 1

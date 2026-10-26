@@ -1,35 +1,16 @@
 using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
-using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.QuestionBank;
 public sealed class QuestionCreationService(
     AppDbContext db,
-    UserManager<ApplicationUser> userManager,
+    IActiveUserValidator activeUsers,
     ICreateQuestionValidator createQuestionValidator) : IQuestionCreationService
 {
-    private async Task<bool> IsActiveTeacherAsync(Guid userId)
-    {
-        if (userId == Guid.Empty)
-        {
-            return false;
-        }
-
-        var user = await userManager.FindByIdAsync(userId.ToString());
-
-        if (user is null || user.AccountStatus != AccountStatus.Active)
-        {
-            return false;
-        }
-
-        var roles = await userManager.GetRolesAsync(user);
-
-        return roles.Count == 1 && roles[0] == AppRoles.Teacher;
-    }
     public async Task<QuestionWriteResult> CreateAsync(
     Guid actorUserId,
     CreateQuestionRequest request,
@@ -39,7 +20,7 @@ public sealed class QuestionCreationService(
         cancellationToken.ThrowIfCancellationRequested();
 
         // 1. Kiểm tra quyền.
-        if (!await IsActiveTeacherAsync(actorUserId))
+        if (!await activeUsers.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return QuestionWriteResult.Failure(
             [

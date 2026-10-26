@@ -18,7 +18,7 @@ public sealed class StimulusAudioStoreTests : IDisposable
         string url = await store.StoreAsync(original);
         Assert.Equal(url, await store.StoreAsync(original));
         Assert.Single(Directory.GetFiles(_root));
-        Assert.True(StimulusAudioResource.TryGetHash(url, out string hash));
+        Assert.True(StimulusAudioUrl.TryGetHash(url, out string hash));
         var read = await store.ReadAsync(hash);
         Assert.NotNull(read); Assert.Equal(original, read.Content); Assert.Equal("audio/mpeg", read.ContentType);
         byte[] changed = original.ToArray(); changed[^1] = 2;
