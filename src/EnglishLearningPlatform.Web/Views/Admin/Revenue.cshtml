@@ -1,0 +1,72 @@
+@using System.Globalization
+@model EnglishLearningPlatform.Web.Models.Admin.AdminRevenueViewModel
+@{
+    ViewData["Title"] = "Báo cáo doanh thu";
+    var report = Model.Report;
+    var fromDate = ViewData["FromDate"] as string;
+    var toDate = ViewData["ToDate"] as string;
+    var isMonthly = Model.GroupBy == "month";
+    static string Money(decimal amount) => amount.ToString("#,##0.##", CultureInfo.GetCultureInfo("vi-VN"));
+}
+@section Styles { <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> }
+@section Scripts { <script src="~/js/admin-revenue.js" asp-append-version="true" defer></script> }
+<div class="admin-page">
+<header class="admin-heading"><div><h1>Báo cáo doanh thu</h1><p>Doanh thu từ các đơn thanh toán thành công. Đơn vị: Việt Nam đồng (VND).</p></div></header>
+<section class="admin-surface">
+    <div asp-validation-summary="All" class="notice error" role="alert"></div>
+    <form method="get" asp-action="Revenue" class="admin-filters">
+        <div><label for="period">Khoảng thời gian</label><select id="period" name="period" data-vietnam-today="@ViewData["VietnamToday"]"><option value="all" selected="@(Model.Period == "all")">Toàn bộ lịch sử</option><option value="week" selected="@(Model.Period == "week")">Tuần này</option><option value="month" selected="@(Model.Period == "month")">Tháng này</option><option value="year" selected="@(Model.Period == "year")">Năm này</option><option value="custom" selected="@(Model.Period == "custom")">Tùy chọn ngày</option></select></div>
+        <div class="admin-date-filter"><label for="fromDate">Ngày thanh toán từ (giờ Việt Nam)</label><input type="date" id="fromDate" name="fromDate" value="@fromDate" min="0001-01-02" max="9999-12-30" /></div>
+        <div class="admin-date-filter"><label for="toDate">Đến hết ngày</label><input type="date" id="toDate" name="toDate" value="@toDate" min="0001-01-02" max="9999-12-30" /></div>
+        <div><label for="groupBy">Thống kê theo</label><select id="groupBy" name="groupBy"><option value="day" selected="@(!isMonthly)">Ngày</option><option value="month" selected="@isMonthly">Tháng</option></select></div>
+        <div class="admin-filter-actions"><button class="button" type="submit">Xem báo cáo</button><a asp-action="Revenue">Đặt lại</a></div>
+    </form>
+    <p class="admin-report-explanation"><strong data-selected-range>@Model.RangeLabel · Giờ Việt Nam.</strong> Doanh thu lọc theo <strong>ngày thanh toán thành công</strong>; số đơn lọc theo <strong>ngày tạo đơn</strong>. Khoảng ngày bao gồm hết ngày kết thúc.</p>
+</section>
+@if (ViewData.ModelState.IsValid && report.Summary.Count == 0) {
+    <section class="admin-section admin-surface"><div class="admin-empty"><h2>Chưa có dữ liệu phù hợp</h2><p>Thử khoảng ngày khác. Đơn hàng và thanh toán VND mới sẽ xuất hiện tại đây.</p></div></section>
+}
+@if (report.Summary.Count > 0) {
+<div class="admin-revenue-summary">
+@foreach (var row in report.Summary) {
+    <article class="admin-surface admin-revenue-total" data-revenue-currency="@row.Currency">
+        <p>Tổng doanh thu · @Model.PeriodTitle</p><h2>@Money(row.Revenue) <small>₫</small></h2>
+        <p class="admin-revenue-range" data-revenue-range>@Model.RangeLabel · Giờ Việt Nam</p>
+        <span>@row.PaidOrders đơn được ghi nhận theo ngày thanh toán</span>
+    </article>
+}
+</div>
+<section class="admin-section admin-surface" aria-labelledby="revenue-status-title">
+    <div class="admin-list-heading"><h2 id="revenue-status-title">Đơn hàng theo ngày tạo</h2><span>@Model.RangeLabel</span></div>
+    <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Số đơn VND theo trạng thái</caption>
+        <thead><tr><th>Tổng đơn</th><th>Thành công</th><th>Đang chờ</th><th>Thất bại</th><th>Đã hủy</th></tr></thead><tbody>
+        @foreach (var row in report.Summary) {
+            <tr data-status-currency="@row.Currency"><td data-label="Tổng đơn">@row.Orders</td><td data-label="Thành công">@row.SucceededOrders</td><td data-label="Đang chờ">@row.PendingOrders</td><td data-label="Thất bại">@row.FailedOrders</td><td data-label="Đã hủy">@row.CancelledOrders</td></tr>
+        }
+        </tbody></table></div>
+    @foreach (var row in report.Summary.Where(s => s.UnrecognizedSucceededOrders > 0)) {
+        <p class="notice error admin-revenue-warning" role="status">@row.Currency: @row.UnrecognizedSucceededOrders đơn thành công chưa có thanh toán khớp số tiền dương và đủ ngày thanh toán. Các đơn này cần được đối chiếu; chưa được ghi nhận doanh thu.</p>
+    }
+</section>
+}
+@if (Model.Series.Count > 0) {
+<section class="admin-section admin-surface" aria-labelledby="revenue-chart-title">
+    <div class="admin-list-heading"><h2 id="revenue-chart-title">Doanh thu theo @(isMonthly ? "tháng" : "ngày")</h2><span>@Model.RangeLabel · VND</span></div>
+    <div class="admin-revenue-charts">
+        <partial name="_RevenueChart" model="Model" />
+    </div>
+    <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Số liệu doanh thu đã tổng hợp theo kỳ, trang @Model.Page</caption>
+        <thead><tr><th>@(isMonthly ? "Tháng" : "Ngày")</th><th>Đơn ghi nhận</th><th>Doanh thu (VND)</th></tr></thead><tbody>
+        @foreach (var point in Model.PageItems) {
+            <tr><td data-label="Kỳ">@point.Period.ToString(isMonthly ? "MM/yyyy" : "dd/MM/yyyy")</td><td data-label="Đơn ghi nhận">@point.PaidOrders</td><td data-label="Doanh thu" class="admin-amount">@Money(point.Revenue) ₫</td></tr>
+        }
+        </tbody></table></div>
+    <nav class="admin-pagination" aria-label="Phân trang báo cáo doanh thu"><span>Trang @Model.Page / @Model.Pages</span><div>
+    @if (Model.Page > 1) { <a class="button secondary" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate" asp-route-currency="@report.CurrencyFilter" asp-route-period="@Model.Period" asp-route-groupBy="@Model.GroupBy" asp-route-page="@(Model.Page - 1)">Trước</a> }
+    @if (Model.Page < Model.Pages) { <a class="button secondary" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate" asp-route-currency="@report.CurrencyFilter" asp-route-period="@Model.Period" asp-route-groupBy="@Model.GroupBy" asp-route-page="@(Model.Page + 1)">Sau</a> }
+    </div></nav>
+</section>
+} else if (report.Summary.Count > 0) {
+    <section class="admin-section admin-surface"><div class="admin-empty"><h2>Chưa có doanh thu trong khoảng đã chọn</h2><p>Đơn đang chờ, thất bại hoặc đã hủy không được cộng vào doanh thu.</p></div></section>
+}
+</div>

@@ -98,6 +98,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
     [InlineData("/Admin/CreateTeacher")]
     [InlineData("/Admin/Courses")]
     [InlineData("/Admin/Enrollments")]
+    [InlineData("/Admin/Revenue")]
     [InlineData("/Admin/Transactions")]
     [InlineData("/Admin/Users")]
     public async Task AdminEndpoints_RenderAdminConsoleLayout_WithNoStudentOrTeacherChrome(string endpoint)

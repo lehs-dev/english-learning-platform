@@ -73,8 +73,8 @@ public sealed class SecurityConfigurationTests
         var actions = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
         var endpoints = actions.SelectMany(action => action.GetCustomAttributes<HttpMethodAttribute>()
             .SelectMany(attribute => attribute.HttpMethods.Select(verb => $"{action.Name}:{verb}"))).Order().ToArray();
-        Assert.Equal(new[] { "Audit:GET", "Courses:GET", "CreateTeacher:GET", "CreateTeacher:POST", "Enrollments:GET", "Index:GET",
-            "Transactions:GET", "UpdateUser:POST", "Users:GET" }, endpoints);
+        Assert.Equal(new[] { "Audit:GET", "Courses:GET", "CreateTeacher:GET", "CreateTeacher:POST", "CreateUser:GET", "CreateUser:POST", "Enrollments:GET", "Index:GET",
+            "Revenue:GET", "Transactions:GET", "UpdateUser:POST", "Users:GET" }, endpoints);
         foreach (var action in actions)
         {
             Assert.False(action.IsDefined(typeof(AllowAnonymousAttribute)));
@@ -88,7 +88,8 @@ public sealed class SecurityConfigurationTests
     public void AdminProjections_ExcludeIdentitySecretsAndAssessmentAnswers()
     {
         var properties = new[] { typeof(AdminUser), typeof(AdminTransaction), typeof(AdminAudit), typeof(AdminChangeResult),
-            typeof(AdminDashboardSummary), typeof(AdminCourseOverview), typeof(AdminEnrollmentOverview) }
+            typeof(AdminDashboardSummary), typeof(AdminCourseOverview), typeof(AdminEnrollmentOverview),
+            typeof(AdminRevenueReport), typeof(AdminRevenueSummary), typeof(AdminRevenuePeriod) }
             .SelectMany(t => t.GetProperties()).Select(p => p.Name);
         Assert.DoesNotContain(properties, p => p.Contains("Password", StringComparison.OrdinalIgnoreCase) || p.Contains("Secret", StringComparison.OrdinalIgnoreCase) || p is "IsCorrect" or "SecurityStamp" or "ConcurrencyStamp");
     }

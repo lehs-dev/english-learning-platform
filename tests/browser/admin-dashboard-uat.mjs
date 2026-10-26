@@ -46,17 +46,30 @@ try {
     await page.evaluate(() => document.fonts.ready);
   }
 
+  await visit('/Admin');
+  assert.equal(await page.locator('.admin-summary > article').count(), 4);
+  assert.equal(await page.locator('.admin-shortcuts').count(), 0);
+  assert.equal(await page.locator('[data-month-revenue]').count(), 1);
+  assert.equal(await page.locator('[data-metric="admins"]').count(), 1);
+  const reportLink = page.locator('.admin-stat-revenue a');
+  const destination = new URL(await reportLink.getAttribute('href'), baseURL);
+  const displayed = (await page.locator('[data-month-revenue]').innerText()).replace(/\s/g, '');
+  await visit(destination.pathname + destination.search);
+  assert.equal((await page.locator('[data-revenue-currency="VND"] h2').innerText()).replace(/\s/g, ''), displayed);
+  report.checks.push({ name: 'Four compact KPIs, Admin count and current-month revenue match report', passed: true });
+
   // Scope action links to their metric, because headings intentionally provide the same destinations.
   for (const [metric, route, filter, value] of [
     ['students', '/Admin/Users', 'role', 'Student'],
     ['teachers', '/Admin/Users', 'role', 'Teacher'],
+    ['admins', '/Admin/Users', 'role', 'Admin'],
     ['courses', '/Admin/Courses', 'status', ''],
     ['draft-courses', '/Admin/Courses', 'status', 'Draft'],
     ['enrollments', '/Admin/Enrollments', 'completed', ''],
     ['completed-enrollments', '/Admin/Enrollments', 'completed', 'true']
   ]) {
     await visit('/Admin');
-    const tile = page.locator('.admin-metrics > div').filter({ has: page.locator(`[data-metric="${metric}"]`) });
+    const tile = page.locator('[data-dashboard-tile]').filter({ has: page.locator(`[data-metric="${metric}"]`) });
     assert.equal(await tile.count(), 1, `${metric}: unique metric tile`);
     const dashboardTotal = Number((await tile.locator(`[data-metric="${metric}"]`).innerText()).trim());
     assert.ok(Number.isSafeInteger(dashboardTotal) && dashboardTotal >= 0, `${metric}: integer count`);
@@ -75,13 +88,13 @@ try {
     report.checks.push({ name: `${metric} drilldown`, passed: true, total: dashboardTotal, route, filter: { [filter]: value } });
   }
 
-  const expectedNavigation = ['/Admin', '/Admin/Transactions', '/Admin/Users', '/Admin/Courses', '/Admin/Enrollments', '/Admin/Audit', '/Courses'];
+  const expectedNavigation = ['/Admin', '/Admin/Transactions', '/Admin/Users', '/Admin/Courses', '/Admin/Enrollments', '/Admin/Revenue', '/Admin/Audit', '/Courses'];
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: width >= 1000 ? 1000 : 844 });
     for (const [route, name] of [['/Admin', 'dashboard'], ['/Admin/Courses', 'courses'], ['/Admin/Enrollments', 'enrollments']]) {
       await visit(route);
       const navigation = page.locator('#admin-sidebar .admin-nav-link');
-      assert.equal(await navigation.count(), 7, `${route}: seven sidebar destinations`);
+      assert.equal(await navigation.count(), expectedNavigation.length, `${route}: sidebar destinations`);
       const destinations = await navigation.evaluateAll(links => links.map(link => new URL(link.href).pathname));
       assert.deepEqual(destinations, expectedNavigation, `${route}: sidebar destinations`);
       assert.equal(await page.locator('#admin-sidebar .admin-nav-link[aria-current="page"]').count(), 1, `${route}: one active sidebar item`);

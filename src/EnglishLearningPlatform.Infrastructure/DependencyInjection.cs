@@ -121,6 +121,7 @@ public static class DependencyInjection
         services.AddScoped<IExamScoringService, ExamScoringService>();
         services.AddScoped<IAdminQueryService, AdminQueryService>();
         services.AddScoped<IAdminDashboardQueryService, AdminDashboardQueryService>();
+        services.AddScoped<IAdminRevenueQueryService, AdminRevenueQueryService>();
         services.AddScoped<IAdminOverviewDetailQueryService, AdminOverviewDetailQueryService>();
         services.AddScoped<IAdminManagementService, AdminManagementService>();
         services.AddScoped<IStudentLearningService, StudentLearningService>();

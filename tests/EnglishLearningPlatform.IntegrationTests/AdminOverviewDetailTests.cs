@@ -14,6 +14,52 @@ namespace EnglishLearningPlatform.IntegrationTests;
 public sealed class AdminOverviewDetailTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
     [Fact]
+    public async Task Courses_FilterVietnamCreationDates_AndRankCourseAndTeacherPopularityInSql()
+    {
+        var admin=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Admin);
+        var teacherA=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Teacher);
+        var teacherB=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Teacher);
+        var students=new List<Guid>();
+        for(var i=0;i<3;i++)students.Add((await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Student)).Id);
+        using var scope=factory.Services.CreateScope();
+        var db=scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var service=scope.ServiceProvider.GetRequiredService<IAdminOverviewDetailQueryService>();
+        var marker=$"rank-{Guid.NewGuid():N}";
+        var start=new DateTimeOffset(2026,10,23,0,0,0,TimeSpan.FromHours(7));
+        var end=start.AddDays(1);
+        var before=new Course{Title=marker+"-before",OwnerTeacherUserId=teacherA.Id,CreatedAtUtc=start.AddTicks(-1)};
+        var popular=new Course{Title=marker+"-popular",OwnerTeacherUserId=teacherA.Id,CreatedAtUtc=start};
+        var newest=new Course{Title=marker+"-newest",OwnerTeacherUserId=teacherB.Id,CreatedAtUtc=end.AddTicks(-1)};
+        var outside=new Course{Title=marker+"-outside",OwnerTeacherUserId=teacherB.Id,CreatedAtUtc=end};
+        db.Courses.AddRange(before,popular,newest,outside);
+        foreach(var student in students.Take(2))db.Enrollments.Add(new(){Course=popular,StudentUserId=student});
+        db.Enrollments.Add(new(){Course=newest,StudentUserId=students[0]});
+        foreach(var student in students)db.Enrollments.Add(new(){Course=outside,StudentUserId=student});
+        await db.SaveChangesAsync();
+        var dates=new AdminDateRange(new(2026,10,23),new(2026,10,23));
+        foreach(var pair in new[]{(AdminCourseSort.Newest,newest.Id),(AdminCourseSort.Popular,popular.Id),(AdminCourseSort.TeacherPopular,newest.Id)})
+        {
+            var result=(await service.CoursesAsync(admin.Id,marker,CourseStatus.Draft,1,dates:dates,sort:pair.Item1))!;
+            Assert.Equal(2,result.Total);
+            Assert.Equal(pair.Item2,result.Items[0].Id);
+            Assert.DoesNotContain(result.Items,c=>c.Id==before.Id||c.Id==outside.Id);
+            Assert.Equal(4,Assert.Single(result.Items,c=>c.Id==newest.Id).TeacherEnrollmentCount);
+            Assert.Equal(2,Assert.Single(result.Items,c=>c.Id==popular.Id).EnrollmentCount);
+        }
+        await Assert.ThrowsAsync<ArgumentException>(()=>service.CoursesAsync(admin.Id,marker,null,1,dates:new(new(2026,10,24),new(2026,10,23))));
+        await Assert.ThrowsAsync<ArgumentException>(()=>service.CoursesAsync(admin.Id,marker,null,1,sort:(AdminCourseSort)99));
+        using var client=IdentityTestHelpers.CreateClient(factory);
+        using var login=await IdentityTestHelpers.LoginAsync(client,admin);
+        var html=await client.GetStringAsync($"/Admin/Courses?search={marker}&fromDate=2026-10-23&toDate=2026-10-23&sort=Popular");
+        Assert.Contains(popular.Title,html);
+        Assert.DoesNotContain(outside.Title,html);
+        var invalid=await client.GetStringAsync("/Admin/Courses?fromDate=2026-10-24&toDate=2026-10-23");
+        Assert.Contains("validation-summary-errors",invalid);
+        using var invalidSort=await client.GetAsync("/Admin/Courses?sort=99");
+        Assert.Equal(HttpStatusCode.BadRequest,invalidSort.StatusCode);
+    }
+
+    [Fact]
     public async Task Courses_CombineSearchAndStatus_BeforeStablePaging_AndShowHistoricalEnrollmentCounts()
     {
         var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
@@ -68,14 +114,52 @@ public sealed class AdminOverviewDetailTests(IntegrationTestFactory factory) : I
 
         using var client = IdentityTestHelpers.CreateClient(factory);
         using var login = await IdentityTestHelpers.LoginAsync(client, admin);
-        using var response = await client.GetAsync($"/Admin/Courses?search={marker}&status=Draft");
+        using var response = await client.GetAsync($"/Admin/Courses?search={marker}&status=Draft&fromDate=2026-10-24&toDate=2026-10-24&sort=Newest");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.Headers.CacheControl!.NoStore);
         var html = await response.Content.ReadAsStringAsync();
-        var next = NextPage(html, $"search={marker}", "status=Draft");
+        var next = NextPage(html, $"search={marker}", "status=Draft", "fromDate=2026-10-24", "toDate=2026-10-24", "sort=Newest");
         var nextHtml = await client.GetStringAsync(next);
         Assert.Contains(second.Items.Single().Title, nextHtml);
         Assert.DoesNotContain(wrongSearch.Title, html + nextHtml);
+    }
+
+    [Fact]
+    public async Task Enrollments_FilterVietnamEnrollmentDay_IncludeBothBoundaries_AndRejectInvalidRange()
+    {
+        var admin=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Admin);
+        var teacher=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Teacher);
+        using var scope=factory.Services.CreateScope();
+        var db=scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var service=scope.ServiceProvider.GetRequiredService<IAdminOverviewDetailQueryService>();
+        var course=new Course{Title=$"date-enroll-{Guid.NewGuid():N}",OwnerTeacherUserId=teacher.Id};
+        var start=new DateTimeOffset(2026,10,22,17,0,0,TimeSpan.Zero);
+        var times=new[]{start.AddTicks(-1),start,start.AddDays(1).AddTicks(-1),start.AddDays(1)};
+        var rows=new List<Enrollment>();
+        foreach(var time in times)
+        {
+            var student=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Student);
+            var enrollment=new Enrollment{Course=course,StudentUserId=student.Id,EnrolledAtUtc=time,CompletedAtUtc=time.AddDays(2)};
+            db.Enrollments.Add(enrollment);rows.Add(enrollment);
+        }
+        await db.SaveChangesAsync();
+        var dates=new AdminDateRange(new(2026,10,23),new(2026,10,23));
+        var result=(await service.EnrollmentsAsync(admin.Id,course.Title,true,1,courseId:course.Id,dates:dates))!;
+        Assert.Equal(new[]{rows[1].Id,rows[2].Id}.Order(),result.Items.Select(e=>e.Id).Order());
+        Assert.Equal(2,result.Total);
+        Assert.Equal(3,(await service.EnrollmentsAsync(admin.Id,null,null,1,courseId:course.Id,dates:new(new(2026,10,23),null)))!.Total);
+        Assert.Equal(3,(await service.EnrollmentsAsync(admin.Id,null,null,1,courseId:course.Id,dates:new(null,new(2026,10,23))))!.Total);
+        await Assert.ThrowsAsync<ArgumentException>(()=>service.EnrollmentsAsync(admin.Id,null,null,1,dates:new(new(2026,10,24),new(2026,10,23))));
+        using var client=IdentityTestHelpers.CreateClient(factory);
+        using var login=await IdentityTestHelpers.LoginAsync(client,admin);
+        foreach(var invalid in new[]{"fromDate=2026-10-24&toDate=2026-10-23","fromDate=bad","toDate=9999-12-31"})
+        {
+            using var response=await client.GetAsync($"/Admin/Enrollments?{invalid}");
+            Assert.Equal(HttpStatusCode.OK,response.StatusCode);
+            var html=await response.Content.ReadAsStringAsync();
+            Assert.Contains("validation-summary-errors",html);
+            Assert.DoesNotContain(course.Title,html);
+        }
     }
 
     [Fact]
@@ -134,11 +218,11 @@ public sealed class AdminOverviewDetailTests(IntegrationTestFactory factory) : I
 
         using var client = IdentityTestHelpers.CreateClient(factory);
         using var login = await IdentityTestHelpers.LoginAsync(client, admin);
-        using var response = await client.GetAsync($"/Admin/Enrollments?search={marker}&completed=true&courseId={course.Id}");
+        using var response = await client.GetAsync($"/Admin/Enrollments?search={marker}&completed=true&courseId={course.Id}&fromDate=2026-10-24&toDate=2026-10-24");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.Headers.CacheControl!.NoStore);
         var html = await response.Content.ReadAsStringAsync();
-        var next = NextPage(html, $"search={marker}", "completed=True", $"courseId={course.Id}");
+        var next = NextPage(html, $"search={marker}", "completed=True", $"courseId={course.Id}", "fromDate=2026-10-24", "toDate=2026-10-24");
         var nextHtml = await client.GetStringAsync(next);
         Assert.Contains(second.Items.Single().StudentName, nextHtml);
         Assert.DoesNotContain("Unrelated student", html + nextHtml);

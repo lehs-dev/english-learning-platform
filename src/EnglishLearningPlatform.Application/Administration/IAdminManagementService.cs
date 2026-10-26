@@ -4,6 +4,7 @@ namespace EnglishLearningPlatform.Application.Administration;
 
 public interface IAdminManagementService
 {
+    Task<AdminChangeResult> CreateUserAsync(Guid actorId, string name, string email, string password, string role, CancellationToken ct = default);
     Task<AdminChangeResult> CreateTeacherAsync(Guid actorId, string name, string email, string password, CancellationToken ct = default);
     Task<AdminChangeResult> UpdateUserAsync(Guid actorId, Guid targetId, string role, AccountStatus status, CancellationToken ct = default);
     Task<AdminPage<AdminAudit>?> AuditAsync(Guid actorId, string? search, int page, CancellationToken ct = default);

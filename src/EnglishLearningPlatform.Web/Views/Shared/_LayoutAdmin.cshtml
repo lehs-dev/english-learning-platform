@@ -6,11 +6,13 @@
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
     var isTransactions = isAdminPage && string.Equals(currentAction, "Transactions", StringComparison.OrdinalIgnoreCase);
     var isUsers = isAdminPage && (string.Equals(currentAction, "Users", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(currentAction, "CreateUser", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(currentAction, "CreateTeacher", StringComparison.OrdinalIgnoreCase));
     var isOverview = isAdminPage && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
     var isAudit = isAdminPage && string.Equals(currentAction, "Audit", StringComparison.OrdinalIgnoreCase);
     var isAdminCourses = isAdminPage && string.Equals(currentAction, "Courses", StringComparison.OrdinalIgnoreCase);
     var isEnrollments = isAdminPage && string.Equals(currentAction, "Enrollments", StringComparison.OrdinalIgnoreCase);
+    var isRevenue = isAdminPage && string.Equals(currentAction, "Revenue", StringComparison.OrdinalIgnoreCase);
     var title = ViewData["Title"] as string ?? "Quản trị";
 }
 <!DOCTYPE html>
@@ -68,6 +70,9 @@
                     <a class="admin-nav-link @(isEnrollments ? "is-active" : "")" asp-controller="Admin" asp-action="Enrollments" aria-current="@(isEnrollments ? "page" : null)">
                         <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><span>Lượt đăng ký</span>
                     </a>
+                    <a class="admin-nav-link @(isRevenue ? "is-active" : "")" asp-controller="Admin" asp-action="Revenue" aria-current="@(isRevenue ? "page" : null)">
+                        <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><span>Doanh thu</span>
+                    </a>
                     <a class="admin-nav-link @(isAudit ? "is-active" : "")"
                        asp-controller="Admin" asp-action="Audit"
                        aria-current="@(isAudit ? "page" : null)">
@@ -83,7 +88,7 @@
                        asp-action="Index"
                        aria-current="@(isCatalog ? "page" : null)">
                         <svg class="admin-nav-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
-                        <span>Xem danh mục khóa học</span>
+                        <span>Xem danh mục công khai</span>
                     </a>
                 </div>
             </nav>
