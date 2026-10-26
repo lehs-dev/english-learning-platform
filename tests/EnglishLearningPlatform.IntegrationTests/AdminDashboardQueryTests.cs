@@ -12,6 +12,34 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class AdminDashboardQueryTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
+    private async Task VerifyMonthRevenueMatchesReportAsync()
+    {
+        var admin=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Admin);
+        var teacher=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Teacher);
+        var student=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Student);
+        using var scope=factory.Services.CreateScope();
+        var db=scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var today=DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var start=new DateTimeOffset(today.Year,today.Month,1,0,0,0,TimeSpan.FromHours(7));
+        var course=new Course{Title="Dashboard revenue reconciliation",OwnerTeacherUserId=teacher.Id};
+        void Add(decimal amount,DateTimeOffset paid,string currency="VND",bool duplicate=false)
+        {
+            var order=new Order{Course=course,StudentUserId=student.Id,Amount=amount,Currency=currency,CreatedAtUtc=paid};
+            db.Payments.Add(new(){Order=order,Amount=amount,Status=PaymentStatus.Succeeded,PaidAtUtc=paid,ProviderTransactionId=$"dashboard-report-{Guid.NewGuid():N}"});
+            if(duplicate)db.Payments.Add(new(){Order=order,Amount=amount,Status=PaymentStatus.Succeeded,PaidAtUtc=paid,ProviderTransactionId=$"dashboard-report-{Guid.NewGuid():N}"});
+        }
+        Add(199000,start,duplicate:true);Add(99999,start.AddTicks(-1));Add(15,start,"USD");
+        await db.SaveChangesAsync();
+        using var client=IdentityTestHelpers.CreateClient(factory);
+        using var login=await IdentityTestHelpers.LoginAsync(client,admin);
+        var html=WebUtility.HtmlDecode(await client.GetStringAsync("/Admin"));
+        Assert.Contains("data-month-revenue>199.000 <small>",html);
+        Assert.Contains($"Doanh thu tháng {today:MM/yyyy}",html);
+        Assert.Contains(today.Day==1?$"Ngày {today:dd/MM/yyyy}":$"Từ 01/{today:MM/yyyy} đến hết {today:dd/MM/yyyy}",html);
+        Assert.DoesNotContain("Công việc quản trị",html);
+        Assert.DoesNotContain("Tài khoản đã khóa</p>",html);
+    }
+
     [Fact]
     public async Task Dashboard_CountsEmptyThenMixedData_InSql_WithoutCountingPaymentRetriesTwice()
     {
@@ -21,7 +49,7 @@ public sealed class AdminDashboardQueryTests(IntegrationTestFactory factory) : I
         var service = scope.ServiceProvider.GetRequiredService<IAdminDashboardQueryService>();
         // A permitted caller must exist; all business tables and Student/Teacher roles are empty.
         var empty = await service.GetAsync(admin.Id);
-        Assert.Equal(new AdminDashboardSummary(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), empty);
+        Assert.Equal(new AdminDashboardSummary(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, Admins: 1), empty);
         Assert.Null(empty!.CompletionRate);
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
@@ -56,7 +84,7 @@ public sealed class AdminDashboardQueryTests(IntegrationTestFactory factory) : I
         await db.SaveChangesAsync();
         var trackedBefore = db.ChangeTracker.Entries().Count();
         var result = await service.GetAsync(admin.Id);
-        Assert.Equal(new AdminDashboardSummary(5, 1, 1, 2, 2, 4, 1, 1, 3, 2, 4, 1, 1, 1), result);
+        Assert.Equal(new AdminDashboardSummary(5, 1, 1, 2, 2, 4, 1, 1, 3, 2, 4, 1, 1, 1, 1), result);
         Assert.Equal(66.7m, result!.CompletionRate);
         Assert.Equal(1, result.IncompleteEnrollments);
         Assert.Equal(trackedBefore, db.ChangeTracker.Entries().Count());
@@ -67,7 +95,7 @@ public sealed class AdminDashboardQueryTests(IntegrationTestFactory factory) : I
         Assert.True(response.Headers.CacheControl!.NoStore);
         var html = await response.Content.ReadAsStringAsync();
         foreach (var (metric, count) in new[] { ("students", 2), ("teachers", 2), ("courses", 4),
-            ("draft-courses", 1), ("enrollments", 3), ("completed-enrollments", 2), ("succeeded-orders", 1) })
+            ("draft-courses", 1), ("enrollments", 3), ("completed-enrollments", 2), ("succeeded-orders", 1), ("admins", 1) })
             Assert.Contains($"data-metric=\"{metric}\">{count}</dd>", html);
         Assert.Contains("data-metric=\"published-courses\">1</span>", html);
         Assert.Contains("href=\"/Admin/Courses?status=Draft\"", html);
@@ -80,6 +108,7 @@ public sealed class AdminDashboardQueryTests(IntegrationTestFactory factory) : I
             Assert.Contains($"value=\"{role}\" selected=\"selected\"", list);
             Assert.Contains("class=\"admin-count\">2</span>", list);
         }
+        await VerifyMonthRevenueMatchesReportAsync();
     }
 
 }
