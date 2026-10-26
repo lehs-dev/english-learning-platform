@@ -72,10 +72,8 @@ try {
   assert.doesNotMatch(await page.locator('.question-bank-table thead').innerText(), /Độ khó/);
   report.desktop = true;
   const toggle = page.locator('[data-sidebar-toggle]');
-  await toggle.click();
-  assert.equal(await toggle.getAttribute('aria-expanded'), 'true');
-  await page.keyboard.press('Escape');
-  assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(await toggle.isVisible(), false);
+  assert.ok(await page.locator('#studio-sidebar').isVisible());
   report.navigation = true;
 
   await page.setViewportSize({ width: 390, height: 844 });

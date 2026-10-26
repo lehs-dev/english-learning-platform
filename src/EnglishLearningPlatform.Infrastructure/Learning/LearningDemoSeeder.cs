@@ -178,7 +178,7 @@ public static class LearningDemoSeeder
         OrderIndex = order, Points = 1,
         Question = new Question
         {
-            OwnerTeacherUserId = teacherId, Content = content, PrimarySkill = skill, Level = "Beginner",
+            OwnerTeacherUserId = teacherId, Content = content, PrimarySkill = skill, Level = "A1",
             Explanation = explanation, Status = QuestionStatus.Published,
             Options = options.Select((option, index) => new QuestionOption
             {

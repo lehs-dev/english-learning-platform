@@ -404,16 +404,10 @@ public sealed class TeacherPracticeCreateWebTests : IClassFixture<IntegrationTes
         using var response = await PostAsync(client, courseId, form);
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        if (parent is "Lesson" or "Module")
-            Assert.Equal("/TeacherCourses/Manage/" + own.CourseId, response.Headers.Location!.ToString());
-        else
-        {
-            Assert.StartsWith("/TeacherCourses", response.Headers.Location!.ToString());
-            Assert.DoesNotContain("/Manage", response.Headers.Location.ToString());
-        }
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var saved = Assert.Single(await db.Practices.AsNoTracking().Where(p => p.OwnerTeacherUserId == own.Teacher.Id).ToListAsync());
+        Assert.Equal("/TeacherPracticeQuestions/Index/" + saved.Id, response.Headers.Location!.ToString());
         Assert.Equal(PracticeStatus.Draft, saved.Status);
         Assert.Equal("My new draft", saved.Title);
         Assert.Equal("Description", saved.Description);

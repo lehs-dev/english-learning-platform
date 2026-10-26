@@ -951,6 +951,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
             latest.Answers.Select(a => a.SelectedOptionId).OrderBy(id => id));
     }
 
+
     [Fact]
     public async Task Practice_ConcurrentRetakesKeepOneConsistentLatestSubmission()
     {

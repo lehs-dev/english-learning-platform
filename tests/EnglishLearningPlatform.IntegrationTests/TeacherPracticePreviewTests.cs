@@ -37,7 +37,7 @@ public sealed class TeacherPracticePreviewTests(IntegrationTestFactory factory) 
             Assert.DoesNotContain("PRIVATE_EXPLANATION", html);
             Assert.DoesNotContain("data-practice-form", html);
             Assert.DoesNotContain("/Practice/Submit", html);
-            Assert.DoesNotContain("name=\"__RequestVerificationToken\"", html.Split("Preview Practice</h1>").Last().Split("</main>").First());
+            Assert.DoesNotContain("name=\"__RequestVerificationToken\"", html.Split("id=\"main-content\"").Last().Split("</main>").First());
             using var scope = factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var result = await scope.ServiceProvider.GetRequiredService<ITeacherPracticePreviewService>().GetAsync(data.Teacher.Id, data.Id);

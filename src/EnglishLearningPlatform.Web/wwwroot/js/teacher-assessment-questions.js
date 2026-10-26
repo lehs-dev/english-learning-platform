@@ -15,10 +15,16 @@
     function refresh() {
         var rows = list.querySelectorAll("[data-selected-row]");
         var ids = [];
+        var total = 0;
+        var validPoints = true;
 
         for (var index = 0; index < rows.length; index++) {
             var row = rows[index];
             ids.push(row.querySelector("[data-question-id]").value);
+            row.querySelector("[data-question-number]").textContent = "Câu " + (index + 1);
+            var points = row.querySelector("[data-points]");
+            validPoints = validPoints && points.validity.valid;
+            total += Number(points.value);
 
             row.querySelector("[data-points]").disabled = saving;
             row.querySelector('[data-action="up"]').disabled =
@@ -35,6 +41,10 @@
         }
 
         empty.hidden = rows.length > 0;
+        document.querySelector("[data-selected-count]").textContent = rows.length;
+        document.querySelector("[data-question-count]").textContent = rows.length;
+        document.querySelector("[data-total-points]").textContent = validPoints && Number.isFinite(total)
+            ? total.toLocaleString("vi-VN", { maximumFractionDigits: 2 }) : "—";
         save.disabled = saving;
     }
 
@@ -49,6 +59,7 @@
         var row = document.createElement("li");
         row.setAttribute("data-selected-row", "");
         row.innerHTML =
+            '<span class="ta-question-number" data-question-number></span>' +
             '<input type="hidden" data-question-id />' +
             '<p class="preserve" data-content></p>' +
             '<label>Điểm ' +
@@ -185,7 +196,7 @@
     document.querySelector("[data-search-form]")
         .addEventListener("submit", guardNavigation);
 
-    for (var link of document.querySelectorAll("[data-page]")) {
+    for (var link of document.querySelectorAll("[data-page], [data-editor-navigation]")) {
         link.addEventListener("click", guardNavigation);
     }
 

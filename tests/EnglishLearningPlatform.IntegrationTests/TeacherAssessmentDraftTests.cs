@@ -336,6 +336,32 @@ public sealed class TeacherAssessmentDraftTests : IClassFixture<IntegrationTestF
         Assert.Null((await ReadAsync(id)).UpdatedAtUtc);
     }
 
+    [Fact]
+    public async Task Http_ListFilters_CombineSearchTypeAndStatusWithoutExposingAnotherTeacher()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);
+        var other = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Assessments.AddRange(
+            new AssessmentEntity { OwnerTeacherUserId = teacher.Id, DurationMinutes = 20, MaxAttempts = 2, Title = "Grammar match", AssessmentType = AssessmentType.PracticeExam, Status = AssessmentStatus.Draft },
+            new AssessmentEntity { OwnerTeacherUserId = teacher.Id, DurationMinutes = 20, MaxAttempts = 2, Title = "Grammar published", AssessmentType = AssessmentType.PracticeExam, Status = AssessmentStatus.Published },
+            new AssessmentEntity { OwnerTeacherUserId = teacher.Id, DurationMinutes = 20, MaxAttempts = 2, Title = "Grammar placement", AssessmentType = AssessmentType.PlacementTest, Status = AssessmentStatus.Draft },
+            new AssessmentEntity { OwnerTeacherUserId = other.Id, DurationMinutes = 20, MaxAttempts = 2, Title = "Grammar foreign private", AssessmentType = AssessmentType.PracticeExam, Status = AssessmentStatus.Draft });
+        await db.SaveChangesAsync();
+        using var client = await LoginAsync(teacher);
+        using var response = await client.GetAsync(IndexPath + "?search=gRaMmAr&status=Draft&type=PracticeExam");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        string html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+        Assert.Contains("Grammar match", html);
+        Assert.DoesNotContain("Grammar published", html);
+        Assert.DoesNotContain("Grammar placement", html);
+        Assert.DoesNotContain("Grammar foreign private", html);
+        Assert.Single(Regex.Matches(html, "<article\\b[^>]*data-assessment-card"));
+        using var invalid = await client.GetAsync(IndexPath + "?status=999");
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+    }
+
     // Mỗi thao tác dùng scope mới như một request thật, tránh entity cache làm sai test.
     private async Task<WriteOutcome> SaveAsync(Guid actorId, Guid? id, AssessmentDraftRequest input)
     {
