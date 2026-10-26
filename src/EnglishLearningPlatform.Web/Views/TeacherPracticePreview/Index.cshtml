@@ -1,34 +1,38 @@
 @model EnglishLearningPlatform.Application.Practice.TeacherPracticePreview
 @{
     Layout = "_LayoutTeacher";
-    ViewData["Title"] = "Preview Practice";
+    ViewData["Title"] = "Xem trước bài luyện tập";
     ViewData["ActiveSection"] = "practices";
+    ViewData["PageClass"] = "teacher-practice-page";
 }
-@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+@section Styles {
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/teacher-practices.css" asp-append-version="true" />
+}
 
-<div class="page-heading">
-    <div><h1>Preview Practice</h1><p>@Model.Title</p></div>
+<nav class="practice-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-controller="TeacherPractices" asp-action="Index">Bài luyện tập</a><span aria-hidden="true">/</span><span aria-current="page">Xem trước</span></nav>
+<div class="practice-heading">
+    <div><h1>@Model.Title</h1><p>Xem nội dung bài luyện tập dưới góc nhìn của học viên.</p></div>
     <a class="button secondary" asp-controller="TeacherPracticeQuestions" asp-action="Index" asp-route-id="@Model.PracticeId">Về trang soạn câu hỏi</a>
 </div>
-<p class="notice" role="status">Đây là đề đã lưu. Bấm thử lựa chọn không lưu đáp án, không tạo lượt làm hoặc kết quả và không Publish Practice.</p>
-<section class="panel">
-    <h2>Cấu hình đã lưu</h2>
+<p class="practice-inline-note" role="status">Bạn đang xem bản đã lưu. Có thể thử chọn đáp án; lựa chọn chỉ hiển thị trong bản xem trước.</p>
+<section class="practice-preview-header">
+    <div class="practice-card-heading"><h2>Thông tin bài luyện tập</h2><span class="practice-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span></div>
     <dl class="assessment-details">
-        <div><dt>Trạng thái</dt><dd>@Model.Status</dd></div>
-        <div><dt>Nơi gắn</dt><dd>@Model.ParentTitle</dd></div>
+        <div><dt>Vị trí</dt><dd>@(Model.ParentTitle == "Chưa chọn Lesson hoặc Module" ? "Chưa chọn vị trí" : Model.ParentTitle)</dd></div>
         <div><dt>Số câu hỏi</dt><dd>@Model.Questions.Count câu</dd></div>
         <div><dt>Cách chấm</dt><dd>Các câu có trọng số bằng nhau; làm lại không giới hạn.</dd></div>
     </dl>
-    <p class="preserve">@Model.Description</p>
+    @if (!string.IsNullOrWhiteSpace(Model.Description)) { <p class="preserve">@Model.Description</p> }
 </section>
 @if (Model.Warnings.Count > 0)
 {
-    <section class="panel" aria-label="Các phần cần kiểm tra">
+    <section class="practice-card" aria-label="Các phần cần kiểm tra">
         <h2>Các phần cần kiểm tra</h2>
         <ul>@foreach (var warning in Model.Warnings) { <li>@warning</li> }</ul>
     </section>
 }
-<nav class="panel actions" aria-label="Điều hướng câu hỏi Preview">
+<nav class="practice-card practice-preview-nav" aria-label="Điều hướng câu hỏi xem trước">
     @for (int i = 0; i < Model.Questions.Count; i++)
     {
         <a class="button secondary" href="#preview-practice-@(i + 1)">Câu @(i + 1)</a>

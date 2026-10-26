@@ -81,6 +81,7 @@ async function postVisibleForm(page, selector) {
 
 async function createQuestion(page, number) {
   await page.goto('/TeacherQuestionBank/Create');
+  await page.locator('#Level').selectOption('A1');
   await page.locator('#Content').fill(`${runId} Grammar ${number}`);
   await page.locator('#PrimarySkill').selectOption('2');
   const options = page.locator('[data-option-row] input[name$=".Content"]');
@@ -95,10 +96,11 @@ async function createQuestion(page, number) {
 
 async function assertScopeLabels(page, assessmentId, courseTitle) {
   await page.goto('/TeacherAssessments');
-  const row = page.locator('tr').filter({ hasText: `${runId} PracticeExam` });
+  const row = page.locator('[data-assessment-card]').filter({ hasText: `${runId} PracticeExam` });
   assert.equal(await row.count(), 1);
-  assert.match(await row.innerText(), courseTitle ? new RegExp(courseTitle) : /Độc lập \(Independent\)/);
-  assert.equal(await row.getByRole('link', { name: 'Phạm vi / Course', exact: true }).count(), 1);
+  assert.match(await row.innerText(), courseTitle ? new RegExp(courseTitle) : /Bài độc lập/);
+  await row.locator('.ta-more-actions > summary').click();
+  assert.equal(await row.getByRole('link', { name: 'Phạm vi truy cập', exact: true }).count(), 1);
   await page.goto(`/TeacherAssessmentPreview/Index/${assessmentId}`);
   const scope = page.locator('.assessment-details > div').filter({ has: page.locator('dt', { hasText: 'Phạm vi' }) });
   assert.match(await scope.innerText(), courseTitle ? new RegExp(courseTitle) : /độc lập/i);
@@ -148,7 +150,7 @@ try {
     await otherTeacher.locator('[name="Input.Skills"][value="Grammar"]').check();
     // Free-course price is intentionally read-only and initialized to zero by the UI.
     assert.equal(await otherTeacher.locator('#Input_Price').inputValue(), '0');
-    await submit(otherTeacher, otherTeacher.getByRole('button', { name: 'Lưu khóa học', exact: true }));
+    await submit(otherTeacher, otherTeacher.getByRole('button', { name: 'Lưu và tiếp tục', exact: true }).last());
     assert.match(new URL(otherTeacher.url()).pathname, /\/TeacherCourses\/Manage\/[0-9a-f-]{36}$/i);
     foreignCourseId = new URL(otherTeacher.url()).pathname.split('/').pop();
   });
@@ -163,7 +165,7 @@ try {
     await submit(teacher, teacher.getByRole('button', { name: 'Lưu cấu hình', exact: true }));
     assessmentId = new URL(teacher.url()).pathname.split('/').pop();
     assert.match(assessmentId, /^[0-9a-f-]{36}$/i);
-    await teacher.goto(await teacher.getByRole('link', { name: 'Soạn câu hỏi và points', exact: true }).getAttribute('href'));
+    await teacher.goto(await teacher.getByRole('link', { name: 'Chọn câu hỏi và điểm', exact: true }).getAttribute('href'));
     await teacher.locator('#Search').fill(runId);
     await submit(teacher, teacher.getByRole('button', { name: 'Tìm / lọc', exact: true }));
     const add = teacher.locator('[data-add]');
@@ -171,13 +173,13 @@ try {
     for (let index = 0; index < 5; index++) await add.nth(index).click();
     await submit(teacher, teacher.locator('[data-save]'));
     await teacher.goto(`/TeacherAssessments/Edit/${assessmentId}`);
-    await submit(teacher, teacher.getByRole('button', { name: 'Publish đề đã lưu', exact: true }));
+    await submit(teacher, teacher.getByRole('button', { name: 'Xuất bản đề đã lưu', exact: true }));
     assert.equal(new URL(teacher.url()).pathname.toLowerCase(), '/teacherassessments');
     await assertScopeLabels(teacher, assessmentId, null);
     await teacher.goto(scopeUrl(assessmentId));
     assert.equal(await selectedCourse(teacher), '');
     assert.equal(await teacher.locator('[data-scope-editor]').getAttribute('data-can-change'), 'true');
-    assert.equal((await teacher.locator('[data-current-scope]').innerText()).trim(), 'Độc lập (Independent)');
+    assert.equal((await teacher.locator('[data-current-scope]').innerText()).trim(), 'Bài độc lập');
     const options = await teacher.locator('#Input_CourseId option').evaluateAll(items => items.map(item => ({ value: item.value, text: item.textContent })));
     freeCourseId = options.find(item => item.text.includes('Demo · Everyday English'))?.value;
     paidCourseId = options.find(item => item.text.includes('Demo · Business English'))?.value;
@@ -248,8 +250,9 @@ try {
 
   await runCase('existing-course-final-is-readonly', async () => {
     await teacher.goto('/TeacherAssessments');
-    const row = teacher.locator('tr').filter({ hasText: 'Demo · Bài thi cuối khóa Everyday English' });
-    await teacher.goto(await row.getByRole('link', { name: 'Phạm vi / Course', exact: true }).getAttribute('href'));
+    const row = teacher.locator('[data-assessment-card]').filter({ hasText: 'Demo · Bài thi cuối khóa Everyday English' });
+    await row.locator('.ta-more-actions > summary').click();
+    await teacher.goto(await row.getByRole('link', { name: 'Phạm vi truy cập', exact: true }).getAttribute('href'));
     assert.equal(await teacher.locator('#assessment-scope-form').count(), 0);
     assert.equal(await teacher.locator('[data-scope-editor]').getAttribute('data-is-final'), 'true');
     assert.match(await teacher.locator('[data-scope-lock]').innerText(), /Final/);

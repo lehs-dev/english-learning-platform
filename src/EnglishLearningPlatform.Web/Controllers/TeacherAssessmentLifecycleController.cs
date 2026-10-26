@@ -29,7 +29,7 @@ public sealed class TeacherAssessmentLifecycleController(ITeacherAssessmentLifec
         if (result.Access != LearningAccessResult.Allowed)
             return result.Access == LearningAccessResult.NotFound ? NotFound() : Forbid();
         TempData[result.Success ? "Success" : "Error"] = result.Success
-            ? "Đã đổi trạng thái đề; Attempt và kết quả đã có được giữ nguyên."
+            ? "Đã đổi trạng thái đề. Các lượt làm và kết quả hiện có được giữ nguyên."
             : string.Join("\n", result.Errors.Values.SelectMany(messages => messages));
         return RedirectToAction("Index", "TeacherAssessments");
     }

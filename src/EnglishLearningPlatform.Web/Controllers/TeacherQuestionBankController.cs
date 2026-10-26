@@ -45,7 +45,7 @@ public sealed class TeacherQuestionBankController : Controller
         {
             return NotFound(ModelState);
         }
-        ViewData["ActiveSection"] = "question-bank";
+        ViewData["ActiveSection"] = "questionbank";
         // Service kiểm tra tài khoản và quyền sở hữu trước khi trả dữ liệu.
         QuestionDetail? detail = await _questionQueryService.GetByIdAsync(actorUserId, id, cancellationToken);
         if (detail == null)
@@ -123,7 +123,7 @@ public sealed class TeacherQuestionBankController : Controller
         [FromQuery] QuestionSearchRequest query,
         CancellationToken cancellationToken)
     {
-        ViewData["ActiveSection"] = "question-bank";
+        ViewData["ActiveSection"] = "questionbank";
 
         // Lấy ID từ tài khoản đăng nhập, không lấy owner từ URL.
         string? userIdValue = User.FindFirstValue(
@@ -182,6 +182,8 @@ public sealed class TeacherQuestionBankController : Controller
             }
         }
 
+        query.Level = QuestionLevels.Normalize(query.Level);
+
         // Service chịu trách nhiệm ownership, lọc và phân trang.
         QuestionSearchResult? result =
             await _questionQueryService.SearchAsync(
@@ -211,7 +213,7 @@ public sealed class TeacherQuestionBankController : Controller
             return Challenge();
         }
 
-        ViewData["ActiveSection"] = "question-bank";
+        ViewData["ActiveSection"] = "questionbank";
         var stimuli = await _questionAuthoringService.GetStimuliAsync(CurrentUserId.Value, cancellationToken);
         var model = new QuestionFormViewModel
         {
@@ -231,15 +233,22 @@ public sealed class TeacherQuestionBankController : Controller
             return Challenge();
         }
 
-        ViewData["ActiveSection"] = "question-bank";
+        ViewData["ActiveSection"] = "questionbank";
         model.IsEdit = false;
+
+        if (!ModelState.IsValid)
+        {
+            var choices = await _questionAuthoringService.GetStimuliAsync(CurrentUserId.Value, cancellationToken);
+            model.Stimuli = choices.Select(s => new StimulusOptionViewModel { Id = s.Id, Type = s.Type, Title = s.Title }).ToList();
+            return View(model);
+        }
 
         var request = ToCreateRequest(model);
         var result = await _questionCreationService.CreateAsync(CurrentUserId.Value, request, cancellationToken);
 
         if (result.Succeeded)
         {
-            TempData["Success"] = "Đã tạo câu hỏi trong Question Bank.";
+            TempData["Success"] = "Đã tạo câu hỏi trong ngân hàng câu hỏi.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -267,7 +276,7 @@ public sealed class TeacherQuestionBankController : Controller
             return NotFound();
         }
 
-        ViewData["ActiveSection"] = "question-bank";
+        ViewData["ActiveSection"] = "questionbank";
         var editor = await _questionAuthoringService.GetEditorAsync(CurrentUserId.Value, id, cancellationToken);
         if (editor is null)
         {
@@ -295,7 +304,7 @@ public sealed class TeacherQuestionBankController : Controller
             return NotFound();
         }
 
-        ViewData["ActiveSection"] = "question-bank";
+        ViewData["ActiveSection"] = "questionbank";
         model.Id = id;
         model.IsEdit = true;
 
@@ -333,6 +342,16 @@ public sealed class TeacherQuestionBankController : Controller
                 if (!Request.Form.ContainsKey(nameof(model.CorrectOptionIndex)))
                     model.CorrectOptionIndex = editor.Options.Select((o, i) => (Option: o, Index: i)).FirstOrDefault(x => x.Option.IsCorrect).Index;
             }
+        }
+
+        if (!ModelState.IsValid)
+        {
+            var choices = await _questionAuthoringService.GetStimuliAsync(CurrentUserId.Value, cancellationToken);
+            model.Stimuli = choices.Select(s => new StimulusOptionViewModel { Id = s.Id, Type = s.Type, Title = s.Title }).ToList();
+            model.ScoringContentLocked = editor.ScoringContentLocked;
+            model.LockReason = editor.LockReason;
+            model.Status = editor.Status;
+            return View(model);
         }
 
         var request = ToCreateRequest(model);
@@ -380,8 +399,7 @@ public sealed class TeacherQuestionBankController : Controller
         {
             Content = model.Content?.Trim() ?? string.Empty,
             PrimarySkill = model.PrimarySkill,
-            Level = string.IsNullOrWhiteSpace(model.Level) ? null : model.Level.Trim(),
-            Difficulty = string.IsNullOrWhiteSpace(model.Difficulty) ? null : model.Difficulty.Trim(),
+            Level = QuestionLevels.Normalize(model.Level),
             Explanation = string.IsNullOrWhiteSpace(model.Explanation) ? null : model.Explanation.Trim(),
             StimulusId = model.StimulusId,
             Options = options
@@ -400,8 +418,7 @@ public sealed class TeacherQuestionBankController : Controller
             Id = editor.Id,
             Content = editor.Content,
             PrimarySkill = editor.PrimarySkill,
-            Level = editor.Level,
-            Difficulty = editor.Difficulty,
+            Level = QuestionLevels.Normalize(editor.Level),
             Explanation = editor.Explanation,
             StimulusId = editor.StimulusId,
             Status = editor.Status,
@@ -423,7 +440,6 @@ public sealed class TeacherQuestionBankController : Controller
                 nameof(CreateQuestionRequest.Content) => "Content",
                 nameof(CreateQuestionRequest.PrimarySkill) => "PrimarySkill",
                 nameof(CreateQuestionRequest.Level) => "Level",
-                nameof(CreateQuestionRequest.Difficulty) => "Difficulty",
                 nameof(CreateQuestionRequest.Explanation) => "Explanation",
                 nameof(CreateQuestionRequest.StimulusId) => "StimulusId",
                 nameof(CreateQuestionRequest.Options) => "Options",

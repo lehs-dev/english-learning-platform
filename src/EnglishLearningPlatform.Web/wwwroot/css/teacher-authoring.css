@@ -1,0 +1,198 @@
+﻿/* Shared visual tokens for course and question authoring; practice and assessment use the same palette. */
+:root {
+    --teacher-ink: #191a23;
+    --teacher-muted: #706b80;
+    --teacher-canvas: #faf9fe;
+    --teacher-surface-soft: #f8f6fc;
+    --teacher-border: #e5e1ee;
+    --teacher-border-strong: #d8d1e3;
+    --teacher-accent-soft: #eeebfb;
+    --teacher-accent-border: #d4c6e8;
+    --teacher-accent-ink: #6f5298;
+    --teacher-action: #191a23;
+    --teacher-action-hover: #373443;
+}
+.teacher-authoring-theme {
+    --primary: var(--teacher-action); --primary-dark: var(--teacher-action-hover); --primary-soft: var(--teacher-accent-soft);
+    --ink: var(--teacher-ink); --text-secondary: var(--teacher-muted); --border: var(--teacher-border); --border-strong: var(--teacher-border-strong);
+    --sidebar-width: 240px;
+    --teacher-course-blue: var(--teacher-accent-ink); --teacher-course-ink: var(--teacher-ink); --teacher-course-muted: var(--teacher-muted); --teacher-course-border: var(--teacher-border);
+    --course-blue: var(--teacher-accent-ink); --course-ink: var(--teacher-ink); --course-muted: var(--teacher-muted); --course-line: var(--teacher-border);
+    --manage-blue: var(--teacher-accent-ink); --manage-ink: var(--teacher-ink); --manage-muted: var(--teacher-muted); --manage-border: var(--teacher-border);
+    --module-blue: var(--teacher-accent-ink); --module-ink: var(--teacher-ink); --module-muted: var(--teacher-muted); --module-border: var(--teacher-border);
+    --final-blue: var(--teacher-accent-ink); --final-ink: var(--teacher-ink); --final-muted: var(--teacher-muted); --final-border: var(--teacher-border);
+}
+.teacher-authoring-theme .studio-main-wrapper { background: var(--teacher-canvas); }
+.teacher-authoring-theme .studio-main { width: 100%; max-width: 1600px; margin-inline: auto; padding: 28px 32px 40px; }
+.teacher-authoring-theme .studio-notifications { width: 100%; max-width: 1600px; margin-inline: auto; padding: 20px 32px 0; }
+.teacher-authoring-theme .studio-topbar { display: flex; min-height: 68px; padding: 12px 32px; border-color: var(--teacher-border); }
+.teacher-authoring-theme .studio-topbar-title { color: var(--teacher-ink); font-size: 14px; }
+.teacher-authoring-theme .site-footer { display: block; }
+.teacher-authoring-theme .studio-create-cta { display: none; }
+.teacher-authoring-theme .studio-brand, .teacher-authoring-theme .studio-brand .brand-icon { color: var(--teacher-ink); }
+.teacher-authoring-theme .studio-nav-link.is-active { background: var(--teacher-action); color: #fff; box-shadow: 0 4px 14px #191a2320; }
+.teacher-authoring-theme .studio-nav-link { border-radius: 12px; }
+.teacher-authoring-theme .button { gap: 8px; min-height: 42px; padding: 10px 16px; border: 1px solid var(--teacher-action); border-radius: 10px; background: var(--teacher-action); color: #fff; box-shadow: none; font-size: 13px; font-weight: 600; text-align: center; white-space: normal; }
+.teacher-authoring-theme .button:hover { border-color: var(--teacher-action-hover); background: var(--teacher-action-hover); color: #fff; transform: none; }
+.teacher-authoring-theme .button.secondary { border-color: var(--teacher-border-strong); background: #fff; color: var(--teacher-ink); box-shadow: none; }
+.teacher-authoring-theme .button.secondary:hover { border-color: #beb2d7; background: #f5f2fc; color: var(--teacher-ink); }
+.teacher-authoring-theme .button:disabled { opacity: .45; cursor: not-allowed; }
+.teacher-authoring-theme :where(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid #907acf; outline-offset: 3px; }
+.teacher-authoring-theme :is(.page-heading, .teacher-courses-heading, .course-editor-heading) { align-items: center; gap: 24px; margin-bottom: 24px; }
+.teacher-authoring-theme :is(.page-heading, .teacher-courses-heading, .course-editor-title) h1 { margin: 0; color: var(--teacher-ink); font-size: clamp(25px, 2.3vw, 34px); line-height: 1.35; font-weight: 800; letter-spacing: -.7px; }
+.teacher-authoring-theme :is(.page-heading, .teacher-courses-heading, .course-editor-heading) p { margin: 8px 0 0; color: var(--teacher-muted); font-size: 14px; line-height: 1.7; }
+.teacher-authoring-theme .page-heading > div { min-width: 0; }
+.teacher-authoring-theme .page-heading .actions { flex-wrap: wrap; gap: 10px; margin: 0; }
+.teacher-breadcrumb, .teacher-authoring-theme :is(.teacher-courses-breadcrumb, .course-editor-breadcrumb, .question-editor-breadcrumb) { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; color: var(--teacher-muted); font-size: 12px; font-weight: 400; }
+.teacher-breadcrumb a { color: inherit; text-decoration: none; }
+.teacher-breadcrumb a:hover { text-decoration: underline; }
+.teacher-intro { display: flex; align-items: center; gap: 18px; margin-bottom: 24px; padding: 24px; border: 1px solid #e0d9f4; border-radius: 18px; background: #eae5fb; }
+.teacher-intro h2 { margin: 0 0 7px; color: var(--teacher-ink); font-size: 18px; line-height: 1.4; }
+.teacher-intro p { margin: 0; color: #625776; font-size: 13px; line-height: 1.7; }
+.teacher-intro-emblem { display: grid; place-items: center; flex: 0 0 56px; width: 56px; height: 56px; border: 1px solid #d4c9e9; border-radius: 15px; background: #ffffffb3; color: #4c386c; }
+.teacher-intro-emblem .icon { width: 27px; height: 27px; }
+.teacher-intro-count { display: flex; flex-direction: column; flex-shrink: 0; margin-left: auto; padding-left: 24px; border-left: 1px solid #d5cce7; color: #746686; font-size: 11px; }
+.teacher-intro-count strong { color: #4d365f; font-size: 27px; line-height: 1.3; }
+.teacher-results-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 26px 0 18px; }
+.teacher-results-heading h2 { display: flex; align-items: center; gap: 9px; margin: 0; color: var(--teacher-ink); font-size: 17px; font-weight: 700; }
+.teacher-count { display: inline-grid; place-items: center; min-width: 28px; min-height: 25px; padding: 2px 8px; border-radius: 7px; background: var(--teacher-accent-soft); color: #6d4a93; font-size: 12px; font-weight: 700; }
+.teacher-authoring-theme :is(.course-field, .question-form, .editor-form) :is(input:not([type=hidden]):not([type=radio]):not([type=checkbox]), select, textarea) { border-color: var(--teacher-border-strong); border-radius: 9px; color: var(--teacher-ink); background-color: #fff; font-size: 13px; }
+.teacher-authoring-theme input, .teacher-authoring-theme textarea, .teacher-authoring-theme select { accent-color: var(--teacher-accent-ink); }
+.teacher-authoring-theme :is(.course-editor-card, .course-manage-card, .question-editor-card, .question-detail-card, .module-editor-card, .course-final-card) { border-color: var(--teacher-border); border-radius: 16px; box-shadow: 0 3px 12px #191a2303; }
+.teacher-authoring-theme :is(.course-card-heading, .course-manage-card-heading, .question-section-heading) h2 { color: var(--teacher-ink); font-size: 17px; }
+.teacher-authoring-theme .question-section-heading p { color: var(--teacher-muted); font-size: 12px; }
+.teacher-authoring-theme :is(.course-section-icon, .question-step) { width: 32px; height: 32px; flex-basis: 32px; border-radius: 9px; background: var(--teacher-accent-soft); color: var(--teacher-accent-ink); font-size: 13px; }
+.teacher-authoring-theme .question-editor-card { padding: 22px; }
+.teacher-authoring-theme .question-editor-content > .question-editor-section { padding-bottom: 22px; }
+.teacher-authoring-theme .question-editor-content > .question-editor-section + .question-editor-section { padding-top: 22px; }
+.teacher-authoring-theme .question-writing-tips { background: #fff1e8; border-color: #ecdfd6; }
+.teacher-authoring-theme .question-writing-tips li { color: #806552; font-size: 12px; }
+.teacher-authoring-theme .question-writing-tips li .icon { background: #94729f; }
+.teacher-authoring-theme .course-editor-tip { background: #fff1e8; border-color: #ecdfd6; }
+.teacher-authoring-theme .course-editor-tip :is(p, strong) { color: #806552; }
+.teacher-authoring-theme .course-editor-savebar { position: static; margin-top: 24px; border-radius: 16px; background: #fff; box-shadow: none; }
+.teacher-authoring-theme .question-form .question-option-row.is-correct { border-color: var(--teacher-accent-border); background: var(--teacher-accent-soft); }
+.teacher-authoring-theme .question-option-row.is-correct .question-option-key { color: var(--teacher-accent-ink); background: #e1d6ef; }
+.teacher-authoring-theme .question-locked-option.is-correct { border-color: var(--teacher-accent-border); background: var(--teacher-accent-soft); }
+.teacher-authoring-theme .question-locked-option.is-correct .question-option-key { color: var(--teacher-accent-ink); background: #e1d6ef; }
+.teacher-authoring-theme .question-readonly-value { background: var(--teacher-surface-soft); }
+.teacher-authoring-theme .question-readonly-badge .icon { color: var(--teacher-muted); }
+.teacher-authoring-theme .question-edit-status { background: #f0edf5; color: #706168; }
+.teacher-authoring-theme .course-tip-main h3 { color: var(--teacher-accent-ink); }
+.teacher-authoring-theme .stimulus-type-choice:has(input:checked) { border-color: var(--teacher-accent-border); background: var(--teacher-accent-soft); }
+.teacher-authoring-theme .course-editor-steps { border-color: var(--teacher-border); }
+.teacher-authoring-theme .course-editor-steps .is-current > span { background: var(--teacher-action); border-color: var(--teacher-action); color: #fff; }
+.teacher-authoring-theme .course-manage-overview { border-radius: 16px; }
+.teacher-authoring-theme .course-manage-emblem { width: 56px; height: 56px; border-radius: 14px; }
+.teacher-authoring-theme .course-manage-emblem .icon { width: 30px; height: 30px; }
+.teacher-authoring-theme .course-publish-button:disabled { background: #b9afc7 !important; border-color: #b9afc7 !important; }
+.teacher-authoring-theme .teacher-courses-filter-card { padding: 0 22px 20px; border-color: var(--teacher-border); border-radius: 16px; }
+.teacher-authoring-theme .teacher-course-filters { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(130px, 1fr)) auto; align-items: end; gap: 14px; margin-top: 18px; }
+.teacher-authoring-theme .teacher-course-filters :is(input, select) { min-height: 43px; border-radius: 9px; }
+.teacher-authoring-theme .teacher-course-search { background: #fff; border-radius: 9px; }
+.teacher-authoring-theme .teacher-course-tabs { gap: 24px; }
+.teacher-authoring-theme .teacher-course-tab { min-height: 52px; font-size: 12px; }
+.teacher-authoring-theme .teacher-course-tab span { padding: 1px 6px; border-radius: 5px; background: #f1eef8; font-size: 10px; }
+.teacher-authoring-theme .teacher-courses-grid { gap: 20px; }
+.teacher-authoring-theme .teacher-course-card { gap: 16px; padding: 22px; border-radius: 16px; }
+.teacher-authoring-theme .teacher-course-card:hover { border-color: #d5c9e7; box-shadow: 0 4px 16px #30213d09; }
+.teacher-authoring-theme .teacher-course-card-heading { gap: 12px; }
+.teacher-authoring-theme .teacher-course-emblem { width: 48px; height: 48px; border-radius: 12px; }
+.teacher-authoring-theme .teacher-course-emblem > .icon { width: 26px; height: 26px; }
+.teacher-authoring-theme .teacher-course-metadata { padding: 14px; border-radius: 10px; background: var(--teacher-surface-soft); }
+.teacher-authoring-theme .teacher-course-status { border-radius: 7px; padding: 5px 9px; background: #fff1db; color: #7d5c25; font-size: 11px; }
+.teacher-authoring-theme .teacher-course-status.status-published { background: #e6f4ec; color: #2c6e4e; }
+.teacher-authoring-theme .teacher-course-status.status-unpublished { background: #f0edf5; color: #72677f; }
+.teacher-authoring-theme .teacher-course-status.status-archived { background: #f4eded; color: #706168; }
+.teacher-authoring-theme .teacher-course-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.teacher-authoring-theme .teacher-course-actions .button { min-height: 38px; padding: 8px 12px; font-size: 12px; }
+.teacher-authoring-theme .teacher-course-actions .teacher-course-text-action { display: inline-grid; place-items: center; width: 38px; min-height: 38px; padding: 8px; border: 1px solid var(--teacher-border); border-radius: 9px; color: var(--teacher-muted); }
+.teacher-authoring-theme .teacher-course-text-action:hover { background: var(--teacher-accent-soft); color: var(--teacher-accent-ink); }
+.teacher-authoring-theme .teacher-course-actions .teacher-course-text-action:nth-last-child(2) { margin-left: auto; }
+.teacher-authoring-theme .teacher-courses-empty { border-style: solid; border-color: var(--teacher-border); border-radius: 16px; }
+.teacher-authoring-theme .question-bank-filters { padding: 22px; margin-bottom: 24px; border-color: var(--teacher-border); border-radius: 16px; }
+.teacher-authoring-theme .question-bank-filter-form { grid-template-columns: minmax(160px, 2fr) repeat(3, minmax(110px, 1fr)) 100px; gap: 14px; }
+.teacher-authoring-theme .question-bank-filter-form label { margin-bottom: 7px; color: #484153; font-size: 12px; }
+.teacher-authoring-theme .question-bank-filter-form :is(input:not([type=hidden]), select) { height: 43px; padding: 10px 12px; border-color: var(--teacher-border-strong); border-radius: 9px; font-size: 13px; }
+.teacher-authoring-theme .question-filter-actions { grid-column: 1 / -1; justify-content: flex-end; }
+.teacher-authoring-theme .question-filter-actions .button { min-height: 42px; }
+.teacher-authoring-theme .question-bank-total { margin: 0; color: var(--teacher-muted); font-size: 12px; }
+.teacher-authoring-theme .question-bank-table-wrap { border-color: var(--teacher-border); border-radius: 16px; }
+.teacher-authoring-theme .question-bank-table { min-width: 720px; color: var(--teacher-ink); font-size: 13px; }
+.teacher-authoring-theme .question-bank-table thead { background: var(--teacher-surface-soft); }
+.teacher-authoring-theme .question-bank-table th { padding: 14px 18px; color: #797084; font-size: 11px; }
+.teacher-authoring-theme .question-bank-table td { padding: 18px; border-color: #efebf5; }
+.teacher-authoring-theme .question-bank-text p { color: #44354f; font-size: 14px; font-weight: 600; line-height: 1.7; }
+.teacher-authoring-theme .question-bank-text { min-width: 220px; }
+.teacher-authoring-theme .question-skill-badge { border-radius: 6px; padding: 5px 8px; background: var(--teacher-accent-soft); color: var(--teacher-accent-ink); font-size: 11px; }
+.teacher-authoring-theme .question-status-badge { border-radius: 7px; padding: 5px 9px; font-size: 11px; }
+.teacher-authoring-theme .question-status-badge.is-draft { background: #fff1db; color: #7d5c25; }
+.teacher-authoring-theme .question-status-badge.is-published { background: #e6f4ec; color: #2c6e4e; }
+.teacher-authoring-theme .question-status-badge.is-archived { background: #f4eded; color: #706168; }
+.teacher-authoring-theme .question-bank-row-actions { gap: 8px; }
+.teacher-authoring-theme .question-bank-row-actions .button { min-height: 35px; padding: 7px 11px; font-size: 11px; }
+.teacher-authoring-theme .question-bank-pagination .button { min-width: 36px; min-height: 36px; padding: 6px 10px; border-radius: 8px; font-size: 12px; }
+.teacher-authoring-theme .question-bank-pagination .is-current { background: var(--teacher-action); border-color: var(--teacher-action); color: #fff; }
+.teacher-authoring-theme .question-detail-summary { padding: 18px 22px; border-color: #dfd5f0; border-radius: 16px; background: #eee8fb; }
+.teacher-authoring-theme .question-detail-summary > div { border: 0; padding: 0; }
+.teacher-authoring-theme .question-detail-summary dt { color: #796586; font-size: 11px; }
+.teacher-authoring-theme .question-detail-card .question-bank-content { font-size: 16px; }
+@media (max-width: 1200px) {
+    .teacher-authoring-theme .teacher-course-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .teacher-authoring-theme .teacher-course-search { grid-column: 1 / -1; }
+    .teacher-authoring-theme .teacher-course-filters > .button { justify-self: end; }
+    .teacher-authoring-theme .question-bank-filter-form { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .teacher-authoring-theme .question-filter-search { grid-column: 1 / -1; }
+}
+@media (max-width: 1024px) {
+    .teacher-authoring-theme .studio-topbar { min-height: 64px; padding: 10px 24px; }
+}
+@media (max-width: 700px) {
+    .teacher-authoring-theme .studio-main { padding: 20px 16px 32px; }
+    .teacher-authoring-theme .studio-notifications { padding: 16px 16px 0; }
+    .teacher-authoring-theme .studio-topbar { padding-inline: 16px; }
+    .teacher-authoring-theme :is(.page-heading, .teacher-courses-heading, .course-editor-heading) { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+    .teacher-authoring-theme :is(.page-heading, .teacher-courses-heading, .course-editor-title) h1 { font-size: 26px; }
+    .teacher-authoring-theme :is(.page-heading, .teacher-courses-heading, .course-editor-heading) p { font-size: 13px; }
+    .teacher-intro { align-items: flex-start; padding: 20px; gap: 12px; }
+    .teacher-intro h2 { font-size: 15px; }
+    .teacher-intro p { font-size: 12px; }
+    .teacher-intro-emblem { flex-basis: 40px; width: 40px; height: 40px; border-radius: 10px; }
+    .teacher-intro-emblem .icon { width: 22px; height: 22px; }
+    .teacher-intro-count { display: none; }
+    .teacher-authoring-theme .teacher-course-card { padding: 18px; }
+    .teacher-authoring-theme .teacher-course-card-heading { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px 12px; }
+    .teacher-authoring-theme .teacher-course-status { grid-column: 2; justify-self: start; }
+    .teacher-authoring-theme .teacher-course-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px 36px; gap: 8px; }
+    .teacher-authoring-theme .teacher-course-actions .button { padding-inline: 8px; font-size: 11px; }
+    .teacher-authoring-theme .teacher-course-actions .teacher-course-text-action { width: 36px; min-height: 38px; margin: 0; }
+    .teacher-authoring-theme .teacher-courses-filter-card { padding-inline: 18px; }
+    .teacher-authoring-theme .question-bank-filters { padding: 18px; }
+    .teacher-authoring-theme .question-bank-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .teacher-authoring-theme .question-filter-actions { justify-content: stretch; }
+    .teacher-authoring-theme .question-filter-actions > .button { flex: 1; padding-inline: 10px; }
+    .teacher-results-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+    .teacher-results-heading h2 { font-size: 16px; }
+    .teacher-authoring-theme .question-bank-table { display: block; min-width: 0; }
+    .teacher-authoring-theme .question-bank-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .teacher-authoring-theme .question-bank-table tbody { display: block; }
+    .teacher-authoring-theme .question-bank-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 20px; border-bottom: 1px solid var(--teacher-border); }
+    .teacher-authoring-theme .question-bank-table tr:last-child { border-bottom: 0; }
+    .teacher-authoring-theme .question-bank-table td { display: block; min-width: 0; padding: 0; border: 0; }
+    .teacher-authoring-theme .question-bank-table td:first-child { grid-column: 1 / -1; }
+    .teacher-authoring-theme .question-bank-table td:nth-child(2) { grid-column: 1; grid-row: 2; }
+    .teacher-authoring-theme .question-bank-table td:nth-child(3) { grid-column: 2; grid-row: 2; color: #786087; font-size: 12px; align-self: center; }
+    .teacher-authoring-theme .question-bank-table td:nth-child(4) { grid-column: 1; grid-row: 3; }
+    .teacher-authoring-theme .question-bank-table td:nth-child(5) { grid-column: 2; grid-row: 3; text-align: right; color: var(--teacher-muted); font-size: 11px; align-self: center; }
+    .teacher-authoring-theme .question-bank-table td:nth-child(5)::after { content: " lựa chọn"; }
+    .teacher-authoring-theme .question-bank-table td:last-child { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid #efebf5; }
+    .teacher-authoring-theme .question-bank-row-actions .button { flex: 1; }
+    .teacher-authoring-theme .question-bank-list-footer { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .teacher-authoring-theme .question-bank-pagination { align-self: flex-end; }
+    .teacher-authoring-theme .question-editor-grid, .teacher-authoring-theme .question-detail-grid { grid-template-columns: minmax(0, 1fr); }
+    .teacher-authoring-theme .question-editor-card { padding: 18px; }
+    .teacher-authoring-theme .question-detail-summary { gap: 16px; padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .teacher-authoring-theme *, .teacher-authoring-theme *::before, .teacher-authoring-theme *::after { scroll-behavior: auto; transition: none; }
+}

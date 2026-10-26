@@ -164,10 +164,10 @@ public sealed partial class CourseService(AppDbContext db, ILearningAccessServic
         if (allowed != LearningAccessResult.Allowed) return WriteOutcome.Denied(allowed);
         input.Title = input.Title?.Trim() ?? "";
         var errors = Validate(input);
-        if (!CourseRules.ValidPrice(input.IsPaid, input.Price)) errors[nameof(input.Price)] = ["Free: giá phải bằng 0. Paid: giá phải dương, tối đa 2 chữ số thập phân và trong giới hạn decimal(18,2)."];
+        if (!CourseRules.ValidPrice(input.IsPaid, input.Price)) errors[nameof(input.Price)] = ["Khóa học miễn phí phải có giá 0 đồng. Khóa học có phí phải có giá lớn hơn 0, tối đa 2 chữ số thập phân và không vượt quá 9.999.999.999.999.999,99 đồng."];
         if (input.Skills is null || input.Skills.Any(s => !Enum.IsDefined(s))) errors[nameof(input.Skills)] = ["Kỹ năng không hợp lệ."];
         var topics = (input.Topics ?? "").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        if (topics.Any(t => t.Length > 120)) errors[nameof(input.Topics)] = ["Mỗi topic tối đa 120 ký tự."];
+        if (topics.Any(t => t.Length > 120)) errors[nameof(input.Topics)] = ["Mỗi chủ đề tối đa 120 ký tự."];
         if (errors.Count > 0) return Invalid(id ?? Guid.Empty, errors);
         var course = id.HasValue ? await db.Courses.Include(c => c.Skills).Include(c => c.Topics).SingleAsync(c => c.Id == id, ct) : new Course { OwnerTeacherUserId = userId };
         if (!id.HasValue) db.Courses.Add(course);
@@ -177,7 +177,13 @@ public sealed partial class CourseService(AppDbContext db, ILearningAccessServic
         foreach (var old in course.Skills.Where(s => !skillSet.Contains(s.Skill)).ToList()) db.CourseSkills.Remove(old);
         foreach (var skill in skillSet.Where(s => course.Skills.All(old => old.Skill != s))) course.Skills.Add(new CourseSkill { Skill = skill });
         foreach (var old in course.Topics.Where(t => !topics.Contains(t.Topic, StringComparer.OrdinalIgnoreCase)).ToList()) db.CourseTopics.Remove(old);
-        foreach (var topic in topics.Where(t => course.Topics.All(old => !old.Topic.Equals(t, StringComparison.OrdinalIgnoreCase)))) course.Topics.Add(new CourseTopic { Topic = topic });
+        foreach (var topic in topics.Where(t => course.Topics.All(old => !old.Topic.Equals(t, StringComparison.OrdinalIgnoreCase))))
+        {
+            var added = new CourseTopic { Course = course, CourseId = course.Id, Topic = topic };
+            course.Topics.Add(added);
+            // IDs are assigned by BaseEntity; explicitly mark new topics as inserts when editing a tracked course.
+            db.CourseTopics.Add(added);
+        }
         await db.SaveChangesAsync(ct);
         return WriteOutcome.Ok(course.Id);
     }
@@ -210,7 +216,7 @@ public sealed partial class CourseService(AppDbContext db, ILearningAccessServic
         input.Title = input.Title?.Trim(); input.ContentText = input.ContentText?.Trim(); input.ResourceUrl = input.ResourceUrl?.Trim();
         var errors = Validate(input);
         if (kind != ContentKind.Resource && string.IsNullOrWhiteSpace(input.Title)) errors[nameof(input.Title)] = ["Tên không được để trống."];
-        if (kind == ContentKind.Module && !Enum.IsDefined(input.Visibility)) errors[nameof(input.Visibility)] = ["Visibility không hợp lệ."];
+        if (kind == ContentKind.Module && !Enum.IsDefined(input.Visibility)) errors[nameof(input.Visibility)] = ["Trạng thái hiển thị chương học không hợp lệ."];
         if (kind == ContentKind.Lesson && !Enum.IsDefined(input.Status)) errors[nameof(input.Status)] = ["Status không hợp lệ."];
         if (kind == ContentKind.Resource && !CourseRules.ValidResource(input.ResourceType, input.ContentText, input.ResourceUrl))
             errors[input.ResourceType == LessonResourceType.Text ? nameof(input.ContentText) : nameof(input.ResourceUrl)] = ["Text cần nội dung; Link/Audio/Video cần URL http/https hợp lệ và loại resource hợp lệ."];
@@ -254,7 +260,7 @@ public sealed partial class CourseService(AppDbContext db, ILearningAccessServic
         var lesson = await db.Lessons.Include(l => l.Resources).SingleAsync(l => l.Id == lessonId, ct);
         if (lesson.Status == LessonStatus.Published && (lesson.Resources.Count <= 1 ||
             lesson.Resources.Where(r => r.Id != id).Any(r => !CourseRules.ValidResource(r.ResourceType, r.ContentText, r.ResourceUrl))))
-            return Invalid(courseId, new() { [""] = ["Không thể xóa resource cuối của Lesson Published. Chuyển Lesson về Draft/Hidden trước."] });
+            return Invalid(courseId, new() { [""] = ["Không thể xóa tài nguyên cuối cùng hoặc để lại tài nguyên không hợp lệ trong bài học đã xuất bản. Hãy chuyển bài học về bản nháp hoặc ẩn trước."] });
         db.LessonResources.Remove(lesson.Resources.Single(r => r.Id == id));
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return WriteOutcome.Ok(courseId);
     }
@@ -271,10 +277,10 @@ public sealed partial class CourseService(AppDbContext db, ILearningAccessServic
             _ => (await db.LessonResources.Where(r => r.LessonId == parentId).ToListAsync(ct)).Select(r => new OrderEntry(r.Id, r.OrderIndex, i => r.OrderIndex = i)).ToList()
         };
         if (ids is null || ids.Length != entries.Count || ids.Distinct().Count() != ids.Length || entries.Any(e => !ids.Contains(e.Id)))
-            return Invalid(courseId, new() { [""] = ["Thứ tự phải chứa đúng mỗi ID của cùng parent một lần."] });
+            return Invalid(courseId, new() { [""] = ["Danh sách sắp xếp phải chứa đủ các mục trong cùng một chương hoặc bài học, mỗi mục đúng một lần."] });
         // Temporary values below every existing/final index avoid unique-index collisions in either save.
         var start = Math.Min(-1L, entries.Count == 0 ? -1L : (long)entries.Min(e => e.Index) - entries.Count - 1);
-        if (start < int.MinValue) return Invalid(courseId, new() { [""] = ["OrderIndex vượt giới hạn; cần chuẩn hóa dữ liệu."] });
+        if (start < int.MinValue) return Invalid(courseId, new() { [""] = ["Thứ tự nội dung vượt giới hạn cho phép; cần chuẩn hóa lại dữ liệu sắp xếp."] });
         for (var i = 0; i < entries.Count; i++) entries[i].Set((int)start + i);
         await db.SaveChangesAsync(ct);
         for (var i = 0; i < ids.Length; i++) entries.Single(e => e.Id == ids[i]).Set(i);

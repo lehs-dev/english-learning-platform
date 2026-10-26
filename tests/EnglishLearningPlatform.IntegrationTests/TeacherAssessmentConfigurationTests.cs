@@ -346,7 +346,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
         using var page = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
         Assert.True(page.Headers.CacheControl!.NoStore);
-        Assert.Contains("Đề đang Published và chưa có Attempt", WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync()));
+        Assert.Contains("Đề đang xuất bản và chưa có lượt làm", WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync()));
         string token = await IdentityTestHelpers.GetTokenAsync(client, path);
         using var request = new HttpRequestMessage(HttpMethod.Post, "/TeacherAssessmentQuestions/Save/" + data.Assessment.Id);
         request.Content = JsonContent.Create(input);
@@ -495,7 +495,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
 
     private static void AssertPublishedForm(string html)
     {
-        Assert.Contains("Đề đang Published và chưa có Attempt", WebUtility.HtmlDecode(html));
+        Assert.Contains("Đề đang xuất bản và chưa có lượt làm", WebUtility.HtmlDecode(html));
         Assert.DoesNotContain("/TeacherAssessments/Publish/", html);
         Assert.Contains("/TeacherAssessmentQuestions/Index/", html);
     }
@@ -551,7 +551,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             .Where(q => q.OwnerTeacherUserId == data.Teacher.Id).OrderBy(q => q.Id).ToListAsync();
         return JsonSerializer.Serialize(questions.Select(q => new
         {
-            q.Id, q.OwnerTeacherUserId, q.Content, q.PrimarySkill, q.Status, q.StimulusId, q.Level, q.Difficulty, q.Explanation, q.UpdatedAtUtc,
+            q.Id, q.OwnerTeacherUserId, q.Content, q.PrimarySkill, q.Status, q.StimulusId, q.Level, q.Explanation, q.UpdatedAtUtc,
             Lock = includeLocks ? q.ContentLockedAtUtc : null,
             Options = q.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex, o.UpdatedAtUtc }),
             Stimulus = q.Stimulus == null ? null : new
@@ -599,7 +599,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
     private static string Content(AssessmentEntity a) => JsonSerializer.Serialize(a.Questions.OrderBy(q => q.OrderIndex).Select(q => new
     {
         q.Id, q.QuestionId, q.OrderIndex, q.Points, q.Question.OwnerTeacherUserId, q.Question.Content,
-        q.Question.PrimarySkill, q.Question.Status, q.Question.Explanation, q.Question.Level, q.Question.Difficulty,
+        q.Question.PrimarySkill, q.Question.Status, q.Question.Explanation, q.Question.Level,
         q.Question.StimulusId, q.Question.UpdatedAtUtc,
         Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.OrderIndex, o.Content, o.IsCorrect, o.UpdatedAtUtc }),
         Stimulus = q.Question.Stimulus == null ? null : new

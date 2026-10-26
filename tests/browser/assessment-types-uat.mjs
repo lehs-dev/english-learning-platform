@@ -95,6 +95,7 @@ async function invalidConfiguration(page, id, label, change) {
 
 async function createQuestion(page, index, skill) {
   await page.goto('/TeacherQuestionBank/Create');
+  await page.locator('#Level').selectOption('A1');
   await page.locator('#Content').fill(`${runId} question ${index}`);
   await page.locator('#PrimarySkill').selectOption(String(skill));
   const options = page.locator('[data-option-row] input[name$=".Content"]');
@@ -115,9 +116,9 @@ async function checkPreview(page, id, type, status, ids, contents) {
   await page.goto(`/TeacherAssessmentPreview/Index/${id}`);
   const details = await page.locator('.assessment-details > div').evaluateAll(groups =>
     Object.fromEntries(groups.map(group => [group.querySelector('dt').textContent.trim(), group.querySelector('dd').textContent.trim()])));
-  assert.equal(details['Loại bài'], type);
-  assert.equal(details['Trạng thái'], status);
-  assert.equal(details['Kỹ năng mục tiêu'], type === 'SkillAssessment' ? 'Grammar' : 'Không áp dụng');
+  assert.equal(details['Loại bài'], { PlacementTest: 'Đánh giá đầu vào', SkillAssessment: 'Đánh giá kỹ năng', PracticeExam: 'Đề luyện thi' }[type]);
+  assert.equal((await page.locator('.ta-preview-header .ta-status').innerText()).trim(), status === 'Draft' ? 'Bản nháp' : 'Đã xuất bản');
+  assert.equal(details['Kỹ năng mục tiêu'], type === 'SkillAssessment' ? 'Ngữ pháp' : undefined);
   assert.equal(details['Thời lượng'], '20 phút');
   assert.equal(details['Lượt làm tối đa'], '2 lượt');
   assert.equal(details['Điểm đạt'], 'Không áp dụng');
@@ -217,14 +218,14 @@ try {
     }
 
     await runCase(`${type}-select-save-and-reload-five-questions`, async () => {
-      const href = await teacher.getByRole('link', { name: 'Soạn câu hỏi và points', exact: true }).getAttribute('href');
+      const href = await teacher.getByRole('link', { name: 'Chọn câu hỏi và điểm', exact: true }).getAttribute('href');
       await teacher.goto(href);
       await teacher.locator('#Search').fill(runId);
       await submit(teacher, teacher.getByRole('button', { name: 'Tìm / lọc', exact: true }));
       const matches = await teacher.locator('tr:has([data-add])').evaluateAll(rows => rows.map(row => ({
         id: row.querySelector('[data-add]').dataset.id,
         content: row.querySelector('[data-bank-content]').textContent,
-        skill: row.querySelectorAll('td')[1].textContent.trim()
+        skill: row.querySelector('[data-bank-skill]').dataset.bankSkill
       })));
       assert.equal(matches.length, type === 'SkillAssessment' ? 5 : 7);
       if (!bank) {
@@ -266,7 +267,7 @@ try {
     await runCase(`${type}-draft-preview-publish-and-published-preview`, async () => {
       await checkPreview(teacher, id, type, 'Draft', ids, contents);
       await teacher.goto(`/TeacherAssessments/Edit/${id}`);
-      await submit(teacher, teacher.getByRole('button', { name: 'Publish đề đã lưu', exact: true }));
+      await submit(teacher, teacher.getByRole('button', { name: 'Xuất bản đề đã lưu', exact: true }));
       assert.equal(new URL(teacher.url()).pathname.toLowerCase(), '/teacherassessments');
       await checkPreview(teacher, id, type, 'Published', ids, contents);
       await invalidConfiguration(teacher, id, `${type}-published-duration-zero`, () => teacher.locator('#Input_DurationMinutes').fill('0'));

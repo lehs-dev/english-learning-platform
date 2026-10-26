@@ -96,7 +96,7 @@ public sealed class TeacherAssessmentScopeController : Controller
             }
             if (result.Success)
             {
-                TempData["Success"] = "Đã lưu phạm vi truy cập của Assessment.";
+                TempData["Success"] = "Đã lưu phạm vi truy cập của bài kiểm tra.";
                 // GET mới lấy version mới; refresh không gửi lại POST đổi phạm vi.
                 return RedirectToAction(nameof(Edit), new { id });
             }

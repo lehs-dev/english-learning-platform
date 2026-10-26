@@ -15,7 +15,7 @@ const layouts = {
 async function accountMenuFixture(role) {
   const raw = await readFile(new URL('Views/Shared/Components/AccountMenu/Default.cshtml', webRoot), 'utf8');
   const guest = raw.match(/<div class="guest-actions">[\s\S]*?<\/div>/);
-  const authenticated = raw.match(/<button class="icon-button notification-button"[\s\S]*?<\/details>/);
+  const authenticated = raw.match(/<details class="account-menu"[\s\S]*?<\/details>/);
   assert.ok(guest && authenticated, 'Keep fixture branches aligned with the real AccountMenu');
   if (role === 'public') return guest[0];
   return authenticated[0]

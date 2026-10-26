@@ -25,8 +25,8 @@ public sealed class TeacherAssessmentCloneController(ITeacherAssessmentCloneServ
             TempData["Error"] = string.Join("\n", result.Errors.Values.SelectMany(messages => messages));
             return RedirectToAction("Index", "TeacherAssessments");
         }
-        TempData["Success"] = "Đã tạo bản sao Draft, giữ Course của bản gốc nhưng không tự thay Final. "
-            + "Question/Stimulus được dùng lại và vẫn khóa; muốn đổi nội dung hãy tạo Question/Stimulus mới.";
+        TempData["Success"] = "Đã tạo bản sao nháp, giữ khóa học của bản gốc và liên kết bài thi cuối khóa hiện tại. "
+            + "Câu hỏi và ngữ liệu được dùng lại vẫn giữ trạng thái khóa.";
         return RedirectToAction("Edit", "TeacherAssessments", new { id = result.Id });
     }
 }

@@ -104,7 +104,7 @@ public sealed class StimulusCreationService : IStimulusCreationService
             {
                 _logger.LogError(exception, "Storing stimulus audio failed for Teacher {TeacherId}.", actorUserId);
                 return new WriteOutcome(LearningAccessResult.Allowed, Guid.Empty,
-                    new Dictionary<string, string[]> { [nameof(request.AudioContent)] = new[] { "Chưa lưu được audio. Hãy kiểm tra dung lượng/quyền ghi và tình trạng kho audio của máy chủ." } });
+                    new Dictionary<string, string[]> { [nameof(request.AudioContent)] = new[] { "Chưa lưu được âm thanh. Hãy kiểm tra dung lượng, quyền ghi và tình trạng kho âm thanh của máy chủ." } });
             }
         }
 

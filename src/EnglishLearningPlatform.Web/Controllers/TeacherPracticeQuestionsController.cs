@@ -140,6 +140,8 @@ public sealed class TeacherPracticeQuestionsController : Controller
 
         // Tái sử dụng chức năng tìm kiếm đã có.
         // Service tự giới hạn câu hỏi theo Teacher hiện tại.
+        query.Level = QuestionLevels.Normalize(query.Level);
+
         QuestionSearchResult? searchResult =
             await _questionQueryService.SearchAsync(
                 actorUserId,

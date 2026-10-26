@@ -37,7 +37,6 @@ public sealed class QuestionQueryServiceDetailTests
                 Content = "Choose the correct answer.",
                 PrimarySkill = EnglishSkill.Reading,
                 Level = "A1",
-                Difficulty = "Easy",
                 Explanation = "Option 2 is correct.",
                 Status = QuestionStatus.Draft
             };
@@ -107,7 +106,6 @@ public sealed class QuestionQueryServiceDetailTests
             Assert.Equal("Choose the correct answer.", detail.Content);
             Assert.Equal(EnglishSkill.Reading, detail.PrimarySkill);
             Assert.Equal("A1", detail.Level);
-            Assert.Equal("Easy", detail.Difficulty);
             Assert.Equal("Option 2 is correct.", detail.Explanation);
             Assert.Equal(QuestionStatus.Draft, detail.Status);
 

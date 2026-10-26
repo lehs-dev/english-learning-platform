@@ -24,26 +24,19 @@ public sealed class CreateQuestionValidator : ICreateQuestionValidator
         {
             errors.Add(new QuestionError(nameof(request.PrimarySkill),
             "invalid",
-            "Câu hỏi phải có một PrimarySkill hợp lệ."));
+            "Vui lòng chọn một kỹ năng hợp lệ cho câu hỏi."));
         }
         if(request.Level?.Length > 32)
         {
             errors.Add(new (nameof(request.Level)
             ,"max_length"
-            ,"Level Khong Duoc Vuot Qua 32 Ky Tu"));
-        }
-        if(request.Difficulty?.Length > 32)
-        {
-            errors.Add(new(
-                nameof(request.Difficulty),
-                "max_length",
-                "Difficulty không được vượt quá 32 ký tự."));
+            ,"Trình độ không được vượt quá 32 ký tự."));
         }
         if(request.Options is null)
         {
             errors.Add(new(nameof(request.Options)
             ,"required"
-            ,"Danh Sach Lua Chon Khong Duoc De Trong"));
+            ,"Danh sách lựa chọn không được để trống."));
             return errors.AsReadOnly();
         }
         if (request.Options.Count < 2)

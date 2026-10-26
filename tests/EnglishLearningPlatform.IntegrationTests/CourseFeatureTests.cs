@@ -118,6 +118,46 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
     }
 
     [Fact]
+    public async Task EditingCourse_AddsAndRemovesTopicsWithoutChangingUneditedContent()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var course = await Seed(teacher.Id);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var service = scope.ServiceProvider.GetRequiredService<ICourseService>();
+            var input = (await service.CourseInputAsync(teacher.Id, course.Id)).Value!;
+            input.Topics = "Travel, Du lịch, du lịch";
+            var result = await service.SaveCourseAsync(teacher.Id, course.Id, input);
+            Assert.True(result.Success);
+        }
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var saved = await db.Courses.Include(c => c.Topics).Include(c => c.Skills).SingleAsync(c => c.Id == course.Id);
+            Assert.Equal(new[] { "Du lịch", "Travel" }, saved.Topics.Select(t => t.Topic).Order().ToArray());
+            Assert.Equal(course.Title, saved.Title);
+            Assert.Equal(course.Level, saved.Level);
+            Assert.Equal(course.Status, saved.Status);
+            Assert.Equal(course.IsPaid, saved.IsPaid);
+            Assert.Equal(course.Price, saved.Price);
+            Assert.Equal(EnglishSkill.Reading, Assert.Single(saved.Skills).Skill);
+            Assert.Equal(course.Modules.Count, await db.Modules.CountAsync(m => m.CourseId == course.Id));
+        }
+        using (var scope = factory.Services.CreateScope())
+        {
+            var service = scope.ServiceProvider.GetRequiredService<ICourseService>();
+            var input = (await service.CourseInputAsync(teacher.Id, course.Id)).Value!;
+            input.Topics = "Du lịch, Gia đình";
+            Assert.True((await service.SaveCourseAsync(teacher.Id, course.Id, input)).Success);
+        }
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(new[] { "Du lịch", "Gia đình" }, await db.CourseTopics.Where(t => t.CourseId == course.Id).OrderBy(t => t.Topic).Select(t => t.Topic).ToArrayAsync());
+        }
+    }
+
+    [Fact]
     public async Task ConcurrentEnrollments_CreateExactlyOneEnrollment()
     {
         var owner = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);

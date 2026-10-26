@@ -152,7 +152,6 @@ public sealed class TeacherPracticeQuestionService
                         Content = item.Question.Content,
                         PrimarySkill = item.Question.PrimarySkill,
                         Level = item.Question.Level,
-                        Difficulty = item.Question.Difficulty,
                         Status = item.Question.Status,
                         OptionCount = item.Question.Options.Count,
                         CreatedAtUtc = item.Question.CreatedAtUtc

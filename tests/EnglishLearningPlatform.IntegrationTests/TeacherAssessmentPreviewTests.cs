@@ -114,10 +114,10 @@ public sealed class TeacherAssessmentPreviewTests : IClassFixture<IntegrationTes
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         string listHtml = await list.Content.ReadAsStringAsync();
         Assert.Contains(Path(data), listHtml);
-        Assert.Contains("class=\"button small secondary\"", listHtml);
+        Assert.Contains("data-assessment-card", listHtml);
         if (status == AssessmentStatus.Draft)
         {
-            Assert.Contains("class=\"button small\"", listHtml);
+            Assert.Contains("/TeacherAssessmentQuestions/Index/" + data.Assessment.Id, listHtml);
             foreach (string route in new[] { "TeacherAssessments/Edit", "TeacherAssessmentQuestions/Index" })
             {
                 using var editor = await client.GetAsync($"/{route}/{data.Assessment.Id}");

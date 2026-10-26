@@ -64,18 +64,18 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
         Assert.NotNull(response.Headers.CacheControl);
         Assert.True(response.Headers.CacheControl.NoStore);
         var html = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Practice của tôi", WebUtility.HtmlDecode(html));
+        Assert.Contains("Bài luyện tập của tôi", WebUtility.HtmlDecode(html));
         Assert.Contains("teacher-studio", html);
         Assert.Contains("studio-nav", html);
         Assert.Contains("/css/courses.css", html);
         Assert.Contains("/css/dashboard.css", html);
         Assert.Contains("/css/role-layouts.css", html);
-        Assert.Contains("Chưa có Practice", WebUtility.HtmlDecode(html));
+        Assert.Contains("practice-empty", html);
         Assert.Empty(Rows(html));
         Assert.Single(OptionTags(html, "CourseId")); // Chỉ có lựa chọn tất cả Course.
         Assert.Empty(PaginationBlocks(html));
         Assert.DoesNotContain("Trang 1 / 0", WebUtility.HtmlDecode(html));
-        Assert.Contains("/TeacherPractices/Create", Attribute(LinkByText(html, "+ Tạo Practice Draft"), "href"));
+        Assert.Contains("/TeacherPractices/Create", Attribute(LinkByText(html, "+ Tạo bài luyện tập"), "href"));
     }
 
     [Theory]
@@ -126,7 +126,7 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
 
         // Đi theo URL thật do Razor sinh ra, không chỉ kiểm tra chuỗi HTML.
         var listHtml = await HtmlAsync(client, href);
-        Assert.Contains("Practice của tôi", WebUtility.HtmlDecode(listHtml));
+        Assert.Contains("Bài luyện tập của tôi", WebUtility.HtmlDecode(listHtml));
         Assert.Empty(Rows(listHtml));
         Assert.Equal(before, await CountsAsync());
     }
@@ -149,18 +149,18 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
 
         Assert.Equal(new[] { "OWN_MODULE", "OWN_LESSON", "OWN_UNATTACHED" }, rows.Select(RowTitle));
         var moduleCells = Cells(rows[0]);
-        Assert.Contains("Unpublished", Text(moduleCells[1]));
-        Assert.Equal(data.Own.CourseTitle, Text(moduleCells[2]));
-        Assert.Equal("Module: " + data.Own.ModuleTitle, Text(moduleCells[3]));
-        Assert.Equal("3", Text(moduleCells[4]));
-        Assert.Equal("15/10/2026 08:02", Text(moduleCells[5]));
+        Assert.Contains("Ngừng xuất bản", Text(moduleCells[1]));
+        Assert.Equal(data.Own.CourseTitle, Text(Assert.Single(Links(moduleCells[2]))));
+        Assert.Contains("Chương học: " + data.Own.ModuleTitle, Text(moduleCells[2]));
+        Assert.Equal("3", Text(moduleCells[3]));
+        Assert.Contains("15/10/2026 08:02 UTC", Text(moduleCells[0]));
         var lessonCells = Cells(rows[1]);
-        Assert.Equal("Lesson: " + data.Own.LessonTitle, Text(lessonCells[3]));
-        Assert.DoesNotContain(data.Own.ModuleTitle, Text(lessonCells[3]));
-        Assert.Equal("2", Text(lessonCells[4]));
+        Assert.Contains("Bài học: " + data.Own.LessonTitle, Text(lessonCells[2]));
+        Assert.DoesNotContain(data.Own.ModuleTitle, Text(lessonCells[2]));
+        Assert.Equal("2", Text(lessonCells[3]));
         Assert.Contains("Chưa gắn khóa học", Text(Cells(rows[2])[2]));
-        Assert.Contains("Chưa gắn Lesson/Module", Text(Cells(rows[2])[3]));
-        Assert.Contains("Ngày tạo (UTC)", WebUtility.HtmlDecode(html));
+        Assert.Contains("Chưa chọn vị trí", Text(Cells(rows[2])[2]));
+        Assert.Contains("Ngày tạo hiển thị theo UTC", WebUtility.HtmlDecode(html));
         Assert.DoesNotContain("FOREIGN_PRACTICE_PRIVATE", html);
         Assert.DoesNotContain(foreignId.ToString(), html);
         Assert.DoesNotContain(data.Other.CourseTitle, html);
@@ -332,7 +332,7 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
             FilterPath("grammar", PracticeStatus.Draft, data.Own.CourseId, page, 100));
 
         Assert.Empty(Rows(html));
-        Assert.Contains("Trang bạn yêu cầu không có Practice", WebUtility.HtmlDecode(html));
+        Assert.Contains("Trang bạn yêu cầu không có bài luyện tập", WebUtility.HtmlDecode(html));
         Assert.DoesNotContain($"Trang {page} /", Text(Pagination(html)));
         var first = Attribute(LinkByText(Pagination(html), "Về trang đầu"), "href");
         AssertFilters(first, "grammar", PracticeStatus.Draft, data.Own.CourseId, 1, 100);
@@ -349,7 +349,7 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
         var html = await HtmlAsync(client, IndexPath + "?Search=NO_MATCHING_PRACTICE");
 
         Assert.Empty(Rows(html));
-        Assert.Contains("Chưa có Practice", WebUtility.HtmlDecode(html));
+        Assert.Contains("practice-empty", html);
         Assert.Empty(PaginationBlocks(html));
         Assert.DoesNotContain("Trang 1 / 0", WebUtility.HtmlDecode(html));
     }
@@ -364,7 +364,7 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
         var filtered = await HtmlAsync(client,
             FilterPath("grammar", PracticeStatus.Draft, data.Own.CourseId, 1, 1));
 
-        string reset = Attribute(LinkByText(SearchForm(filtered), "Xóa bộ lọc"), "href");
+        string reset = Attribute(LinkByText(filtered, "Xóa bộ lọc"), "href");
         Assert.True(IsIndexUrl(reset));
         Assert.Empty(Query(reset));
         var html = await HtmlAsync(client, reset);
@@ -525,7 +525,7 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
         using var client = await LoginAsync(data.Teacher);
         var before = await CountsAsync();
         var html = await HtmlAsync(client, IndexPath);
-        string create = Attribute(LinkByText(html, "+ Tạo Practice Draft"), "href");
+        string create = Attribute(LinkByText(html, "+ Tạo bài luyện tập"), "href");
 
         var form = await HtmlAsync(client, create);
 
@@ -714,10 +714,10 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
 
     private static List<string> Cells(string row) => Regex.Matches(row, "<td\\b[^>]*>(.*?)</td>",
         RegexOptions.IgnoreCase | RegexOptions.Singleline).Select(match => match.Groups[1].Value).ToList();
-    private static string RowTitle(string row) => Text(Cells(row)[0]);
+    private static string RowTitle(string row) => Text(Assert.Single(Links(Cells(row)[0])));
     private static List<string> PaginationBlocks(string html) => Regex.Matches(html, "<nav\\b[^>]*>.*?</nav>",
             RegexOptions.IgnoreCase | RegexOptions.Singleline).Select(match => match.Value)
-        .Where(nav => Attribute(nav[..(nav.IndexOf('>') + 1)], "aria-label") == "Phân trang Practice").ToList();
+        .Where(nav => Attribute(nav[..(nav.IndexOf('>') + 1)], "aria-label") == "Phân trang bài luyện tập").ToList();
     private static string Pagination(string html) => Assert.Single(PaginationBlocks(html));
 
     private async Task<Data> SeedAsync()

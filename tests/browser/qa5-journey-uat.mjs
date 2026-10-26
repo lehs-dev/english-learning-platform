@@ -169,7 +169,7 @@ try {
     const courseLink = teacher.locator('.course-card').filter({ hasText: 'Demo · Everyday English' }).locator('a[href*="/TeacherCourses/Manage/"]').first();
     courseId = (await courseLink.getAttribute('href')).split('/').pop();
     await teacher.goto('/TeacherStimuli/Create');
-    await teacher.locator('#StimulusType').selectOption('1');
+    await teacher.locator('#StimulusType_Passage').check();
     await teacher.locator('#Title').fill(`${runId} passage`);
     await navigateSubmit(teacher, teacher.locator('form.editor-form button[type=submit]'));
     assert.ok(await teacher.locator('.validation-summary-errors').isVisible(), 'Empty passage must show a server error.');
@@ -180,7 +180,7 @@ try {
     passageId = await teacher.locator('#StimulusId option').filter({ hasText: `${runId} passage` }).getAttribute('value');
     assert.ok(passageId);
     await teacher.goto('/TeacherStimuli/Create');
-    await teacher.locator('#StimulusType').selectOption('2');
+    await teacher.locator('#StimulusType_Audio').check();
     await teacher.locator('#Title').fill(`${runId} tone audio`);
     await teacher.locator('#audioFile').setInputFiles({ name: 'qa5-tone.wav', mimeType: 'audio/wav', buffer: wav() });
     await navigateSubmit(teacher, teacher.locator('form.editor-form button[type=submit]'));
@@ -189,6 +189,7 @@ try {
     for (let i = 0; i < 5; i++) {
       await teacher.goto('/TeacherQuestionBank/Create');
       await teacher.locator('#Content').fill(`${runId} Q${i + 1}: ${prompts[i]}`);
+      await teacher.locator('#Level').selectOption('A1');
       await teacher.locator('#PrimarySkill').selectOption(i < 3 ? '3' : '4');
       await teacher.locator('#StimulusId').selectOption(i < 3 ? passageId : audioId);
       await teacher.locator('#Explanation').fill(`QA5_PRIVATE_NOTE_${i}: ${right[i]} is the answer for the supplied stimulus.`);
@@ -200,7 +201,7 @@ try {
     }
     await teacher.locator('#Search').fill(runId);
     await navigateSubmit(teacher, teacher.getByRole('button', { name: 'Tìm / lọc', exact: true }));
-    const rows = teacher.locator('.question-bank-card');
+    const rows = teacher.locator('[data-question-row]');
     assert.equal(await rows.count(), 5);
     for (let i = 0; i < 5; i++) {
       const row = rows.filter({ hasText: `${runId} Q${i + 1}:` });

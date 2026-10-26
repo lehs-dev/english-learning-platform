@@ -54,9 +54,9 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
             a => a.AssessmentId == current.Id, cancellationToken);
         string? reason = null;
         if (course.Status == CourseStatus.Archived)
-            reason = "Course đã Archived, không được gắn/thay/gỡ Final.";
+            reason = "Khóa học đã được lưu trữ nên không thể chọn, thay hoặc gỡ bài kiểm tra cuối khóa.";
         else if (used)
-            reason = "Final đã có Attempt. Không được thay/gỡ Final, kể cả bằng bản clone.";
+            reason = "Bài kiểm tra cuối khóa đã có lượt làm. Không thể thay hoặc gỡ bài kiểm tra này, kể cả bằng một bản sao.";
 
         var options = await _db.Assessments.AsNoTracking().Where(a =>
             a.CourseId == courseId && a.OwnerTeacherUserId == actorUserId
@@ -99,7 +99,7 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
             if (request.FinalAssessmentId.HasValue && !await _db.Assessments.AsNoTracking().AnyAsync(
                 a => a.Id == request.FinalAssessmentId.Value && a.OwnerTeacherUserId == actorUserId
                     && a.CourseId == courseId, cancellationToken))
-                return Failure(courseId, "Assessment không thuộc đúng Course và Teacher hiện tại.");
+                return Failure(courseId, "Bài kiểm tra không thuộc khóa học và giảng viên hiện tại.");
 
             await using var tx = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
             var course = await _db.Courses.FromSqlInterpolated(
@@ -112,10 +112,10 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
             if (course.OwnerTeacherUserId != actorUserId)
                 return WriteOutcome.Denied(LearningAccessResult.NotFound);
             if (course.Status == CourseStatus.Archived)
-                return Failure(courseId, "Course đã Archived, không được gắn/thay/gỡ Final.");
+                return Failure(courseId, "Khóa học đã được lưu trữ nên không thể chọn, thay hoặc gỡ bài kiểm tra cuối khóa.");
             if (course.UpdatedAtUtc != request.ExpectedUpdatedAtUtc
                 || course.FinalAssessmentId != request.ExpectedFinalAssessmentId)
-                return Failure(courseId, "Final hoặc Course đã thay đổi. Hãy tải lại trang trước khi lưu.");
+                return Failure(courseId, "Bài kiểm tra cuối khóa hoặc thông tin khóa học đã thay đổi. Hãy tải lại trang trước khi lưu.");
 
             var ids = new HashSet<Guid>();
             if (course.FinalAssessmentId.HasValue) ids.Add(course.FinalAssessmentId.Value);
@@ -126,10 +126,10 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
                 var assessment = await _db.Assessments.FromSqlInterpolated(
                     $"SELECT * FROM Assessments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {id}")
                     .SingleOrDefaultAsync(cancellationToken);
-                if (assessment == null) return Failure(courseId, "Không tìm thấy Assessment hợp lệ.");
+                if (assessment == null) return Failure(courseId, "Không tìm thấy bài kiểm tra hợp lệ.");
                 await _db.Entry(assessment).ReloadAsync(cancellationToken);
                 if (assessment.OwnerTeacherUserId != actorUserId || assessment.CourseId != courseId)
-                    return Failure(courseId, "Liên kết Assessment đã thay đổi. Hãy tải lại trang.");
+                    return Failure(courseId, "Liên kết bài kiểm tra đã thay đổi. Hãy tải lại trang.");
                 locked.Add(id, assessment);
             }
 
@@ -144,21 +144,21 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
             {
                 // Không dựa vào Enrollment hiện tại: Enrollment có thể đã bị thu hồi.
                 // Attempt của đề gắn Course là bằng chứng Final đã được sử dụng.
-                return Failure(courseId, "Final đã có Attempt. Không được thay/gỡ, kể cả bằng bản clone.");
+                return Failure(courseId, "Bài kiểm tra cuối khóa đã có lượt làm. Không thể thay hoặc gỡ, kể cả bằng một bản sao.");
             }
 
             if (request.FinalAssessmentId.HasValue)
             {
                 Assessment candidate = locked[request.FinalAssessmentId.Value];
                 if (candidate.Status != AssessmentStatus.Published)
-                    return Failure(courseId, "Final phải là Assessment đang Published.");
+                    return Failure(courseId, "Bài kiểm tra cuối khóa phải là đề đang được xuất bản.");
                 if (candidate.AssessmentType != AssessmentType.SkillAssessment
                     && candidate.AssessmentType != AssessmentType.PracticeExam)
-                    return Failure(courseId, "Final chỉ dùng Skill Assessment hoặc Practice Exam; không dùng Placement Test.");
+                    return Failure(courseId, "Chỉ có thể chọn bài đánh giá kỹ năng hoặc đề luyện thi làm bài kiểm tra cuối khóa; không dùng bài đánh giá đầu vào.");
                 if (!candidate.PassingScore.HasValue)
-                    return Failure(courseId, "Assessment làm Final phải có PassingScore.");
+                    return Failure(courseId, "Bài kiểm tra cuối khóa phải có điểm đạt.");
                 if (await _db.Courses.AnyAsync(c => c.Id != courseId && c.FinalAssessmentId == candidate.Id, cancellationToken))
-                    return Failure(courseId, "Assessment đang làm Final của Course khác.");
+                    return Failure(courseId, "Bài kiểm tra đang được sử dụng làm bài kiểm tra cuối khóa của khóa học khác.");
 
                 var questions = await _db.AssessmentQuestions.AsNoTracking()
                     .Where(q => q.AssessmentId == candidate.Id)
@@ -195,7 +195,7 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
         catch (Exception exception)
         {
             _logger.LogError(exception, "Changing Course Final failed for {CourseId}.", courseId);
-            return Failure(courseId, "Chưa thể lưu Final. Hãy tải lại trang và thử lại.");
+            return Failure(courseId, "Chưa thể lưu bài kiểm tra cuối khóa. Hãy tải lại trang và thử lại.");
         }
     }
 

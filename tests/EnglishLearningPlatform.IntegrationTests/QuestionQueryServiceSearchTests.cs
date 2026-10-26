@@ -188,7 +188,6 @@ public sealed class QuestionQueryServiceSearchTests
         DateTimeOffset createdAt,
         EnglishSkill primarySkill = EnglishSkill.Reading,
         string? level = "A1",
-        string? difficulty = "Easy",
         QuestionStatus status = QuestionStatus.Draft)
     {
         using (IServiceScope scope = _factory.Services.CreateScope())
@@ -202,7 +201,6 @@ public sealed class QuestionQueryServiceSearchTests
                 Content = content,
                 PrimarySkill = primarySkill,
                 Level = level,
-                Difficulty = difficulty,
                 Status = status,
                 CreatedAtUtc = createdAt
             };
@@ -317,13 +315,11 @@ public sealed class QuestionQueryServiceSearchTests
     }
 
     // Kiểm tra từng bộ lọc metadata hoạt động độc lập.
-    // Level và Difficulty có khoảng trắng ở đầu/cuối để kiểm tra Trim.
+    // Level có khoảng trắng ở đầu/cuối để kiểm tra Trim.
     // Mỗi bộ lọc được chạy với hai giá trị để phát hiện code lọc viết cố định.
     [Theory]
     [InlineData(nameof(QuestionSearchRequest.Level), false)]
     [InlineData(nameof(QuestionSearchRequest.Level), true)]
-    [InlineData(nameof(QuestionSearchRequest.Difficulty), false)]
-    [InlineData(nameof(QuestionSearchRequest.Difficulty), true)]
     [InlineData(nameof(QuestionSearchRequest.Status), false)]
     [InlineData(nameof(QuestionSearchRequest.Status), true)]
     public async Task SearchAsync_FilterByMetadata_ReturnsOnlyMatchingQuestion(
@@ -339,34 +335,31 @@ public sealed class QuestionQueryServiceSearchTests
         DateTimeOffset createdAt = new DateTimeOffset(
             2026, 10, 13, 8, 0, 0, TimeSpan.Zero);
 
-        // Câu thứ nhất: A1, Easy, Archived.
+        // Câu thứ nhất: A1, Archived.
         Guid firstQuestionId = await CreateQuestionAsync(
             teacher.Id,
             "First metadata question",
             createdAt,
             status: QuestionStatus.Archived);
 
-        // Câu thứ hai: B1, Hard, Published; khác câu thứ nhất ở cả ba metadata.
+        // Câu thứ hai: B1, Published; khác câu thứ nhất ở cả hai metadata.
         Guid secondQuestionId = await CreateQuestionAsync(
             teacher.Id,
             "Second metadata question",
             createdAt.AddMinutes(1),
             level: "B1",
-            difficulty: "Hard",
             status: QuestionStatus.Published);
 
         // false: tìm câu thứ nhất; true: tìm câu thứ hai.
         // Ghi nhớ cả ID và metadata để kiểm tra dữ liệu service thực sự trả về.
         Guid expectedQuestionId = firstQuestionId;
         string expectedLevel = "A1";
-        string expectedDifficulty = "Easy";
         QuestionStatus expectedStatus = QuestionStatus.Archived;
 
         if (selectSecondQuestion)
         {
             expectedQuestionId = secondQuestionId;
             expectedLevel = "B1";
-            expectedDifficulty = "Hard";
             expectedStatus = QuestionStatus.Published;
         }
 
@@ -376,10 +369,6 @@ public sealed class QuestionQueryServiceSearchTests
         if (filterName == nameof(QuestionSearchRequest.Level))
         {
             request.Level = " " + expectedLevel + " ";
-        }
-        else if (filterName == nameof(QuestionSearchRequest.Difficulty))
-        {
-            request.Difficulty = " " + expectedDifficulty + " ";
         }
         else if (filterName == nameof(QuestionSearchRequest.Status))
         {
@@ -412,7 +401,6 @@ public sealed class QuestionQueryServiceSearchTests
             Assert.Single(result.Items);
             Assert.Equal(expectedQuestionId, result.Items[0].Id);
             Assert.Equal(expectedLevel, result.Items[0].Level);
-            Assert.Equal(expectedDifficulty, result.Items[0].Difficulty);
             Assert.Equal(expectedStatus, result.Items[0].Status);
         }
     }
@@ -437,7 +425,7 @@ public sealed class QuestionQueryServiceSearchTests
             2026, 10, 13, 8, 0, 0, TimeSpan.Zero);
 
         // Câu này khớp mọi điều kiện:
-        // đúng owner, từ khóa, Reading, A1, Easy và Draft.
+        // đúng owner, từ khóa, Reading, A1 và Draft.
         Guid expectedQuestionId = await CreateQuestionAsync(
             teacher.Id,
             "target filter expected question",
@@ -456,13 +444,6 @@ public sealed class QuestionQueryServiceSearchTests
             "target filter wrong level",
             createdAt.AddMinutes(2),
             level: "B1");
-
-        // Sai difficulty.
-        await CreateQuestionAsync(
-            teacher.Id,
-            "target filter wrong difficulty",
-            createdAt.AddMinutes(3),
-            difficulty: "Hard");
 
         // Sai status.
         await CreateQuestionAsync(
@@ -499,7 +480,6 @@ public sealed class QuestionQueryServiceSearchTests
                 Search = " target filter ",
                 PrimarySkill = EnglishSkill.Reading,
                 Level = " A1 ",
-                Difficulty = " Easy ",
                 Status = QuestionStatus.Draft
             };
 

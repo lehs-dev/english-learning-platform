@@ -7,7 +7,6 @@ public sealed record QuestionEditor(
     string Content,
     EnglishSkill PrimarySkill,
     string? Level,
-    string? Difficulty,
     string? Explanation,
     Guid? StimulusId,
     QuestionStatus Status,

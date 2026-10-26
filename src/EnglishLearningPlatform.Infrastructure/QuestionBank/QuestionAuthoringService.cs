@@ -74,7 +74,6 @@ public sealed class QuestionAuthoringService(
             question.Content,
             question.PrimarySkill,
             question.Level,
-            question.Difficulty,
             question.Explanation,
             question.StimulusId,
             question.Status,
@@ -265,7 +264,7 @@ public sealed class QuestionAuthoringService(
                         new QuestionError(
                             nameof(CreateQuestionRequest.StimulusId),
                             "invalid",
-                            "Stimulus không tồn tại hoặc không thuộc quyền sở hữu của bạn.")
+                            "Ngữ liệu không tồn tại hoặc không thuộc quyền sở hữu của bạn.")
                     ]);
                 }
             }
@@ -292,9 +291,9 @@ public sealed class QuestionAuthoringService(
                     new QuestionError(
                         nameof(CreateQuestionRequest.StimulusId),
                         "locked",
-                        "Không thể đổi Stimulus của câu hỏi đã bị khóa."),
+                        "Không thể đổi ngữ liệu của câu hỏi đã bị khóa."),
                     new QuestionError(nameof(CreateQuestionRequest.Explanation), "locked",
-                        "Không thể đổi giải thích của câu hỏi đã dùng; hãy tạo Question mới.")
+                        "Không thể đổi giải thích của câu hỏi đã dùng; hãy tạo câu hỏi mới.")
                 ]);
             }
 
@@ -319,7 +318,6 @@ public sealed class QuestionAuthoringService(
             }
 
             question.Level = request.Level;
-            question.Difficulty = request.Difficulty;
             question.Explanation = request.Explanation;
             question.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
@@ -378,12 +376,12 @@ public sealed class QuestionAuthoringService(
 
         if (questionStatus == QuestionStatus.Published)
         {
-            return "Question đã được công bố nên nội dung chấm đã bị khóa.";
+            return "Câu hỏi đã được công bố nên nội dung chấm đã bị khóa.";
         }
 
         if (questionStatus == QuestionStatus.Archived)
         {
-            return "Question đã bị lưu trữ nên nội dung chấm đã bị khóa.";
+            return "Câu hỏi đã bị lưu trữ nên nội dung chấm đã bị khóa.";
         }
 
         // Assessment status != Draft covers Published, Unpublished, and Archived
@@ -396,7 +394,7 @@ public sealed class QuestionAuthoringService(
 
         if (publishedInAssessment)
         {
-            return "Câu hỏi đã từng được công bố trong Assessment nên nội dung chấm đã bị khóa.";
+            return "Câu hỏi đã từng được công bố trong bài kiểm tra nên nội dung chấm đã bị khóa.";
         }
 
         // Practice status != Draft covers Published and Unpublished
@@ -409,7 +407,7 @@ public sealed class QuestionAuthoringService(
 
         if (publishedInPractice)
         {
-            return "Câu hỏi đã từng được công bố trong Practice nên nội dung chấm đã bị khóa.";
+            return "Câu hỏi đã từng được công bố trong bài luyện tập nên nội dung chấm đã bị khóa.";
         }
 
         var hasAssessmentAttempt = await db.Attempts
@@ -422,7 +420,7 @@ public sealed class QuestionAuthoringService(
 
         if (hasAssessmentAttempt)
         {
-            return "Câu hỏi đã có dữ liệu làm Assessment nên nội dung chấm đã bị khóa.";
+            return "Câu hỏi đã có dữ liệu làm bài kiểm tra nên nội dung chấm đã bị khóa.";
         }
 
         var hasPracticeSubmission = await db.PracticeSubmissions
@@ -434,7 +432,7 @@ public sealed class QuestionAuthoringService(
                 cancellationToken);
 
         return hasPracticeSubmission
-            ? "Câu hỏi đã có dữ liệu làm Practice nên nội dung chấm đã bị khóa."
+            ? "Câu hỏi đã có dữ liệu làm bài luyện tập nên nội dung chấm đã bị khóa."
             : null;
     }
 

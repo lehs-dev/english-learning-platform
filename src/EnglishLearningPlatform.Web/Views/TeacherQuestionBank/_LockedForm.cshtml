@@ -1,0 +1,116 @@
+@using EnglishLearningPlatform.Domain.Enums
+@model EnglishLearningPlatform.Web.Models.QuestionBank.QuestionFormViewModel
+@{
+    var stimulus = Model.Stimuli.FirstOrDefault(item => item.Id == Model.StimulusId);
+    var stimulusIcon = stimulus?.Type == StimulusType.Audio ? "headphones" : "book";
+}
+
+<form id="question-editor-form" method="post" asp-action="Edit" asp-route-id="@Model.Id" class="editor-form question-form question-locked-form">
+    <div asp-validation-summary="All" class="validation" role="alert"></div>
+    @* Gửi nguyên nội dung đã khóa để giữ hợp đồng lưu; máy chủ kiểm tra lại mọi thay đổi. *@
+    <input type="hidden" asp-for="Content" />
+    <input type="hidden" asp-for="PrimarySkill" />
+    <input type="hidden" asp-for="StimulusId" />
+    <input type="hidden" asp-for="Explanation" />
+    <input type="hidden" asp-for="CorrectOptionIndex" />
+    @for (var index = 0; index < Model.Options.Count; index++)
+    {
+        <input type="hidden" asp-for="Options[index].Content" />
+    }
+
+    <div class="question-lock-banner" role="status" aria-label="Nội dung câu hỏi đã bị khóa">
+        <span class="question-lock-symbol" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg></span>
+        <div>
+            <h2>Nội dung chấm đã được khóa</h2>
+            <p>Bạn có thể cập nhật trình độ. Các nội dung còn lại được giữ nguyên để bảo toàn kết quả học viên.</p>
+        </div>
+    </div>
+
+    <div class="question-editor-grid">
+        <div class="question-editor-card question-editor-content question-locked-content">
+            <section class="question-editor-section" aria-labelledby="question-content-heading">
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">01</span>
+                    <h2 id="question-content-heading">Nội dung câu hỏi</h2>
+                    <partial name="_ReadOnlyBadge" />
+                </div>
+                <div class="question-readonly-value question-readonly-content">@Model.Content</div>
+                <div class="question-locked-stimulus">
+                    <span class="question-stimulus-icon" aria-hidden="true"><svg class="icon"><use href="@Url.Content($"~/images/icons.svg#{stimulusIcon}")"></use></svg></span>
+                    <div>
+                        <span>Nội dung đính kèm</span>
+                        <p>@(stimulus?.Label ?? (Model.StimulusId.HasValue ? "Bài đọc hoặc âm thanh đã đính kèm" : "Không đính kèm"))</p>
+                    </div>
+                    <svg class="icon question-stimulus-lock" aria-label="Đã khóa" role="img"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg>
+                </div>
+            </section>
+
+            <section class="question-editor-section" aria-labelledby="question-options-heading">
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">02</span>
+                    <div>
+                        <h2 id="question-options-heading">Lựa chọn &amp; đáp án</h2>
+                        <p>Đáp án đúng được giữ nguyên.</p>
+                    </div>
+                    <partial name="_ReadOnlyBadge" />
+                </div>
+                <ol class="question-locked-options" aria-label="Các lựa chọn đã khóa">
+                    @for (var index = 0; index < Model.Options.Count; index++)
+                    {
+                        var letter = index < 26 ? ((char)('A' + index)).ToString() : (index + 1).ToString();
+                        <li class="question-locked-option @(Model.CorrectOptionIndex == index ? "is-correct" : "")">
+                            <span class="question-option-key" aria-hidden="true">@letter</span>
+                            <span class="question-locked-option-text">@Model.Options[index].Content</span>
+                            @if (Model.CorrectOptionIndex == index)
+                            {
+                                <span class="question-correct-badge" aria-label="Đáp án đúng"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><span>Đáp án đúng</span></span>
+                            }
+                        </li>
+                    }
+                </ol>
+            </section>
+
+            <section class="question-editor-section" aria-labelledby="question-explanation-heading">
+                <div class="question-section-heading">
+                    <span class="question-step" aria-hidden="true">03</span>
+                    <h2 id="question-explanation-heading">Giải thích đáp án</h2>
+                    <partial name="_ReadOnlyBadge" />
+                </div>
+                <div class="question-readonly-value @(string.IsNullOrWhiteSpace(Model.Explanation) ? "question-readonly-empty" : "")">@(string.IsNullOrWhiteSpace(Model.Explanation) ? "Chưa có giải thích." : Model.Explanation)</div>
+            </section>
+        </div>
+
+        <aside class="question-editor-aside" aria-label="Thiết lập câu hỏi">
+            <section class="question-editor-card question-settings question-locked-settings" aria-labelledby="question-settings-heading">
+                <div class="question-aside-heading">
+                    <span class="question-step" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h4m4 0h10M3 17h10m4 0h4" /><circle cx="9" cy="7" r="2" /><circle cx="15" cy="17" r="2" /></svg></span>
+                    <h2 id="question-settings-heading">Thiết lập câu hỏi</h2>
+                </div>
+                <p class="question-editable-caption"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>Có thể chỉnh sửa</p>
+                <div class="form-group">
+                    <label asp-for="Level">Trình độ <span class="required">*</span></label>
+                    <select asp-for="Level" class="form-control" required aria-describedby="question-level-help">
+                        <option value="">Chọn trình độ</option>
+                        @foreach (var level in QuestionLevels.All) { <option value="@level">@level</option> }
+                    </select>
+                    <span asp-validation-for="Level" class="validation"></span>
+                    <p id="question-level-help">Chỉ trình độ sẽ được cập nhật.</p>
+                </div>
+                <div class="question-locked-skill">
+                    <h3>Kỹ năng chính <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg></h3>
+                    <div class="question-readonly-value"><partial name="_UiText" model="Model.PrimarySkill" /></div>
+                </div>
+                <div class="question-lock-note">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg>
+                    <div>
+                        <p>Nội dung khóa giúp giữ nguyên kết quả và phản hồi của học viên.</p>
+                        @if (!string.IsNullOrWhiteSpace(Model.LockReason))
+                        {
+                            <p class="question-lock-reason">@Model.LockReason</p>
+                        }
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+</form>

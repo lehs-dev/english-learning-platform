@@ -1,0 +1,61 @@
+@model ContentEditModel
+@{
+    var isEdit = Model.Id.HasValue;
+    var saveLabel = isEdit ? "Lưu thay đổi" : "Lưu chương học";
+    var invalidVisibility = ViewData.ModelState.TryGetValue("Input.Visibility", out var visibilityState) && visibilityState.Errors.Count > 0
+        ? visibilityState.AttemptedValue : !Enum.IsDefined(Model.Input.Visibility) ? ((int)Model.Input.Visibility).ToString() : null;
+}
+
+<nav class="module-editor-breadcrumb" aria-label="Đường dẫn điều hướng">
+    <a asp-action="Index">Khóa học của tôi</a><span aria-hidden="true">/</span><a asp-action="Manage" asp-route-id="@Model.CourseId">Nội dung khóa học</a><span aria-hidden="true">/</span><span aria-current="page">@ViewData["Title"]</span>
+</nav>
+<header class="module-editor-heading">
+    <div><h1>@ViewData["Title"]</h1><p>Nhóm các bài học theo chủ đề để học viên dễ theo dõi nội dung khóa học.</p></div>
+    <div class="module-editor-actions"><a class="button secondary" asp-action="Manage" asp-route-id="@Model.CourseId">Hủy</a><button class="button" type="submit" form="module-editor-form"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>@saveLabel</button></div>
+</header>
+
+<form id="module-editor-form" class="editor-form module-editor-form" method="post" asp-action="Content" asp-route-courseId="@Model.CourseId" asp-route-kind="@Model.Kind" asp-route-parentId="@Model.ParentId" asp-route-id="@Model.Id" data-module-editor>
+    <div asp-validation-summary="All" class="validation module-editor-errors" role="alert"></div>
+    <div class="module-editor-grid">
+        <div class="module-editor-fields">
+            <section class="module-editor-card" aria-labelledby="module-info-heading">
+                <div class="module-editor-card-heading"><span class="module-editor-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg></span><div><h2 id="module-info-heading">Thông tin chương học</h2><p>Đặt tên rõ ràng và giới thiệu nội dung chính của chương.</p></div></div>
+                <div class="module-editor-field">
+                    <div class="module-editor-label-row"><label asp-for="Input.Title">Tên chương học <span class="module-editor-required" aria-hidden="true">*</span></label><span data-module-title-count>@(Model.Input.Title?.Length ?? 0)/200</span></div>
+                    <input asp-for="Input.Title" maxlength="200" required aria-required="true" placeholder="Ví dụ: Chương 1: Giao tiếp hằng ngày" data-module-title />
+                    <span asp-validation-for="Input.Title" class="validation"></span>
+                </div>
+                <div class="module-editor-field">
+                    <div class="module-editor-label-row"><label asp-for="Input.Description">Mô tả chương học <span class="module-editor-optional">(tùy chọn)</span></label><span data-module-description-count>@(Model.Input.Description?.Length ?? 0)/4000</span></div>
+                    <textarea asp-for="Input.Description" maxlength="4000" rows="6" placeholder="Giới thiệu những nội dung học viên sẽ học trong chương này." data-module-description></textarea>
+                    <span asp-validation-for="Input.Description" class="validation"></span>
+                    <p class="module-editor-help">Mô tả ngắn giúp học viên nắm được chủ đề và mục tiêu của chương.</p>
+                </div>
+            </section>
+            <section class="module-editor-card" aria-labelledby="module-visibility-heading">
+                <div class="module-editor-card-heading"><span class="module-editor-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg></span><div><h2 id="module-visibility-heading">Hiển thị chương học</h2><p>Thiết lập cách chương xuất hiện với học viên.</p></div></div>
+                <label asp-for="Input.Visibility">Trạng thái hiển thị</label>
+                <select asp-for="Input.Visibility" data-module-visibility>
+                    @if (invalidVisibility is not null) { <option value="@invalidVisibility">Lựa chọn không hợp lệ — hãy chọn lại</option> }
+                    <option value="@((int)ModuleVisibility.Visible)">Hiển thị</option>
+                    <option value="@((int)ModuleVisibility.Hidden)">Ẩn chương học</option>
+                </select>
+                <span asp-validation-for="Input.Visibility" class="validation"></span>
+                <p class="module-editor-help">Chương hiển thị dành cho học viên có quyền học khóa học. Chương bị ẩn chỉ có giảng viên quản lý và xem trước.</p>
+            </section>
+        </div>
+        <aside class="module-editor-aside" aria-label="Xem trước và hướng dẫn chương học">
+            <section class="module-editor-card" aria-labelledby="module-preview-heading">
+                <div class="module-editor-card-heading"><span class="module-editor-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg></span><div><h2 id="module-preview-heading">Xem trước chương học</h2><p>Nội dung cập nhật khi bạn nhập.</p></div></div>
+                <article class="module-editor-preview">
+                    <div class="module-editor-preview-top"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg><span data-module-preview-status>@(Model.Input.Visibility == ModuleVisibility.Hidden ? "Đã ẩn" : "Hiển thị")</span></div>
+                    <div class="module-editor-preview-body"><span>Chương học</span><h3 data-module-preview-title>@(string.IsNullOrWhiteSpace(Model.Input.Title) ? "Tên chương học của bạn" : Model.Input.Title)</h3><p data-module-preview-description>@(string.IsNullOrWhiteSpace(Model.Input.Description) ? "Mô tả chương học sẽ hiển thị tại đây." : Model.Input.Description)</p></div>
+                    <p class="module-editor-preview-footer">Quản lý và thêm bài học tại trang nội dung khóa học.</p>
+                </article>
+            </section>
+            <div class="module-editor-guide"><h2>Tiếp theo sau khi lưu</h2><ol><li><span>1</span><div><strong>Thêm bài học</strong><p>Chia nội dung chương thành các bài học cụ thể.</p></div></li><li><span>2</span><div><strong>Thêm tài nguyên</strong><p>Bổ sung bài đọc, liên kết, âm thanh hoặc video.</p></div></li></ol></div>
+            <p class="module-editor-note"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#info")"></use></svg><span>Khi ẩn chương, các bài học bên trong không còn khả dụng với học viên. Tiến độ đã ghi nhận được giữ nguyên.</span></p>
+        </aside>
+    </div>
+    <div class="module-editor-savebar"><p><span class="module-editor-required" aria-hidden="true">*</span> Trường bắt buộc</p><div class="module-editor-actions"><a asp-action="Manage" asp-route-id="@Model.CourseId">Hủy</a><button class="button" type="submit"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>@saveLabel</button></div></div>
+</form>

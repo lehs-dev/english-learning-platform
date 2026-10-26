@@ -10,7 +10,6 @@ public sealed class QuestionDetail
 
     //infomation non-required
     public string? Level { get; set; }
-    public string? Difficulty { get; set; }
     public string? Explanation { get; set; }
     public QuestionStatus Status { get; set; } = QuestionStatus.Draft;
     public QuestionStimulusDetail? Stimulus { get; set; }

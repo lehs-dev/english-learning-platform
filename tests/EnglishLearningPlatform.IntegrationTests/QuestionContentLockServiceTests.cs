@@ -54,7 +54,7 @@ public sealed class QuestionContentLockServiceTests(IntegrationTestFactory facto
         using var scope = factory.Services.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<IQuestionAuthoringService>();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var request = OriginalRequest() with { Level = "A2", Difficulty = "Medium" };
+        var request = OriginalRequest() with { Level = "A2" };
 
         var result = await service.UpdateAsync(data.TeacherId, data.QuestionId, request);
 
@@ -63,7 +63,6 @@ public sealed class QuestionContentLockServiceTests(IntegrationTestFactory facto
         db.ChangeTracker.Clear();
         var saved = await db.Questions.Include(q => q.Options).SingleAsync(q => q.Id == data.QuestionId);
         Assert.Equal(request.Level, saved.Level);
-        Assert.Equal(request.Difficulty, saved.Difficulty);
         Assert.Equal(request.Explanation, saved.Explanation);
         Assert.Equal(OriginalRequest().Content, saved.Content);
         Assert.Equal(EnglishSkill.Reading, saved.PrimarySkill);
@@ -84,7 +83,7 @@ public sealed class QuestionContentLockServiceTests(IntegrationTestFactory facto
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var request = OriginalRequest();
         var question = new Question { OwnerTeacherUserId = teacher.Id, Content = request.Content,
-            PrimarySkill = EnglishSkill.Reading, Level = request.Level, Difficulty = request.Difficulty,
+            PrimarySkill = EnglishSkill.Reading, Level = request.Level,
             Explanation = request.Explanation, Status = QuestionStatus.Draft };
         question.Options.Add(new QuestionOption { Content = "First", IsCorrect = true, OrderIndex = 0 });
         question.Options.Add(new QuestionOption { Content = "Second", IsCorrect = false, OrderIndex = 1 });
@@ -97,7 +96,7 @@ public sealed class QuestionContentLockServiceTests(IntegrationTestFactory facto
     private static CreateQuestionRequest OriginalRequest() => new()
     {
         Content = "Choose the correct answer.", PrimarySkill = EnglishSkill.Reading,
-        Level = "Beginner", Difficulty = "Easy", Explanation = "Original explanation",
+        Level = "Beginner", Explanation = "Original explanation",
         Options = new[] { new QuestionOptionRequest("First", true), new QuestionOptionRequest("Second", false) }
     };
 }
