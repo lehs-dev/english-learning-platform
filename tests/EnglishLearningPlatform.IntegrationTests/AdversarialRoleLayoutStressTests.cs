@@ -37,7 +37,8 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.Contains("studio-nav-group", html);
         Assert.Contains("Estudy", html);
         Assert.Contains("Học viên", html);
-        Assert.Contains("Bàn học", html);
+        Assert.Contains("/Learning/Dashboard", html);
+        Assert.Contains("<span>Trang chủ</span>", html);
         Assert.Contains("Khóa học của tôi", html);
         Assert.Contains("Đánh giá", html);
         Assert.Contains(student.FullName, html);
@@ -85,7 +86,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.DoesNotContain("student-workspace", html);
         Assert.DoesNotContain("dashboard-topbar-clean", html);
         Assert.DoesNotContain("/Learning/Dashboard", html);
-        Assert.DoesNotContain("Bàn học", html);
+        Assert.DoesNotContain("student-sidebar", html);
         Assert.DoesNotContain("admin-sidebar", html);
         Assert.DoesNotContain("Production Console", html);
         Assert.DoesNotContain("/Admin/Transactions", html);
@@ -134,7 +135,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.DoesNotContain("student-workspace", html);
         Assert.DoesNotContain("dashboard-topbar-clean", html);
         Assert.DoesNotContain("/Learning/Dashboard", html);
-        Assert.DoesNotContain("Bàn học", html);
+        Assert.DoesNotContain("student-sidebar", html);
         Assert.DoesNotContain("studio-sidebar", html);
         Assert.DoesNotContain("teacher-sidebar", html);
         Assert.DoesNotContain("Không gian giảng dạy", html);
@@ -172,7 +173,7 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.DoesNotContain("/Admin", html);
         Assert.DoesNotContain("Quản trị", html);
         Assert.DoesNotContain("/Learning/Dashboard", html);
-        Assert.DoesNotContain("Bàn học", html);
+        Assert.DoesNotContain("student-sidebar", html);
         Assert.DoesNotContain("/Checkout/History", html);
     }
 
