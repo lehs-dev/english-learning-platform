@@ -1,7 +1,7 @@
 @model StudentDashboard
 
 @{
-    ViewData["Title"] = "Bàn học — Tiến độ học tập";
+    ViewData["Title"] = "Trang chủ — Tiến độ học tập";
     ViewData["ActiveSection"] = "dashboard";
 
     // 1. Chỉ khóa còn bài chưa học mới là "tiếp tục học". CourseProgress có thể
@@ -9,6 +9,7 @@
     // CompletedAtUtc là lịch sử; bài mới hoặc bài đánh dấu chưa xong vẫn cần học tiếp.
     var activeCourses = Model.Courses
         .Where(c => c.Status != CourseStatus.Archived && c.Progress is { TotalLessons: > 0 } progress &&
+            (progress.CompletedLessons > 0 || progress.CompletedAtUtc is not null) &&
             progress.CompletedLessons < progress.TotalLessons)
         .ToList();
     var continueCourse = activeCourses.FirstOrDefault(c => c.Progress!.ContinueLessonId.HasValue);
@@ -16,7 +17,7 @@
         c.Status != CourseStatus.Archived && c.Progress is { TotalLessons: > 0, CompletedAtUtc: null } progress &&
         progress.CompletedLessons >= progress.TotalLessons);
     var heroCourse = continueCourse ?? finalPendingCourse;
-    var otherCourses = Model.Courses.Where(c => c.Id != heroCourse?.Id).Take(3).ToList();
+    var otherCourses = Model.Courses.Where(c => c.Id != heroCourse?.Id).Take(6).ToList();
 
     // 2. Calendar tuần hiện tại theo UTC+7, dùng đúng tuần mà service đã query.
     var localToday = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
@@ -165,7 +166,7 @@
         {
             <div class="progress-cards-row">
                 @{
-                    var displayCourses = Model.Courses.Take(3).ToList();
+                    var displayCourses = Model.Courses.Take(6).ToList();
                     for (int i = 0; i < displayCourses.Count; i++)
                     {
                         var c = displayCourses[i];
