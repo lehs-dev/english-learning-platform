@@ -1,6 +1,6 @@
 @model ContentEditModel
 @{
-    ViewData["Title"] = (Model.Id.HasValue ? "Sửa " : "Thêm ") + (Model.Kind == ContentKind.Module ? "chương học" : Model.Kind == ContentKind.Lesson ? "bài học" : "tài nguyên");
+    ViewData["Title"] = (Model.Id.HasValue ? "Sửa " : "Thêm ") + (Model.Kind == ContentKind.Module ? "chương học" : Model.Kind == ContentKind.Lesson ? "bài học" : "nội dung");
     if (Model.Kind == ContentKind.Module) ViewData["PageClass"] = "module-editor-page";
 }
 @section Styles {
@@ -15,12 +15,12 @@ else
 <a class="button secondary back-link" asp-action="Manage" asp-route-id="@Model.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Quản lý nội dung</a><h1>@ViewData["Title"]</h1>
 <form method="post" asp-action="Content" asp-route-courseId="@Model.CourseId" asp-route-kind="@Model.Kind" asp-route-parentId="@Model.ParentId" asp-route-id="@Model.Id" class="panel editor-form">
 <div asp-validation-summary="All" class="validation" role="alert"></div>
-<label asp-for="Input.Title">Tên @(Model.Kind == ContentKind.Resource ? "tài nguyên (tùy chọn)" : (Model.Kind == ContentKind.Module ? "chương học" : "bài học"))</label><input asp-for="Input.Title" maxlength="200" /><span asp-validation-for="Input.Title" class="validation"></span>
+<label asp-for="Input.Title">Tên @(Model.Kind == ContentKind.Resource ? "nội dung (tùy chọn)" : (Model.Kind == ContentKind.Module ? "chương học" : "bài học"))</label><input asp-for="Input.Title" maxlength="200" /><span asp-validation-for="Input.Title" class="validation"></span>
 @if (Model.Kind == ContentKind.Lesson) {
     <label asp-for="Input.Status">Trạng thái</label><select asp-for="Input.Status">@foreach (var choice in Enum.GetValues<LessonStatus>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }</select><span asp-validation-for="Input.Status" class="validation"></span>
-    <p class="muted">Tạo Bài học bản nháp, thêm tài nguyên, sau đó chuyển sang đã xuất bản.</p>
+    <p class="muted">Tạo Bài học bản nháp, thêm nội dung, sau đó chuyển sang đã xuất bản.</p>
 } else {
-    <label asp-for="Input.ResourceType">Loại tài nguyên</label><select asp-for="Input.ResourceType" data-resource-type>@foreach (var choice in Enum.GetValues<LessonResourceType>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }</select><span asp-validation-for="Input.ResourceType" class="validation"></span>
+    <label asp-for="Input.ResourceType">Loại nội dung</label><select asp-for="Input.ResourceType" data-resource-type>@foreach (var choice in Enum.GetValues<LessonResourceType>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }</select><span asp-validation-for="Input.ResourceType" class="validation"></span>
     <div data-text-fields><label asp-for="Input.ContentText">Nội dung văn bản</label><textarea asp-for="Input.ContentText" rows="10"></textarea><span asp-validation-for="Input.ContentText" class="validation"></span></div>
     <div data-url-fields><label asp-for="Input.ResourceUrl">URL (http/https)</label><input asp-for="Input.ResourceUrl" type="url" maxlength="2048" /><span asp-validation-for="Input.ResourceUrl" class="validation"></span><p class="muted">âm thanh/Video dùng URL file media trực tiếp. Liên kết dùng URL trang web.</p></div>
 }

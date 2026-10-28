@@ -203,7 +203,7 @@ public sealed class TeacherAssessmentsController : Controller
 
         TempData["Success"] =
             status == AssessmentStatus.Published
-                ? "Đã cập nhật cấu hình. Bài kiểm tra vẫn đang xuất bản."
+                ? "Đã cập nhật cấu hình. Bài kiểm tra vẫn đang mở."
                 : "Đã lưu bản nháp bài kiểm tra.";
 
         // Redirect sau khi lưu để refresh không gửi lại POST.
@@ -248,7 +248,7 @@ public sealed class TeacherAssessmentsController : Controller
         if (result.Success)
         {
             TempData["Success"] =
-                "Đã xuất bản bài kiểm tra và khóa nội dung câu hỏi, ngữ liệu.";
+                "Đã mở bài kiểm tra và khóa nội dung câu hỏi, ngữ liệu.";
 
             // Draft đã thành Published nên quay về danh sách.
             return RedirectToAction(nameof(Index));
@@ -271,7 +271,7 @@ public sealed class TeacherAssessmentsController : Controller
             // Có thể đề vừa được Publish ở tab khác.
             // Không tự đưa Published trở lại Draft.
             TempData["Error"] =
-                "Không thể xuất bản từ trang hiện tại. "
+                "Không thể mở bài kiểm tra từ trang hiện tại. "
                 + "Hãy kiểm tra lại trạng thái trong danh sách.";
 
             return RedirectToAction(nameof(Index));

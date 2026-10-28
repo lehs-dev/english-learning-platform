@@ -346,7 +346,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
         using var page = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
         Assert.True(page.Headers.CacheControl!.NoStore);
-        Assert.Contains("Đề đang xuất bản và chưa có lượt làm", WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync()));
+        Assert.Contains("Đề đang mở và chưa có lượt làm", WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync()));
         string token = await IdentityTestHelpers.GetTokenAsync(client, path);
         using var request = new HttpRequestMessage(HttpMethod.Post, "/TeacherAssessmentQuestions/Save/" + data.Assessment.Id);
         request.Content = JsonContent.Create(input);
@@ -495,7 +495,7 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
 
     private static void AssertPublishedForm(string html)
     {
-        Assert.Contains("Đề đang xuất bản và chưa có lượt làm", WebUtility.HtmlDecode(html));
+        Assert.Contains("Đề đang mở và chưa có lượt làm", WebUtility.HtmlDecode(html));
         Assert.DoesNotContain("/TeacherAssessments/Publish/", html);
         Assert.Contains("/TeacherAssessmentQuestions/Index/", html);
     }

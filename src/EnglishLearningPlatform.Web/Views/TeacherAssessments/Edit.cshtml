@@ -8,7 +8,7 @@
 @section Styles { <link rel="stylesheet" href="~/css/teacher-assessments.css" asp-append-version="true" /> }
 <nav class="ta-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-action="Index">Bài kiểm tra</a><span aria-hidden="true">/</span><span aria-current="page">@(Model.Id.HasValue ? "Cấu hình đề" : "Tạo bài mới")</span></nav>
 <div class="ta-heading"><div><h1>@ViewData["Title"]</h1><p>Xác định mục tiêu, thời gian và cách đánh giá trước khi soạn câu hỏi.</p></div>@if (Model.Id.HasValue) { <span class="ta-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span> }</div>
-<ol class="ta-steps" aria-label="Các bước soạn đề"><li class="is-current" aria-current="step"><span>1</span>Cấu hình đề</li><li><span>2</span>Câu hỏi và điểm</li><li><span>3</span>Xem trước và xuất bản</li></ol>
+<ol class="ta-steps" aria-label="Các bước soạn đề"><li class="is-current" aria-current="step"><span>1</span>Cấu hình đề</li><li><span>2</span>Câu hỏi và điểm</li><li><span>3</span>Xem trước và mở bài</li></ol>
 <div class="ta-config-grid">
     <form method="post" asp-controller="TeacherAssessments" asp-action="Edit" asp-route-id="@Model.Id" asp-antiforgery="true" class="ta-card editor-form ta-config-form" data-configuration-form>
         <div asp-validation-summary="All" class="validation" role="alert"></div>
@@ -36,8 +36,8 @@
             <p class="ta-help" id="assessment-score-help">Đánh giá đầu vào: để trống điểm đạt. Các loại bài khác có thể đặt điểm đạt hoặc để trống.</p>
         </section>
         @if (Model.Status == AssessmentStatus.Published)
-        { <p class="ta-inline-note">Đề đang xuất bản và chưa có lượt làm. Mỗi lần lưu phải giữ đề hợp lệ; khi có lượt làm đầu tiên, cấu hình và câu hỏi sẽ được khóa.</p> }
-        else { <p class="ta-help">Bản nháp có thể chưa có câu hỏi. Học viên chỉ làm được bài sau khi bạn xuất bản.</p> }
+        { <p class="ta-inline-note">Đề đang mở và chưa có lượt làm. Mỗi lần lưu phải giữ đề hợp lệ; khi có lượt làm đầu tiên, cấu hình và câu hỏi sẽ được khóa.</p> }
+        else { <p class="ta-help">Bản nháp có thể chưa có câu hỏi. Học viên chỉ làm được bài sau khi bạn mở bài kiểm tra.</p> }
         <p class="ta-save-notice" data-configuration-notice role="status" tabindex="-1"></p>
         <div class="ta-form-actions"><a class="button secondary" asp-action="Index">Hủy</a><button type="submit" class="button">Lưu cấu hình</button></div>
     </form>
@@ -52,8 +52,8 @@
             </section>
             @if (Model.Status == AssessmentStatus.Draft)
             {
-                <section class="ta-card ta-publish-card" aria-labelledby="assessment-publish-title"><h2 id="assessment-publish-title">Sẵn sàng xuất bản?</h2><p class="ta-help">Lưu cấu hình và câu hỏi, sau đó xem trước toàn bộ đề.</p><p class="ta-inline-note">Xuất bản sẽ khóa nội dung câu hỏi và ngữ liệu được dùng. Những thay đổi chưa lưu sẽ không được xuất bản.</p>
-                    <form method="post" asp-controller="TeacherAssessments" asp-action="Publish" asp-route-id="@Model.Id" asp-antiforgery="true" data-publication-form><input type="hidden" name="expectedUpdatedAtUtc" value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" /><button type="submit" class="button ta-full-width">Xuất bản đề đã lưu</button></form>
+                <section class="ta-card ta-publish-card" aria-labelledby="assessment-publish-title"><h2 id="assessment-publish-title">Sẵn sàng mở bài kiểm tra?</h2><p class="ta-help">Lưu cấu hình và câu hỏi, sau đó xem trước toàn bộ đề.</p><p class="ta-inline-note">Mở bài kiểm tra sẽ khóa nội dung câu hỏi và ngữ liệu được dùng. Đề mở cho học viên chỉ sử dụng những thay đổi đã lưu.</p>
+                    <form method="post" asp-controller="TeacherAssessments" asp-action="Publish" asp-route-id="@Model.Id" asp-antiforgery="true" data-publication-form><input type="hidden" name="expectedUpdatedAtUtc" value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" /><button type="submit" class="button ta-full-width">Mở bài kiểm tra</button></form>
                 </section>
             }
         }

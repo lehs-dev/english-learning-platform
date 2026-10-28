@@ -13,7 +13,7 @@
 </div>
 <section class="ta-intro" aria-label="Quy trình soạn đề">
     <span class="ta-emblem" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
-    <div><h2>Một đề rõ mục tiêu, một kết quả có ý nghĩa</h2><p>Cấu hình đề → chọn câu hỏi và điểm → xem trước và xuất bản.</p></div>
+    <div><h2>Một đề rõ mục tiêu, một kết quả có ý nghĩa</h2><p>Cấu hình đề → chọn câu hỏi và điểm → xem trước và mở bài kiểm tra.</p></div>
     <span class="ta-intro-count"><strong>@Model.TotalCount</strong> bài kiểm tra</span>
 </section>
 <section class="ta-card ta-filter-card" aria-label="Tìm và lọc bài kiểm tra">
@@ -66,7 +66,7 @@ else
                             <a asp-controller="TeacherAssessmentScope" asp-action="Edit" asp-route-id="@item.Id">Phạm vi truy cập</a>
                             <form method="post" asp-controller="TeacherAssessmentClone" asp-action="Create" asp-route-id="@item.Id"><input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" /><button type="submit">Tạo bản sao nháp</button></form>
                             @if (item.Status == AssessmentStatus.Published)
-                            { <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Unpublish" asp-route-id="@item.Id"><input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" /><button type="submit">Ngừng xuất bản</button></form> }
+                            { <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Unpublish" asp-route-id="@item.Id"><input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" /><button type="submit">Tạm đóng bài kiểm tra</button></form> }
                             @if (item.Status == AssessmentStatus.Published || item.Status == AssessmentStatus.Unpublished)
                             { <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Archive" asp-route-id="@item.Id"><input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" /><button type="submit" class="ta-danger-action">Lưu trữ đề</button></form> }
                         </div>

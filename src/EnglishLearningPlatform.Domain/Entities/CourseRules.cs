@@ -28,7 +28,7 @@ public static class CourseRules
                 if (!Enum.IsDefined(lesson.Status) || string.IsNullOrWhiteSpace(lesson.Title) || lesson.Title.Length > 200) errors.Add($"Bài học '{lesson.Title}': thông tin không hợp lệ.");
                 if (lesson.Status == LessonStatus.Published &&
                     (lesson.Resources.Count == 0 || lesson.Resources.Any(r => !ValidResource(r.ResourceType, r.ContentText, r.ResourceUrl))))
-                    errors.Add($"Chương '{module.Title}' / Bài học '{lesson.Title}': cần ít nhất một tài nguyên và mọi tài nguyên phải hợp lệ.");
+                    errors.Add($"Chương '{module.Title}' / Bài học '{lesson.Title}': cần ít nhất một mục nội dung và mọi mục nội dung phải hợp lệ.");
             }
         }
         if (!course.Modules.Any(m => m.Visibility == ModuleVisibility.Visible && m.Lessons.Any(l =>

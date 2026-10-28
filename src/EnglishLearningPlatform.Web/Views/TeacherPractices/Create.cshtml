@@ -7,7 +7,7 @@
 @section Styles { <link rel="stylesheet" href="~/css/teacher-practices.css" asp-append-version="true" /> }
 <nav class="practice-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-action="Index">Bài luyện tập</a><span aria-hidden="true">/</span><span aria-current="page">Tạo bài mới</span></nav>
 <div class="practice-heading"><div><h1>Tạo bài luyện tập nháp</h1><p>Đặt mục tiêu cho bài luyện tập, sau đó chọn những câu hỏi phù hợp.</p></div></div>
-<ol class="practice-steps" aria-label="Các bước soạn bài"><li class="is-current" aria-current="step"><span>1</span> Thông tin bài</li><li><span>2</span> Chọn câu hỏi</li><li><span>3</span> Xem trước và xuất bản</li></ol>
+<ol class="practice-steps" aria-label="Các bước soạn bài"><li class="is-current" aria-current="step"><span>1</span> Thông tin bài</li><li><span>2</span> Chọn câu hỏi</li><li><span>3</span> Xem trước và mở bài</li></ol>
 <div class="practice-create-grid">
     <aside class="practice-create-context">
         <form method="get" asp-controller="TeacherPractices" asp-action="Create" class="practice-card">
@@ -31,7 +31,7 @@
             <fieldset class="practice-placement">
                 <legend>Vị trí trong khóa học</legend>
                 <p class="practice-help">Khóa học: <strong>@Model.CourseTitle</strong></p>
-                <p class="practice-help" id="practice-placement-help">Chọn một chương học hoặc một bài học. Có thể để trống và chọn khi xuất bản.</p>
+                <p class="practice-help" id="practice-placement-help">Chọn một chương học hoặc một bài học. Có thể để trống và chọn khi mở bài luyện tập.</p>
                 <div class="practice-two-fields">
                     <div class="practice-field"><label asp-for="Input.ModuleId">Chương học</label><select asp-for="Input.ModuleId" asp-items="Model.ModuleOptions" aria-describedby="practice-placement-help"><option value="">-- Không chọn Chương học --</option></select><span asp-validation-for="Input.ModuleId" class="validation"></span></div>
                     <div class="practice-field"><label asp-for="Input.LessonId">Bài học</label><select asp-for="Input.LessonId" asp-items="Model.LessonOptions" aria-describedby="practice-placement-help"><option value="">-- Không chọn Bài học --</option></select><span asp-validation-for="Input.LessonId" class="validation"></span></div>
@@ -40,7 +40,7 @@
                 else if (Model.LessonOptions.Count == 0) { <p class="practice-help">Khóa học này chưa có bài học. Bạn có thể chọn chương học hoặc để trống.</p> }
             </fieldset>
         }
-        else { <p class="practice-inline-note">Bản nháp chưa gắn khóa học. Bạn có thể chọn vị trí ở bước xuất bản.</p> }
+        else { <p class="practice-inline-note">Bản nháp chưa gắn khóa học. Bạn có thể chọn vị trí ở bước mở bài luyện tập.</p> }
         <div class="practice-form-footer">
             <p class="practice-help">Bản nháp chỉ hiển thị với bạn. Học viên chưa thể làm bài.</p>
             <div class="actions"><a class="button secondary" asp-action="Index">Hủy</a><button type="submit" class="button">Lưu và chọn câu hỏi <span aria-hidden="true">→</span></button></div>
