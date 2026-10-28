@@ -16,6 +16,7 @@ public sealed class PracticeSubmissionConfiguration
         e.Property(x => x.Score)
             .HasPrecision(5, 2)
             .IsRequired();
+        e.Property(x => x.Version).HasDefaultValue(1);
         e.Property(x => x.SubmittedAtUtc)
         .IsRequired();
 

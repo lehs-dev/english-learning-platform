@@ -28,6 +28,7 @@
     </header>
 
     <form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="exam-form-grid" data-practice-form>
+        <input type="hidden" name="SessionId" value="@Model.SessionId" />
         <!-- LEFT: Questions Column -->
         <div class="exam-questions-column">
             <div class="exam-intro-card">
@@ -36,6 +37,7 @@
                 </div>
                 <div class="exam-intro-text">
                     <strong>Thông tin luyện tập</strong>
+                    <p data-practice-version="@Model.Version">Bạn đang làm phiên bản @Model.Version. Nếu giảng viên cập nhật bài, lượt này vẫn giữ nguyên đề; lần làm lại sẽ dùng bản mới nhất.</p>
                     <p class="preserve">@(string.IsNullOrWhiteSpace(Model.Description) ? "Luyện tập không giới hạn thời gian. Bạn có thể làm lại nhiều lần và xem giải thích chi tiết sau khi nộp." : Model.Description)</p>
                 </div>
             </div>

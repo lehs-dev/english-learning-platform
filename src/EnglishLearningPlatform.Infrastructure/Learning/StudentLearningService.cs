@@ -109,12 +109,12 @@ public sealed class StudentLearningService(AppDbContext db, IStudentLearningCour
             .OrderBy(p => p.Title).ThenBy(p => p.Id)
             .Select(p => new { p.Id, CourseId = p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
                 CourseTitle = p.LessonId.HasValue ? p.Lesson!.Module.Course.Title : p.Module!.Course.Title,
-                p.ModuleId, p.LessonId, p.Title, Count = p.Questions.Count }).ToListAsync(ct);
+                p.ModuleId, p.LessonId, p.Title, Count = p.Questions.Count(q => q.Version == p.Version) }).ToListAsync(ct);
         var ids = rows.Select(p => p.Id).ToArray();
         if (ids.Length == 0) return [];
         // Keep metadata expansion separate from the authorization query; a correlated
         // collection projection duplicates the complex access predicate in SQL.
-        var skills = await db.PracticeQuestions.AsNoTracking().Where(q => ids.Contains(q.PracticeId))
+        var skills = await db.PracticeQuestions.AsNoTracking().Where(q => ids.Contains(q.PracticeId) && q.Version == q.Practice.Version)
             .Select(q => new { q.PracticeId, q.Question.PrimarySkill }).Distinct().ToListAsync(ct);
         var groups = skills.ToLookup(q => q.PracticeId, q => q.PrimarySkill);
         return rows.Select(p => new PracticeLink(p.Id, p.CourseId, p.ModuleId, p.LessonId, p.Title, p.Count,

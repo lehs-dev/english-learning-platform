@@ -182,11 +182,22 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
             Module = new Module { Title = "Existing module", Course = new Course {
                 OwnerTeacherUserId = teacher.Id, Title = "Existing course", Status = CourseStatus.Published } },
             Status = PracticeStatus.Published, Questions = [practiceQuestion] };
-        db.Practices.Add(practice);
-        db.PracticeSubmissions.Add(new PracticeSubmission { Practice = practice, StudentUserId = student.Id,
-            Score = 100m, SubmittedAtUtc = lockedAt,
-            Answers = [new PracticeAnswer { PracticeQuestion = practiceQuestion, SelectedOption = option }] });
+        db.Modules.Add(practice.Module!);
         await db.SaveChangesAsync();
+        // Schema lịch sử chưa có Version: chèn các cột thật của thời điểm đó bằng SQL tham số.
+        // Các entity khác vẫn được seed bằng EF; không giả lập logic migration đang kiểm tra.
+        var submissionId = Guid.NewGuid();
+        var answerId = Guid.NewGuid();
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO dbo.Practices (Id, OwnerTeacherUserId, ModuleId, Title, Status, CreatedAtUtc)
+            VALUES ({practice.Id}, {teacher.Id}, {practice.Module!.Id}, {practice.Title}, N'Published', {lockedAt});
+            INSERT INTO dbo.PracticeQuestions (Id, PracticeId, QuestionId, OrderIndex, CreatedAtUtc)
+            VALUES ({practiceQuestion.Id}, {practice.Id}, {question.Id}, 0, {lockedAt});
+            INSERT INTO dbo.PracticeSubmissions (Id, PracticeId, StudentUserId, Score, SubmittedAtUtc, CreatedAtUtc)
+            VALUES ({submissionId}, {practice.Id}, {student.Id}, 100, {lockedAt}, {lockedAt});
+            INSERT INTO dbo.PracticeAnswers (Id, PracticeSubmissionId, PracticeQuestionId, SelectedOptionId, CreatedAtUtc)
+            VALUES ({answerId}, {submissionId}, {practiceQuestion.Id}, {option.Id}, {lockedAt});
+            """);
         return new SeedData(assessment.Id, question.Id, option.Id);
     }
 

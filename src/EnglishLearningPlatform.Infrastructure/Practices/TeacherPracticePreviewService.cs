@@ -33,21 +33,23 @@ public sealed class TeacherPracticePreviewService(
         if (practice == null) return new(LearningAccessResult.NotFound);
         if (practice.Status != PracticeStatus.Draft && practice.Status != PracticeStatus.Published)
             return new(LearningAccessResult.Forbidden);
+        // Preview chỉ xem phiên bản đang công bố, không trộn các đề lịch sử.
+        var currentQuestions = practice.Questions.Where(q => q.Version == practice.Version).ToList();
 
         // Liên kết legacy sai owner cũng không được làm lộ Course/Question/Stimulus người khác.
         if ((practice.Lesson != null && practice.Lesson.Module.Course.OwnerTeacherUserId != actorUserId) ||
             (practice.Module != null && practice.Module.Course.OwnerTeacherUserId != actorUserId) ||
-            practice.Questions.Any(item => item.Question.OwnerTeacherUserId != actorUserId ||
+            currentQuestions.Any(item => item.Question.OwnerTeacherUserId != actorUserId ||
                 (item.Question.Stimulus != null && item.Question.Stimulus.OwnerTeacherUserId != actorUserId)))
             return new(LearningAccessResult.NotFound);
 
         var warnings = new List<string>();
         if (practice.LessonId.HasValue == practice.ModuleId.HasValue)
             warnings.Add("Cần chọn đúng một Lesson hoặc một Module trước khi Publish.");
-        if (practice.Questions.Count == 0)
+        if (currentQuestions.Count == 0)
             warnings.Add("Practice chưa có câu hỏi. Hãy lưu danh sách câu hỏi trước khi Publish.");
         var questions = new List<PracticeQuestionSheet>();
-        foreach (var item in practice.Questions.OrderBy(item => item.OrderIndex).ThenBy(item => item.Id))
+        foreach (var item in currentQuestions.OrderBy(item => item.OrderIndex).ThenBy(item => item.Id))
         {
             var question = item.Question;
             var options = new List<PracticeOption>();

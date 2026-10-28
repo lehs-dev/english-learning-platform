@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.Practice;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -183,7 +184,7 @@ public sealed class TeacherPracticeQuestionsTests : IClassFixture<IntegrationTes
             var service = scope.ServiceProvider.GetRequiredService<ITeacherPracticeQuestionService>();
             var editor = await service.GetEditorAsync(data.Teacher.Id, data.PracticeId);
             Assert.Equal(LearningAccessResult.Allowed, editor.Access);
-            Assert.False(editor.Value!.CanEditQuestions);
+            Assert.True(editor.Value!.CanEditQuestions);
         }
 
         // Có kết quả cũ để kiểm tra Unpublish không xóa submission/answer.
@@ -207,14 +208,14 @@ public sealed class TeacherPracticeQuestionsTests : IClassFixture<IntegrationTes
             await db.SaveChangesAsync();
         }
 
-        AssertValidation(await SaveAsync(data, Array.Empty<Guid>(), published.UpdatedAtUtc), "Draft");
+        AssertValidation(await SaveAsync(data, Array.Empty<Guid>(), published.UpdatedAtUtc), "ít nhất một");
         AssertValidation(await WriteAsync(service => service.UnpublishAsync(
             data.Teacher.Id, data.PracticeId, InitialVersion)), "tải lại trang");
         Assert.True((await WriteAsync(service => service.UnpublishAsync(
             data.Teacher.Id, data.PracticeId, published.UpdatedAtUtc))).Success);
         var unpublished = await ReadAsync(data);
         Assert.Equal(PracticeStatus.Unpublished, unpublished.Status);
-        AssertValidation(await SaveAsync(data, Array.Empty<Guid>(), unpublished.UpdatedAtUtc), "Draft");
+        AssertValidation(await SaveAsync(data, Array.Empty<Guid>(), unpublished.UpdatedAtUtc), "ít nhất một");
 
         // Đã Publish thì không được đổi sang parent khác, kể cả cùng Teacher.
         AssertValidation(await WriteAsync(service => service.PublishAsync(
@@ -334,6 +335,233 @@ public sealed class TeacherPracticeQuestionsTests : IClassFixture<IntegrationTes
         Assert.Equal(HttpStatusCode.Redirect, unpublish.StatusCode);
         Assert.Equal(PracticeStatus.Unpublished, (await ReadAsync(data)).Status);
     }
+
+    [Fact]
+    public async Task PublishedEdit_KeepsOpenPaperAndSubmittedResult_RetakeUsesLatestVersion()
+    {
+        var data = await SeedAsync();
+        Assert.True((await WriteAsync(s => s.PublishAsync(data.Teacher.Id, data.PracticeId,
+            null, data.ModuleId, InitialVersion))).Success);
+        var finished = await EnrollStudentAsync(data);
+        var working = await EnrollStudentAsync(data);
+        var newcomer = await EnrollStudentAsync(data);
+
+        var oldSheet = (await StudentAsync(s => s.BeginAsync(finished.Id, data.PracticeId))).Value!;
+        Assert.Equal(PracticeSubmitStatus.Saved, (await StudentAsync(s => s.SubmitSessionAsync(
+            finished.Id, data.PracticeId, oldSheet.SessionId!.Value, Answers(oldSheet, true)))).Status);
+        var oldResult = (await StudentAsync(s => s.GetResultAsync(finished.Id, data.PracticeId))).Value!;
+        var openSheet = (await StudentAsync(s => s.BeginAsync(working.Id, data.PracticeId))).Value!;
+        var published = await ReadAsync(data);
+
+        // Teacher bỏ một câu: chỉ phiên bản mới bị thay đổi, các liên kết cũ vẫn được giữ.
+        Assert.True((await SaveAsync(data, new[] { data.SecondId }, published.UpdatedAtUtc)).Success);
+        var revised = await ReadAsync(data);
+        Assert.Equal(2, revised.Version);
+        Assert.Equal(PracticeStatus.Published, revised.Status);
+        Assert.Equal(2, revised.Questions.Count(q => q.Version == 1));
+        Assert.Single(revised.Questions, q => q.Version == 2);
+        using (var readScope = _factory.Services.CreateScope())
+        {
+            var editor = await readScope.ServiceProvider.GetRequiredService<ITeacherPracticeQuestionService>()
+                .GetEditorAsync(data.Teacher.Id, data.PracticeId);
+            Assert.Single(editor.Value!.Questions);
+            var preview = await readScope.ServiceProvider.GetRequiredService<ITeacherPracticePreviewService>()
+                .GetAsync(data.Teacher.Id, data.PracticeId);
+            Assert.Single(preview.Value!.Questions);
+            var listing = await readScope.ServiceProvider.GetRequiredService<ITeacherPracticeQueryService>()
+                .SearchAsync(data.Teacher.Id, new TeacherPracticeSearchRequest());
+            Assert.Equal(1, Assert.Single(listing.Value!.Items).QuestionCount);
+        }
+        var unchanged = (await StudentAsync(s => s.GetResultAsync(finished.Id, data.PracticeId))).Value!;
+        Assert.Equal(JsonSerializer.Serialize(oldResult), JsonSerializer.Serialize(unchanged));
+
+        var resumed = (await StudentAsync(s => s.BeginAsync(working.Id, data.PracticeId))).Value!;
+        Assert.Equal(openSheet.SessionId, resumed.SessionId);
+        Assert.Equal(1, resumed.Version);
+        Assert.Equal(openSheet.Questions.Select(q => q.Id), resumed.Questions.Select(q => q.Id));
+        Assert.Equal(PracticeSubmitStatus.Saved, (await StudentAsync(s => s.SubmitSessionAsync(
+            working.Id, data.PracticeId, resumed.SessionId!.Value, Answers(resumed, true)))).Status);
+        Assert.Equal(100m, (await StudentAsync(s => s.GetResultAsync(working.Id, data.PracticeId))).Value!.Score);
+
+        var fresh = (await StudentAsync(s => s.BeginAsync(newcomer.Id, data.PracticeId))).Value!;
+        Assert.Equal(2, fresh.Version);
+        Assert.Single(fresh.Questions);
+        // Không thể dùng SessionId của học viên khác để nộp bài.
+        Assert.Equal(PracticeSubmitStatus.NotFound, (await StudentAsync(s => s.SubmitSessionAsync(
+            newcomer.Id, data.PracticeId, openSheet.SessionId!.Value, Answers(openSheet, true)))).Status);
+
+        var retry = (await StudentAsync(s => s.BeginAsync(finished.Id, data.PracticeId))).Value!;
+        Assert.Equal(2, retry.Version);
+        Assert.NotEqual(oldSheet.SessionId, retry.SessionId);
+        Assert.Equal(PracticeSubmitStatus.Saved, (await StudentAsync(s => s.SubmitSessionAsync(
+            finished.Id, data.PracticeId, retry.SessionId!.Value, Answers(retry, false)))).Status);
+        // Gửi lại form cũ không được ghi đè kết quả của lần làm lại mới nhất.
+        await StudentAsync(s => s.SubmitSessionAsync(finished.Id, data.PracticeId,
+            oldSheet.SessionId!.Value, Answers(oldSheet, true)));
+        var latest = (await StudentAsync(s => s.GetResultAsync(finished.Id, data.PracticeId))).Value!;
+        Assert.Equal(2, latest.Version);
+        Assert.Equal(0m, latest.Score);
+        Assert.Single(latest.Questions);
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(1, await db.PracticeSubmissions.CountAsync(s => s.PracticeId == data.PracticeId
+            && s.StudentUserId == finished.Id));
+    }
+
+    [Fact]
+    public async Task PublishedEdit_InvalidOrStaleSelection_DoesNotChangeVersionOrHistory()
+    {
+        var data = await SeedAsync();
+        Assert.True((await WriteAsync(s => s.PublishAsync(data.Teacher.Id, data.PracticeId,
+            null, data.ModuleId, InitialVersion))).Success);
+        var before = await ReadAsync(data);
+        AssertValidation(await SaveAsync(data, Array.Empty<Guid>(), before.UpdatedAtUtc), "ít nhất một");
+        var foreign = await SeedAsync();
+        Assert.False((await SaveAsync(data, new[] { foreign.FirstId }, before.UpdatedAtUtc)).Success);
+        Assert.Equal(before.Version, (await ReadAsync(data)).Version);
+        Assert.True((await SaveAsync(data, new[] { data.SecondId, data.FirstId }, before.UpdatedAtUtc)).Success);
+        AssertValidation(await SaveAsync(data, new[] { data.FirstId }, before.UpdatedAtUtc), "tải lại trang");
+        var after = await ReadAsync(data);
+        Assert.Equal(2, after.Version);
+        Assert.Equal(new[] { data.SecondId, data.FirstId }, after.Questions.Where(q => q.Version == 2)
+            .OrderBy(q => q.OrderIndex).Select(q => q.QuestionId));
+        Assert.All(after.Questions, q => Assert.NotNull(q.Question.ContentLockedAtUtc));
+    }
+
+    [Fact]
+    public async Task Http_PublishedEditorAndOpenStudentForm_KeepOldSessionAfterTeacherSave()
+    {
+        var data = await SeedAsync();
+        Assert.True((await WriteAsync(s => s.PublishAsync(data.Teacher.Id, data.PracticeId,
+            null, data.ModuleId, InitialVersion))).Success);
+        var student = await EnrollStudentAsync(data);
+        using var studentClient = await LoginAsync(student);
+        using var teacherClient = await LoginAsync(data.Teacher);
+        string takePath = "/Practice/Take/" + data.PracticeId;
+        using var page = await studentClient.GetAsync(takePath);
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        string html = await page.Content.ReadAsStringAsync();
+        Assert.Contains("data-practice-version=\"1\"", html);
+        var sheet = (await StudentAsync(s => s.BeginAsync(student.Id, data.PracticeId))).Value!;
+        Assert.Contains("name=\"SessionId\" value=\"" + sheet.SessionId + "\"", html);
+        string teacherVersion = await FormVersionAsync(teacherClient, data);
+        var teacherToken = await IdentityTestHelpers.GetTokenAsync(teacherClient, Path(data));
+        using var save = await teacherClient.PostAsync(Path(data, "Save"), new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                ["__RequestVerificationToken"] = teacherToken,
+                ["ExpectedUpdatedAtUtc"] = teacherVersion,
+                ["QuestionIds"] = data.SecondId.ToString()
+            }));
+        save.EnsureSuccessStatusCode();
+        using var saved = JsonDocument.Parse(await save.Content.ReadAsStringAsync());
+        Assert.True(saved.RootElement.GetProperty("success").GetBoolean());
+        using var refreshed = await studentClient.GetAsync(takePath);
+        Assert.Contains("data-practice-version=\"1\"", await refreshed.Content.ReadAsStringAsync());
+        var fields = new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = await IdentityTestHelpers.GetTokenAsync(studentClient, takePath),
+            ["SessionId"] = sheet.SessionId!.Value.ToString()
+        };
+        for (int i = 0; i < sheet.Questions.Count; i++)
+        {
+            fields[$"Answers[{i}].PracticeQuestionId"] = sheet.Questions[i].Id.ToString();
+            fields[$"Answers[{i}].SelectedOptionId"] = sheet.Questions[i].Options[0].Id.ToString();
+        }
+        using var submit = await studentClient.PostAsync("/Practice/Submit/" + data.PracticeId,
+            new FormUrlEncodedContent(fields));
+        Assert.Equal(HttpStatusCode.Redirect, submit.StatusCode);
+        using var result = await studentClient.GetAsync("/Practice/Result/" + data.PracticeId);
+        result.EnsureSuccessStatusCode();
+        Assert.Contains("data-result-version=\"1\"", await result.Content.ReadAsStringAsync());
+        using var retry = await studentClient.GetAsync(takePath);
+        Assert.Contains("data-practice-version=\"2\"", await retry.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task ConcurrentBeginAndTeacherEdit_DoNotDuplicateSessionOrChangeItsPaper()
+    {
+        var data = await SeedAsync();
+        Assert.True((await WriteAsync(s => s.PublishAsync(data.Teacher.Id, data.PracticeId,
+            null, data.ModuleId, InitialVersion))).Success);
+        var student = await EnrollStudentAsync(data);
+        var sheets = await Task.WhenAll(StudentAsync(s => s.BeginAsync(student.Id, data.PracticeId)),
+            StudentAsync(s => s.BeginAsync(student.Id, data.PracticeId)));
+        Assert.All(sheets, s => Assert.Equal(LearningAccessResult.Allowed, s.Access));
+        Assert.Equal(sheets[0].Value!.SessionId, sheets[1].Value!.SessionId);
+        var old = sheets[0].Value!;
+        var published = await ReadAsync(data);
+        var edit = SaveAsync(data, new[] { data.SecondId }, published.UpdatedAtUtc);
+        var submit = StudentAsync(s => s.SubmitSessionAsync(student.Id, data.PracticeId,
+            old.SessionId!.Value, Answers(old, true)));
+        await Task.WhenAll(edit, submit);
+        Assert.True((await edit).Success);
+        Assert.Equal(PracticeSubmitStatus.Saved, (await submit).Status);
+        var result = (await StudentAsync(s => s.GetResultAsync(student.Id, data.PracticeId))).Value!;
+        Assert.Equal(1, result.Version);
+        Assert.Equal(100m, result.Score);
+        Assert.Equal(2, result.Questions.Count);
+    }
+
+    [Fact]
+    public async Task RemovedAudio_RemainsAvailableToOldSessionAndResult_ButNotNewStudent()
+    {
+        var data = await SeedAsync();
+        string url;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            url = await scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>()
+                .StoreAsync(StimulusAudioTestData.Wav());
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var stimulus = await db.Stimuli.SingleAsync(s => s.Id == data.StimulusId);
+            stimulus.StimulusType = StimulusType.Audio;
+            stimulus.ContentText = null;
+            stimulus.ResourceUrl = url;
+            (await db.Questions.SingleAsync(q => q.Id == data.FirstId)).PrimarySkill = EnglishSkill.Listening;
+            await db.SaveChangesAsync();
+        }
+        Assert.True((await WriteAsync(s => s.PublishAsync(data.Teacher.Id, data.PracticeId,
+            null, data.ModuleId, InitialVersion))).Success);
+        var working = await EnrollStudentAsync(data);
+        var newcomer = await EnrollStudentAsync(data);
+        var old = (await StudentAsync(s => s.BeginAsync(working.Id, data.PracticeId))).Value!;
+        Assert.True((await SaveAsync(data, new[] { data.SecondId }, (await ReadAsync(data)).UpdatedAtUtc)).Success);
+        Assert.True(await CanReadAudioAsync(working.Id, url));
+        Assert.False(await CanReadAudioAsync(newcomer.Id, url));
+        await StudentAsync(s => s.SubmitSessionAsync(working.Id, data.PracticeId,
+            old.SessionId!.Value, Answers(old, true)));
+        Assert.True(await CanReadAudioAsync(working.Id, url));
+        var retry = (await StudentAsync(s => s.BeginAsync(working.Id, data.PracticeId))).Value!;
+        await StudentAsync(s => s.SubmitSessionAsync(working.Id, data.PracticeId,
+            retry.SessionId!.Value, Answers(retry, true)));
+        Assert.False(await CanReadAudioAsync(working.Id, url));
+    }
+
+    private async Task<bool> CanReadAudioAsync(Guid studentId, string url)
+    {
+        using var scope = _factory.Services.CreateScope();
+        return await scope.ServiceProvider.GetRequiredService<IStimulusAudioAccessService>().CanReadAsync(studentId, url);
+    }
+
+    private async Task<ApplicationUser> EnrollStudentAsync(SeedData data)
+    {
+        var student = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Student);
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Enrollments.Add(new Enrollment { StudentUserId = student.Id, CourseId = data.CourseId });
+        await db.SaveChangesAsync();
+        return student;
+    }
+
+    private async Task<T> StudentAsync<T>(Func<IPracticeService, Task<T>> action)
+    {
+        using var scope = _factory.Services.CreateScope();
+        return await action(scope.ServiceProvider.GetRequiredService<IPracticeService>());
+    }
+
+    // Seed tạo Option đúng trước Option sai; DTO không chứa cờ đáp án đúng.
+    private static PracticeResponse[] Answers(PracticeSheet sheet, bool correct) => sheet.Questions
+        .Select(q => new PracticeResponse(q.Id, q.Options[correct ? 0 : 1].Id)).ToArray();
 
     // Scope mới cho mỗi thao tác: tránh test vô tình dùng entity cache của EF.
     private async Task<WriteOutcome> WriteAsync(Func<ITeacherPracticeQuestionService, Task<WriteOutcome>> action)

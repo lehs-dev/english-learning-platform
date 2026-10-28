@@ -14,8 +14,9 @@ public sealed class PracticeQuestionConfiguration : IEntityTypeConfiguration<Pra
             "CK_PracticeQuestions_OrderIndex",
             "[OrderIndex] >= 0");
         });
-        e.HasIndex(x => new { x.PracticeId, x.QuestionId }).IsUnique();
-        e.HasIndex(x => new { x.PracticeId, x.OrderIndex }).IsUnique();
+        e.Property(x => x.Version).HasDefaultValue(1);
+        e.HasIndex(x => new { x.PracticeId, x.Version, x.QuestionId }).IsUnique();
+        e.HasIndex(x => new { x.PracticeId, x.Version, x.OrderIndex }).IsUnique();
 
         e.HasOne(x => x.Practice)
             .WithMany(x => x.Questions)

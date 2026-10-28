@@ -20,14 +20,19 @@
 <div class="practice-editor-summary">
     <span class="practice-status status-@Model.Editor.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Editor.Status" /></span>
     <span>@Model.Editor.Questions.Count câu hỏi đã lưu</span><span>@parentTitle</span>
+    <span data-practice-version="@Model.Editor.Version">Phiên bản @Model.Editor.Version</span>
 </div>
 @if (!Model.Editor.CanEditQuestions)
 {
-    <p class="practice-inline-note">Nội dung đã khóa sau khi xuất bản. Bạn có thể xem câu hỏi và quản lý trạng thái xuất bản.</p>
+    <p class="practice-inline-note">Bài hiện không được chỉnh sửa trong khóa học đã lưu trữ hoặc có dữ liệu không hợp lệ.</p>
 }
 else
 {
-    <ol class="practice-steps" aria-label="Các bước soạn bài"><li class="is-complete"><span>✓</span> Thông tin bài</li><li class="is-current" aria-current="step"><span>2</span> Chọn câu hỏi</li><li><span>3</span> Xem trước và xuất bản</li></ol>
+    @if (Model.Editor.Status != PracticeStatus.Draft)
+    {
+        <p class="practice-inline-note">Bạn được thêm, bỏ hoặc đổi thứ tự câu hỏi. Lưu thay đổi sẽ tạo phiên bản mới; học viên đang làm giữ nguyên đề cũ, kết quả đã nộp không đổi. Câu hỏi đã khóa trong ngân hàng vẫn không bị sửa nội dung trực tiếp.</p>
+    }
+    <ol class="practice-steps" aria-label="Các bước soạn bài"><li class="is-complete"><span>✓</span> Thông tin bài</li><li class="is-current" aria-current="step"><span>2</span> Chọn câu hỏi</li><li><span>3</span> Xem trước và mở bài</li></ol>
 }
 <nav class="practice-mobile-shortcuts" aria-label="Điều hướng soạn câu hỏi"><a href="#question-filter-title">Tìm câu hỏi</a><a href="#selected-questions-title">Câu hỏi đã chọn ↓</a></nav>
 <div class="practice-editor-grid">
@@ -316,7 +321,7 @@ else
 <section class="practice-card practice-selected-card" aria-labelledby="selected-questions-title">
     <div class="practice-card-heading"><h2 id="selected-questions-title">Câu hỏi đã chọn</h2><span class="practice-count" data-selected-count aria-live="polite">@Model.Editor.Questions.Count</span></div>
 
-    <p class="practice-help">Sắp xếp thứ tự câu hỏi, rồi lưu trước khi xem trước hoặc xuất bản.</p>
+    <p class="practice-help">Sắp xếp thứ tự câu hỏi, rồi lưu trước khi xem trước hoặc mở bài luyện tập.</p>
 
     <form id="practice-question-form"
           method="post"
@@ -376,11 +381,11 @@ else
     </form>
 </section>
 <section class="practice-card practice-publication-card" aria-labelledby="publication-title">
-    <h2 id="publication-title">Xuất bản bài luyện tập</h2>
+    <h2 id="publication-title">Mở hoặc tạm đóng bài luyện tập</h2>
 
     <p>Vị trí hiện tại: @parentTitle</p>
 
-    @if (Model.Editor.CanEditQuestions
+    @if (Model.Editor.Status == PracticeStatus.Draft
         || Model.Editor.Status == PracticeStatus.Unpublished)
     {
         <form method="post"
@@ -394,10 +399,10 @@ else
                    name="ExpectedUpdatedAtUtc"
                    value="@(Model.Editor.UpdatedAtUtc?.ToString("O"))" />
 
-            @if (Model.Editor.CanEditQuestions)
+            @if (Model.Editor.Status == PracticeStatus.Draft)
             {
                 <p class="muted">
-                    Chọn một bài học hoặc một chương học để học viên truy cập bài luyện tập. Hãy lưu câu hỏi trước khi xuất bản.
+                    Chọn một bài học hoặc một chương học để học viên truy cập bài luyện tập. Hãy lưu câu hỏi trước khi mở bài.
                 </p>
 
                 <div class="practice-publication-fields">
@@ -435,12 +440,12 @@ else
                 <input type="hidden" name="lessonId" value="@Model.Editor.LessonId" />
                 <input type="hidden" name="moduleId" value="@Model.Editor.ModuleId" />
                 <p class="muted">
-                    Bài luyện tập đã từng xuất bản. Câu hỏi, thứ tự và vị trí liên kết đã được khóa.
+                    Mở lại phiên bản mới nhất. Vị trí liên kết với bài học/chương học vẫn giữ nguyên.
                 </p>
             }
 
             <div class="actions">
-                <button type="submit" class="button">Xuất bản bài luyện tập</button>
+                <button type="submit" class="button">Mở bài luyện tập</button>
             </div>
         </form>
     }
@@ -448,7 +453,7 @@ else
     @if (Model.Editor.Status == PracticeStatus.Published)
     {
         <p class="muted">
-            Ngừng xuất bản sẽ ẩn bài với học viên. Để thay đổi câu hỏi hoặc vị trí, hãy tạo bài luyện tập mới.
+            Có thể sửa danh sách câu hỏi ngay trên trang này. Tạm đóng sẽ chặn học viên mở và nộp bài; không cần tạm đóng khi chỉ muốn cập nhật đề.
         </p>
         <form method="post"
               asp-controller="TeacherPracticeQuestions"
@@ -459,7 +464,7 @@ else
             <input type="hidden" name="expectedUpdatedAtUtc"
                    value="@(Model.Editor.UpdatedAtUtc?.ToString("O"))" />
             <button type="submit" class="button secondary">
-                Ngừng xuất bản
+                Tạm đóng bài luyện tập
             </button>
         </form>
     }
