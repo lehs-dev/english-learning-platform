@@ -94,17 +94,6 @@
                     </a>
                 </div>
 
-                <div class="studio-nav-group studio-nav-group--bottom">
-                    <span class="studio-nav-label">Liên kết nhanh</span>
-                    <a class="studio-nav-link @(activeSection == "catalog" ? "is-active" : "")" asp-controller="Courses" asp-action="Index" aria-current="@(activeSection == "catalog" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                        <span>Xem danh mục khóa học</span>
-                    </a>
-                    <a class="studio-nav-link" asp-controller="Profile" asp-action="Index">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
-                        <span>Hồ sơ giảng viên</span>
-                    </a>
-                </div>
             </nav>
         </aside>
 

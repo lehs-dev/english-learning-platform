@@ -16,6 +16,7 @@ coverage/
 docs/acceptance/evidence/
 docs/handover/generated/
 artifacts/
+**/App_Data/avatars/
 **/appsettings.Local.json
 **/appsettings.*.Local.json
 **/*.user

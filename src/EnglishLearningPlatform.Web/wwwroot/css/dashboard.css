@@ -497,6 +497,12 @@ button.calendar-day-col {
     padding-bottom: 0;
 }
 
+.dashboard-discovery { margin: 32px 0; }
+.dashboard-discovery > .section-subtitle-clean { margin: 0 0 16px; }
+.dashboard-discovery-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.dashboard-discovery-grid .course-card-body > .course-card-action { width: 100%; }
+.dashboard-discovery-action { display: flex; justify-content: center; margin-top: 20px; }
+
 /* Responsive queries */
 @media (max-width: 992px) {
     .dashboard-columns-grid {
@@ -519,4 +525,5 @@ button.calendar-day-col {
     .articles-cards-row {
         grid-template-columns: 1fr;
     }
+    .dashboard-discovery-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 }

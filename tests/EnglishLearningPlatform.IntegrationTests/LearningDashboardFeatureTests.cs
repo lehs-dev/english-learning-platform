@@ -11,12 +11,121 @@ using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
+using EnglishLearningPlatform.Web.Infrastructure;
 using Xunit;
 
 namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
+    [Fact]
+    public async Task Profile_UsesAssessmentHistoryAndSharedCourseCards()
+    {
+        var data = await SeedAsync();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var independent = new Assessment { Title = "Independent skill assessment", OwnerTeacherUserId = data.Teacher.Id,
+            Status = AssessmentStatus.Published, AssessmentType = AssessmentType.SkillAssessment, TargetSkill = EnglishSkill.Reading,
+            DurationMinutes = 15, MaxAttempts = 30 };
+        db.Assessments.Add(independent);
+        var courseAttempt = Graded(data, 80, 1);
+        db.Attempts.Add(courseAttempt);
+        for (var index = 0; index < 22; index++)
+        {
+            var attempt = Graded(data, index, 0);
+            attempt.AssessmentId = independent.Id;
+            attempt.Answers = [];
+            attempt.SkillResults = [];
+            db.Attempts.Add(attempt);
+        }
+        await db.SaveChangesAsync();
+        Assert.Equal(PracticeSubmitStatus.Saved, (await scope.ServiceProvider.GetRequiredService<IPracticeService>()
+            .SubmitAsync(data.Student.Id, data.Practice.Id, Responses(data))).Status);
+
+        using var client = await ClientAsync(data.Student);
+        var profile = WebUtility.HtmlDecode(await client.GetStringAsync("/Profile"));
+        var history = WebUtility.HtmlDecode(await client.GetStringAsync("/Assessment/History"));
+        Assert.Contains("class=\"course-card enrolled-course-card\"", profile);
+        Assert.Contains($"data-course-id=\"{data.Course.Id}\"", profile);
+        Assert.Matches("id=\"profile-courses-tab\"[^>]*aria-selected=\"true\"", profile);
+        Assert.Matches("id=\"profile-results-tab\"[^>]*aria-selected=\"false\"", profile);
+        Assert.Matches("id=\"profile-results\"[^>]* hidden", profile);
+        Assert.Contains(independent.Title, profile);
+        Assert.DoesNotContain($"/Practice/Result/{data.Practice.Id}", profile);
+        Assert.DoesNotContain("/Profile/Result/", profile);
+        var attempts = (await scope.ServiceProvider.GetRequiredService<IAssessmentQueryService>()
+            .GetAttemptHistoryAsync(data.Student.Id))!.SelectMany(a => a.Attempts).ToList();
+        Assert.Equal(23, attempts.Count);
+        foreach (var attempt in attempts)
+        {
+            Assert.Contains($"data-assessment-attempt=\"{attempt.AttemptId}\"", profile);
+            Assert.Contains($"data-assessment-attempt=\"{attempt.AttemptId}\"", history);
+            Assert.Contains($"/Assessment/Result/{attempt.AttemptId}", profile);
+        }
+    }
+
+    [Fact]
+    public async Task Profile_AvatarUploadIsPrivateAndRejectsInvalidFiles()
+    {
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var client = await ClientAsync(student);
+        using var otherClient = await ClientAsync(other);
+        var path = ProfileAvatarStore.PathFor(factory.Services.GetRequiredService<IWebHostEnvironment>(), student.Id);
+        var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/aMcAAAAASUVORK5CYII=");
+        try
+        {
+            var token = await IdentityTestHelpers.GetTokenAsync(client, "/Profile");
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent(token), "__RequestVerificationToken");
+            form.Add(new ByteArrayContent(png), "image", "avatar.png");
+            using var upload = await client.PostAsync("/Profile/Avatar", form);
+            Assert.Equal(HttpStatusCode.Redirect, upload.StatusCode);
+            using var image = await client.GetAsync("/Profile/AvatarImage");
+            Assert.Equal(HttpStatusCode.OK, image.StatusCode);
+            Assert.Equal("image/png", image.Content.Headers.ContentType!.MediaType);
+            Assert.Equal(png, await image.Content.ReadAsByteArrayAsync());
+            Assert.Contains("/Profile/AvatarImage", await client.GetStringAsync("/Profile"));
+            Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/Profile/AvatarImage?userId={student.Id}")).StatusCode);
+
+            using var invalid = new MultipartFormDataContent();
+            invalid.Add(new StringContent(token), "__RequestVerificationToken");
+            invalid.Add(new StringContent("not an image"), "image", "fake.png");
+            Assert.Equal(HttpStatusCode.Redirect, (await client.PostAsync("/Profile/Avatar", invalid)).StatusCode);
+            Assert.Equal(png, await client.GetByteArrayAsync("/Profile/AvatarImage"));
+        }
+        finally { if (File.Exists(path)) File.Delete(path); }
+    }
+
+    [Fact]
+    public async Task Dashboard_SuggestsPublishedCoursesForNewStudentsWithDetailLinks()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var published = new Course { Title = "000 Suggested " + Guid.NewGuid(), OwnerTeacherUserId = teacher.Id,
+            Status = CourseStatus.Published, IsPaid = true, Price = 199000 };
+        var draft = new Course { Title = "000 Draft " + Guid.NewGuid(), OwnerTeacherUserId = teacher.Id,
+            Status = CourseStatus.Draft };
+        db.Courses.AddRange(published, draft);
+        await db.SaveChangesAsync();
+
+        using var client = await ClientAsync(student);
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        Assert.Contains("Khóa học gợi ý cho bạn", html);
+        Assert.Contains(published.Title, html);
+        Assert.Contains($"/Courses/Details/{published.Id}", html);
+        Assert.DoesNotContain(draft.Title, html);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync($"/Courses/Details/{published.Id}")).StatusCode);
+
+        db.Enrollments.Add(new Enrollment { StudentUserId = student.Id, CourseId = published.Id });
+        await db.SaveChangesAsync();
+        html = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
+        Assert.DoesNotContain("Khóa học gợi ý cho bạn", html);
+    }
+
     private async Task<Data> SeedAsync(int practiceQuestionCount = 2)
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
@@ -98,9 +207,9 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.All(db.ChangeTracker.Entries(), entry => Assert.Equal(EntityState.Unchanged, entry.State));
         Assert.Null(db.Database.CurrentTransaction);
 
-        // Cùng quy tắc tie-break phải đến được cả Dashboard lẫn Profile, không ghép Reading 100% từ lượt khác.
+        // Dashboard giữ lượt đại diện; Profile dùng cùng lịch sử với trang Đánh giá năng lực.
         using var client = await ClientAsync(data.Student);
-        foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
+        foreach (string path in new[] { "/Learning/Dashboard" })
         {
             string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
             Assert.Contains($"data-representative-attempt=\"{chosen.Id}\"", html);
@@ -110,6 +219,13 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
             Assert.Matches(@"Đọc hiểu\s*: 33[,.]33%", html);
             Assert.DoesNotMatch(@"Đọc hiểu\s*: 100%", html);
         }
+        var profileHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Profile"));
+        Assert.Contains($"data-assessment-attempt=\"{chosen.Id}\"", profileHtml);
+        Assert.Contains($"data-assessment-attempt=\"{pending.Id}\"", profileHtml);
+        Assert.Contains($"data-assessment-attempt=\"{incomplete.Id}\"", profileHtml);
+        Assert.DoesNotContain($"/Assessment/Result/{pending.Id}", profileHtml);
+        Assert.DoesNotContain($"/Assessment/Result/{incomplete.Id}", profileHtml);
+        Assert.Contains($"/Learning/Course/{data.Course.Id}", profileHtml);
         foreach (string path in new[] { "/Learning/Dashboard", "/Practice" })
         {
             string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
@@ -120,7 +236,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
     }
 
     [Fact]
-    public async Task DashboardAndProfile_KeepHighest85AndItsSkills_WhenLatestAttemptScores70()
+    public async Task Dashboard_KeepsHighest85WhileProfileShowsEachAssessmentAttempt()
     {
         var data = await SeedAsync();
         using var scope = factory.Services.CreateScope();
@@ -215,20 +331,25 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
             Assert.True(response.Headers.CacheControl!.NoStore);
             string responseHtml = await response.Content.ReadAsStringAsync();
             string html = WebUtility.HtmlDecode(responseHtml);
-            Assert.Contains($"data-representative-attempt=\"{ids[1]}\"", html);
-            Assert.DoesNotContain($"data-representative-attempt=\"{ids[2]}\"", html);
-            Assert.Matches(@">85%<", html);
-            Assert.Matches(@"Đọc hiểu\s*: 100%", html);
-            Assert.Matches(@"Nghe hiểu\s*: 50%", html);
-            Assert.Contains("Từ vựng", html);
-            Assert.Contains("Ngữ pháp", html);
-            int shownResults = System.Text.RegularExpressions.Regex.Matches(html, "data-representative-attempt=").Count;
-            Assert.Equal(path == "/Profile" ? 3 : 2, shownResults);
             if (path == "/Profile")
             {
+                Assert.Contains($"data-assessment-attempt=\"{ids[1]}\"", html);
+                Assert.Contains($"data-assessment-attempt=\"{ids[2]}\"", html);
+                Assert.Equal(5, System.Text.RegularExpressions.Regex.Matches(html, "data-assessment-attempt=").Count);
                 foreach (Guid extraId in extraAttemptIds)
                     Assert.Contains($"/Assessment/Result/{extraId}", html);
-                Assert.Contains(">0%<", html); // Vẫn hiển thị các bài đã chấm thật sự đạt 0%.
+                Assert.Contains(">0</td>", html); // Vẫn hiển thị các bài đã chấm thật sự đạt 0.
+            }
+            else
+            {
+                Assert.Contains($"data-representative-attempt=\"{ids[1]}\"", html);
+                Assert.DoesNotContain($"data-representative-attempt=\"{ids[2]}\"", html);
+                Assert.Matches(@">85%<", html);
+                Assert.Matches(@"Đọc hiểu\s*: 100%", html);
+                Assert.Matches(@"Nghe hiểu\s*: 50%", html);
+                Assert.Contains("Từ vựng", html);
+                Assert.Contains("Ngữ pháp", html);
+                Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(html, "data-representative-attempt=").Count);
             }
             Assert.DoesNotContain("PRIVATE_PRACTICE_EXPLANATION", html);
 
@@ -247,11 +368,11 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         string token = await IdentityTestHelpers.GetTokenAsync(client, "/Profile");
         using var invalidProfile = await client.PostAsync("/Profile", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["FullName"] = "", ["AssessmentResults[0].OverallScore"] = "100",
+            ["FullName"] = "", ["AssessmentHistory[0].Attempts[0].OverallScore"] = "100",
             ["__RequestVerificationToken"] = token
         }));
         Assert.Equal(HttpStatusCode.OK, invalidProfile.StatusCode);
-        Assert.Contains($"data-representative-attempt=\"{ids[1]}\"", await invalidProfile.Content.ReadAsStringAsync());
+        Assert.Contains($"data-assessment-attempt=\"{ids[1]}\"", await invalidProfile.Content.ReadAsStringAsync());
         Assert.Equal(3, await db.Attempts.CountAsync(a => a.AssessmentId == data.Assessment.Id));
 
         var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
@@ -259,7 +380,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
         {
             string html = await outsider.GetStringAsync($"{path}?studentId={data.Student.Id}");
-            Assert.DoesNotContain($"data-representative-attempt=\"{ids[1]}\"", html);
+            Assert.DoesNotContain(ids[1].ToString(), html);
         }
     }
 
@@ -337,8 +458,9 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
 
         // Chỉ có lượt đang làm vẫn là "Chưa có kết quả", không phải representative 0%.
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Attempts.Add(new Attempt { StudentUserId = data.Student.Id, AssessmentId = data.Assessment.Id,
-            Status = AttemptStatus.InProgress, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(10) });
+        var activeAttempt = new Attempt { StudentUserId = data.Student.Id, AssessmentId = data.Assessment.Id,
+            Status = AttemptStatus.InProgress, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(10) };
+        db.Attempts.Add(activeAttempt);
         await db.SaveChangesAsync();
         Assert.Empty((await learning.GetRepresentativeResultsAsync(data.Student.Id)).Value!);
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.GetRepresentativeResultsAsync(data.Teacher.Id)).Access);
@@ -346,12 +468,13 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
         {
             string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
-            Assert.Contains("Chưa có kết quả bài kiểm tra năng lực.", html);
+            Assert.Contains(path == "/Profile" ? "Đang làm" : "Chưa có kết quả bài kiểm tra năng lực.", html);
             Assert.DoesNotContain("data-representative-attempt=", html);
+            Assert.DoesNotContain($"/Assessment/Result/{activeAttempt.Id}", html);
         }
         using var outsider = await ClientAsync(other);
         string profile = await outsider.GetStringAsync($"/Profile?studentId={data.Student.Id}");
-        Assert.DoesNotContain("data-representative-attempt=", profile);
+        Assert.DoesNotContain("data-assessment-attempt=", profile);
         Assert.DoesNotContain(data.Assessment.Title, profile);
     }
 

@@ -30,6 +30,7 @@
 
     // 3. Pastel Card Theme Classes
     string[] pastelCardThemes = { "progress-card-lavender", "progress-card-peach", "progress-card-pink" };
+    var suggestedCourses = ViewData["SuggestedCourses"] as IReadOnlyList<CourseSummary> ?? Array.Empty<CourseSummary>();
 }
 
 @section Styles {
@@ -153,6 +154,25 @@
                 </svg>
             </div>
         </section>
+
+        @if (Model.Courses.Count == 0 && suggestedCourses.Count > 0)
+        {
+            <section class="dashboard-discovery" aria-labelledby="suggested-courses-title">
+                <div class="clean-section-header">
+                    <h2 class="clean-section-title" id="suggested-courses-title">Khóa học gợi ý cho bạn</h2>
+                </div>
+                <p class="section-subtitle-clean">Khám phá nội dung và chọn khóa học phù hợp với bạn.</p>
+                <div class="dashboard-discovery-grid">
+                    @foreach (var course in suggestedCourses)
+                    {
+                        <partial name="_DiscoveryCourseCard" model="course" />
+                    }
+                </div>
+                <div class="dashboard-discovery-action">
+                    <a asp-controller="Courses" asp-action="Index" class="btn-dark-sm">Khám phá khóa học ngay</a>
+                </div>
+            </section>
+        }
 
         @* 2. "Your progress" Section (3 Pastel Cards in a Row) *@
         <div class="clean-section-header" id="your-progress">

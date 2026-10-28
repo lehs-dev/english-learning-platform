@@ -5,6 +5,7 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
 }
 
 <div class="profile-page">
@@ -15,18 +16,28 @@
         </a>
     </div>
 
-    <div class="profile-heading">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <span class="v2-pill-tag">Tài khoản</span>
-            <span class="v2-pill-tag" style="background: #FAF9FE; color: var(--v2-text-muted);">Estudy ID</span>
-        </div>
-        <h1 id="profile-title">Hồ sơ cá nhân</h1>
-    </div>
-
     <div class="profile-grid">
         <!-- Identity Summary Card -->
         <aside class="profile-card profile-identity">
-            <span class="avatar-large" aria-hidden="true">@Model.Initial</span>
+            <div class="profile-avatar-wrap">
+                @if (Model.HasAvatar)
+                {
+                    <img class="avatar-large" src="@Url.Action("AvatarImage", "Profile")" alt="Ảnh đại diện của bạn" />
+                }
+                else
+                {
+                    <span class="avatar-large" aria-hidden="true">@Model.Initial</span>
+                }
+                <form asp-action="Avatar" method="post" enctype="multipart/form-data" class="profile-avatar-form">
+                    <label for="profile-avatar-file" class="profile-avatar-edit" title="Đổi ảnh đại diện">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h4l2-2h4l2 2h4v12H4z"/><circle cx="12" cy="13" r="3"/></svg>
+                        <span class="visually-hidden">Chọn ảnh đại diện</span>
+                    </label>
+                    <input id="profile-avatar-file" type="file" name="image" accept="image/jpeg,image/png,image/webp" required />
+                    <button class="profile-avatar-submit" type="submit">Lưu ảnh</button>
+                </form>
+            </div>
+            <p id="profile-avatar-error" class="field-error" role="alert"></p>
             <h2>@Model.FullName</h2>
             <span class="v2-pill-tag" style="background: var(--v2-pastel-periwinkle); color: var(--v2-dark);">@Model.RoleLabel</span>
             <p>@Model.Email</p>
@@ -45,13 +56,20 @@
             {
                 <div class="notice" style="margin-bottom: 18px;" role="status">@message</div>
             }
+            @if (TempData["ProfileErrorMessage"] is string error)
+            {
+                <div class="validation-summary" role="alert">@error</div>
+            }
 
             <form class="account-form" asp-controller="Profile" asp-action="Index" method="post">
                 <div class="validation-summary" asp-validation-summary="ModelOnly" role="alert"></div>
                 
                 <div class="form-field">
                     <label asp-for="FullName">Họ và tên</label>
-                    <input asp-for="FullName" autocomplete="name" maxlength="200" aria-describedby="name-error" required />
+                    <div class="profile-name-row">
+                        <input asp-for="FullName" autocomplete="name" maxlength="200" aria-describedby="name-error" required />
+                        <button class="button" type="submit">Thay đổi</button>
+                    </div>
                     <span asp-validation-for="FullName" id="name-error" class="field-error"></span>
                 </div>
 
@@ -75,51 +93,50 @@
                     </div>
                 </dl>
 
-                <div class="profile-form-actions">
-                    <button class="button" type="submit" style="padding: 10px 24px;">Lưu thay đổi hồ sơ</button>
-                </div>
             </form>
         </div>
     </div>
     @if (Model.Role == "Student")
     {
-        <section class="profile-card profile-assessment-results" id="assessment-results" aria-labelledby="assessment-results-title">
-            <h2 id="assessment-results-title">Kết quả đại diện — điểm cao nhất</h2>
-            <p class="card-description">Mỗi bài lấy lượt có điểm cao nhất. Điểm tổng và các kỹ năng luôn thuộc cùng lượt; đây không nhất thiết là lượt làm mới nhất.</p>
-            @if (Model.AssessmentResults.Count == 0)
-            {
-                <p>Chưa có kết quả bài kiểm tra năng lực.</p>
-            }
-            @foreach (var result in Model.AssessmentResults)
-            {
-                <article class="profile-assessment-result" data-representative-attempt="@result.AttemptId">
-                    <div class="profile-assessment-result-heading">
-                        <h3>@result.Title</h3>
-                        <strong>@result.OverallScore.ToString("0.##")%</strong>
+        <div class="course-library profile-learning" data-profile-tabs>
+            <div class="profile-section-nav" role="tablist" aria-label="Nội dung học tập">
+                <button type="button" role="tab" id="profile-courses-tab" aria-controls="profile-courses" aria-selected="true" tabindex="0">Khóa học của tôi</button>
+                <button type="button" role="tab" id="profile-results-tab" aria-controls="profile-results" aria-selected="false" tabindex="-1">Kết quả bài kiểm tra</button>
+            </div>
+            <section class="profile-learning-section" id="profile-courses" role="tabpanel" aria-labelledby="profile-courses-tab" tabindex="0">
+                <div class="course-section-heading"><h2>Khóa học của tôi</h2><a asp-controller="Learning" asp-action="Index">Xem tất cả khóa học</a></div>
+                @if (Model.Courses.Count == 0)
+                {
+                    <div class="enrolled-empty"><div><h3>Bạn chưa tham gia khóa học nào.</h3><p>Khám phá và chọn khóa học phù hợp để bắt đầu.</p></div><a class="button" asp-controller="Courses" asp-action="Index">Khám phá khóa học</a></div>
+                }
+                else
+                {
+                    <div class="course-grid">
+                        @foreach (var course in Model.Courses)
+                        {
+                            <partial name="_EnrolledCourseCard" model="course" />
+                        }
                     </div>
-                    <p class="card-description">Chấm lúc <time datetime="@result.FinalizedAtUtc.ToString("O")">@result.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm:ss") (UTC+7)</time></p>
-                    @if (result.Skills.Count == 0)
-                    {
-                        <p class="muted">Chưa đủ dữ liệu kỹ năng để phân tích; mỗi kỹ năng cần ít nhất 3 câu hỏi khác nhau.</p>
-                    }
-                    else
-                    {
-                        <div class="profile-assessment-skills">
-                            @foreach (var skill in result.Skills)
-                            {
-                                <span class="v2-pill-tag">
-                                    <partial name="_UiText" model="skill.Skill" />: @skill.Score.ToString("0.##")% · @skill.QuestionCount câu
-                                    @(skill.IsWeak ? "— Cần cải thiện" : "— Không thuộc nhóm điểm yếu")
-                                </span>
-                            }
-                        </div>
-                    }
-                    <div class="actions">
-                        <a class="button secondary" asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">Xem kết quả đại diện</a>
-                        <a class="button secondary" asp-controller="Assessment" asp-action="History" asp-route-id="@result.AssessmentId">Lịch sử các lượt làm</a>
-                    </div>
-                </article>
-            }
-        </section>
+                }
+            </section>
+            <section class="profile-learning-section" id="profile-results" role="tabpanel" aria-labelledby="profile-results-tab" tabindex="0" hidden>
+                <div class="course-section-heading"><h2>Kết quả bài kiểm tra</h2><a asp-controller="Assessment" asp-action="History">Lịch sử làm bài</a></div>
+                @if (Model.AssessmentHistory.Count == 0)
+                {
+                    <div class="enrolled-empty"><div><h3>Bạn chưa có lượt làm bài đánh giá năng lực.</h3><p>Kết quả và lịch sử các lượt làm sẽ xuất hiện tại đây.</p></div><a class="button" asp-controller="Assessment" asp-action="Index">Xem bài đánh giá</a></div>
+                }
+                @foreach (var assessment in Model.AssessmentHistory)
+                {
+                    <section class="card-v2 profile-history-group" aria-labelledby="profile-history-@assessment.AssessmentId">
+                        <h3 id="profile-history-@assessment.AssessmentId">@assessment.AssessmentTitle</h3>
+                        <p class="muted">Trạng thái đề: <partial name="_UiText" model="assessment.Status" /> · @assessment.Attempts.Count lượt</p>
+                        <partial name="~/Views/Assessment/_AttemptHistory.cshtml" model="assessment.Attempts" />
+                    </section>
+                }
+            </section>
+        </div>
     }
 </div>
+@section Scripts {
+    <script src="~/js/profile.js" asp-append-version="true" defer></script>
+}

@@ -1,0 +1,10 @@
+@model CourseSummary
+<article class="course-card" data-course-id="@Model.Id">
+    <partial name="_CourseCover" model="Model" />
+    <div class="course-card-body">
+        <h3><a asp-controller="Courses" asp-action="Details" asp-route-id="@Model.Id">@Model.Title</a></h3>
+        <p class="excerpt">@Model.Description</p>
+        <partial name="_CourseSummary" model="Model" />
+        <a class="button secondary course-card-action" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.Id">Xem chi tiết <span aria-hidden="true">→</span></a>
+    </div>
+</article>

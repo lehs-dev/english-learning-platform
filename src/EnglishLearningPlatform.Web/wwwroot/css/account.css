@@ -485,7 +485,28 @@ body.auth-modal-open {
     display: flex;
     align-items: center;
     justify-content: center;
+    object-fit: cover;
 }
+
+.profile-avatar-wrap { position: relative; }
+.profile-avatar-edit { position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--v2-dark); color: white; cursor: pointer; border: 2px solid white; }
+.profile-avatar-edit svg { width: 16px; height: 16px; }
+.profile-avatar-form input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.profile-avatar-form:focus-within .profile-avatar-edit { outline: 3px solid #76a7ff; outline-offset: 2px; }
+.profile-avatar-submit { margin-top: 8px; }
+.profile-avatar-submit[hidden] { display: none; }
+.profile-name-row { display: flex; gap: 10px; align-items: stretch; }
+.profile-name-row input { min-width: 0; flex: 1; }
+.profile-name-row .button { white-space: nowrap; }
+
+.profile-section-nav { display: flex; gap: 28px; margin-top: 32px; border-bottom: 1px solid var(--v2-border-light); }
+.profile-section-nav [role="tab"] { padding: 14px 0; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: transparent; color: var(--v2-text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
+.profile-section-nav [role="tab"][aria-selected="true"] { border-bottom-color: var(--primary); color: var(--primary); }
+.profile-section-nav [role="tab"]:hover { color: var(--primary); }
+.profile-learning-section { margin-top: 28px; scroll-margin-top: 24px; }
+.profile-learning-section[hidden] { display: none; }
+.profile-history-group { padding: 24px; margin-top: 20px; }
+.profile-history-group h3 { margin-top: 0; overflow-wrap: anywhere; }
 
 .profile-identity h2 {
     font-size: 20px;
@@ -624,4 +645,11 @@ body.auth-modal-open {
     .profile-grid {
         grid-template-columns: 1fr;
     }
+}
+
+@media (max-width: 480px) {
+    .profile-name-row { flex-wrap: wrap; }
+    .profile-name-row input { flex-basis: 100%; }
+    .profile-facts { grid-template-columns: 1fr; }
+    .profile-section-nav { gap: 16px; }
 }

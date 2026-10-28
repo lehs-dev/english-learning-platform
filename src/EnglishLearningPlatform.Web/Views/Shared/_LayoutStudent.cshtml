@@ -71,19 +71,6 @@
                         <span>Lịch sử giao dịch</span>
                     </a>
                 </div>
-                <div class="studio-nav-group studio-nav-group--bottom">
-                    <a class="studio-nav-link @(activeSection == "profile" ? "is-active" : "")"
-                       asp-controller="Profile" asp-action="Index" aria-current="@(activeSection == "profile" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
-                        <span>Hồ sơ cá nhân</span>
-                    </a>
-                    <form asp-controller="Account" asp-action="Logout" method="post">
-                        <button class="studio-nav-link student-logout" type="submit">
-                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#logout")"></use></svg>
-                            <span>Đăng xuất</span>
-                        </button>
-                    </form>
-                </div>
             </nav>
         </aside>
         <div class="sidebar-backdrop" data-sidebar-backdrop aria-controls="student-sidebar" hidden></div>
@@ -100,7 +87,6 @@
                     </button>
                 </form>
                 <div class="studio-topbar-actions">
-                    <a class="student-discover-link" asp-controller="Learning" asp-action="Index" asp-fragment="discover-courses">Khám phá khóa học</a>
                     @await Component.InvokeAsync("AccountMenu")
                 </div>
             </header>

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Domain.Enums;
 
 namespace EnglishLearningPlatform.Web.Models.Account;
@@ -18,7 +19,9 @@ public sealed class ProfileViewModel
     public DateTimeOffset CreatedAtUtc { get; set; }
 
     // Chỉ server nạp dữ liệu này; action POST vẫn chỉ Bind FullName.
-    public IReadOnlyList<RepresentativeAssessmentResult> AssessmentResults { get; set; } = [];
+    public bool HasAvatar { get; set; }
+    public IReadOnlyList<CourseSummary> Courses { get; set; } = [];
+    public IReadOnlyList<AssessmentHistoryView> AssessmentHistory { get; set; } = [];
 
     public string Initial => string.IsNullOrWhiteSpace(FullName)
         ? "?" : System.Globalization.StringInfo.GetNextTextElement(FullName.Trim()).ToUpperInvariant();
