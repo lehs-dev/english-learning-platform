@@ -51,7 +51,7 @@ public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : I
         Assert.DoesNotContain("/Admin", html);
         Assert.DoesNotContain("Quản trị", html);
         Assert.DoesNotContain("/Learning/Dashboard", html);
-        Assert.DoesNotContain("Bàn học", html);
+        Assert.DoesNotContain("student-sidebar", html);
         Assert.DoesNotContain("/Checkout/History", html);
     }
 
@@ -69,9 +69,8 @@ public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : I
         var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
 
         // Must contain Student workspace navigation items
-        Assert.True(
-            html.Contains("/Learning/Dashboard") || html.Contains("Bàn học"),
-            "Student workspace must link to Dashboard (Bàn học).");
+        Assert.Contains("/Learning/Dashboard", html);
+        Assert.Contains("<span>Trang chủ</span>", html);
         Assert.True(
             html.Contains("/Learning") || html.Contains("Khóa học"),
             "Student workspace must link to Learning courses.");
@@ -117,7 +116,7 @@ public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : I
 
         // Must NOT contain Student workspace or Admin Console links
         Assert.DoesNotContain("/Learning/Dashboard", html);
-        Assert.DoesNotContain("Bàn học", html);
+        Assert.DoesNotContain("student-sidebar", html);
         Assert.DoesNotContain("/Admin/Transactions", html);
         Assert.DoesNotContain("/Admin/Users", html);
 
@@ -160,7 +159,7 @@ public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : I
 
         // Must NOT contain Student workspace or Teacher Studio links
         Assert.DoesNotContain("/Learning/Dashboard", html);
-        Assert.DoesNotContain("Bàn học", html);
+        Assert.DoesNotContain("student-sidebar", html);
         Assert.DoesNotContain("/TeacherQuestionBank", html);
         Assert.DoesNotContain("Ngân hàng câu hỏi", html);
     }
@@ -193,12 +192,12 @@ public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : I
         }
         else if (role == AppRoles.Teacher)
         {
-            Assert.DoesNotContain("Bàn học", html);
+            Assert.DoesNotContain("student-sidebar", html);
             Assert.DoesNotContain("/Admin/Transactions", html);
         }
         else if (role == AppRoles.Admin)
         {
-            Assert.DoesNotContain("Bàn học", html);
+            Assert.DoesNotContain("student-sidebar", html);
             Assert.DoesNotContain("Ngân hàng câu hỏi", html);
         }
     }

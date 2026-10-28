@@ -33,7 +33,7 @@
     <div class="studio-shell student-shell">
         <aside class="studio-sidebar student-sidebar" id="student-sidebar" aria-label="Thanh điều hướng học tập">
             <div class="studio-sidebar-header">
-                <a class="brand studio-brand" asp-controller="Learning" asp-action="Dashboard" aria-label="Estudy - Bàn học">
+                <a class="brand studio-brand" asp-controller="Learning" asp-action="Dashboard" aria-label="Estudy - Trang chủ">
                     <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
                     <span>Estudy</span>
                 </a>
@@ -47,7 +47,7 @@
                     <a class="studio-nav-link @(activeSection == "dashboard" ? "is-active" : "")"
                        asp-controller="Learning" asp-action="Dashboard" aria-current="@(activeSection == "dashboard" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#dashboard")"></use></svg>
-                        <span>Bàn học</span>
+                        <span>Trang chủ</span>
                     </a>
                     <a class="studio-nav-link @(activeSection is "courses" or "mycourses" or "learning" ? "is-active" : "")"
                        asp-controller="Learning" asp-action="Index" aria-current="@(activeSection is "courses" or "mycourses" or "learning" ? "page" : null)">
@@ -93,8 +93,8 @@
                     <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#menu")"></use></svg>
                 </button>
                 <form class="student-course-search" asp-controller="Learning" asp-action="Index" method="get" role="search">
-                    <label class="visually-hidden" for="student-course-search">Tìm khóa học mới</label>
-                    <input id="student-course-search" type="search" name="Search" value="@(Context.Request.Query["Search"].ToString())" maxlength="200" placeholder="Tìm khóa học mới..." />
+                    <label class="visually-hidden" for="student-course-search">Tìm khóa học</label>
+                    <input id="student-course-search" type="search" name="Search" value="@(Context.Request.Query["Search"].ToString())" maxlength="200" placeholder="Tìm khóa học..." />
                     <button class="icon-button" type="submit" aria-label="Tìm khóa học">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
                     </button>
