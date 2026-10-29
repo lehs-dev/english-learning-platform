@@ -31,10 +31,10 @@
                         { <option value="@Model.Editor.CourseId">@Model.Editor.CourseTitle — Khóa học hiện tại</option> }
                     </select><span asp-validation-for="Input.CourseId" class="validation"></span>
                 </div>
-                <p class="ta-help" id="scope-access-help">Bài chỉ mở cho học viên sau khi được xuất bản. Với khóa học trả phí, học viên cần hoàn tất thanh toán.</p>
+                <p class="ta-help" id="scope-access-help">Học viên chỉ truy cập được sau khi bạn mở bài kiểm tra. Với khóa học trả phí, học viên cần hoàn tất thanh toán.</p>
                 <div class="ta-form-actions"><a class="button secondary" asp-action="Edit" asp-route-id="@Model.Editor.AssessmentId">Tải lại trang</a><button type="submit" class="button">Lưu phạm vi</button></div>
             </form>
         }
     </section>
-    <aside class="ta-side-column"><section class="ta-type-guide"><h2>Hai cách mở bài kiểm tra</h2><dl><div><dt>Bài độc lập</dt><dd>Mọi học viên đã đăng nhập có thể truy cập khi đề được xuất bản.</dd></div><div><dt>Gắn với khóa học</dt><dd>Chỉ học viên có đăng ký hợp lệ trong khóa học được truy cập.</dd></div></dl></section><p class="ta-inline-note">Chỉ đổi phạm vi trước lượt làm đầu tiên. Đề đang dùng làm bài thi cuối khóa cần được gỡ hoặc thay thế trước khi đổi phạm vi.</p></aside>
+    <aside class="ta-side-column"><section class="ta-type-guide"><h2>Hai cách mở bài kiểm tra</h2><dl><div><dt>Bài độc lập</dt><dd>Mọi học viên đã đăng nhập có thể truy cập khi bài kiểm tra đang mở.</dd></div><div><dt>Gắn với khóa học</dt><dd>Chỉ học viên có đăng ký hợp lệ trong khóa học được truy cập.</dd></div></dl></section><p class="ta-inline-note">Chỉ đổi phạm vi trước lượt làm đầu tiên. Đề đang dùng làm bài thi cuối khóa cần được gỡ hoặc thay thế trước khi đổi phạm vi.</p></aside>
 </div>

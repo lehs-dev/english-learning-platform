@@ -21,6 +21,7 @@ public interface ITeacherPracticeQuestionService
     /// <summary>
     /// Thay danh sách câu hỏi bằng danh sách Teacher gửi lên.
     /// Service phải kiểm tra quyền sở hữu và tính hợp lệ trước khi lưu.
+    /// Với bài đã xuất bản, tạo phiên bản mới và giữ nguyên dữ liệu các phiên bản cũ.
     /// </summary>
     Task<WriteOutcome> UpdateQuestionsAsync(
         Guid actorUserId,

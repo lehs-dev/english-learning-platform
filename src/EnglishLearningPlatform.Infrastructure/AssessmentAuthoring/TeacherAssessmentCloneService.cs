@@ -55,8 +55,15 @@ public sealed class TeacherAssessmentCloneService(
                 || (q.StimulusId != null && q.Stimulus!.OwnerTeacherUserId != actorUserId)), cancellationToken))
                 return Failure(sourceId, "Đề có câu hỏi không cùng owner; chưa thể Clone.");
 
-            const string suffix = " (bản sao)";
-            string title = source.Title;
+            const string copyLabel = "(bản sao)";
+            const string suffix = " " + copyLabel;
+            string title = source.Title.TrimEnd();
+            // Chỉ bỏ nhãn ở cuối tên, kể cả tên cũ đã bị lặp nhiều lần.
+            // Không xóa cụm "(bản sao)" nằm giữa nội dung tên do Teacher đặt.
+            while (title.EndsWith(copyLabel, StringComparison.OrdinalIgnoreCase))
+            {
+                title = title.Substring(0, title.Length - copyLabel.Length).TrimEnd();
+            }
             if (title.Length > 200 - suffix.Length) title = title.Substring(0, 200 - suffix.Length);
             var copy = new Assessment
             {

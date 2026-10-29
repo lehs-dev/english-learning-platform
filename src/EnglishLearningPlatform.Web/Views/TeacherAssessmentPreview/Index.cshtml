@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="~/css/teacher-assessments.css" asp-append-version="true" />
 }
 <nav class="ta-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-controller="TeacherAssessments" asp-action="Index">Bài kiểm tra</a><span aria-hidden="true">/</span><span aria-current="page">Xem trước</span></nav>
-<div class="ta-heading"><div><h1>@Model.Title</h1><p>Kiểm tra đề dưới góc nhìn học viên trước khi xuất bản.</p></div><a class="button secondary" asp-controller="TeacherAssessments" asp-action="Index">Về danh sách</a></div>
-<ol class="ta-steps" aria-label="Các bước soạn đề"><li class="is-complete"><span>✓</span>Cấu hình đề</li><li class="@(Model.Questions.Count >= 5 ? "is-complete" : "")"><span>@(Model.Questions.Count >= 5 ? "✓" : "2")</span>Câu hỏi và điểm</li><li class="is-current" aria-current="step"><span>3</span>Xem trước và xuất bản</li></ol>
+<div class="ta-heading"><div><h1>@Model.Title</h1><p>Kiểm tra đề dưới góc nhìn học viên trước khi mở bài kiểm tra.</p></div><a class="button secondary" asp-controller="TeacherAssessments" asp-action="Index">Về danh sách</a></div>
+<ol class="ta-steps" aria-label="Các bước soạn đề"><li class="is-complete"><span>✓</span>Cấu hình đề</li><li class="@(Model.Questions.Count >= 5 ? "is-complete" : "")"><span>@(Model.Questions.Count >= 5 ? "✓" : "2")</span>Câu hỏi và điểm</li><li class="is-current" aria-current="step"><span>3</span>Xem trước và mở bài</li></ol>
 <p class="ta-inline-note" role="status">Bạn đang xem đề đã lưu. Có thể thử chọn đáp án; bản xem trước không lưu lựa chọn hoặc tạo lượt làm bài.</p>
 <section class="ta-preview-header" data-assessment-type="@Model.AssessmentType">
     <div class="ta-card-heading"><h2>Thông tin bài kiểm tra</h2><span class="ta-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span></div>
@@ -39,7 +39,7 @@
         </ul>
 
         <p class="muted">
-            Bạn có thể xem nội dung hiện có và quay lại hoàn thiện đề trước khi xuất bản.
+            Bạn có thể xem nội dung hiện có và quay lại hoàn thiện đề trước khi mở bài kiểm tra.
         </p>
     </section>
 }

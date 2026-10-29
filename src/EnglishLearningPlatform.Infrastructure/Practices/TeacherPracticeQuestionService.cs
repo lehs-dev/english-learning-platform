@@ -118,6 +118,7 @@ public sealed class TeacherPracticeQuestionService
                 PracticeId = practice.Id,
                 Title = practice.Title,
                 Status = practice.Status,
+                Version = practice.Version,
                 UpdatedAtUtc = practice.UpdatedAtUtc,
                 LessonId = practice.LessonId,
                 ModuleId = practice.ModuleId,
@@ -131,13 +132,16 @@ public sealed class TeacherPracticeQuestionService
                             + " / " + practice.Module.Title
                         : "Chưa chọn Lesson hoặc Module",
 
-                // Published/Unpublished hoặc đã có kết quả:
-                // vẫn được xem, nhưng giao diện không cho sửa câu hỏi.
+                // Sửa bài đã xuất bản tạo phiên bản mới, không ghi đè đề cũ.
                 CanEditQuestions =
-                    practice.Status == PracticeStatus.Draft
-                    && !practice.Submissions.Any(),
+                    (practice.Status == PracticeStatus.Draft || practice.Status == PracticeStatus.Published
+                        || practice.Status == PracticeStatus.Unpublished)
+                    && (practice.Status != PracticeStatus.Draft || !practice.Submissions.Any())
+                    && (practice.Lesson == null || practice.Lesson.Module.Course.Status != CourseStatus.Archived)
+                    && (practice.Module == null || practice.Module.Course.Status != CourseStatus.Archived),
 
                 Questions = practice.Questions
+                    .Where(item => item.Version == practice.Version)
                     // Lọc owner cả ở danh sách con trước khi lấy nội dung.
                     .Where(item =>
                         item.Question.OwnerTeacherUserId == actorUserId)
@@ -243,12 +247,28 @@ public sealed class TeacherPracticeQuestionService
                     LearningAccessResult.NotFound);
             }
 
+            var snapshot = await _db.Practices.AsNoTracking()
+                .Where(p => p.Id == practiceId && p.OwnerTeacherUserId == actorUserId)
+                .Select(p => new { p.LessonId, p.ModuleId }).SingleOrDefaultAsync(cancellationToken);
+            if (snapshot == null) return WriteOutcome.Denied(LearningAccessResult.NotFound);
+            Guid? courseId = await FindParentCourseIdAsync(actorUserId, snapshot.LessonId, snapshot.ModuleId, cancellationToken);
+            if ((snapshot.LessonId.HasValue || snapshot.ModuleId.HasValue) && !courseId.HasValue)
+                return Invalid(practiceId, "Vị trí bài luyện tập không hợp lệ hoặc không thuộc giảng viên hiện tại.");
+
             // Nếu chưa Commit mà thoát hàm hoặc xảy ra lỗi,
             // transaction sẽ rollback các thay đổi.
             await using var transaction =
                 await _db.Database.BeginTransactionAsync(
                     IsolationLevel.Serializable,
                     cancellationToken);
+
+            // Cùng thứ tự khóa với Student mở/nộp bài, tránh sửa chen giữa một lần chấm.
+            if (courseId.HasValue)
+            {
+                var course = await _db.CoursesForUpdate(courseId.Value).AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+                if (course == null || course.OwnerTeacherUserId != actorUserId || course.Status == CourseStatus.Archived)
+                    return Invalid(practiceId, "Không thể sửa bài luyện tập trong khóa học đã lưu trữ hoặc không thuộc bạn.");
+            }
 
             // Kiểm tra lại quyền trong transaction.
             // Không chỉ dựa vào kết quả đọc trước transaction.
@@ -285,13 +305,14 @@ public sealed class TeacherPracticeQuestionService
                     + "Hãy tải lại trang trước khi chỉnh sửa.");
             }
 
-            // Published và Unpublished đều không được đổi đề.
-            // Không chuyển Practice đã Publish về Draft để mở khóa.
-            if (practice.Status != PracticeStatus.Draft)
+            if (practice.LessonId != snapshot.LessonId || practice.ModuleId != snapshot.ModuleId)
+                return Invalid(practiceId, "Vị trí bài luyện tập đã thay đổi. Hãy tải lại trang.");
+
+            if (!Enum.IsDefined(practice.Status))
             {
                 return Invalid(
                     practiceId,
-                    "Chỉ được sửa danh sách câu hỏi khi Practice còn Draft.");
+                    "Trạng thái bài luyện tập không hợp lệ.");
             }
 
             // Bảo vệ dữ liệu lịch sử nếu Practice đã có kết quả.
@@ -300,7 +321,7 @@ public sealed class TeacherPracticeQuestionService
                     submission => submission.PracticeId == practiceId,
                     cancellationToken);
 
-            if (hasSubmission)
+            if (practice.Status == PracticeStatus.Draft && hasSubmission)
             {
                 return Invalid(
                     practiceId,
@@ -319,6 +340,8 @@ public sealed class TeacherPracticeQuestionService
             // Chụp lại danh sách đầu vào để dùng nhất quán
             // trong toàn bộ thao tác đang thực hiện.
             Guid[] questionIds = request.QuestionIds.ToArray();
+            if (practice.Status != PracticeStatus.Draft && questionIds.Length == 0)
+                return Invalid(practiceId, "Bài đã xuất bản phải giữ ít nhất một câu hỏi hợp lệ.");
 
             // HashSet lưu các ID đã gặp.
             // Add trả false nếu một ID đã xuất hiện trước đó.
@@ -343,9 +366,11 @@ public sealed class TeacherPracticeQuestionService
 
             // Chỉ đọc câu hỏi của Teacher hiện tại.
             // Tải cả Options và Stimulus theo yêu cầu của validator.
-            // AsNoTracking vì không sửa các Question này.
+            // Theo dõi entity để khóa nội dung câu hỏi mới khi lưu vào bài đã xuất bản.
+            var currentQuestionIds = await _db.PracticeQuestions
+                .Where(item => item.PracticeId == practiceId && item.Version == practice.Version)
+                .Select(item => item.QuestionId).ToListAsync(cancellationToken);
             var questions = await _db.Questions
-                .AsNoTracking()
                 .Where(question =>
                     question.OwnerTeacherUserId == actorUserId
                     && questionIds.Contains(question.Id))
@@ -370,10 +395,10 @@ public sealed class TeacherPracticeQuestionService
 
                 // Đây là luồng soạn nội dung mới:
                 // dùng ValidateForNewUse để chặn Question Archived.
-                var questionErrors =
-                    _questionUsageValidator.ValidateForNewUse(
-                        actorUserId,
-                        question);
+                // Câu Archived đã có được giữ; không được thêm mới một câu Archived.
+                var questionErrors = practice.Status != PracticeStatus.Draft && currentQuestionIds.Contains(questionIds[index])
+                    ? _questionUsageValidator.ValidateForExistingUse(actorUserId, question)
+                    : _questionUsageValidator.ValidateForNewUse(actorUserId, question);
 
                 foreach (var error in questionErrors)
                 {
@@ -389,12 +414,27 @@ public sealed class TeacherPracticeQuestionService
                     messages.ToArray());
             }
 
+            if (practice.Status != PracticeStatus.Draft)
+            {
+                foreach (var question in questions)
+                {
+                    var stimulus = question.Stimulus;
+                    if (stimulus?.StimulusType == StimulusType.Passage && string.IsNullOrWhiteSpace(stimulus.ContentText))
+                        return Invalid(practiceId, "Bài đọc đính kèm không được để trống.");
+                    if (!currentQuestionIds.Contains(question.Id) && stimulus?.StimulusType == StimulusType.Audio
+                        && !StimulusAudioUrl.TryGetHash(stimulus.ResourceUrl, out _))
+                        return Invalid(practiceId, "Câu hỏi âm thanh mới phải dùng tệp upload nội bộ, không dùng URL ngoài.");
+                }
+                var audioError = await StimulusAudioIntegrity.GetErrorAsync(questions.Select(q => q.Stimulus), _audioStore, cancellationToken);
+                if (audioError != null) return Invalid(practiceId, audioError);
+            }
+
             // Chỉ đến đây khi toàn bộ danh sách mới hợp lệ.
             var oldItems = await _db.PracticeQuestions
-                .Where(item => item.PracticeId == practiceId)
+                .Where(item => item.PracticeId == practiceId && item.Version == practice.Version)
                 .ToListAsync(cancellationToken);
 
-            if (oldItems.Count > 0)
+            if (practice.Status == PracticeStatus.Draft && oldItems.Count > 0)
             {
                 // Chỉ xóa LIÊN KẾT trong Practice Draft.
                 // Không xóa Question hoặc QuestionOption.
@@ -406,6 +446,18 @@ public sealed class TeacherPracticeQuestionService
                 await _db.SaveChangesAsync(cancellationToken);
             }
 
+            if (practice.Status != PracticeStatus.Draft)
+            {
+                // Giữ nguyên mọi liên kết cũ để phiên đang làm và kết quả cũ vẫn đọc đúng đề.
+                practice.Version = checked(practice.Version + 1);
+                var lockedAt = DateTimeOffset.UtcNow;
+                foreach (var question in questions)
+                {
+                    question.LockContent(lockedAt);
+                    question.Stimulus?.LockContent(lockedAt);
+                }
+            }
+
             // Thứ tự trong request quyết định OrderIndex.
             // Draft được phép có danh sách rỗng.
             for (int index = 0; index < questionIds.Length; index++)
@@ -413,6 +465,7 @@ public sealed class TeacherPracticeQuestionService
                 _db.PracticeQuestions.Add(new PracticeQuestion
                 {
                     PracticeId = practiceId,
+                    Version = practice.Version,
                     QuestionId = questionIds[index],
                     OrderIndex = index
                 });
@@ -599,7 +652,7 @@ public sealed class TeacherPracticeQuestionService
             }
 
             var items = await _db.PracticeQuestions
-                .Where(item => item.PracticeId == practiceId)
+                .Where(item => item.PracticeId == practiceId && item.Version == practice.Version)
                 .Include(item => item.Question)
                     .ThenInclude(question => question.Options)
                 .Include(item => item.Question)

@@ -239,7 +239,7 @@ public sealed class TeacherPracticeQuestionsController : Controller
 
         if (!ModelState.IsValid)
         {
-            return BadRequest("Thông tin Publish không hợp lệ.");
+            return BadRequest("Thông tin mở bài luyện tập không hợp lệ.");
         }
 
         var result = await _practiceQuestionService.PublishAsync(
@@ -247,7 +247,7 @@ public sealed class TeacherPracticeQuestionsController : Controller
             expectedUpdatedAtUtc, cancellationToken);
 
         return FinishPublication(id, result,
-            "Đã Publish Practice. Student có quyền học sẽ thấy bài "
+            "Đã mở bài luyện tập. Học viên có quyền học sẽ thấy bài "
             + "khi Course và Lesson/Module đang khả dụng.");
     }
 
@@ -277,7 +277,7 @@ public sealed class TeacherPracticeQuestionsController : Controller
             actorUserId, id, expectedUpdatedAtUtc, cancellationToken);
 
         return FinishPublication(id, result,
-            "Đã Unpublish Practice. Kết quả cũ được giữ nguyên.");
+            "Đã tạm đóng bài luyện tập. Kết quả cũ được giữ nguyên.");
     }
 
     /// <summary>

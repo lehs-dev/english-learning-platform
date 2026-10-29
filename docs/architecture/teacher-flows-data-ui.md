@@ -245,11 +245,11 @@ GET (yêu cầu đọc dữ liệu) `/TeacherPracticeQuestions/Index/{id}` ghép
 | --- | --- |
 | Draft (bản nháp) chưa có submission (bài nộp) | Thêm/bỏ/sắp xếp câu hỏi; lưu rỗng được |
 | Publish (xuất bản) lần đầu | Ít nhất 1 câu hợp lệ, không trùng; đúng một Lesson (bài học) hoặc Module (chương học) cùng owner (chủ sở hữu); Course (khóa học) chưa Archived (đã lưu trữ); audio (âm thanh) hợp lệ |
-| Published (đã xuất bản) | Không sửa danh sách câu/đổi parent (thành phần cha); Unpublish (ngừng xuất bản) được; Preview (xem trước) được |
-| Unpublished (đã ngừng xuất bản) | Không sửa danh sách câu/đổi parent (thành phần cha); Publish (xuất bản) lại cùng parent (thành phần cha) được; không mở Preview (xem trước) |
-| Có submission (bài nộp) | Không được xử lý như Draft (bản nháp) để sửa đề |
+| Published (đã xuất bản) | Được sửa danh sách/thứ tự câu bằng phiên bản mới; không đổi parent; Unpublish và Preview được |
+| Unpublished (đã ngừng xuất bản) | Được sửa danh sách/thứ tự câu bằng phiên bản mới; Publish lại cùng parent được; không mở Preview |
+| Có submission (bài nộp) | Kết quả giữ đúng phiên bản đã nộp; Teacher sửa đề không đổi kết quả cũ |
 
-Publish (xuất bản) khóa Question (câu hỏi)/Stimulus (ngữ liệu). Unpublish (ngừng xuất bản) giữ khóa, liên kết và kết quả; không trở về Draft (bản nháp). Practice (bài luyện tập) không có Archive (lưu trữ), clone (tạo bản sao), xóa hoặc endpoint (điểm truy cập chức năng) sửa Title (tiêu đề)/Description (mô tả) sau Create (tạo mới) trong các controller (bộ điều khiển) hiện tại.
+Publish khóa nội dung Question/Stimulus, nhưng cho thay danh sách câu bằng phiên bản mới. Student đang làm giữ phiên bản đã mở; làm lại nhận bản mới nhất. Unpublish giữ khóa, liên kết và kết quả, không trở về Draft. Chi tiết và migration: [phiên bản Practice](practice-versions.md). Practice hiện không có Archive, clone, xóa hoặc endpoint sửa Title/Description sau Create.
 
 ### 7.3. Dữ liệu phát sinh phía Student (học viên)
 

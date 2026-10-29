@@ -29,6 +29,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<QuestionOption> QuestionOptions => Set<QuestionOption>();
     public DbSet<Practice> Practices => Set<Practice>();
     public DbSet<PracticeQuestion> PracticeQuestions => Set<PracticeQuestion>();
+    public DbSet<PracticeSession> PracticeSessions => Set<PracticeSession>();
     public DbSet<PracticeSubmission> PracticeSubmissions => Set<PracticeSubmission>();
     public DbSet<PracticeAnswer> PracticeAnswers => Set<PracticeAnswer>();
     public DbSet<Assessment> Assessments => Set<Assessment>();

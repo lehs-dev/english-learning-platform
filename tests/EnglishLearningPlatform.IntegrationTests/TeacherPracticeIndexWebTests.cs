@@ -149,7 +149,7 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
 
         Assert.Equal(new[] { "OWN_MODULE", "OWN_LESSON", "OWN_UNATTACHED" }, rows.Select(RowTitle));
         var moduleCells = Cells(rows[0]);
-        Assert.Contains("Ngừng xuất bản", Text(moduleCells[1]));
+        Assert.Contains("Tạm đóng", Text(moduleCells[1]));
         Assert.Equal(data.Own.CourseTitle, Text(Assert.Single(Links(moduleCells[2]))));
         Assert.Contains("Chương học: " + data.Own.ModuleTitle, Text(moduleCells[2]));
         Assert.Equal("3", Text(moduleCells[3]));

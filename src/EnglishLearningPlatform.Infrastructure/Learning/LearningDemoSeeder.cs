@@ -98,7 +98,7 @@ public static class LearningDemoSeeder
     {
         OwnerTeacherUserId = teacherId,
         Title = FreeCourseTitle,
-        Description = "Luyện tiếng Anh hằng ngày với bài học và tài nguyên mẫu.",
+        Description = "Luyện tiếng Anh hằng ngày với bài học và nội dung mẫu.",
         Objectives = "Làm quen từ vựng, nghe và đọc tiếng Anh.",
         Status = CourseStatus.Published,
         Skills = [new CourseSkill { Skill = EnglishSkill.Vocabulary }, new CourseSkill { Skill = EnglishSkill.Listening }],

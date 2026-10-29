@@ -16,6 +16,9 @@ public sealed class Practice : BaseEntity, IOwnedResource
     public string? Description { get; set; }
     public PracticeStatus Status { get; set; } = PracticeStatus.Draft;
 
+    // Phiên bản đề hiện tại. Phiên bản cũ không bị ghi đè khi Teacher sửa bài.
+    public int Version { get; set; } = 1;
+
     public ICollection<PracticeQuestion> Questions { get; set; } = new List<PracticeQuestion>();
     public ICollection<PracticeSubmission> Submissions { get; set; } = new List<PracticeSubmission>();
 }

@@ -193,7 +193,7 @@ public sealed class TeacherPracticeQueryService
                 Id = practice.Id,
                 Title = practice.Title,
                 Status = practice.Status,
-                QuestionCount = practice.Questions.Count,
+                QuestionCount = practice.Questions.Count(q => q.Version == practice.Version),
                 CreatedAtUtc = practice.CreatedAtUtc,
 
                 // Giữ nguyên parent trực tiếp của Practice.
