@@ -282,6 +282,8 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             ["Input.Title"] = "HTTP configuration", ["Input.AssessmentType"] = "SkillAssessment",
             ["Input.TargetSkill"] = "Listening", ["Input.DurationMinutes"] = "35", ["Input.MaxAttempts"] = "4",
             ["Input.PassingScore"] = "75.25", ["Input.ExpectedUpdatedAtUtc"] = WebUtility.HtmlDecode(version.Groups[1].Value),
+            // Match the number input's hidden field emitted by the MVC form tag helper.
+            ["__Invariant"] = "Input.PassingScore",
             ["Status"] = "Draft", ["Input.Status"] = "Draft", ["Input.CourseId"] = Guid.NewGuid().ToString(),
             ["Input.OwnerTeacherUserId"] = Guid.NewGuid().ToString()
         };

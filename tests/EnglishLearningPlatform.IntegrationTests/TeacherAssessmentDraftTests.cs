@@ -265,6 +265,8 @@ public sealed class TeacherAssessmentDraftTests : IClassFixture<IntegrationTestF
 
         fields["Input.AssessmentType"] = "PracticeExam";
         fields["Input.PassingScore"] = "72.25";
+        // Browsers also submit this hidden field for the MVC number input.
+        fields["__Invariant"] = "Input.PassingScore";
         fields["Input.OwnerTeacherUserId"] = Guid.NewGuid().ToString();
         fields["Input.Status"] = "Published";
         fields["Input.CourseId"] = Guid.NewGuid().ToString();
