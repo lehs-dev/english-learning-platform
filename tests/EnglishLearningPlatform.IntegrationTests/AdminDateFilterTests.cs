@@ -12,6 +12,92 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class AdminDateFilterTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
+    [Theory]
+    [InlineData(PaymentStatus.Pending)]
+    [InlineData(PaymentStatus.Succeeded)]
+    [InlineData(PaymentStatus.Failed)]
+    [InlineData(PaymentStatus.Cancelled)]
+    public async Task Transactions_CombineDateSearchAndLatestStatus_AcrossDisjointStablePages(PaymentStatus status)
+    {
+        var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var service = scope.ServiceProvider.GetRequiredService<IAdminQueryService>();
+        var marker = $"combined-{Guid.NewGuid():N}";
+        var start = new DateTimeOffset(2026, 12, 30, 17, 0, 0, TimeSpan.Zero);
+        var end = start.AddDays(1);
+        var course = new Course { Title = marker, OwnerTeacherUserId = teacher.Id };
+        Order AddOrder(Course target, DateTimeOffset created, PaymentStatus? latest)
+        {
+            var order = new Order { Course = target, StudentUserId = student.Id,
+                Amount = 199000m, Currency = "VND", CreatedAtUtc = created };
+            db.Orders.Add(order);
+            if (latest.HasValue)
+            {
+                // Transactions intentionally displays the latest attempt, unlike booked revenue.
+                db.Payments.Add(new Payment { Order = order, Amount = order.Amount,
+                    ProviderTransactionId = $"combined-{Guid.NewGuid():N}",
+                    Status = latest == PaymentStatus.Failed ? PaymentStatus.Pending : PaymentStatus.Failed,
+                    CreatedAtUtc = created.AddMinutes(1) });
+                db.Payments.Add(new Payment { Order = order, Amount = order.Amount, Status = latest.Value,
+                    ProviderTransactionId = $"combined-{Guid.NewGuid():N}",
+                    CreatedAtUtc = created.AddMinutes(2),
+                    PaidAtUtc = latest == PaymentStatus.Succeeded ? created.AddMinutes(2) : null });
+            }
+            return order;
+        }
+
+        // Equal timestamps exercise the OrderId tie-breaker; pending includes absent payments.
+        var matching = Enumerable.Range(0, 21)
+            .Select(i => AddOrder(course, start, status == PaymentStatus.Pending && i % 2 == 0 ? null : status))
+            .ToList();
+        matching.Add(AddOrder(course, end.AddTicks(-1), status));
+        AddOrder(course, start.AddTicks(-1), status);
+        AddOrder(course, end, status);
+        AddOrder(course, start, status == PaymentStatus.Failed ? PaymentStatus.Succeeded : PaymentStatus.Failed);
+        AddOrder(new Course { Title = $"other-{Guid.NewGuid():N}", OwnerTeacherUserId = teacher.Id }, start, status);
+        await db.SaveChangesAsync();
+        var orderCount = await db.Orders.CountAsync();
+        var paymentCount = await db.Payments.CountAsync();
+        db.ChangeTracker.Clear();
+        var dates = new AdminDateRange(new(2026, 12, 31), new(2026, 12, 31));
+        var first = (await service.TransactionsAsync(admin.Id, marker, status, 1, dates: dates))!;
+        var second = (await service.TransactionsAsync(admin.Id, marker, status, 2, dates: dates))!;
+        Assert.Equal(22, first.Total);
+        Assert.Equal(2, first.Pages);
+        Assert.Equal(20, first.Items.Count);
+        Assert.Equal(2, second.Items.Count);
+        Assert.Empty(first.Items.Select(x => x.OrderId).Intersect(second.Items.Select(x => x.OrderId)));
+        Assert.Equal(matching.Select(x => x.Id).Order(),
+            first.Items.Concat(second.Items).Select(x => x.OrderId).Order());
+        Assert.All(first.Items.Concat(second.Items), row =>
+        {
+            Assert.Equal(status, row.Status ?? PaymentStatus.Pending);
+            Assert.InRange(row.CreatedAtUtc, start, end.AddTicks(-1));
+        });
+        Assert.Equal(first.Items, (await service.TransactionsAsync(admin.Id, marker, status, 1, dates: dates))!.Items);
+        Assert.Equal(2, (await service.TransactionsAsync(admin.Id, marker, status, 999, dates: dates))!.Page);
+        Assert.Empty(db.ChangeTracker.Entries());
+
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, admin);
+        var html = await client.GetStringAsync($"/Admin/Transactions?search={marker}&status={status}&fromDate=2026-12-31&toDate=2026-12-31");
+        var next = System.Text.RegularExpressions.Regex.Matches(html, "href=\"([^\"]+)\"")
+            .Select(m => WebUtility.HtmlDecode(m.Groups[1].Value))
+            .Single(href => href.Contains("page=2", StringComparison.Ordinal));
+        foreach (var filter in new[] { $"search={marker}", $"status={status}", "fromDate=2026-12-31", "toDate=2026-12-31" })
+            Assert.Contains(filter, next);
+        using var response = await client.GetAsync(next);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var pageTwo = await response.Content.ReadAsStringAsync();
+        foreach (var row in second.Items) Assert.Contains(row.OrderId.ToString(), pageTwo);
+        foreach (var row in first.Items) Assert.DoesNotContain(row.OrderId.ToString(), pageTwo);
+        Assert.Equal(orderCount, await db.Orders.CountAsync());
+        Assert.Equal(paymentCount, await db.Payments.CountAsync());
+    }
+
     [Fact]
     public async Task AllLists_FilterVietnamCalendarDay_BeforeCountingAndPaging()
     {
