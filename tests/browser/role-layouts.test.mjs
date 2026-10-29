@@ -6,8 +6,8 @@ import { chromium } from 'playwright';
 const webRoot = new URL('../../src/EnglishLearningPlatform.Web/', import.meta.url);
 const widths = [320, 390, 768, 900, 901, 1024, 1025, 1080, 1081, 1250, 1440];
 const layouts = {
-  public: { file: '_Layout.cshtml', navigation: '#main-nav', breakpoint: 900 },
-  student: { file: '_LayoutStudent.cshtml', navigation: '#student-nav', breakpoint: 900 },
+  public: { file: '_Layout.cshtml', navigation: '#main-nav', breakpoint: 1024 },
+  student: { file: '_LayoutStudent.cshtml', navigation: '#student-sidebar', breakpoint: 1024 },
   teacher: { file: '_LayoutTeacher.cshtml', navigation: '#studio-sidebar', breakpoint: 1024 },
   admin: { file: '_LayoutAdmin.cshtml', navigation: '#admin-sidebar', breakpoint: 1024 },
 };
@@ -19,6 +19,7 @@ async function accountMenuFixture(role) {
   assert.ok(guest && authenticated, 'Keep fixture branches aligned with the real AccountMenu');
   if (role === 'public') return guest[0];
   return authenticated[0]
+    .replace(/@if\s*\(Model\.HasAvatar\)\s*\{[\s\S]*?\}\s*else\s*\{([\s\S]*?)\}/g, '$1')
     .replace(/@Model\.FullName/g, 'Nguyễn Thị Học Viên')
     .replace(/@Model\.Initial/g, 'HV')
     .replace(/@Model\.RoleLabel/g, { student: 'Học viên', teacher: 'Giảng viên', admin: 'Quản trị viên' }[role])
@@ -82,9 +83,18 @@ function stripBalanced(source, pattern, replacement = '', includeBrace = false) 
 }
 
 async function layoutFixture(role) {
-  const raw = await readFile(new URL(`Views/Shared/${layouts[role].file}`, webRoot), 'utf8');
+  let raw = await readFile(new URL(`Views/Shared/${layouts[role].file}`, webRoot), 'utf8');
+  if (role === 'public') {
+    // The public fixture represents a guest, so omit the authenticated role branches.
+    raw = raw.replace(/<nav class="main-nav"[\s\S]*?<\/nav>/, nav => {
+      const courses = nav.match(/<a class="nav-link [^\n]*asp-controller="Courses"[^>]*>Khóa học<\/a>/);
+      assert.ok(courses, 'Guest navigation keeps its public course link');
+      return nav.slice(0, nav.indexOf('>') + 1) + courses[0] + '</nav>';
+    });
+  }
   const accountMenu = await accountMenuFixture(role);
   let html = raw.slice(raw.indexOf('<!DOCTYPE html>'))
+    .replace(/@if\s*\(User\.Identity\?\.IsAuthenticated == true\)\s*\{([\s\S]*?)\}/g, (_match, content) => role === 'public' ? '' : content)
     .replace(/@\*[\s\S]*?\*@/g, '')
     .replace(/@await Component\.InvokeAsync\("AccountMenu"\)/g, accountMenu)
     .replace(/@await RenderSectionAsync\([^\n]*\)/g, '')
@@ -155,7 +165,7 @@ async function assertDrawerClosed(page, selector) {
   assert.equal(await page.locator('body').evaluate(el => el.classList.contains('sidebar-open')), false);
 }
 
-for (const role of ['public', 'student']) {
+for (const role of ['public']) {
   test(`${role} navigation opens its aria-controls target and closes on Escape, link and resize`, async t => {
     const page = await fixture(t, role);
     const toggle = page.locator('[data-nav-toggle]');
@@ -182,12 +192,12 @@ for (const role of ['public', 'student']) {
     assert.equal(await nav.isVisible(), false);
     assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
     await toggle.click();
-    await page.setViewportSize({ width: 901, height: 844 });
+    await page.setViewportSize({ width: layouts[role].breakpoint + 1, height: 844 });
     await page.waitForFunction(() => document.querySelector('[data-nav-toggle]').getAttribute('aria-expanded') === 'false');
     assert.equal(await toggle.isVisible(), false);
     assert.equal(await nav.isVisible(), true);
     assert.ok(await nav.locator('a').first().evaluate(el => el === document.activeElement), 'Desktop resize moves focus away from the hidden toggle');
-    await page.setViewportSize({ width: 900, height: 844 });
+    await page.setViewportSize({ width: layouts[role].breakpoint, height: 844 });
     // CSS can hide the navigation before the matchMedia change listener restores focus.
     await page.waitForFunction(selector =>
       getComputedStyle(document.querySelector(selector)).display === 'none'
@@ -198,7 +208,7 @@ for (const role of ['public', 'student']) {
   });
 }
 
-for (const role of ['teacher', 'admin']) {
+for (const role of ['student', 'teacher', 'admin']) {
   test(`${role} drawer traps focus, restores focus and closes through every control`, async t => {
     const page = await fixture(t, role);
     const selector = layouts[role].navigation;
@@ -225,19 +235,17 @@ for (const role of ['teacher', 'admin']) {
     assert.ok(await focusable.first().evaluate(el => el === document.activeElement), 'Tab wraps to the first drawer control');
     await page.keyboard.press('Shift+Tab');
     assert.ok(await focusable.last().evaluate(el => el === document.activeElement), 'Shift+Tab wraps to the last drawer control');
-    if (role === 'admin') {
-      const accountMenu = sidebar.locator('[data-account-menu]');
-      const summary = accountMenu.locator('summary');
-      await summary.click();
-      assert.ok(await accountMenu.evaluate(el => el.open));
-      await page.keyboard.press('Escape');
-      assert.equal(await accountMenu.evaluate(el => el.open), false);
-      assert.equal(await toggle.getAttribute('aria-expanded'), 'true', 'Escape closes the nested account menu before its drawer');
-      assert.ok(await summary.evaluate(el => el === document.activeElement));
-    }
     await page.keyboard.press('Escape');
     await assertDrawerClosed(page, selector);
     assert.ok(await toggle.evaluate(el => el === document.activeElement));
+
+    const accountMenu = page.locator('[data-account-menu]');
+    const summary = accountMenu.locator('summary');
+    await summary.click();
+    assert.ok(await accountMenu.evaluate(el => el.open), 'Account menu opens from the topbar');
+    await page.keyboard.press('Escape');
+    assert.equal(await accountMenu.evaluate(el => el.open), false);
+    assert.ok(await summary.evaluate(el => el === document.activeElement));
 
     await toggle.click();
     await sidebar.locator('[data-sidebar-close]').click();
@@ -288,20 +296,19 @@ for (const role of ['teacher', 'admin']) {
     assert.ok(lastBounds.y >= 0 && lastBounds.y + lastBounds.height <= 320, 'Last navigation link remains inside the viewport');
     assert.ok(await nav.evaluate(el => el.scrollHeight <= el.clientHeight + 1 || el.scrollTop > 0), 'Long navigation scrolls independently of the locked page');
 
-    if (role === 'admin') {
-      await sidebar.locator('.account-summary strong').evaluate(el => { el.textContent = 'Nguyễn Thị Học Viên '.repeat(10); });
-      const summary = sidebar.locator('.admin-sidebar-footer summary');
-      const summaryBounds = await summary.boundingBox();
-      assert.ok(summaryBounds.y >= 0 && summaryBounds.y + summaryBounds.height <= 320, 'Footer account control stays reachable');
-      await summary.click();
-      const logout = sidebar.locator('.account-dropdown .logout-item');
-      await logout.scrollIntoViewIfNeeded();
-      const logoutBounds = await logout.boundingBox();
-      assert.ok(logoutBounds.y >= 0 && logoutBounds.y + logoutBounds.height <= 320, 'Footer dropdown actions remain reachable');
-    }
     await close.click();
     await assertDrawerClosed(page, selector);
     assert.ok(await toggle.evaluate(el => el === document.activeElement));
+
+    await page.locator('.account-summary strong').evaluate(el => { el.textContent = 'Nguyễn Thị Học Viên '.repeat(10); });
+    const summary = page.locator('[data-account-menu] summary');
+    const summaryBounds = await summary.boundingBox();
+    assert.ok(summaryBounds.y >= 0 && summaryBounds.y + summaryBounds.height <= 320, 'Topbar account control stays reachable');
+    await summary.click();
+    const logout = page.locator('.account-dropdown .logout-item');
+    await logout.scrollIntoViewIfNeeded();
+    const logoutBounds = await logout.boundingBox();
+    assert.ok(logoutBounds.y >= 0 && logoutBounds.y + logoutBounds.height <= 320, 'Topbar dropdown actions remain reachable');
   });
 }
 
@@ -326,10 +333,10 @@ for (const role of Object.keys(layouts)) {
         assert.ok(control.width > 0 && control.x >= dimensions.main.x - 1 && control.right <= dimensions.main.right + 1, `${role} at ${width}px: ${control.tag} fits main content`);
       }
       const mobile = width <= layouts[role].breakpoint;
-      const toggle = page.locator(role === 'public' || role === 'student' ? '[data-nav-toggle]' : '[data-sidebar-toggle]');
+      const toggle = page.locator(role === 'public' ? '[data-nav-toggle]' : '[data-sidebar-toggle]');
       assert.equal(await toggle.isVisible(), mobile, `${role} at ${width}px: toggle matches its breakpoint`);
       assert.equal(await page.locator(layouts[role].navigation).isVisible(), !mobile, `${role} at ${width}px: navigation visibility matches its breakpoint`);
-      if (!mobile && (role === 'teacher' || role === 'admin')) {
+      if (!mobile && role !== 'public') {
         const sidebar = await page.locator(layouts[role].navigation).boundingBox();
         assert.ok(dimensions.main.x >= sidebar.x + sidebar.width - 1, 'Desktop content clears the fixed sidebar');
       }

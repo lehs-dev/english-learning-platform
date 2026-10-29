@@ -16,7 +16,7 @@ body.admin-body { --sidebar-width: 220px; }
 .studio-badge { margin-top: var(--space-2); }
 .workspace-caption { margin: 0 0 8px; padding: 0 8px 14px; border-bottom: 1px solid var(--v2-border-light); color: var(--v2-text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .sidebar-close, .mobile-sidebar-toggle { display: none; }
-.studio-nav, .admin-sidebar .admin-nav { display: flex; flex-direction: column; flex: 1; gap: var(--space-6); min-height: 0; overflow-y: auto; margin: 0; padding: 0; border: 0; }
+.studio-nav, .admin-sidebar .admin-nav { display: flex; flex-direction: column; flex-wrap: nowrap; flex: 1; gap: var(--space-6); min-height: 0; overflow-y: auto; margin: 0; padding: 0; border: 0; }
 .studio-nav-group, .admin-nav-section { display: flex; flex-direction: column; gap: 4px; }
 .studio-nav-group--bottom { margin-top: auto; padding-top: var(--space-4); border-top: 1px solid var(--v2-border-light); }
 .studio-nav-label, .admin-nav-heading { display: block; margin: var(--space-2) 0 4px; padding-inline: 12px; color: var(--v2-text-muted); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }

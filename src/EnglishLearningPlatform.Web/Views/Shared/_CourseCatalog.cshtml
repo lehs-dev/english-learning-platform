@@ -124,15 +124,7 @@
                 }
                 @foreach (var course in Model.Courses)
                 {
-                    <article class="course-card" data-course-id="@course.Id">
-                        <partial name="_CourseCover" model="course" />
-                        <div class="course-card-body">
-                            <h3><a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">@course.Title</a></h3>
-                            <p class="excerpt">@course.Description</p>
-                            <partial name="_CourseSummary" model="course" />
-                            <a class="button secondary course-card-action" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">Xem chi tiết <span aria-hidden="true">→</span></a>
-                        </div>
-                    </article>
+                    <partial name="_DiscoveryCourseCard" model="course" />
                 }
             </div>
             @if (Model.Pages > 1)

@@ -33,3 +33,4 @@ Thumbs.db
 .sqlserver/
 .agents/
 **/App_Data/stimulus-audio/
+**/App_Data/avatars/

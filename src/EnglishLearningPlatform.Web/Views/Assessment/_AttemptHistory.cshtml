@@ -22,7 +22,7 @@
         <tbody>
         @foreach (var attempt in Model)
         {
-            <tr>
+            <tr data-assessment-attempt="@attempt.AttemptId">
                 <td><time datetime="@attempt.StartedAtUtc.ToString("O")">@attempt.StartedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm:ss")</time></td>
                 <td>
                     @if (attempt.CanViewResult && attempt.FinalizedAtUtc is DateTimeOffset finalizedAt)
@@ -57,7 +57,7 @@
                 <td>
                     @if (attempt.CanViewResult)
                     {
-                        <a class="button secondary" asp-action="Result" asp-route-id="@attempt.AttemptId">Xem kết quả</a>
+                        <a class="button secondary" asp-controller="Assessment" asp-action="Result" asp-route-id="@attempt.AttemptId">Xem kết quả</a>
                     }
                     else
                     {

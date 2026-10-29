@@ -46,7 +46,10 @@
     }
     @if (User.IsInRole("Admin")) { <a class="nav-link" asp-controller="Admin" asp-action="Index">Quản trị</a> }
                     <a class="nav-link @(activeSection == "courses" ? "is-active" : "")" asp-controller="Courses" asp-action="Index" aria-current="@(activeSection == "courses" ? "page" : null)">Khóa học</a>
-                    <a class="nav-link @(activeSection == "exams" ? "is-active" : "")" asp-controller="Assessment" asp-action="Index" aria-current="@(activeSection == "exams" ? "page" : null)">Đề thi</a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a class="nav-link @(activeSection == "exams" ? "is-active" : "")" asp-controller="Assessment" asp-action="Index" aria-current="@(activeSection == "exams" ? "page" : null)">Đề thi</a>
+                    }
                 </nav>
                 <div class="header-actions">
                     <form class="header-search v2-search" asp-controller="Courses" asp-action="Index" method="get" role="search">

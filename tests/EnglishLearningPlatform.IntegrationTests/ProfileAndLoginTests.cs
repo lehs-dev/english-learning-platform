@@ -50,9 +50,12 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         Assert.Contains(user.Email!, profile);
         Assert.Contains(roleLabel, profile);
         if (role == AppRoles.Student)
-            Assert.Contains("id=\"assessment-results\"", profile);
+        {
+            Assert.Contains("id=\"profile-courses-tab\"", profile);
+            Assert.Contains("id=\"profile-results-tab\"", profile);
+        }
         else
-            Assert.DoesNotContain("id=\"assessment-results\"", profile);
+            Assert.DoesNotContain("data-profile-tabs", profile);
 
         var token = await IdentityTestHelpers.GetTokenAsync(client, expectedWorkspace);
         using var logout = await client.PostAsync("/Account/Logout", new FormUrlEncodedContent(
