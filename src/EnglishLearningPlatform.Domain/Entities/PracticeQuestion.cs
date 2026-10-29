@@ -9,6 +9,7 @@ public sealed class PracticeQuestion : BaseEntity
     public Guid QuestionId { get; set; }
     public Question Question { get; set; } = null!;
     public int OrderIndex { get; set; }
+    public int Version { get; set; } = 1;
 
     public ICollection<PracticeAnswer> Answers { get; set; } = new List<PracticeAnswer>();
 }

@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Ngân hàng câu hỏi";
     ViewData["ActiveSection"] = "questionbank";
-    ViewData["PageClass"] = "question-bank-page question-bank-index-page question-bank-focus-page";
+    ViewData["PageClass"] = "question-bank-page question-bank-index-page";
     var result = Model.Result;
     var firstItem = result.Items.Count == 0 ? 0L : ((long)result.PageNumber - 1) * result.PageSize + 1;
     var lastItem = result.Items.Count == 0 ? 0L : firstItem + result.Items.Count - 1;
@@ -15,16 +15,22 @@
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
 }
 
+<nav class="teacher-breadcrumb" aria-label="Đường dẫn điều hướng"><span>Giảng dạy</span><span aria-hidden="true">/</span><span aria-current="page">Ngân hàng câu hỏi</span></nav>
 <div class="page-heading question-bank-heading">
     <div>
         <h1>Ngân hàng câu hỏi</h1>
-        <p>Danh sách câu hỏi thuộc tài khoản giảng viên hiện tại.</p>
+        <p>Soạn, phân loại và tái sử dụng câu hỏi trong các bài luyện tập và kiểm tra.</p>
     </div>
     <div class="actions">
-        <a class="button" asp-controller="TeacherQuestionBank" asp-action="Create">Tạo câu hỏi</a>
+        <a class="button" asp-controller="TeacherQuestionBank" asp-action="Create"><span aria-hidden="true">+</span> Tạo câu hỏi</a>
         <a class="button secondary" asp-controller="TeacherStimuli" asp-action="Create">Tạo bài đọc và âm thanh</a>
     </div>
 </div>
+
+<section class="teacher-intro" aria-labelledby="question-intro-title">
+    <span class="teacher-intro-emblem" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
+    <div><h2 id="question-intro-title">Một thư viện câu hỏi, nhiều cách ôn luyện</h2><p>Soạn nội dung rõ ràng, phân loại theo kỹ năng và trình độ để dễ tìm lại.</p></div>
+</section>
 
 <section class="panel question-bank-filters" aria-labelledby="question-filter-title">
     <h2 id="question-filter-title" class="visually-hidden">Tìm và lọc câu hỏi</h2>
@@ -84,7 +90,7 @@
     </form>
 </section>
 
-<p class="question-bank-total">Tổng số câu hỏi phù hợp: <strong>@result.TotalCount</strong></p>
+<div class="teacher-results-heading"><h2>Danh sách câu hỏi <span class="teacher-count">@result.TotalCount</span></h2><p class="question-bank-total">@result.Items.Count câu trên trang này</p></div>
 
 @if (result.Items.Count == 0)
 {

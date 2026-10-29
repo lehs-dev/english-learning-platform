@@ -1,210 +1,63 @@
-@model EnglishLearningPlatform.Web.Models.Assessment.TeacherAssessmentDraftViewModel
-
+﻿@model EnglishLearningPlatform.Web.Models.Assessment.TeacherAssessmentDraftViewModel
 @{
     Layout = "_LayoutTeacher";
-    ViewData["Title"] = Model.Id.HasValue
-        ? "Sửa cấu hình Assessment"
-        : "Tạo Assessment Draft";
+    ViewData["Title"] = Model.Id.HasValue ? "Cấu hình bài kiểm tra" : "Tạo bài kiểm tra";
     ViewData["ActiveSection"] = "assessments";
+    ViewData["PageClass"] = "teacher-assessment-page";
 }
-
-<div class="page-heading">
-    <div>
-        <h1>@ViewData["Title"]</h1>
-        <p class="muted">
-            Lưu cấu hình và Preview đề đã lưu.
-            Draft có thể tiếp tục soạn câu hỏi và Publish.
-        </p>
-    </div>
-
-    <a class="button secondary"
-       asp-controller="TeacherAssessments"
-       asp-action="Index">
-        Về danh sách
-    </a>
-</div>
-
-<form method="post"
-      asp-controller="TeacherAssessments"
-      asp-action="Edit"
-      asp-route-id="@Model.Id"
-      asp-antiforgery="true"
-      class="panel editor-form">
-
-    <div asp-validation-summary="All"
-         class="validation"
-         role="alert"></div>
-
-    @* Dùng định dạng O để giữ chính xác thời điểm và múi giờ. *@
-    <input type="hidden"
-           name="Input.ExpectedUpdatedAtUtc"
-           value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" />
-
-    <label asp-for="Input.Title">Tên bài kiểm tra</label>
-    <input asp-for="Input.Title"
-           maxlength="200"
-           required />
-    <span asp-validation-for="Input.Title"
-          class="validation"></span>
-
-    <label asp-for="Input.Description">Mô tả</label>
-    <textarea asp-for="Input.Description"
-              maxlength="4000"
-              rows="4"></textarea>
-    <span asp-validation-for="Input.Description"
-          class="validation"></span>
-
-    <label asp-for="Input.AssessmentType">Loại bài kiểm tra</label>
-    <select asp-for="Input.AssessmentType">
-        <option value="">-- Chọn loại bài --</option>
-        <option value="@AssessmentType.PlacementTest">
-            Placement Test — Đánh giá đầu vào
-        </option>
-        <option value="@AssessmentType.SkillAssessment">
-            Skill Assessment — Đánh giá một kỹ năng
-        </option>
-        <option value="@AssessmentType.PracticeExam">
-            Practice Exam — Đề luyện thi
-        </option>
-    </select>
-    <span asp-validation-for="Input.AssessmentType"
-          class="validation"></span>
-
-    <label asp-for="Input.TargetSkill">
-        Kỹ năng mục tiêu — chỉ chọn với Skill Assessment
-    </label>
-    <select asp-for="Input.TargetSkill">
-        <option value="">-- Không áp dụng --</option>
-        <option value="@EnglishSkill.Reading">Reading</option>
-        <option value="@EnglishSkill.Listening">Listening</option>
-        <option value="@EnglishSkill.Vocabulary">Vocabulary</option>
-        <option value="@EnglishSkill.Grammar">Grammar</option>
-    </select>
-    <span asp-validation-for="Input.TargetSkill"
-          class="validation"></span>
-
-    <label asp-for="Input.DurationMinutes">Thời lượng — phút</label>
-    <input asp-for="Input.DurationMinutes"
-           type="number"
-           min="1"
-           step="1"
-           required />
-    <span asp-validation-for="Input.DurationMinutes"
-          class="validation"></span>
-
-    <label asp-for="Input.MaxAttempts">Số lượt làm tối đa</label>
-    <input asp-for="Input.MaxAttempts"
-           type="number"
-           min="1"
-           step="1"
-           required />
-    <span asp-validation-for="Input.MaxAttempts"
-          class="validation"></span>
-
-    <label asp-for="Input.PassingScore">Điểm đạt — phần trăm</label>
-    <input asp-for="Input.PassingScore"
-           type="number"
-           min="0"
-           max="100"
-           step="0.01" />
-    <span asp-validation-for="Input.PassingScore"
-          class="validation"></span>
-
-    <p class="muted">
-        Placement Test phải để trống điểm đạt.
-        Skill Assessment và Practice Exam có thể để trống
-        nếu không sử dụng tiêu chí đạt/rớt.
-    </p>
-
-    @if (Model.Status == AssessmentStatus.Published)
-    {
-        <p class="notice">
-            Đề đang Published và chưa có Attempt.
-            Mỗi lần lưu phải giữ toàn bộ đề và điều kiện Final hợp lệ.
-            Trạng thái Published không thay đổi sau khi lưu.
-        </p>
-    }
-    else
-    {
-        <p class="notice">
-            Lưu Draft không tạo Attempt và chưa cho Student làm bài.
-            Bản nháp được phép chưa có câu hỏi.
-        </p>
-    }
-
-    <div class="actions">
-        <button type="submit" class="button">
-            Lưu cấu hình
-        </button>
-
-        <a asp-controller="TeacherAssessments"
-           asp-action="Index">
-            Hủy
-        </a>
-    </div>
-</form>
-@if (Model.Id.HasValue)
-{
-    <section class="panel">
-        <h2>Bước tiếp theo</h2>
-        <p class="muted">
-            Lưu cấu hình trước khi Preview.
-        </p>
-
-        <a class="button secondary"
-           asp-controller="TeacherAssessmentQuestions"
-           asp-action="Index"
-           asp-route-id="@Model.Id">
-            Soạn câu hỏi và points
-        </a>
-        <a class="button secondary"
-           asp-controller="TeacherAssessmentScope" asp-action="Edit"
-           asp-route-id="@Model.Id">Phạm vi / Course</a>
-        <a class="button secondary"
-        asp-controller="TeacherAssessmentPreview"
-        asp-action="Index"
-        asp-route-id="@Model.Id"
-        target="_blank"
-        rel="noopener">
-            Preview đề đã lưu
-        </a>
-
-        <p class="muted">
-            Preview mở ở tab mới và chỉ đọc dữ liệu đã lưu.
-            Những thay đổi cấu hình chưa lưu không xuất hiện trong Preview.
-        </p>
-    </section>
-    @if (Model.Status == AssessmentStatus.Draft)
-    {
-        <section class="panel">
-            <h2>Công bố bài kiểm tra</h2>
-
-            <p class="muted">
-                Hãy lưu cấu hình, lưu danh sách câu hỏi và Preview trước khi Publish.
-                Nút này chỉ công bố dữ liệu đã lưu trong database.
-            </p>
-
-            <p class="notice">
-                Publish thành công sẽ khóa nội dung Question và Stimulus được dùng.
-                Những thay đổi cấu hình chưa lưu trên trang này không được lưu kèm.
-            </p>
-
-            @* Form riêng: không gửi các trường cấu hình chưa lưu. *@
-            <form method="post"
-                  asp-controller="TeacherAssessments"
-                  asp-action="Publish"
-                  asp-route-id="@Model.Id"
-                  asp-antiforgery="true">
-
-                @* Giữ nguyên độ chính xác của version khi gửi về server. *@
-                <input type="hidden"
-                       name="expectedUpdatedAtUtc"
-                       value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" />
-
-                <button type="submit" class="button">
-                    Publish đề đã lưu
-                </button>
-            </form>
+@section Styles { <link rel="stylesheet" href="~/css/teacher-assessments.css" asp-append-version="true" /> }
+<nav class="ta-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-action="Index">Bài kiểm tra</a><span aria-hidden="true">/</span><span aria-current="page">@(Model.Id.HasValue ? "Cấu hình đề" : "Tạo bài mới")</span></nav>
+<div class="ta-heading"><div><h1>@ViewData["Title"]</h1><p>Xác định mục tiêu, thời gian và cách đánh giá trước khi soạn câu hỏi.</p></div>@if (Model.Id.HasValue) { <span class="ta-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span> }</div>
+<ol class="ta-steps" aria-label="Các bước soạn đề"><li class="is-current" aria-current="step"><span>1</span>Cấu hình đề</li><li><span>2</span>Câu hỏi và điểm</li><li><span>3</span>Xem trước và mở bài</li></ol>
+<div class="ta-config-grid">
+    <form method="post" asp-controller="TeacherAssessments" asp-action="Edit" asp-route-id="@Model.Id" asp-antiforgery="true" class="ta-card editor-form ta-config-form" data-configuration-form>
+        <div asp-validation-summary="All" class="validation" role="alert"></div>
+        <input type="hidden" name="Input.ExpectedUpdatedAtUtc" value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" />
+        <section class="ta-form-section" aria-labelledby="assessment-basic-title">
+            <div class="ta-section-label"><span>01</span><h2 id="assessment-basic-title">Thông tin bài kiểm tra</h2></div>
+            <div class="ta-field"><label asp-for="Input.Title">Tên bài kiểm tra <span class="ta-required">*</span></label><input asp-for="Input.Title" maxlength="200" required placeholder="Ví dụ: Đánh giá ngữ pháp trình độ A2" /><span asp-validation-for="Input.Title" class="validation"></span></div>
+            <div class="ta-field"><label asp-for="Input.Description">Mô tả và hướng dẫn <span class="ta-optional">Tùy chọn</span></label><textarea asp-for="Input.Description" maxlength="4000" rows="4" placeholder="Nội dung đánh giá và những điều học viên cần biết trước khi làm bài"></textarea><span asp-validation-for="Input.Description" class="validation"></span></div>
         </section>
-    }
-}
+        <section class="ta-form-section" aria-labelledby="assessment-purpose-title">
+            <div class="ta-section-label"><span>02</span><h2 id="assessment-purpose-title">Mục tiêu đánh giá</h2></div>
+            <div class="ta-two-fields">
+                <div class="ta-field"><label asp-for="Input.AssessmentType">Loại bài kiểm tra <span class="ta-required">*</span></label><select asp-for="Input.AssessmentType" required aria-describedby="assessment-type-help"><option value="">-- Chọn loại bài --</option><option value="@AssessmentType.PlacementTest">Đánh giá đầu vào</option><option value="@AssessmentType.SkillAssessment">Đánh giá kỹ năng</option><option value="@AssessmentType.PracticeExam">Đề luyện thi</option></select><span asp-validation-for="Input.AssessmentType" class="validation"></span></div>
+                <div class="ta-field"><label asp-for="Input.TargetSkill">Kỹ năng mục tiêu</label><select asp-for="Input.TargetSkill" aria-describedby="assessment-skill-help"><option value="">-- Không áp dụng --</option>@foreach (var skill in Enum.GetValues<EnglishSkill>()) { <option value="@skill"><partial name="_UiText" model="skill" /></option> }</select><span asp-validation-for="Input.TargetSkill" class="validation"></span><p class="ta-help" id="assessment-skill-help">Chỉ chọn với bài đánh giá kỹ năng.</p></div>
+            </div>
+            <p class="ta-inline-note" id="assessment-type-help" data-type-hint aria-live="polite">Chọn loại bài phù hợp với mục tiêu đánh giá của bạn.</p>
+        </section>
+        <section class="ta-form-section" aria-labelledby="assessment-rules-title">
+            <div class="ta-section-label"><span>03</span><h2 id="assessment-rules-title">Thời gian và điều kiện đạt</h2></div>
+            <div class="ta-three-fields">
+                <div class="ta-field"><label asp-for="Input.DurationMinutes">Thời lượng (phút)</label><input asp-for="Input.DurationMinutes" type="number" min="1" step="1" required /><span asp-validation-for="Input.DurationMinutes" class="validation"></span></div>
+                <div class="ta-field"><label asp-for="Input.MaxAttempts">Lượt làm tối đa</label><input asp-for="Input.MaxAttempts" type="number" min="1" step="1" required /><span asp-validation-for="Input.MaxAttempts" class="validation"></span></div>
+                <div class="ta-field"><label asp-for="Input.PassingScore">Điểm đạt (%)</label><input asp-for="Input.PassingScore" type="number" min="0" max="100" step="0.01" placeholder="Không áp dụng" aria-describedby="assessment-score-help" /><span asp-validation-for="Input.PassingScore" class="validation"></span></div>
+            </div>
+            <p class="ta-help" id="assessment-score-help">Đánh giá đầu vào: để trống điểm đạt. Các loại bài khác có thể đặt điểm đạt hoặc để trống.</p>
+        </section>
+        @if (Model.Status == AssessmentStatus.Published)
+        { <p class="ta-inline-note">Đề đang mở và chưa có lượt làm. Mỗi lần lưu phải giữ đề hợp lệ; khi có lượt làm đầu tiên, cấu hình và câu hỏi sẽ được khóa.</p> }
+        else { <p class="ta-help">Bản nháp có thể chưa có câu hỏi. Học viên chỉ làm được bài sau khi bạn mở bài kiểm tra.</p> }
+        <p class="ta-save-notice" data-configuration-notice role="status" tabindex="-1"></p>
+        <div class="ta-form-actions"><a class="button secondary" asp-action="Index">Hủy</a><button type="submit" class="button">Lưu cấu hình</button></div>
+    </form>
+    <aside class="ta-side-column">
+        @if (Model.Id.HasValue)
+        {
+            <section class="ta-card ta-next-step" aria-labelledby="assessment-next-title">
+                <span class="ta-kicker">BƯỚC TIẾP THEO</span><h2 id="assessment-next-title">Hoàn thiện đề kiểm tra</h2><p class="ta-help">Thêm ít nhất 5 câu hỏi khác nhau và phân bổ điểm cho từng câu.</p>
+                <a class="button ta-full-width" asp-controller="TeacherAssessmentQuestions" asp-action="Index" asp-route-id="@Model.Id" data-configuration-navigation>Chọn câu hỏi và điểm <span aria-hidden="true">→</span></a>
+                <a class="ta-side-link" asp-controller="TeacherAssessmentScope" asp-action="Edit" asp-route-id="@Model.Id" data-configuration-navigation>Phạm vi truy cập <span aria-hidden="true">→</span></a>
+                <a class="ta-side-link" asp-controller="TeacherAssessmentPreview" asp-action="Index" asp-route-id="@Model.Id" target="_blank" rel="noopener" data-configuration-navigation>Xem trước bản đã lưu <span aria-hidden="true">↗</span></a>
+            </section>
+            @if (Model.Status == AssessmentStatus.Draft)
+            {
+                <section class="ta-card ta-publish-card" aria-labelledby="assessment-publish-title"><h2 id="assessment-publish-title">Sẵn sàng mở bài kiểm tra?</h2><p class="ta-help">Lưu cấu hình và câu hỏi, sau đó xem trước toàn bộ đề.</p><p class="ta-inline-note">Mở bài kiểm tra sẽ khóa nội dung câu hỏi và ngữ liệu được dùng. Đề mở cho học viên chỉ sử dụng những thay đổi đã lưu.</p>
+                    <form method="post" asp-controller="TeacherAssessments" asp-action="Publish" asp-route-id="@Model.Id" asp-antiforgery="true" data-publication-form><input type="hidden" name="expectedUpdatedAtUtc" value="@(Model.Input.ExpectedUpdatedAtUtc?.ToString("O"))" /><button type="submit" class="button ta-full-width">Mở bài kiểm tra</button></form>
+                </section>
+            }
+        }
+        <section class="ta-type-guide" aria-labelledby="assessment-guide-title"><h2 id="assessment-guide-title">Chọn đúng loại bài</h2><dl><div><dt>Đánh giá đầu vào</dt><dd>Xác định năng lực ban đầu; không dùng điểm đạt.</dd></div><div><dt>Đánh giá kỹ năng</dt><dd>Tập trung vào một kỹ năng cụ thể.</dd></div><div><dt>Đề luyện thi</dt><dd>Kết hợp nhiều kỹ năng trong cùng một đề.</dd></div></dl></section>
+    </aside>
+</div>
+@section Scripts { <script src="~/js/teacher-assessments.js" asp-append-version="true" defer></script> }

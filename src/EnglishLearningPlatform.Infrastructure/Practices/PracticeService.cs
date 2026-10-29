@@ -24,19 +24,55 @@ public sealed class PracticeService(
     {
     }
 
-    public async Task<LearningOutcome<PracticeSheet>> GetSheetAsync(Guid studentId, Guid practiceId, CancellationToken ct = default)
+    public Task<LearningOutcome<PracticeSheet>> GetSheetAsync(Guid studentId, Guid practiceId, CancellationToken ct = default) =>
+        ReadSheetAsync(studentId, practiceId, null, null, ct);
+
+    // Chỉ mở trang Take mới tạo/tiếp tục phiên. Đọc Result hoặc kiểm tra quyền không tạo phiên.
+    public async Task<LearningOutcome<PracticeSheet>> BeginAsync(Guid studentId, Guid practiceId, CancellationToken ct = default)
+    {
+        if (!await IsActiveStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
+        var courseId = await db.Practices.AsNoTracking().Where(p => p.Id == practiceId)
+            .Select(p => p.LessonId.HasValue ? (Guid?)p.Lesson!.Module.CourseId : p.Module!.CourseId).SingleOrDefaultAsync(ct);
+        if (!courseId.HasValue) return new(LearningAccessResult.NotFound);
+
+        // Cùng thứ tự khóa với Teacher sửa đề và Student nộp bài: Course -> Practice.
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await db.CoursesForUpdate(courseId.Value).SingleAsync(ct);
+        var practice = await db.PracticesForUpdate(practiceId).AsNoTracking().SingleOrDefaultAsync(ct);
+        if (practice == null) return new(LearningAccessResult.NotFound);
+        var session = await db.PracticeSessions.SingleOrDefaultAsync(s => s.PracticeId == practiceId
+            && s.StudentUserId == studentId && s.SubmittedAtUtc == null, ct);
+        int version = session?.Version ?? practice.Version;
+        Guid sessionId = session?.Id ?? Guid.NewGuid();
+        var sheet = await ReadSheetAsync(studentId, practiceId, version, sessionId, ct);
+        if (sheet.Access != LearningAccessResult.Allowed) return sheet;
+        if (session == null)
+        {
+            db.PracticeSessions.Add(new PracticeSession
+            {
+                Id = sessionId, StudentUserId = studentId, PracticeId = practiceId, Version = version
+            });
+            await db.SaveChangesAsync(ct);
+        }
+        await tx.CommitAsync(ct);
+        return sheet;
+    }
+
+    private async Task<LearningOutcome<PracticeSheet>> ReadSheetAsync(Guid studentId, Guid practiceId,
+        int? version, Guid? sessionId, CancellationToken ct)
     {
         if (!await IsActiveStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
         var practice = await db.AvailablePractices(studentId).Where(p => p.Id == practiceId)
             .Select(p => new
             {   // Owner lấy từ database, không lấy từ form của Student.
                 p.OwnerTeacherUserId,
-                p.Id, p.Title, p.Description, HasResult = p.Submissions.Any(s => s.StudentUserId == studentId),
+                p.Id, p.Title, p.Description, p.Version, HasResult = p.Submissions.Any(s => s.StudentUserId == studentId),
                 CourseId = p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
                 CourseTitle = p.LessonId.HasValue ? p.Lesson!.Module.Course.Title : p.Module!.Course.Title
             }).SingleOrDefaultAsync(ct);
         if (practice is null) return new(LearningAccessResult.NotFound);
-        var questions = await QuestionsAsync(practiceId, ct);
+        int sheetVersion = version ?? practice.Version;
+        var questions = await QuestionsAsync(practiceId, sheetVersion, ct);
                 // Kiểm tra trước khi trả nội dung đề cho Student.
         if (!ValidQuestions(practice.OwnerTeacherUserId, questions))
         {
@@ -48,11 +84,19 @@ public sealed class PracticeService(
                 q.Question.Stimulus?.ContentText,
                 q.Question.Stimulus?.StimulusType == StimulusType.Audio ? q.Question.Stimulus.ResourceUrl : null,
                 q.Question.Options.OrderBy(o => o.OrderIndex).ThenBy(o => o.Id).Select(o => new PracticeOption(o.Id, o.Content)).ToList())).ToList())
-                { HasResult = practice.HasResult });
+                { HasResult = practice.HasResult, Version = sheetVersion, SessionId = sessionId });
     }
 
-    public async Task<PracticeSubmitResult> SubmitAsync(Guid studentId, Guid practiceId,
-        IReadOnlyList<PracticeResponse> responses, CancellationToken ct = default)
+    public Task<PracticeSubmitResult> SubmitAsync(Guid studentId, Guid practiceId,
+        IReadOnlyList<PracticeResponse> responses, CancellationToken ct = default) =>
+        SubmitCoreAsync(studentId, practiceId, null, responses, ct);
+
+    public Task<PracticeSubmitResult> SubmitSessionAsync(Guid studentId, Guid practiceId, Guid sessionId,
+        IReadOnlyList<PracticeResponse> responses, CancellationToken ct = default) =>
+        SubmitCoreAsync(studentId, practiceId, sessionId, responses, ct);
+
+    private async Task<PracticeSubmitResult> SubmitCoreAsync(Guid studentId, Guid practiceId, Guid? sessionId,
+        IReadOnlyList<PracticeResponse> responses, CancellationToken ct)
     {
         if (!await IsActiveStudentAsync(studentId, ct)) return new(PracticeSubmitStatus.Forbidden);
         var courseId = await db.Practices.AsNoTracking().Where(p => p.Id == practiceId)
@@ -66,9 +110,26 @@ public sealed class PracticeService(
             .SingleOrDefaultAsync(ct);
         if (practice is null || !await db.AvailablePractices(studentId).AnyAsync(p => p.Id == practiceId, ct))
             return new(PracticeSubmitStatus.Unavailable);
+        await db.Entry(practice).ReloadAsync(ct);
         // Recheck the active role inside the transaction before any result write.
         if (!await IsActiveStudentAsync(studentId, ct)) return new(PracticeSubmitStatus.Forbidden);
-        var questions = await QuestionsAsync(practiceId, ct);
+        PracticeSession? session = null;
+        if (sessionId.HasValue)
+        {
+            session = await db.PracticeSessions.SingleOrDefaultAsync(s => s.Id == sessionId
+                && s.StudentUserId == studentId && s.PracticeId == practiceId, ct);
+            if (session == null) return new(PracticeSubmitStatus.NotFound);
+            // Replay từ tab đã nộp không được ghi đè kết quả của lượt làm lại sau đó.
+            if (session.SubmittedAtUtc.HasValue) return new(PracticeSubmitStatus.Saved);
+        }
+        else
+        {
+            // Hỗ trợ form cũ chưa có SessionId; vẫn dùng phiên của đúng học viên nếu đã mở bài.
+            session = await db.PracticeSessions.SingleOrDefaultAsync(s => s.PracticeId == practiceId
+                && s.StudentUserId == studentId && s.SubmittedAtUtc == null, ct);
+        }
+        int version = session?.Version ?? practice.Version;
+        var questions = await QuestionsAsync(practiceId, version, ct);
                 // Kiểm tra lại trước khi chấm hoặc thay thế kết quả đã lưu.
         if (!ValidQuestions(practice.OwnerTeacherUserId, questions))
         {
@@ -96,7 +157,9 @@ public sealed class PracticeService(
             await db.PracticeAnswers.Where(a => a.PracticeSubmissionId == submission.Id).ExecuteDeleteAsync(ct);
         }
         submission.Score = scoringResult.Percentage;
+        submission.Version = version;
         submission.SubmittedAtUtc = time.GetUtcNow();
+        if (session != null) session.SubmittedAtUtc = submission.SubmittedAtUtc;
         submission.UpdatedAtUtc = submission.SubmittedAtUtc;
         foreach (var response in responses.Where(r => r.SelectedOptionId.HasValue))
             db.PracticeAnswers.Add(new PracticeAnswer { PracticeSubmissionId = submission.Id,
@@ -115,7 +178,7 @@ public sealed class PracticeService(
             .Select(s => new PracticeResult(s.PracticeId,
                 s.Practice.LessonId.HasValue ? s.Practice.Lesson!.Module.CourseId : s.Practice.Module!.CourseId,
                 s.Practice.Title, s.Score, s.SubmittedAtUtc,
-                s.Practice.Questions.OrderBy(q => q.OrderIndex).ThenBy(q => q.Id).Select(q => new PracticeQuestionFeedback(
+                s.Practice.Questions.Where(q => q.Version == s.Version).OrderBy(q => q.OrderIndex).ThenBy(q => q.Id).Select(q => new PracticeQuestionFeedback(
                     q.Id, q.Question.Content,
                     s.Answers.Where(a => a.PracticeQuestionId == q.Id).Select(a => a.SelectedOption.Content).FirstOrDefault(),
                     q.Question.Options.Where(o => o.IsCorrect).Select(o => o.Content).FirstOrDefault() ?? "",
@@ -123,7 +186,7 @@ public sealed class PracticeService(
                     q.Question.Explanation,
                     q.Question.Stimulus == null ? null : q.Question.Stimulus.ContentText,
                     q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Audio
-                        ? q.Question.Stimulus.ResourceUrl : null)).ToList())).SingleOrDefaultAsync(ct);
+                        ? q.Question.Stimulus.ResourceUrl : null)).ToList()) { Version = s.Version }).SingleOrDefaultAsync(ct);
         return result is null ? new(LearningAccessResult.NotFound) : new(LearningAccessResult.Allowed, result);
     }
 
@@ -131,8 +194,8 @@ public sealed class PracticeService(
     private Task<bool> IsActiveStudentAsync(Guid studentId, CancellationToken ct) =>
         activeUserValidator?.IsActiveStudentAsync(studentId, ct) ?? db.IsStudentAsync(studentId, ct);
 
-    private Task<List<PracticeQuestion>> QuestionsAsync(Guid id, CancellationToken ct) => db.PracticeQuestions.AsNoTracking()
-        .Where(q => q.PracticeId == id).Include(q => q.Question).ThenInclude(q => q.Options)
+    private Task<List<PracticeQuestion>> QuestionsAsync(Guid id, int version, CancellationToken ct) => db.PracticeQuestions.AsNoTracking()
+        .Where(q => q.PracticeId == id && q.Version == version).Include(q => q.Question).ThenInclude(q => q.Options)
         .Include(q => q.Question).ThenInclude(q => q.Stimulus).OrderBy(q => q.OrderIndex).ThenBy(q => q.Id).ToListAsync(ct);
 
     // private static bool ValidQuestions(IReadOnlyList<PracticeQuestion> questions) => questions.Count > 0 &&

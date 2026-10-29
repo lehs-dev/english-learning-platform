@@ -26,8 +26,9 @@
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/role-layouts.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
+    <link rel="stylesheet" href="~/css/teacher-authoring.css" asp-append-version="true" />
 </head>
-<body class="teacher-studio @ViewData["PageClass"]">
+<body class="teacher-studio teacher-authoring-theme @ViewData["PageClass"]">
     <a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
     <div class="studio-shell">
@@ -93,17 +94,6 @@
                     </a>
                 </div>
 
-                <div class="studio-nav-group studio-nav-group--bottom">
-                    <span class="studio-nav-label">Liên kết nhanh</span>
-                    <a class="studio-nav-link @(activeSection == "catalog" ? "is-active" : "")" asp-controller="Courses" asp-action="Index" aria-current="@(activeSection == "catalog" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                        <span>Xem danh mục khóa học</span>
-                    </a>
-                    <a class="studio-nav-link" asp-controller="Profile" asp-action="Index">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
-                        <span>Hồ sơ giảng viên</span>
-                    </a>
-                </div>
             </nav>
         </aside>
 

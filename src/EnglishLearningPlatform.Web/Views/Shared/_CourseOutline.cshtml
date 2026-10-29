@@ -7,32 +7,28 @@
 @for (var mi = 0; mi < Model.Modules.Count; mi++)
 {
     var module = Model.Modules[mi];
-    <section class="outline-module">
-        <div class="outline-heading">
+    <details class="outline-module">
+        <summary class="outline-heading">
             <span class="module-number">@((mi + 1).ToString("00"))</span>
-            <div style="flex: 1;">
-                <h3>
-                    @if (Model.CanLearn)
-                    {
-                        <a asp-controller="Learning" asp-action="Module" asp-route-id="@module.Id">@module.Title</a>
-                    }
-                    else
-                    {
-                        <span>@module.Title</span>
-                    }
-                </h3>
-                <p class="muted">
+            <span class="outline-heading-text">
+                <span class="outline-module-title">@module.Title</span>
+                <span class="outline-module-meta">
                     @module.Lessons.Count bài học
                     @if (Model.IsOwner)
                     {
                         <span>· <partial name="_UiText" model="module.Visibility" /></span>
                     }
-                </p>
-            </div>
-        </div>
+                </span>
+            </span>
+            <svg class="outline-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+        </summary>
         @if (!string.IsNullOrWhiteSpace(module.Description))
         {
             <p class="preserve outline-description">@module.Description</p>
+        }
+        @if (Model.CanLearn)
+        {
+            <a class="outline-module-link" asp-controller="Learning" asp-action="Module" asp-route-id="@module.Id">Xem trang chương <span aria-hidden="true">→</span></a>
         }
         <ul class="outline-lessons">
             @foreach (var lesson in module.Lessons)
@@ -83,6 +79,6 @@
                 </li>
             }
         </ul>
-    </section>
+    </details>
 }
 </div>

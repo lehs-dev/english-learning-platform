@@ -4,5 +4,5 @@
 else if (EnglishLearningPlatform.Domain.Entities.CourseRules.ValidResource(Model.Type, Model.Text, Model.Url)) {
     if (Model.Type == LessonResourceType.Audio) { <audio controls preload="none" src="@Model.Url" aria-label="@(Model.Title ?? "Âm thanh bài học")">Trình duyệt không hỗ trợ âm thanh.</audio> }
     if (Model.Type == LessonResourceType.Video) { <video controls preload="none" src="@Model.Url" aria-label="@(Model.Title ?? "Video bài học")">Trình duyệt không hỗ trợ video.</video> }
-    <a class="text-action" href="@Model.Url" target="_blank" rel="noopener noreferrer">Mở tài nguyên trong thẻ mới<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
-} else { <p class="notice error">Tài nguyên chưa có đường dẫn hợp lệ.</p> }</section>
+    <a class="text-action" href="@Model.Url" target="_blank" rel="noopener noreferrer">Mở nội dung trong thẻ mới<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
+} else { <p class="notice error">Nội dung chưa có đường dẫn hợp lệ.</p> }</section>

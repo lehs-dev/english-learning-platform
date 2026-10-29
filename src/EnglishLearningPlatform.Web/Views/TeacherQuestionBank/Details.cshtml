@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Chi tiết câu hỏi";
     ViewData["ActiveSection"] = "questionbank";
-    ViewData["PageClass"] = "question-bank-page question-bank-detail-page question-bank-focus-page";
+    ViewData["PageClass"] = "question-bank-page question-bank-detail-page";
     var statusClass = Model.Status switch
     {
         QuestionStatus.Published => "is-published",
@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
 }
 
+<nav class="teacher-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-action="Index">Ngân hàng câu hỏi</a><span aria-hidden="true">/</span><span aria-current="page">Chi tiết câu hỏi</span></nav>
 <div class="page-heading question-detail-heading">
     <div>
         <h1>Chi tiết câu hỏi</h1>

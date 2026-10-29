@@ -31,7 +31,7 @@ Trong phạm vi hiện tại, mỗi tài khoản có một role đang hoạt đ�
 ### Các luồng nghiệp vụ cần phân biệt
 
 - **Learning:** `Course → Module → Lesson`. Student đã enroll được mở mọi Lesson đang khả dụng, không bắt buộc học tuần tự. Student tự đánh dấu Lesson `Completed/Incomplete`. Progress được tính trên các Lesson khả dụng; nếu không có Lesson khả dụng, hiển thị “Chưa có nội dung khả dụng”.
-- **Practice:** Bài luyện gắn với Lesson hoặc Module. Student có thể làm lại không giới hạn; chấm đều theo số câu đúng, lưu kết quả gần nhất và xem đáp án/giải thích sau khi nộp.
+- **Practice:** Bài luyện gắn với Lesson hoặc Module. Student có thể làm lại không giới hạn; chấm đều theo số câu đúng, lưu kết quả gần nhất và xem đáp án/giải thích sau khi nộp. Teacher được thay danh sách/thứ tự câu hỏi sau xuất bản: học viên đang làm giữ phiên bản đã mở, kết quả đã nộp giữ nguyên, lần làm lại dùng phiên bản mới nhất. Xem [cách cập nhật và kiểm tra phiên bản Practice](docs/architecture/practice-versions.md).
 - **Assessment:** Bài đánh giá có attempt chính thức, deadline do server quản lý, giới hạn lượt làm theo cấu hình, chấm điểm theo trọng số câu hỏi và lưu lịch sử. Kết quả gồm điểm tổng, điểm theo kỹ năng và kỹ năng cần cải thiện; không hiện đáp án chi tiết của từng câu trong Assessment. Các loại cần hỗ trợ là Placement Test, Skill Assessment và Mock/Practice Exam.
 
 Mỗi Question của MVP là trắc nghiệm chọn **một** đáp án đúng, có một `PrimarySkill` trong Reading, Listening, Vocabulary, Grammar. Kết quả Placement không tự nhận là chứng nhận CEFR/TOEIC. Các ý tưởng như thanh toán, diễn đàn, livestream hoặc chấm Speaking/Writing bằng AI nằm ngoài phạm vi hiện tại.

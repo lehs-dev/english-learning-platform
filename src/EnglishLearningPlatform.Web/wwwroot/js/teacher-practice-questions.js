@@ -49,6 +49,10 @@
         }
 
         emptyNotice.hidden = rows.length > 0;
+        var count = document.querySelector("[data-selected-count]");
+        if (count) {
+            count.textContent = rows.length;
+        }
         saveButton.disabled = saving;
     }
 
@@ -75,7 +79,7 @@
                 '<button type="button" class="button secondary" ' +
                     'data-question-action="down">Xuống</button>' +
                 '<button type="button" class="button secondary" ' +
-                    'data-question-action="remove">Bỏ khỏi Practice</button>' +
+                    'data-question-action="remove">Bỏ chọn</button>' +
             '</div>';
 
         row.querySelector('input[name="QuestionIds"]').value = questionId;

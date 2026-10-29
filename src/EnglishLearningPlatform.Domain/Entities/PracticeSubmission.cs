@@ -8,6 +8,8 @@ public sealed class PracticeSubmission : BaseEntity
     public Guid PracticeId { get; set; }
     public Practice Practice { get; set; } = null!;
     public decimal Score { get; set; }
+    // Phản hồi phải lấy câu hỏi của đúng phiên bản đã nộp, không lấy đề mới nhất.
+    public int Version { get; set; } = 1;
     public DateTimeOffset SubmittedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
     public ICollection<PracticeAnswer> Answers { get; set; } = new List<PracticeAnswer>();

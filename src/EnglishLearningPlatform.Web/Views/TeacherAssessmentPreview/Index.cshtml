@@ -1,107 +1,34 @@
 @model EnglishLearningPlatform.Application.Assessment.TeacherAssessmentPreview
-
 @{
     Layout = "_LayoutTeacher";
-    ViewData["Title"] = "Preview Assessment";
+    ViewData["Title"] = "Xem trước bài kiểm tra";
     ViewData["ActiveSection"] = "assessments";
+    ViewData["PageClass"] = "teacher-assessment-page";
 }
-
 @section Styles {
-    <link rel="stylesheet"
-          href="~/css/assessment.css"
-          asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/teacher-assessments.css" asp-append-version="true" />
 }
-
-<div class="page-heading">
-    <div>
-        <h1>Preview Assessment</h1>
-        <p>@Model.Title</p>
-    </div>
-
-    <a class="button secondary"
-       asp-controller="TeacherAssessments"
-       asp-action="Index">
-        Về danh sách
-    </a>
-</div>
-
-<p class="notice" role="status">
-    Đây là bản xem trước của đề đã lưu.
-    Bạn có thể bấm thử lựa chọn nhưng đáp án không được lưu.
-    Preview không tạo lượt làm bài, không chấm điểm
-    và không Publish Assessment.
-</p>
-
-<section class="panel">
-    <h2>Cấu hình đã lưu</h2>
-
-    @* Mỗi nhóm div là một ô thông tin.
-       assessment-details đã có CSS dạng lưới và ô bo góc. *@
+<nav class="ta-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-controller="TeacherAssessments" asp-action="Index">Bài kiểm tra</a><span aria-hidden="true">/</span><span aria-current="page">Xem trước</span></nav>
+<div class="ta-heading"><div><h1>@Model.Title</h1><p>Kiểm tra đề dưới góc nhìn học viên trước khi mở bài kiểm tra.</p></div><a class="button secondary" asp-controller="TeacherAssessments" asp-action="Index">Về danh sách</a></div>
+<ol class="ta-steps" aria-label="Các bước soạn đề"><li class="is-complete"><span>✓</span>Cấu hình đề</li><li class="@(Model.Questions.Count >= 5 ? "is-complete" : "")"><span>@(Model.Questions.Count >= 5 ? "✓" : "2")</span>Câu hỏi và điểm</li><li class="is-current" aria-current="step"><span>3</span>Xem trước và mở bài</li></ol>
+<p class="ta-inline-note" role="status">Bạn đang xem đề đã lưu. Có thể thử chọn đáp án; bản xem trước không lưu lựa chọn hoặc tạo lượt làm bài.</p>
+<section class="ta-preview-header" data-assessment-type="@Model.AssessmentType">
+    <div class="ta-card-heading"><h2>Thông tin bài kiểm tra</h2><span class="ta-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span></div>
     <dl class="assessment-details">
-        <div>
-            <dt>Loại bài</dt>
-            <dd>@Model.AssessmentType</dd>
-        </div>
-
-        <div>
-            <dt>Trạng thái</dt>
-            <dd>@Model.Status</dd>
-        </div>
-
-        <div>
-            <dt>Phạm vi</dt>
-            <dd>
-                @if (Model.CourseId.HasValue)
-                {
-                    <span>@Model.CourseTitle</span>
-                }
-                else
-                {
-                    <span>Bài độc lập</span>
-                }
-            </dd>
-        </div>
-
-        <div>
-            <dt>Kỹ năng mục tiêu</dt>
-            <dd>@(Model.TargetSkill?.ToString() ?? "Không áp dụng")</dd>
-        </div>
-
-        <div>
-            <dt>Thời lượng</dt>
-            <dd>@Model.DurationMinutes phút</dd>
-        </div>
-
-        <div>
-            <dt>Lượt làm tối đa</dt>
-            <dd>@Model.MaxAttempts lượt</dd>
-        </div>
-
-        <div>
-            <dt>Điểm đạt</dt>
-            <dd>
-                @(Model.PassingScore.HasValue
-                    ? Model.PassingScore.Value.ToString("0.##") + "%"
-                    : "Không áp dụng")
-            </dd>
-        </div>
-
-        <div>
-            <dt>Số câu hỏi</dt>
-            <dd>@Model.Questions.Count câu</dd>
-        </div>
+        <div><dt>Loại bài</dt><dd><partial name="_UiText" model="Model.AssessmentType" /></dd></div>
+        <div><dt>Phạm vi</dt><dd>@(Model.CourseId.HasValue ? Model.CourseTitle : "Bài độc lập")</dd></div>
+        <div><dt>Thời lượng</dt><dd>@Model.DurationMinutes phút</dd></div>
+        <div><dt>Lượt làm tối đa</dt><dd>@Model.MaxAttempts lượt</dd></div>
+        <div><dt>Điểm đạt</dt><dd>@(Model.PassingScore.HasValue ? Model.PassingScore.Value.ToString("0.##") + "%" : "Không áp dụng")</dd></div>
+        <div><dt>Câu hỏi và điểm</dt><dd>@Model.Questions.Count câu · @Model.Questions.Sum(question => question.Points).ToString("0.##") điểm</dd></div>
+        @if (Model.TargetSkill.HasValue) { <div><dt>Kỹ năng mục tiêu</dt><dd><partial name="_UiText" model="Model.TargetSkill" /></dd></div> }
     </dl>
-
-    @if (!string.IsNullOrWhiteSpace(Model.Description))
-    {
-        <h3>Mô tả / hướng dẫn</h3>
-        <p class="preserve">@Model.Description</p>
-    }
+    @if (!string.IsNullOrWhiteSpace(Model.Description)) { <p class="preserve ta-help">@Model.Description</p> }
 </section>
-
 @if (Model.Warnings.Count > 0)
 {
-    <section class="panel" aria-labelledby="preview-warning-title">
+    <section class="ta-card ta-preview-section" aria-labelledby="preview-warning-title">
         <h2 id="preview-warning-title">Các phần cần kiểm tra</h2>
 
         <ul>
@@ -112,22 +39,21 @@
         </ul>
 
         <p class="muted">
-            Bạn vẫn được xem trước nội dung hiện có.
-            Preview không tự sửa hoặc Publish đề.
+            Bạn có thể xem nội dung hiện có và quay lại hoàn thiện đề trước khi mở bài kiểm tra.
         </p>
     </section>
 }
 
 @if (Model.Questions.Count == 0)
 {
-    <section class="panel">
+    <section class="ta-card ta-preview-section">
         <p>Đề chưa có câu hỏi.</p>
     </section>
 }
 else
 {
-    <nav class="panel" aria-label="Điều hướng câu hỏi Preview">
-        <div class="actions">
+    <nav class="ta-card ta-preview-section" aria-label="Điều hướng câu hỏi xem trước">
+        <div class="actions ta-question-navigation">
             @for (int i = 0; i < Model.Questions.Count; i++)
             {
                 <a class="button secondary"

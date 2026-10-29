@@ -159,6 +159,32 @@ public sealed class AssessmentCloneTests(IntegrationTestFactory factory) : IClas
         Assert.Equal(AssessmentStatus.Draft, copy.Status);
     }
 
+    [Theory]
+    [InlineData("Bài kiểm tra 1", "Bài kiểm tra 1 (bản sao)")]
+    [InlineData("Bài kiểm tra 1 (bản sao)", "Bài kiểm tra 1 (bản sao)")]
+    [InlineData("Bài kiểm tra 1 (bản sao)(bản sao)", "Bài kiểm tra 1 (bản sao)")]
+    [InlineData("Bài kiểm tra 1 (bản sao) (BẢN SAO)  ", "Bài kiểm tra 1 (bản sao)")]
+    [InlineData("Đề (bản sao) dùng thử", "Đề (bản sao) dùng thử (bản sao)")]
+    public async Task CloneOfClone_KeepsOnlyOneTrailingCopyLabel_AndDoesNotRenameSource(string title, string expected)
+    {
+        var data = await SeedAsync(AssessmentType.PracticeExam, AssessmentStatus.Draft);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Assessments.Where(a => a.Id == data.Id)
+            .ExecuteUpdateAsync(update => update.SetProperty(a => a.Title, title));
+        var service = scope.ServiceProvider.GetRequiredService<ITeacherAssessmentCloneService>();
+
+        var first = await service.CloneAsync(data.Teacher.Id, data.Id, data.Version);
+        Assert.True(first.Success);
+        var copy = await db.Assessments.AsNoTracking().SingleAsync(a => a.Id == first.Id);
+        Assert.Equal(expected, copy.Title);
+        var second = await service.CloneAsync(data.Teacher.Id, copy.Id, copy.UpdatedAtUtc);
+        Assert.True(second.Success);
+        Assert.NotEqual(copy.Id, second.Id);
+        Assert.Equal(expected, await db.Assessments.Where(a => a.Id == second.Id).Select(a => a.Title).SingleAsync());
+        Assert.Equal(title, await db.Assessments.Where(a => a.Id == data.Id).Select(a => a.Title).SingleAsync());
+    }
+
     private async Task<string> SnapshotAsync(Guid id)
     {
         using var scope = factory.Services.CreateScope();

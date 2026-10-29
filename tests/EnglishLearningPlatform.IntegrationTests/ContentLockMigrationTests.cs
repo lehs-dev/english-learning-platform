@@ -106,7 +106,8 @@ public sealed class ContentLockMigrationTests : IAsyncLifetime
         Assert.Equal("Shared passage", (await db.Stimuli.FindAsync(shared.Id))!.ContentText);
         Assert.Equal(cases.Length, await db.QuestionOptions.CountAsync(o => o.IsCorrect));
         Assert.Equal(cases.Length, await db.QuestionOptions.CountAsync(o => !o.IsCorrect));
-        var submission = await db.PracticeSubmissions.SingleAsync();
+        // Schema đang ở migration lịch sử, chưa có cột Version của Practice.
+        var submission = await db.PracticeSubmissions.Select(s => new { s.Score, s.SubmittedAtUtc }).SingleAsync();
         Assert.Equal(60m, submission.Score);
         Assert.Equal(started, submission.SubmittedAtUtc);
         var attempt = await db.Attempts.SingleAsync();

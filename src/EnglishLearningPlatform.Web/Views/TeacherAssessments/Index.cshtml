@@ -1,143 +1,79 @@
-@model IReadOnlyList<EnglishLearningPlatform.Application.Assessment.TeacherAssessmentListItem>
-
+﻿@model EnglishLearningPlatform.Web.Models.Assessment.TeacherAssessmentIndexViewModel
 @{
     Layout = "_LayoutTeacher";
     ViewData["Title"] = "Bài kiểm tra của tôi";
     ViewData["ActiveSection"] = "assessments";
+    ViewData["PageClass"] = "teacher-assessment-page";
 }
-
-<div class="page-heading">
-    <div>
-        <h1>Bài kiểm tra của tôi</h1>
-        <p class="muted">
-            Quản lý cấu hình các bài kiểm tra do bạn sở hữu.
-        </p>
-    </div>
-
-    <a class="button"
-       asp-controller="TeacherAssessments"
-       asp-action="Edit">
-        + Tạo Assessment Draft
-    </a>
+@section Styles { <link rel="stylesheet" href="~/css/teacher-assessments.css" asp-append-version="true" /> }
+<nav class="ta-breadcrumb" aria-label="Đường dẫn điều hướng"><span>Giảng dạy</span><span aria-hidden="true">/</span><span aria-current="page">Bài kiểm tra</span></nav>
+<div class="ta-heading">
+    <div><h1>Bài kiểm tra của tôi</h1><p>Thiết kế đề, phân bổ điểm và quản lý bài kiểm tra cho học viên.</p></div>
+    <a class="button" asp-action="Edit"><span aria-hidden="true">+</span> Tạo bài kiểm tra</a>
 </div>
-
-<section class="panel">
-    @if (Model.Count == 0)
-    {
-        <p>Bạn chưa có bài kiểm tra nào.</p>
-    }
-    else
-    {
-        <div class="table-scroll"
-             role="region"
-             aria-label="Danh sách bài kiểm tra"
-             tabindex="0">
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th scope="col">Tên bài</th>
-                        <th scope="col">Loại</th>
-                        <th scope="col">Trạng thái</th>
-                        <th scope="col">Phạm vi</th>
-                        <th scope="col">Thời lượng</th>
-                        <th scope="col">Lượt tối đa</th>
-                        <th scope="col">Điểm đạt</th>
-                        <th scope="col">Số câu</th>
-                        <th scope="col">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td>@item.Title</td>
-                            <td>@item.AssessmentType</td>
-                            <td>@item.Status</td>
-                            <td>
-                                @(item.CourseId.HasValue
-                                    ? item.CourseTitle ?? "Course không khả dụng"
-                                    : "Độc lập (Independent)")
-                            </td>
-                            <td>@item.DurationMinutes phút</td>
-                            <td>@item.MaxAttempts</td>
-                            <td>
-                                @(item.PassingScore.HasValue
-                                    ? item.PassingScore.Value.ToString("0.##") + "%"
-                                    : "Không áp dụng")
-                            </td>
-                            <td>@item.QuestionCount</td>
-                            <td>
-                                @* actions tạo khoảng cách và cho phép nút tự xuống hàng.
-                                   Vẫn dùng thẻ a vì đây là thao tác chuyển trang. *@
-                                <div class="actions">
-                                    <form method="post" asp-controller="TeacherAssessmentClone" asp-action="Create" asp-route-id="@item.Id">
-                                        <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
-                                        <button type="submit" class="button small secondary">Clone thành Draft</button>
-                                    </form>
-                                    @* Vẫn mở được trang chỉ đọc khi phạm vi đã khóa. *@
-                                    <a class="button small secondary"
-                                       asp-controller="TeacherAssessmentScope" asp-action="Edit"
-                                       asp-route-id="@item.Id">Phạm vi / Course</a>
-                                    @if (item.Status == AssessmentStatus.Draft
-                                        || item.Status == AssessmentStatus.Published)
-                                    {
-                                        <a class="button small secondary"
-                                           asp-controller="TeacherAssessmentPreview"
-                                           asp-action="Index"
-                                           asp-route-id="@item.Id"
-                                           target="_blank"
-                                           rel="noopener">
-                                            Xem trước
-                                        </a>
-                                    }
-
-                                    @if (item.CanEditConfiguration)
-                                    {
-                                        <a class="button small secondary"
-                                           asp-controller="TeacherAssessments"
-                                           asp-action="Edit"
-                                           asp-route-id="@item.Id">
-                                            Sửa cấu hình
-                                        </a>
-                                    }
-
-                                    @* Cùng phạm vi Draft/Published chưa có Attempt;
-                                       service vẫn kiểm tra lại khi đọc và lưu. *@
-                                    @if (item.CanEditConfiguration)
-                                    {
-                                        <a class="button small"
-                                           asp-controller="TeacherAssessmentQuestions"
-                                           asp-action="Index"
-                                           asp-route-id="@item.Id">
-                                            Soạn câu hỏi
-                                        </a>
-                                    }
-                                    @if (!item.CanEditConfiguration)
-                                    {
-                                        <span class="muted">
-                                            Đề hiện không được chỉnh sửa
-                                        </span>
-                                    }
-                                    @if (item.Status == AssessmentStatus.Published)
-                                    {
-                                        <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Unpublish" asp-route-id="@item.Id">
-                                            <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
-                                            <button type="submit" class="button small secondary">Ngừng xuất bản</button>
-                                        </form>
-                                    }
-                                    @if (item.Status == AssessmentStatus.Published || item.Status == AssessmentStatus.Unpublished)
-                                    {
-                                        <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Archive" asp-route-id="@item.Id">
-                                            <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
-                                            <button type="submit" class="button small secondary">Lưu trữ đề</button>
-                                        </form>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+<section class="ta-intro" aria-label="Quy trình soạn đề">
+    <span class="ta-emblem" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
+    <div><h2>Một đề rõ mục tiêu, một kết quả có ý nghĩa</h2><p>Cấu hình đề → chọn câu hỏi và điểm → xem trước và mở bài kiểm tra.</p></div>
+    <span class="ta-intro-count"><strong>@Model.TotalCount</strong> bài kiểm tra</span>
 </section>
+<section class="ta-card ta-filter-card" aria-label="Tìm và lọc bài kiểm tra">
+    <nav class="ta-tabs" aria-label="Trạng thái bài kiểm tra">
+        <a class="@(!Model.Status.HasValue ? "is-active" : "")" asp-action="Index" asp-route-search="@Model.Search" asp-route-type="@Model.Type" aria-current="@(!Model.Status.HasValue ? "page" : null)">Tất cả <span>@Model.TotalCount</span></a>
+        @foreach (var status in Enum.GetValues<AssessmentStatus>())
+        {
+            <a class="@(Model.Status == status ? "is-active" : "")" asp-action="Index" asp-route-status="@status" asp-route-search="@Model.Search" asp-route-type="@Model.Type" aria-current="@(Model.Status == status ? "page" : null)"><partial name="_UiText" model="status" /><span>@Model.StatusCounts[status]</span></a>
+        }
+    </nav>
+    <form method="get" asp-action="Index" class="ta-list-filters">
+        @if (Model.Status.HasValue) { <input type="hidden" name="status" value="@Model.Status" /> }
+        <div class="ta-field ta-search"><label for="assessment-search" class="visually-hidden">Tìm theo tên bài kiểm tra</label><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg><input id="assessment-search" name="search" type="search" value="@Model.Search" placeholder="Tìm theo tên bài kiểm tra..." /></div>
+        <div class="ta-field"><label for="assessment-type-filter" class="visually-hidden">Loại bài kiểm tra</label><select id="assessment-type-filter" name="type"><option value="">Tất cả loại bài</option>@foreach (var type in Enum.GetValues<AssessmentType>()) { <option value="@type" selected="@(Model.Type == type)"><partial name="_UiText" model="type" /></option> }</select></div>
+        <button class="button" type="submit">Tìm / lọc</button>
+    </form>
+</section>
+<div class="ta-section-heading"><h2>Danh sách bài kiểm tra <span class="ta-count">@Model.Items.Count</span></h2>@if (Model.HasFilters) { <a class="ta-text-link" asp-action="Index">Xóa bộ lọc</a> }</div>
+@if (Model.Items.Count == 0)
+{
+    <section class="ta-card ta-empty">
+        <span class="ta-emblem" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
+        <h2>@(Model.HasFilters ? "Không tìm thấy bài kiểm tra phù hợp" : "Tạo bài kiểm tra đầu tiên")</h2>
+        <p>@(Model.HasFilters ? "Thử từ khóa khác hoặc bỏ bớt bộ lọc để tìm bài kiểm tra." : "Chọn mục tiêu đánh giá, thêm câu hỏi và chuẩn bị đề cho học viên.")</p>
+        @if (Model.HasFilters) { <a class="button secondary" asp-action="Index">Xem tất cả bài kiểm tra</a> }
+        else { <a class="button" asp-action="Edit">Tạo bài kiểm tra</a> }
+    </section>
+}
+else
+{
+    <div class="ta-assessment-grid">
+        @foreach (var item in Model.Items)
+        {
+            <article class="ta-card ta-assessment-card" data-assessment-card aria-labelledby="assessment-title-@item.Id">
+                <div class="ta-card-top"><span class="ta-type"><partial name="_UiText" model="item.AssessmentType" /></span><span class="ta-status status-@item.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="item.Status" /></span></div>
+                <h2 id="assessment-title-@item.Id">@item.Title</h2>
+                <p class="ta-card-scope"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg><span>@(item.CourseId.HasValue ? item.CourseTitle ?? "Khóa học không khả dụng" : "Bài độc lập")</span></p>
+                <dl class="ta-card-stats"><div><dt>Câu hỏi</dt><dd>@item.QuestionCount <span>câu</span></dd></div><div><dt>Thời lượng</dt><dd>@item.DurationMinutes <span>phút</span></dd></div><div><dt>Lượt tối đa</dt><dd>@item.MaxAttempts <span>lượt</span></dd></div></dl>
+                <p class="ta-passing-score">Điểm đạt: <strong>@(item.PassingScore.HasValue ? item.PassingScore.Value.ToString("0.##") + "%" : "Không áp dụng")</strong></p>
+                <div class="ta-card-actions">
+                    @if (item.CanEditConfiguration)
+                    { <a class="button" asp-controller="TeacherAssessmentQuestions" asp-action="Index" asp-route-id="@item.Id">Soạn câu hỏi</a> }
+                    @if (item.Status == AssessmentStatus.Draft || item.Status == AssessmentStatus.Published)
+                    { <a class="button secondary" asp-controller="TeacherAssessmentPreview" asp-action="Index" asp-route-id="@item.Id">Xem trước</a> }
+                    @if (!item.CanEditConfiguration) { <span class="ta-locked">Nội dung đã khóa</span> }
+                    <details class="ta-more-actions">
+                        <summary aria-label="Thao tác khác với @item.Title"><span aria-hidden="true">•••</span></summary>
+                        <div class="ta-action-menu">
+                            @if (item.CanEditConfiguration) { <a asp-action="Edit" asp-route-id="@item.Id">Sửa cấu hình</a> }
+                            <a asp-controller="TeacherAssessmentScope" asp-action="Edit" asp-route-id="@item.Id">Phạm vi truy cập</a>
+                            <form method="post" asp-controller="TeacherAssessmentClone" asp-action="Create" asp-route-id="@item.Id"><input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" /><button type="submit">Tạo bản sao nháp</button></form>
+                            @if (item.Status == AssessmentStatus.Published)
+                            { <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Unpublish" asp-route-id="@item.Id"><input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" /><button type="submit">Tạm đóng bài kiểm tra</button></form> }
+                            @if (item.Status == AssessmentStatus.Published || item.Status == AssessmentStatus.Unpublished)
+                            { <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Archive" asp-route-id="@item.Id"><input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" /><button type="submit" class="ta-danger-action">Lưu trữ đề</button></form> }
+                        </div>
+                    </details>
+                </div>
+            </article>
+        }
+    </div>
+}
+@section Scripts { <script src="~/js/teacher-assessments.js" asp-append-version="true" defer></script> }

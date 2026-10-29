@@ -751,6 +751,11 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("LessonId");
@@ -821,19 +826,62 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("QuestionId");
 
-                    b.HasIndex("PracticeId", "OrderIndex")
+                    b.HasIndex("PracticeId", "Version", "OrderIndex")
                         .IsUnique();
 
-                    b.HasIndex("PracticeId", "QuestionId")
+                    b.HasIndex("PracticeId", "Version", "QuestionId")
                         .IsUnique();
 
                     b.ToTable("PracticeQuestions", null, t =>
                         {
                             t.HasCheckConstraint("CK_PracticeQuestions_OrderIndex", "[OrderIndex] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("PracticeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("SubmittedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PracticeId");
+
+                    b.HasIndex("StudentUserId", "PracticeId")
+                        .IsUnique()
+                        .HasFilter("[SubmittedAtUtc] IS NULL");
+
+                    b.ToTable("PracticeSessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PracticeSessions_Version", "[Version] >= 1");
                         });
                 });
 
@@ -861,6 +909,11 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTimeOffset?>("UpdatedAtUtc")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.HasKey("Id");
 
@@ -1574,6 +1627,23 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Practice");
 
                     b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeSession", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Practice", "Practice")
+                        .WithMany()
+                        .HasForeignKey("PracticeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Practice");
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeSubmission", b =>

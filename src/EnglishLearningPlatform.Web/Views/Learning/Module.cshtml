@@ -65,7 +65,7 @@
             <section class="module-page-card module-page-progress"><h2>Tiến độ toàn khóa học</h2><partial name="_LearningProgress" model="Model.Progress" /></section>
         }
         <section class="module-page-card module-page-context"><span class="module-page-context-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span><h2>@(Model.IsOwner ? "Quản lý chương học" : "Tiếp tục hành trình học")</h2>
-            <p>@(Model.IsOwner ? "Thêm tài nguyên, sắp xếp bài học và quản lý việc hiển thị tại trang nội dung khóa học." : Model.CourseStatus == CourseStatus.Archived ? "Xem lại bài học, tài nguyên và tiến độ đã ghi nhận của bạn trong khóa học này." : "Mở từng bài để xem nội dung và tài nguyên. Đánh dấu hoàn thành khi bạn đã học xong.")</p>
+            <p>@(Model.IsOwner ? "Thêm nội dung, sắp xếp bài học và quản lý việc hiển thị tại trang nội dung khóa học." : Model.CourseStatus == CourseStatus.Archived ? "Xem lại nội dung bài học và tiến độ đã ghi nhận của bạn trong khóa học này." : "Mở từng bài để xem nội dung. Đánh dấu hoàn thành khi bạn đã học xong.")</p>
             @if (Model.IsOwner)
             {
                 <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.CourseId">Quản lý nội dung</a>

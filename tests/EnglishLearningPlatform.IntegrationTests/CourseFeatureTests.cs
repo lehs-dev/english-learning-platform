@@ -14,6 +14,54 @@ namespace EnglishLearningPlatform.IntegrationTests;
 public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
     [Fact]
+    public async Task LessonResourcePages_UseContentWording_AndKeepExistingFormFields()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var course = await Seed(teacher.Id);
+        var lesson = course.Modules.First().Lessons.First();
+        using var teacherClient = IdentityTestHelpers.CreateClient(factory);
+        using var teacherLogin = await IdentityTestHelpers.LoginAsync(teacherClient, teacher);
+        Assert.Equal(HttpStatusCode.Redirect, teacherLogin.StatusCode);
+
+        // Chỉ đổi chữ trên UI: route Resource và tên field POST phải giữ nguyên.
+        using var manage = await teacherClient.GetAsync($"/TeacherCourses/Manage/{course.Id}");
+        Assert.Equal(HttpStatusCode.OK, manage.StatusCode);
+        var manageHtml = WebUtility.HtmlDecode(await manage.Content.ReadAsStringAsync());
+        Assert.Contains("Thêm nội dung", manageHtml);
+        Assert.Contains("Xóa nội dung", manageHtml);
+        Assert.DoesNotContain("tài nguyên", manageHtml, StringComparison.OrdinalIgnoreCase);
+
+        var formPath = $"/TeacherCourses/Content?courseId={course.Id}&kind=Resource&parentId={lesson.Id}";
+        foreach (string path in new[] { formPath, formPath + $"&id={lesson.Resources.First().Id}" })
+        {
+            using var response = await teacherClient.GetAsync(path);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+            Assert.Contains("Loại nội dung", html);
+            Assert.Contains("name=\"Input.ResourceType\"", html);
+            Assert.Contains("name=\"Input.ContentText\"", html);
+            Assert.Contains("name=\"Input.ResourceUrl\"", html);
+            Assert.DoesNotContain("tài nguyên", html, StringComparison.OrdinalIgnoreCase);
+        }
+
+        using (var scope = factory.Services.CreateScope())
+            Assert.True((await scope.ServiceProvider.GetRequiredService<ICourseService>()
+                .EnrollFreeAsync(student.Id, course.Id)).Success);
+
+        using var studentClient = IdentityTestHelpers.CreateClient(factory);
+        using var studentLogin = await IdentityTestHelpers.LoginAsync(studentClient, student);
+        Assert.Equal(HttpStatusCode.Redirect, studentLogin.StatusCode);
+        var link = lesson.Resources.Single(resource => resource.ResourceType == LessonResourceType.Link);
+        using var page = await studentClient.GetAsync($"/Learning/Resource/{link.Id}");
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        var studentHtml = WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync());
+        Assert.Contains("Nội dung bài học", studentHtml);
+        Assert.Contains("Mở nội dung trong thẻ mới", studentHtml);
+        Assert.DoesNotContain("tài nguyên", studentHtml, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task CoursePreview_KeepsTeacherStudioChrome_WhileStudentsKeepLearningChrome()
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);

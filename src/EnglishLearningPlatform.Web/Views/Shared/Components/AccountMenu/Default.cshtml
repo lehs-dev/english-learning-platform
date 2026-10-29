@@ -4,7 +4,14 @@
 {
     <details class="account-menu" data-account-menu>
         <summary class="account-trigger" aria-label="Mở menu tài khoản của @Model.FullName">
-            <span class="avatar" aria-hidden="true">@Model.Initial</span>
+            @if (Model.HasAvatar)
+            {
+                <img class="avatar" src="@Url.Action("AvatarImage", "Profile")" alt="" style="object-fit:cover;" />
+            }
+            else
+            {
+                <span class="avatar" aria-hidden="true">@Model.Initial</span>
+            }
             <svg class="icon chevron" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chevron-down")"></use></svg>
         </summary>
         <div class="account-dropdown">

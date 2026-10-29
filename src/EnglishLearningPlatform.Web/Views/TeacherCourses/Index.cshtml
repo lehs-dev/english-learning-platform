@@ -24,6 +24,12 @@
     <a class="button" asp-action="Edit"><span class="teacher-course-plus" aria-hidden="true">+</span>Tạo khóa học</a>
 </div>
 
+<section class="teacher-intro" aria-labelledby="course-intro-title">
+    <span class="teacher-intro-emblem" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg></span>
+    <div><h2 id="course-intro-title">Xây dựng lộ trình học từ những bài học nhỏ</h2><p>Tạo khóa học → sắp xếp nội dung → xuất bản cho học viên.</p></div>
+    <span class="teacher-intro-count"><strong>@Model.AllCount</strong> khóa học</span>
+</section>
+
 <section class="teacher-courses-filter-card" aria-label="Lọc khóa học">
     <nav class="teacher-course-tabs" aria-label="Trạng thái khóa học">
         @foreach (var tab in tabs)
@@ -42,7 +48,6 @@
             <label for="teacher-course-search" class="visually-hidden">Tìm theo tên khóa học</label>
             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
             <input type="search" id="teacher-course-search" name="Search" value="@Model.Query.Search" maxlength="200" placeholder="Tìm kiếm theo tên khóa học..." />
-            <button type="submit" aria-label="Áp dụng bộ lọc khóa học">Tìm</button>
         </div>
         <div>
             <label for="teacher-course-level" class="visually-hidden">Cấp độ khóa học</label>
@@ -64,6 +69,7 @@
                 }
             </select>
         </div>
+        <button type="submit" class="button" aria-label="Áp dụng bộ lọc khóa học">Tìm / lọc</button>
     </form>
 </section>
 
@@ -126,8 +132,8 @@ else
             <nav class="teacher-course-actions" aria-label="Thao tác với khóa học @course.Title">
                 <a class="button" asp-action="Manage" asp-route-id="@course.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>Nội dung</a>
                 <a class="button secondary" asp-action="Edit" asp-route-id="@course.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>Chỉnh sửa</a>
-                <a class="teacher-course-text-action" asp-action="Students" asp-route-id="@course.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#users")"></use></svg>Học viên và thống kê</a>
-                <a class="teacher-course-text-action" asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem trước</a>
+                <a class="teacher-course-text-action" asp-action="Students" asp-route-id="@course.Id" title="Học viên và thống kê"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#users")"></use></svg><span class="visually-hidden">Học viên và thống kê</span></a>
+                <a class="teacher-course-text-action" asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id" title="Xem trước"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg><span class="visually-hidden">Xem trước</span></a>
             </nav>
         </article>
     }

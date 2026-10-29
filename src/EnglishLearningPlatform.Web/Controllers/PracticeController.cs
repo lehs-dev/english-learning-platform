@@ -25,7 +25,7 @@ public sealed class PracticeController(IPracticeService practices, IStudentLearn
     [HttpGet]
     public async Task<IActionResult> Take(Guid id, CancellationToken ct)
     {
-        var result = await practices.GetSheetAsync(StudentId, id, ct);
+        var result = await practices.BeginAsync(StudentId, id, ct);
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
 
@@ -33,8 +33,11 @@ public sealed class PracticeController(IPracticeService practices, IStudentLearn
     public async Task<IActionResult> Submit(Guid id, PracticeSubmissionInput input, CancellationToken ct)
     {
         if (!ModelState.IsValid || id == Guid.Empty || input.Answers is null) return BadRequest();
-        var result = await practices.SubmitAsync(StudentId, id, input.Answers
-            .Select(a => new PracticeResponse(a.PracticeQuestionId, a.SelectedOptionId)).ToList(), ct);
+        var answers = input.Answers.Select(a => new PracticeResponse(a.PracticeQuestionId, a.SelectedOptionId)).ToList();
+        // Phiên do server cấp, không nhận version tùy ý từ browser.
+        var result = input.SessionId.HasValue
+            ? await practices.SubmitSessionAsync(StudentId, id, input.SessionId.Value, answers, ct)
+            : await practices.SubmitAsync(StudentId, id, answers, ct);
         return result.Status switch
         {
             PracticeSubmitStatus.Saved => RedirectToAction(nameof(Result), new { id }),

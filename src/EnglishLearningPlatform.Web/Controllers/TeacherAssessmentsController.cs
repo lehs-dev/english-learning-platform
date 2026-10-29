@@ -41,11 +41,21 @@ public sealed class TeacherAssessmentsController : Controller
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> Index(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? search = null,
+        AssessmentStatus? status = null,
+        AssessmentType? type = null)
     {
         if (!TryGetActorUserId(out Guid actorUserId))
         {
             return Challenge();
+        }
+
+        if (!ModelState.IsValid
+            || (status.HasValue && !Enum.IsDefined(status.Value))
+            || (type.HasValue && !Enum.IsDefined(type.Value)))
+        {
+            return BadRequest();
         }
 
         var result = await _service.GetListAsync(
@@ -56,7 +66,23 @@ public sealed class TeacherAssessmentsController : Controller
             return Denied(result.Access);
         }
 
-        return View(result.Value);
+        var all = result.Value ?? [];
+        search = search?.Trim();
+        var items = all.Where(item =>
+            (string.IsNullOrEmpty(search) || item.Title.Contains(search, StringComparison.OrdinalIgnoreCase))
+            && (!status.HasValue || item.Status == status)
+            && (!type.HasValue || item.AssessmentType == type)).ToList();
+
+        return View(new TeacherAssessmentIndexViewModel
+        {
+            Items = items,
+            TotalCount = all.Count,
+            StatusCounts = Enum.GetValues<AssessmentStatus>().ToDictionary(value => value,
+                value => all.Count(item => item.Status == value)),
+            Search = search,
+            Status = status,
+            Type = type
+        });
     }
 
     /// <summary>
@@ -177,8 +203,8 @@ public sealed class TeacherAssessmentsController : Controller
 
         TempData["Success"] =
             status == AssessmentStatus.Published
-                ? "Đã cập nhật cấu hình. Assessment vẫn Published."
-                : "Đã lưu Assessment Draft. Bài chưa được Publish.";
+                ? "Đã cập nhật cấu hình. Bài kiểm tra vẫn đang mở."
+                : "Đã lưu bản nháp bài kiểm tra.";
 
         // Redirect sau khi lưu để refresh không gửi lại POST.
         // GET mới cũng lấy lại version vừa được cập nhật.
@@ -222,7 +248,7 @@ public sealed class TeacherAssessmentsController : Controller
         if (result.Success)
         {
             TempData["Success"] =
-                "Đã Publish Assessment và khóa nội dung câu hỏi/ngữ liệu.";
+                "Đã mở bài kiểm tra và khóa nội dung câu hỏi, ngữ liệu.";
 
             // Draft đã thành Published nên quay về danh sách.
             return RedirectToAction(nameof(Index));
@@ -245,7 +271,7 @@ public sealed class TeacherAssessmentsController : Controller
             // Có thể đề vừa được Publish ở tab khác.
             // Không tự đưa Published trở lại Draft.
             TempData["Error"] =
-                "Không thể Publish từ trang hiện tại. "
+                "Không thể mở bài kiểm tra từ trang hiện tại. "
                 + "Hãy kiểm tra lại trạng thái trong danh sách.";
 
             return RedirectToAction(nameof(Index));

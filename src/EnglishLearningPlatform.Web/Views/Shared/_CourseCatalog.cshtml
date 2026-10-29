@@ -4,6 +4,23 @@
     var activeFilters = new[] { !string.IsNullOrWhiteSpace(Model.Query.Search), Model.Query.Level.HasValue,
         Model.Query.Skill.HasValue, !string.IsNullOrWhiteSpace(Model.Query.Topic), Model.Query.Teacher.HasValue,
         Model.Query.Paid.HasValue }.Count(value => value);
+    var enrolledCourses = ViewData["EnrolledCoursesForCatalog"] as IReadOnlyList<CourseSummary> ?? Array.Empty<CourseSummary>();
+    var compare = System.Globalization.CultureInfo.GetCultureInfo("vi-VN").CompareInfo;
+    const System.Globalization.CompareOptions comparison = System.Globalization.CompareOptions.IgnoreCase | System.Globalization.CompareOptions.IgnoreNonSpace;
+    var matchingEnrolled = enrolledCourses.Where(course =>
+        (string.IsNullOrWhiteSpace(Model.Query.Search) || compare.IndexOf(course.Title, Model.Query.Search, comparison) >= 0) &&
+        (!Model.Query.Level.HasValue || course.Level == Model.Query.Level) &&
+        (!Model.Query.Skill.HasValue || course.Skills.Contains(Model.Query.Skill.Value)) &&
+        (string.IsNullOrWhiteSpace(Model.Query.Topic) || course.Topics.Any(topic => compare.Compare(topic, Model.Query.Topic, comparison) == 0)) &&
+        (!Model.Query.Teacher.HasValue || course.OwnerId == Model.Query.Teacher) &&
+        (!Model.Query.Paid.HasValue || course.IsPaid == Model.Query.Paid))
+        .OrderBy(course => course.Progress?.CompletedAtUtc is not null)
+        .ThenByDescending(course => course.Progress?.CompletedLessons ?? 0)
+        .ThenBy(course => course.Title).ToArray();
+    var teachers = Model.Teachers.Concat(enrolledCourses.Select(course => new TeacherOption(course.OwnerId, course.Teacher)))
+        .DistinctBy(teacher => teacher.Id).OrderBy(teacher => teacher.Name).ToArray();
+    var topics = Model.Topics.Concat(enrolledCourses.SelectMany(course => course.Topics))
+        .Distinct(StringComparer.CurrentCultureIgnoreCase).OrderBy(topic => topic).ToArray();
 }
 @if (ViewData["QueryNotice"] is string notice)
 {
@@ -16,7 +33,7 @@
             <span class="catalog-filter-count">@(activeFilters > 0 ? activeFilters + " đang áp dụng" : "Tất cả khóa học")</span>
             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chevron-down")"></use></svg>
         </summary>
-        <form asp-controller="@catalogController" asp-action="Index" asp-fragment="discover-courses" method="get" class="filter-grid" role="search" aria-label="Bộ lọc khám phá khóa học">
+        <form asp-controller="@catalogController" asp-action="Index" asp-fragment="discover-courses" method="get" class="filter-grid" role="search" aria-label="Bộ lọc khóa học">
             <label class="filter-search">
                 Tên khóa học
                 <input type="search" name="Search" value="@Model.Query.Search" maxlength="200" placeholder="Tìm theo tên khóa học..." />
@@ -45,7 +62,7 @@
                 Chủ đề
                 <select name="Topic">
                     <option value="">Tất cả chủ đề</option>
-                    @foreach (var topic in Model.Topics)
+                    @foreach (var topic in topics)
                     {
                         <option value="@topic" selected="@(Model.Query.Topic == topic)">@topic</option>
                     }
@@ -55,7 +72,7 @@
                 Giảng viên
                 <select name="Teacher">
                     <option value="">Tất cả giảng viên</option>
-                    @foreach (var teacher in Model.Teachers)
+                    @foreach (var teacher in teachers)
                     {
                         <option value="@teacher.Id" selected="@(Model.Query.Teacher == teacher.Id)">@teacher.Name</option>
                     }
@@ -73,18 +90,24 @@
                 <button class="button" type="submit">Lọc khóa học</button>
                 @if (activeFilters > 0)
                 {
-                    <a class="catalog-reset" asp-controller="@catalogController" asp-action="Index" asp-fragment="discover-courses">Đặt lại</a>
+                    <a class="button secondary" asp-controller="@catalogController" asp-action="Index" asp-fragment="discover-courses">Đặt lại</a>
                 }
             </div>
         </form>
     </details>
     <section class="catalog-results" id="catalog-results" aria-label="Kết quả khóa học">
-        <p class="catalog-result-count" role="status">Hiển thị <strong>@Model.Courses.Count</strong> / @Model.Total khóa học · Trang @Model.Query.Page / @Model.Pages</p>
-        @if (Model.Courses.Count == 0)
+        <p class="catalog-result-count" role="status">
+            Hiển thị <strong>@(matchingEnrolled.Length + Model.Courses.Count)</strong> / @(matchingEnrolled.Length + Model.Total) khóa học
+            @if (Model.Pages > 1)
+            {
+                <text> · Trang @Model.Query.Page / @Model.Pages của các khóa chưa tham gia</text>
+            }
+        </p>
+        @if (matchingEnrolled.Length == 0 && Model.Courses.Count == 0)
         {
             <div class="catalog-empty">
                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
-                <h3>@(activeFilters > 0 ? "Chưa tìm thấy khóa học phù hợp" : catalogController == "Learning" ? "Bạn đã khám phá hết các khóa học hiện có" : "Khóa học đang được chuẩn bị")</h3>
+                <h3>@(activeFilters > 0 ? "Chưa tìm thấy khóa học phù hợp" : "Khóa học đang được chuẩn bị")</h3>
                 <p>@(activeFilters > 0 ? "Thử đổi từ khóa hoặc đặt lại bộ lọc để xem thêm khóa học." : "Khóa học mới sẽ xuất hiện tại đây khi được cập nhật.")</p>
                 @if (activeFilters > 0)
                 {
@@ -95,17 +118,13 @@
         else
         {
             <div class="course-grid">
+                @foreach (var course in matchingEnrolled)
+                {
+                    <partial name="_EnrolledCourseCard" model="course" />
+                }
                 @foreach (var course in Model.Courses)
                 {
-                    <article class="course-card" data-course-id="@course.Id">
-                        <partial name="_CourseCover" model="course" />
-                        <div class="course-card-body">
-                            <h3><a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">@course.Title</a></h3>
-                            <p class="excerpt">@course.Description</p>
-                            <partial name="_CourseSummary" model="course" />
-                            <a class="button secondary course-card-action" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">Xem chi tiết <span aria-hidden="true">→</span></a>
-                        </div>
-                    </article>
+                    <partial name="_DiscoveryCourseCard" model="course" />
                 }
             </div>
             @if (Model.Pages > 1)

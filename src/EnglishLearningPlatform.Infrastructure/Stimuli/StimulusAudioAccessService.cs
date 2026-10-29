@@ -21,7 +21,14 @@ public sealed class StimulusAudioAccessService(AppDbContext db) : IStimulusAudio
         var questionIds = db.Questions.Where(q => db.Stimuli.Any(s => s.Id == q.StimulusId
             && s.ResourceUrl == resourceUrl)).Select(q => q.Id);
         var assessmentIds = db.AssessmentQuestions.Where(q => questionIds.Contains(q.QuestionId)).Select(q => q.AssessmentId);
-        var practiceIds = db.PracticeQuestions.Where(q => questionIds.Contains(q.QuestionId)).Select(q => q.PracticeId);
+        var practiceIds = db.PracticeQuestions.Where(q => q.Version == q.Practice.Version && questionIds.Contains(q.QuestionId)).Select(q => q.PracticeId);
+        var availablePractices = db.AvailablePractices(actorUserId);
+
+        // Người đang làm được nghe audio của đúng phiên bản đã mở, không phải mọi phiên bản cũ.
+        if (await db.PracticeSessions.AnyAsync(s => s.StudentUserId == actorUserId && s.SubmittedAtUtc == null
+            && availablePractices.Any(p => p.Id == s.PracticeId)
+            && db.PracticeQuestions.Any(q => q.PracticeId == s.PracticeId && q.Version == s.Version
+                && questionIds.Contains(q.QuestionId)), cancellationToken)) return true;
 
         var enrolledCourses = db.Enrollments.Valid().Where(e => e.StudentUserId == actorUserId).Select(e => e.CourseId);
 
@@ -33,7 +40,8 @@ public sealed class StimulusAudioAccessService(AppDbContext db) : IStimulusAudio
               enrolledCourses.Contains(a.Assessment.CourseId.Value))), cancellationToken)) return true;
 
         // Practice lịch sử cũng dùng đúng một Lesson/Module thuộc Course đã enroll.
-        if (await db.PracticeSubmissions.AnyAsync(p => p.StudentUserId == actorUserId && practiceIds.Contains(p.PracticeId) &&
+        if (await db.PracticeSubmissions.AnyAsync(p => p.StudentUserId == actorUserId
+            && db.PracticeQuestions.Any(q => q.PracticeId == p.PracticeId && q.Version == p.Version && questionIds.Contains(q.QuestionId)) &&
             ((p.Practice.ModuleId == null && p.Practice.Lesson != null &&
               p.Practice.Lesson.Module.Course.OwnerTeacherUserId == p.Practice.OwnerTeacherUserId &&
               enrolledCourses.Contains(p.Practice.Lesson.Module.CourseId)) ||

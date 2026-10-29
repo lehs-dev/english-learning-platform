@@ -18,7 +18,10 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
     public async Task<IActionResult> Dashboard(CancellationToken ct)
     {
         var result = await learning.DashboardAsync(UserId, ct);
-        return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        if (result.Value!.Courses.Count == 0)
+            ViewData["SuggestedCourses"] = (await catalog.CatalogAsync(new CatalogQuery(), ct)).Courses.Take(3).ToArray();
+        return View(result.Value);
     }
     [HttpGet, Authorize(Policy = AuthorizationPolicies.Student)]
     public async Task<IActionResult> Continue(Guid id, CancellationToken ct)

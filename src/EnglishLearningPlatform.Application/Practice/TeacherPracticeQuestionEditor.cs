@@ -15,6 +15,7 @@ public sealed class TeacherPracticeQuestionEditor
     public string Title { get; set; } = string.Empty;
 
     public PracticeStatus Status { get; set; }
+    public int Version { get; set; } = 1;
 
     // Phiên bản dữ liệu để kiểm tra khi lưu hoặc Publish.
     public DateTimeOffset? UpdatedAtUtc { get; set; }

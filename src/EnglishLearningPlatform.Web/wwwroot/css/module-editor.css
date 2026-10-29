@@ -1,10 +1,10 @@
-.module-editor-page { --module-blue: #0864ff; --module-ink: #112254; --module-muted: #6b7fa3; --module-border: #e1eafa; }
-.module-editor-page .studio-main-wrapper { background: #f7f9fe; }
+.module-editor-page { --module-blue: var(--teacher-accent-ink); --module-ink: var(--teacher-ink); --module-muted: var(--teacher-muted); --module-border: var(--teacher-border); }
+.module-editor-page .studio-main-wrapper { background: var(--teacher-canvas); }
 .module-editor-page .studio-main { padding: 24px 28px 36px; }
 .module-editor-page .studio-topbar { min-height: 60px; padding-block: 8px; }
 .module-editor-page .studio-create-cta { display: none; }
 .module-editor-page .studio-brand .brand-icon { color: var(--module-blue); }
-.module-editor-page .studio-nav-link.is-active { background: #edf4ff; color: var(--module-blue); box-shadow: none; }
+.module-editor-page .studio-nav-link.is-active { background: var(--teacher-accent-soft); color: var(--module-blue); box-shadow: none; }
 .module-editor-breadcrumb { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; color: var(--module-muted); font-size: 12px; }
 .module-editor-breadcrumb a { color: inherit; text-decoration: none; }
 .module-editor-breadcrumb a:hover { color: var(--module-blue); text-decoration: underline; }
@@ -14,16 +14,16 @@
 .module-editor-heading p { margin: 8px 0 0; color: var(--module-muted); font-size: 14px; line-height: 1.7; }
 .module-editor-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-shrink: 0; }
 .module-editor-page .button { min-height: 42px; padding: 10px 16px; border: 1px solid var(--module-blue); border-radius: 7px; color: #fff; background: var(--module-blue); font-size: 12px; }
-.module-editor-page .button:hover { background: #0051d9; border-color: #0051d9; }
+.module-editor-page .button:hover { background: var(--teacher-accent-ink); border-color: var(--teacher-accent-ink); }
 .module-editor-page .button.secondary { color: var(--module-blue); border-color: #9bb7ef; background: #fff; }
-.module-editor-page .button.secondary:hover { background: #edf4ff; }
+.module-editor-page .button.secondary:hover { background: var(--teacher-accent-soft); }
 .module-editor-page .button .icon { width: 18px; height: 18px; }
 .module-editor-page .module-editor-form { display: block; max-width: none; margin: 0; }
 .module-editor-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); gap: 20px; align-items: start; }
 .module-editor-fields, .module-editor-aside { display: grid; gap: 18px; min-width: 0; }
 .module-editor-card { padding: 22px; border: 1px solid var(--module-border); border-radius: 12px; background: #fff; min-width: 0; }
 .module-editor-card-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.module-editor-icon { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 9px; background: #edf4ff; color: var(--module-blue); flex-shrink: 0; }
+.module-editor-icon { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 9px; background: var(--teacher-accent-soft); color: var(--module-blue); flex-shrink: 0; }
 .module-editor-icon .icon { width: 22px; height: 22px; }
 .module-editor-card-heading h2 { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.5; color: var(--module-ink); }
 .module-editor-card-heading p { margin: 3px 0 0; color: var(--module-muted); font-size: 12px; line-height: 1.7; }
@@ -33,29 +33,29 @@
 .module-editor-label-row > span, .module-editor-optional { color: var(--module-muted); font-size: 11px; font-weight: 400; white-space: nowrap; }
 .module-editor-required { color: #ce3e4e; }
 .module-editor-page .module-editor-form :where(input:not([type=hidden]), select, textarea) { display: block; width: 100%; min-width: 0; margin: 7px 0 0; padding: 11px 12px; border: 1px solid #b9cbe7; border-radius: 7px; background: #fff; color: var(--module-ink); font-size: 13px; line-height: 1.7; }
-.module-editor-form :where(input, select, textarea):focus-visible { outline: 3px solid #0864ff22; outline-offset: 1px; border-color: var(--module-blue); }
+.module-editor-form :where(input, select, textarea):focus-visible { outline: 3px solid #76549a22; outline-offset: 1px; border-color: var(--module-blue); }
 .module-editor-form textarea { resize: vertical; min-height: 160px; }
 .module-editor-form ::placeholder { color: #8495b0; }
 .module-editor-help { margin: 7px 0 0; font-size: 11px; line-height: 1.8; color: var(--module-muted); }
 .module-editor-preview { border: 1px solid var(--module-border); border-radius: 10px; overflow: hidden; }
-.module-editor-preview-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px; background: linear-gradient(120deg, #edf4ff, #e7efff); color: var(--module-blue); }
+.module-editor-preview-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px; background: linear-gradient(120deg, var(--teacher-accent-soft), var(--teacher-accent-soft)); color: var(--module-blue); }
 .module-editor-preview-top .icon { width: 38px; height: 38px; }
 .module-editor-preview-top > span { padding: 4px 10px; border-radius: 20px; color: #1768d9; background: #ffffffc9; font-size: 11px; font-weight: 600; }
-.module-editor-preview.is-hidden .module-editor-preview-top { color: #7c8eaa; background: #f0f3f8; }
-.module-editor-preview.is-hidden .module-editor-preview-top > span { color: #7c8eaa; }
+.module-editor-preview.is-hidden .module-editor-preview-top { color: var(--teacher-muted); background: var(--teacher-surface-soft); }
+.module-editor-preview.is-hidden .module-editor-preview-top > span { color: var(--teacher-muted); }
 .module-editor-preview-body { padding: 18px; }
 .module-editor-preview-body > span { color: var(--module-muted); font-size: 11px; }
 .module-editor-preview h3 { margin: 5px 0 8px; color: var(--module-ink); font-size: 18px; line-height: 1.6; font-weight: 700; text-wrap: initial; overflow-wrap: anywhere; }
 .module-editor-preview-body p { margin: 0; font-size: 12px; line-height: 1.8; color: var(--module-muted); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 220px; overflow-y: auto; }
-.module-editor-preview-footer { margin: 0; border-top: 1px solid var(--module-border); padding: 12px 18px; background: #fcfdff; color: var(--module-muted); font-size: 11px; line-height: 1.7; }
-.module-editor-guide { border: 1px solid #dce7fb; border-radius: 10px; padding: 20px; background: #f0f5ff; }
+.module-editor-preview-footer { margin: 0; border-top: 1px solid var(--module-border); padding: 12px 18px; background: var(--teacher-canvas); color: var(--module-muted); font-size: 11px; line-height: 1.7; }
+.module-editor-guide { border: 1px solid var(--teacher-border); border-radius: 10px; padding: 20px; background: var(--teacher-accent-soft); }
 .module-editor-guide h2 { margin: 0 0 16px; color: #294e91; font-size: 15px; }
 .module-editor-guide ol { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
 .module-editor-guide li { display: flex; align-items: flex-start; gap: 11px; }
 .module-editor-guide li > span { display: grid; place-items: center; flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: #dfebff; color: #3771ce; font-size: 12px; font-weight: 700; }
 .module-editor-guide strong { display: block; font-size: 12px; color: #3c5884; }
 .module-editor-guide p { margin: 3px 0 0; color: var(--module-muted); font-size: 11px; line-height: 1.7; }
-.module-editor-note { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 15px 17px; color: var(--module-muted); background: #edf3ff; border-radius: 9px; font-size: 11px; line-height: 1.8; }
+.module-editor-note { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 15px 17px; color: var(--module-muted); background: var(--teacher-accent-soft); border-radius: 9px; font-size: 11px; line-height: 1.8; }
 .module-editor-note .icon { width: 18px; height: 18px; color: #6a87b6; margin-top: 2px; }
 .module-editor-savebar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 20px; margin-top: 20px; border: 1px solid var(--module-border); border-radius: 10px; background: #fff; }
 .module-editor-savebar > p { margin: 0; color: var(--module-muted); font-size: 11px; }

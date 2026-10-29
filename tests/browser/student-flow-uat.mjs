@@ -137,7 +137,8 @@ async function register(page, { fromLogin = false } = {}) {
 }
 async function logout(page) {
   await go(page, '/Learning/Dashboard');
-  await navigate(page, page.locator('.student-logout'));
+  await page.locator('[data-account-menu] summary').click();
+  await navigate(page, page.locator('[data-account-menu] .logout-item'));
   assert.equal(new URL(page.url()).pathname, '/Account/Login');
 }
 async function detail(page, title) {
@@ -464,6 +465,7 @@ const work = {
       await screenshot(page, 'success-order');
       await navigate(page, page.getByRole('link', { name: /^Vào phòng học ngay/ }));
       assert.equal(new URL(page.url()).pathname, `/Learning/Course/${course.id}`);
+      await page.locator('.course-outline summary').first().click();
       await navigate(page, page.locator('.course-outline a[href*="/Learning/Lesson/"]').first());
       assert.match(await page.locator('main').innerText(), /Good morning. Let me introduce our team/);
       await go(page, '/Checkout/History');

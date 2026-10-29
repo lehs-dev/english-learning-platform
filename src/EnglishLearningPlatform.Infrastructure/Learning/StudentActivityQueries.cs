@@ -24,7 +24,7 @@ internal static class StudentActivityQueries
         return db.Practices.AsNoTracking().Where(p => p.Status == PracticeStatus.Published &&
             ((p.ModuleId == null && lessons.Any(l => l.Id == p.LessonId && l.Module.Course.OwnerTeacherUserId == p.OwnerTeacherUserId)) ||
              (p.LessonId == null && modules.Any(m => m.Id == p.ModuleId && m.Course.OwnerTeacherUserId == p.OwnerTeacherUserId))) &&
-            p.Questions.Any() && p.Questions.All(q => q.Question.OwnerTeacherUserId == p.OwnerTeacherUserId &&
+            p.Questions.Any(q => q.Version == p.Version) && p.Questions.Where(q => q.Version == p.Version).All(q => q.Question.OwnerTeacherUserId == p.OwnerTeacherUserId &&
                 q.Question.Options.Count >= 2 && q.Question.Options.Count(o => o.IsCorrect) == 1 &&
                 (q.Question.StimulusId == null || q.Question.Stimulus!.OwnerTeacherUserId == p.OwnerTeacherUserId) &&
                 (q.Question.PrimarySkill != EnglishSkill.Listening ||

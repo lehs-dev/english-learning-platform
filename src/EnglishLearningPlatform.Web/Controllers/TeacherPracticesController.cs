@@ -307,24 +307,12 @@ public sealed class TeacherPracticesController : Controller
             return View(model);
         }
 
-        TempData["Success"] =
-            "Đã tạo Practice Draft. Bài chưa Publish nên Student chưa thể làm.";
+        TempData["Success"] = "Đã tạo bản nháp. Chọn câu hỏi để hoàn thiện bài luyện tập.";
 
-        // Chỉ quay lại Course nếu Practice thực sự có parent.
-        // Chọn Course trên form không tự gắn Practice vào Course.
-        if (courseId.HasValue
-            && (input.LessonId.HasValue || input.ModuleId.HasValue))
-        {
-            return RedirectToAction(
-                nameof(TeacherCoursesController.Manage),
-                "TeacherCourses",
-                new { id = courseId.Value });
-        }
-
-        // Draft chưa gắn parent vẫn được tạo theo TBR16.
         return RedirectToAction(
-            nameof(TeacherCoursesController.Index),
-            "TeacherCourses");
+            nameof(TeacherPracticeQuestionsController.Index),
+            "TeacherPracticeQuestions",
+            new { id = result.Id });
     }
 
     /// <summary>
