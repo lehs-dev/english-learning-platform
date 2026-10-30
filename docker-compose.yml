@@ -43,10 +43,19 @@ services:
       LearningDemo__Enabled: "${LearningDemo__Enabled:-false}"
       LearningDemo__Password: "${LearningDemo__Password:-}"
       Payments__Enabled: "${Payments__Enabled:-false}"
+      Vnpay__Enabled: "${Vnpay__Enabled:-false}"
+      Vnpay__UseIpn: "${Vnpay__UseIpn:-false}"
+      Vnpay__TmnCode: "${Vnpay__TmnCode:-}"
+      Vnpay__HashSecret: "${Vnpay__HashSecret:-}"
+      Vnpay__PublicBaseUrl: "${Vnpay__PublicBaseUrl:-}"
+      Vnpay__CheckoutMinutes: "${Vnpay__CheckoutMinutes:-15}"
+      Vnpay__BrowserBaseUrls__0: "${Vnpay__BrowserBaseUrls__0:-http://localhost:8080}"
+      Vnpay__BrowserBaseUrls__1: "${Vnpay__BrowserBaseUrls__1:-http://127.0.0.1:8080}"
       CheckoutSandbox__Enabled: "${CheckoutSandbox__Enabled:-false}"
     volumes:
       - stimulus-audio-data:/app/App_Data/stimulus-audio
       - avatar-data:/app/App_Data/avatars
+      - data-protection-keys:/home/app/.aspnet/DataProtection-Keys
     ports:
       - "127.0.0.1:${ELP_WEB_PORT:-8080}:8080"
     depends_on:
@@ -59,3 +68,4 @@ volumes:
   sqlserver-data:
   stimulus-audio-data:
   avatar-data:
+  data-protection-keys:

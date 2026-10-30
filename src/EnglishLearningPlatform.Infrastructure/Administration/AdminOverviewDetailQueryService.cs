@@ -100,7 +100,12 @@ public sealed class AdminOverviewDetailQueryService(AppDbContext db) : IAdminOve
             .Skip((page - 1) * PageSize).Take(PageSize)
             .Select(row => new AdminEnrollmentOverview(row.Enrollment.Id, row.StudentName, row.StudentEmail,
                 row.Enrollment.CourseId, row.Enrollment.Course.Title,
-                row.Enrollment.EnrolledAtUtc, row.Enrollment.CompletedAtUtc))
+                row.Enrollment.EnrolledAtUtc, row.Enrollment.CompletedAtUtc)
+                {
+                    PaymentId = row.Enrollment.PaymentId,
+                    OrderId = row.Enrollment.Payment != null ? (Guid?)row.Enrollment.Payment.OrderId : null,
+                    PaymentProvider = row.Enrollment.Payment != null ? row.Enrollment.Payment.Provider : null
+                })
             .ToListAsync(ct);
         return new(items, term, page, pages, total);
     }

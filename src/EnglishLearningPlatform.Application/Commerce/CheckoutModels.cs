@@ -11,13 +11,17 @@ public enum CheckoutCode
 
 public sealed record CheckoutOutcome<T>(CheckoutCode Code, T? Value = default);
 public sealed record CourseCheckout(Guid CourseId, string Title, string Teacher, decimal Amount,
-    string Currency, bool SandboxEnabled, bool HostedEnabled = false);
+    string Currency, bool SandboxEnabled, bool HostedEnabled = false)
+{
+    public string? PaymentProvider { get; init; }
+}
 public sealed record OrderCheckout(Guid Id, Guid CourseId, string Title, string Teacher, decimal Amount,
     string Currency, PaymentStatus? Status, bool CanLearn, bool SandboxEnabled,
     string Provider = "local-sandbox", DateTimeOffset? ExpiresAtUtc = null,
     DateTimeOffset CreatedAtUtc = default, string? CheckoutUrl = null, bool CanCheckout = true)
 {
     public bool IsSandbox => Provider == "local-sandbox";
+    public bool IsVnpaySandbox => Provider == "vnpay-sandbox";
     // Chỉ đơn chưa có trạng thái thanh toán mới có thể hết hạn.
     public bool IsExpired { get; init; }
 }

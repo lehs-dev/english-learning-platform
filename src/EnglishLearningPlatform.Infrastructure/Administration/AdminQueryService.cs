@@ -31,7 +31,8 @@ public sealed class AdminQueryService(AppDbContext db) : IAdminQueryService
         {
             OrderId = o.Id,
             StudentEmail = db.Users.Where(u => u.Id == o.StudentUserId).Select(u => u.Email).FirstOrDefault() ?? "",
-            CourseTitle = o.Course.Title, o.Amount, o.Currency, o.CreatedAtUtc,
+            CourseTitle = o.Course.Title, o.Amount, o.Currency, o.CreatedAtUtc, o.Provider,
+            ProviderTransactionId = o.Payments.OrderByDescending(p => p.CreatedAtUtc).ThenByDescending(p => p.Id).Select(p => p.ProviderTransactionId).FirstOrDefault(),
             Status = o.Payments.OrderByDescending(p => p.CreatedAtUtc).ThenByDescending(p => p.Id).Select(p => (PaymentStatus?)p.Status).FirstOrDefault(),
             PaidAtUtc = o.Payments.OrderByDescending(p => p.CreatedAtUtc).ThenByDescending(p => p.Id).Select(p => p.PaidAtUtc).FirstOrDefault()
         });
@@ -49,7 +50,8 @@ public sealed class AdminQueryService(AppDbContext db) : IAdminQueryService
         var rows = await query.OrderByDescending(o => o.CreatedAtUtc).ThenByDescending(o => o.OrderId)
             .Skip((page - 1) * PageSize).Take(PageSize).ToListAsync(ct);
         var items = rows.Select(o => new AdminTransaction(o.OrderId, o.StudentEmail, o.CourseTitle,
-            o.Amount, o.Currency, o.CreatedAtUtc, o.Status, o.PaidAtUtc)).ToList();
+            o.Amount, o.Currency, o.CreatedAtUtc, o.Status, o.PaidAtUtc)
+            { Provider = o.Provider, ProviderTransactionId = o.ProviderTransactionId }).ToList();
         return new(items, term, page, pages, total);
     }
 

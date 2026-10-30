@@ -1,6 +1,6 @@
 # Enrollment trả phí và hợp đồng hosted checkout
 
-Cập nhật 08/10/2026. Luồng Order, checkout, xác minh webhook và Enrollment đã có. Adapter `HostedPaymentGateway` dùng hợp đồng HMAC bên dưới với một cổng thanh toán ngoài. UI Estudy được dùng chung; repository có sandbox local opt-in Development tách khỏi hosted, xem [contract local](../project/checkout-local.md). Browser không thể dùng sandbox để xác nhận Order hosted. Chưa có adapter VNPay/MoMo hay credentials cho provider thật. Mặc định thanh toán tắt; nút mua hiển thị thông báo khi cấu hình chưa sẵn sàng và không tạo Order.
+Cập nhật 29/10/2026. Đã loại bỏ form thẻ mô phỏng tự dựng. Máy Dương sử dụng adapter VNPay Sandbox và trang checkout chính thức, nhận Return có chữ ký, kiểm tra chủ đơn trước khi ghi Payment/Enrollment; xem [hướng dẫn](../project/vnpay-sandbox.md). Merchant cấu hình ngoài Git. Sandbox local có sẵn của dự án vẫn tách biệt với đơn hosted. Phần dưới mô tả hợp đồng HostedPaymentGateway cũ.
 
 ## Cấu hình
 

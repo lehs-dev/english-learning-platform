@@ -31,9 +31,10 @@ public sealed class AdminRevenueQueryService(AppDbContext db) : IAdminRevenueQue
             .Select(g => new { OrderId = g.Key, PaidAt = g.Min(p => p.PaidAtUtc!.Value) });
         var revenue = from receipt in receipts
                       join order in orders on receipt.OrderId equals order.Id
-                      select new { Currency = order.Currency.ToUpper(), order.Amount, receipt.PaidAt };
+                      select new { Currency = order.Currency.ToUpper(), order.Amount, order.Provider, receipt.PaidAt };
         if (start.HasValue) revenue = revenue.Where(r => r.PaidAt >= start.Value);
         if (end.HasValue) revenue = revenue.Where(r => r.PaidAt < end.Value);
+        var includesSandbox = await revenue.AnyAsync(r => r.Provider == "vnpay-sandbox" || r.Provider == "local-sandbox", ct);
 
         // Each materialized row is already a SQL aggregate, never a raw Order/Payment.
         var revenueTotals = await revenue.GroupBy(r => r.Currency)
@@ -103,6 +104,7 @@ public sealed class AdminRevenueQueryService(AppDbContext db) : IAdminRevenueQue
 
         return new(dates, currency, summary,
             daily.Select(r => new AdminRevenuePeriod(new(r.Year, r.Month, r.Day), r.Currency, r.Revenue, r.PaidOrders)).ToList(),
-            monthly.Select(r => new AdminRevenuePeriod(new(r.Year, r.Month, 1), r.Currency, r.Revenue, r.PaidOrders)).ToList());
+            monthly.Select(r => new AdminRevenuePeriod(new(r.Year, r.Month, 1), r.Currency, r.Revenue, r.PaidOrders)).ToList())
+            { IncludesSandboxRevenue = includesSandbox };
     }
 }

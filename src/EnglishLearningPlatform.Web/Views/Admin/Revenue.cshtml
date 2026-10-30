@@ -12,6 +12,10 @@
 @section Scripts { <script src="~/js/admin-revenue.js" asp-append-version="true" defer></script> }
 <div class="admin-page">
 <header class="admin-heading"><div><h1>Báo cáo doanh thu</h1><p>Doanh thu từ các đơn thanh toán thành công. Đơn vị: Việt Nam đồng (VND).</p></div></header>
+@if (report.IncludesSandboxRevenue)
+{
+    <p class="notice" role="status">Số liệu trong khoảng này có giao dịch Sandbox để kiểm thử, không phải toàn bộ tiền thu thực tế.</p>
+}
 <section class="admin-surface">
     <div asp-validation-summary="All" class="notice error" role="alert"></div>
     <form method="get" asp-action="Revenue" class="admin-filters">

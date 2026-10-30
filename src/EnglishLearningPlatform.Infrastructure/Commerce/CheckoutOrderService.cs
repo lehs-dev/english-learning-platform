@@ -13,7 +13,8 @@ namespace EnglishLearningPlatform.Infrastructure.Commerce;
 public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator activeUsers,
     IPaymentGateway hosted, ISandboxPaymentGateway local, CheckoutTransactionExecutor transactions) : ICheckoutOrderService
 {
-    private IPaymentGateway PurchaseGateway => hosted.IsConfigured ? hosted : local.IsConfigured ? local : hosted;
+    private IPaymentGateway PurchaseGateway => hosted is VnpayGateway { Enabled: true } ? hosted :
+        hosted.IsConfigured ? hosted : local.IsConfigured ? local : hosted;
     private Task<bool> Enrolled(Guid user, Guid course, CancellationToken ct) => db.Enrollments.Valid()
         .AnyAsync(e => e.StudentUserId == user && e.CourseId == course, ct);
     private static PaymentStatus? ResolveStatus(IEnumerable<Payment> payments) =>
@@ -39,7 +40,10 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
             var code = await Eligibility(userId, course, ct);
             if (code != CheckoutCode.Allowed) return new(code);
             var teacher = await db.Users.Where(u => u.Id == course!.OwnerTeacherUserId).Select(u => u.FullName).SingleAsync(ct);
-            return new(CheckoutCode.Allowed, new(courseId, course!.Title, teacher, course.Price, "VND", local.IsConfigured, hosted.IsConfigured));
+            return new(CheckoutCode.Allowed, new(courseId, course!.Title, teacher,
+                PurchaseGateway is VnpayGateway ? VnpayGateway.QuoteAmount(course.Price) : course.Price, "VND",
+                PurchaseGateway == local && local.IsConfigured, PurchaseGateway != local && hosted.IsConfigured)
+                { PaymentProvider = PurchaseGateway.Provider });
         }, new(CheckoutCode.IntegrationError), ct);
 
     private Task<CheckoutOutcome<OrderCheckout>> StartCore(Guid userId, Guid courseId, IPaymentGateway gateway, CancellationToken ct) =>
@@ -52,18 +56,22 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
                 return new(code == CheckoutCode.NotPurchasable && course is not null &&
                     course.Status != CourseStatus.Published && ReferenceEquals(gateway, hosted) ? CheckoutCode.NotFound : code);
             if (!gateway.IsConfigured) return new(CheckoutCode.Disabled);
+            var quoted = gateway is VnpayGateway ? VnpayGateway.QuoteAmount(course!.Price) : course!.Price;
+            if (quoted <= 0) return new(CheckoutCode.NotPurchasable);
+            if (gateway is VnpayGateway && course!.Price * 100 > 999999999999m)
+                return new(CheckoutCode.NotPurchasable);
             var now = DateTimeOffset.UtcNow;
             var order = await db.Orders.Where(o => o.StudentUserId == userId && o.CourseId == courseId &&
-                o.Amount == course!.Price && o.Currency == "VND" && o.Provider == gateway.Provider &&
+                o.Amount == quoted && o.Currency == "VND" && o.Provider == gateway.Provider &&
                 o.ExpiresAtUtc > now && !o.Payments.Any()).OrderByDescending(o => o.CreatedAtUtc).ThenBy(o => o.Id).FirstOrDefaultAsync(ct);
             if (order is null)
             {
-                order = new Order { StudentUserId = userId, CourseId = courseId, Amount = course!.Price,
+                order = new Order { StudentUserId = userId, CourseId = courseId, Amount = quoted,
                     Provider = gateway.Provider, ExpiresAtUtc = gateway.CheckoutDeadline };
                 db.Orders.Add(order); await db.SaveChangesAsync(ct);
             }
             var teacher = await db.Users.Where(u => u.Id == course!.OwnerTeacherUserId).Select(u => u.FullName).SingleAsync(ct);
-            var url = gateway.CreateCheckoutUrl(new(order.Id, order.Amount, order.Currency, order.ExpiresAtUtc!.Value));
+            var url = gateway.CreateCheckoutUrl(new(order.Id, order.Amount, order.Currency, order.ExpiresAtUtc!.Value, order.CreatedAtUtc));
             return new(CheckoutCode.Allowed, new(order.Id, courseId, course!.Title, teacher, order.Amount, order.Currency,
                 null, false, local.IsConfigured, order.Provider, order.ExpiresAtUtc, order.CreatedAtUtc, url));
         }, result => result.Code == CheckoutCode.Allowed, new(CheckoutCode.IntegrationError), ct);
@@ -99,14 +107,15 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
             var gateway = isLocal ? (IPaymentGateway)local : hosted;
             var isExpired = !status.HasValue && order.ExpiresAtUtc <= now;
             var canCheckout = !enrolled && !status.HasValue && order.ExpiresAtUtc > now &&
-                order.Course.Status == CourseStatus.Published && order.Course.IsPaid && order.Amount == order.Course.Price &&
+                order.Course.Status == CourseStatus.Published && order.Course.IsPaid &&
+                order.Amount == (gateway is VnpayGateway ? VnpayGateway.QuoteAmount(order.Course.Price) : order.Course.Price) &&
                 gateway.IsConfigured && order.Provider == gateway.Provider &&
                 await db.Users.AnyAsync(u => u.Id == order.Course.OwnerTeacherUserId && u.AccountStatus != AccountStatus.Disabled, ct);
             var teacher = await db.Users.Where(u => u.Id == order.Course.OwnerTeacherUserId).Select(u => u.FullName).SingleAsync(ct);
             return new(CheckoutCode.Allowed, new(order.Id, order.CourseId, order.Course.Title, teacher, order.Amount,
                 order.Currency, status, enrolled && order.Course.Status != CourseStatus.Draft, local.IsConfigured,
                 order.Provider, order.ExpiresAtUtc, order.CreatedAtUtc,
-                canCheckout ? gateway.CreateCheckoutUrl(new(order.Id, order.Amount, order.Currency, order.ExpiresAtUtc!.Value)) : null, canCheckout)
+                canCheckout ? gateway.CreateCheckoutUrl(new(order.Id, order.Amount, order.Currency, order.ExpiresAtUtc!.Value, order.CreatedAtUtc)) : null, canCheckout)
             {
                 IsExpired = isExpired
             });

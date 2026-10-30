@@ -9,7 +9,10 @@ public interface IAdminRevenueQueryService
 
 public sealed record AdminRevenueReport(AdminDateRange Dates, string? CurrencyFilter,
     IReadOnlyList<AdminRevenueSummary> Summary, IReadOnlyList<AdminRevenuePeriod> Daily,
-    IReadOnlyList<AdminRevenuePeriod> Monthly);
+    IReadOnlyList<AdminRevenuePeriod> Monthly)
+{
+    public bool IncludesSandboxRevenue { get; init; }
+}
 
 /// <summary>Revenue uses receipt dates; order statuses use order creation dates.</summary>
 public sealed record AdminRevenueSummary(string Currency, decimal Revenue, int PaidOrders,

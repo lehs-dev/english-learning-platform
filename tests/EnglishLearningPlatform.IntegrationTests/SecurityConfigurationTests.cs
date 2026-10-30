@@ -21,6 +21,20 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class SecurityConfigurationTests
 {
+    [Fact]
+    public void VnpayCallbacks_AreExplicitAnonymousGets_AndOrderResultRemainsProtected()
+    {
+        var controller = typeof(VnpayController);
+        Assert.True(controller.GetCustomAttribute<ResponseCacheAttribute>()!.NoStore);
+        var ipn = controller.GetMethod(nameof(VnpayController.Ipn))!;
+        Assert.True(ipn.IsDefined(typeof(AllowAnonymousAttribute)));
+        Assert.Equal("/payments/vnpay/ipn", ipn.GetCustomAttribute<HttpGetAttribute>()!.Template);
+        var browserReturn = controller.GetMethod(nameof(VnpayController.Return))!;
+        Assert.Equal("/payments/vnpay/return", browserReturn.GetCustomAttribute<HttpGetAttribute>()!.Template);
+        Assert.True(browserReturn.IsDefined(typeof(AllowAnonymousAttribute)));
+        Assert.Equal(AuthorizationPolicies.Student, typeof(CheckoutController).GetCustomAttribute<AuthorizeAttribute>()!.Policy);
+    }
+
     [Theory]
     [InlineData("Production", CookieSecurePolicy.Always)]
     [InlineData("Staging", CookieSecurePolicy.Always)]
