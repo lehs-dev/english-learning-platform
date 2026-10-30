@@ -97,19 +97,24 @@ public static class DependencyInjection
         services.AddScoped<ICourseResourceDeletionHandler>(provider => provider.GetRequiredService<ResourceCourseContentHandler>());
         services.AddScoped<IQuestionCreationService, QuestionCreationService>();
         services.Configure<HostedPaymentOptions>(configuration.GetSection("Payments"));
+        services.Configure<VnpayOptions>(configuration.GetSection("Vnpay"));
+        services.AddHttpContextAccessor();
         // Khi controller yêu cầu IQuestionQueryService,
         // DI sẽ tạo QuestionQueryService và cung cấp các dependency cần thiết.
         services.AddScoped<IQuestionQueryService, QuestionQueryService>();
         services.AddScoped<IQuestionAuthoringService, QuestionAuthoringService>();
         services.AddSingleton<HostedPaymentGateway>();
-        services.AddSingleton<IPaymentGateway>(provider => provider.GetRequiredService<HostedPaymentGateway>());
-        services.AddSingleton<IWebhookPaymentGateway>(provider => provider.GetRequiredService<HostedPaymentGateway>());
+        services.AddSingleton<VnpayGateway>();
+        services.AddSingleton<IWebhookPaymentGateway>(provider => provider.GetRequiredService<VnpayGateway>().Enabled
+            ? provider.GetRequiredService<VnpayGateway>() : provider.GetRequiredService<HostedPaymentGateway>());
+        services.AddSingleton<IPaymentGateway>(provider => provider.GetRequiredService<IWebhookPaymentGateway>());
         services.AddSingleton<LocalSandboxGateway>();
         services.AddSingleton<ISandboxPaymentGateway>(provider => provider.GetRequiredService<LocalSandboxGateway>());
         services.AddScoped<ICheckoutTransactionFactory, CheckoutTransactionFactory>();
         services.AddScoped<CheckoutTransactionExecutor>();
         services.AddScoped<ICheckoutOrderService, CheckoutOrderService>();
         services.AddScoped<IPaymentConfirmationService, PaymentConfirmationService>();
+        services.AddScoped<IVnpayPaymentService>(provider => (PaymentConfirmationService)provider.GetRequiredService<IPaymentConfirmationService>());
         services.AddScoped<ISandboxCheckoutService, SandboxCheckoutService>();
         services.AddScoped<ICheckoutService, CheckoutService>();
         services.AddScoped<IAttemptService, AssessmentAttemptService>();

@@ -5,12 +5,14 @@ using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Web.Commerce;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace EnglishLearningPlatform.Web.Controllers;
 
 [Authorize(Policy = AuthorizationPolicies.Student)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class CheckoutController(ICheckoutOrderService checkout, IPaymentWebhookProcessor webhookProcessor, ISandboxCheckoutService sandbox) : Controller
+public sealed class CheckoutController(ICheckoutOrderService checkout, IPaymentWebhookProcessor webhookProcessor, ISandboxCheckoutService sandbox,
+    IVnpayPaymentService? vnpay = null) : Controller
 {
     private Guid? UserId => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
     private IActionResult Learn(Guid courseId) => RedirectToAction("Course", "Learning", new { id = courseId });
@@ -58,6 +60,17 @@ public sealed class CheckoutController(ICheckoutOrderService checkout, IPaymentW
     [HttpGet]
     public Task<IActionResult> Result(Guid id, CancellationToken ct) => RenderOrder(id, ct);
     [HttpGet]
+    public async Task<IActionResult> Status(Guid id, CancellationToken ct)
+    {
+        if (!UserId.HasValue) return Challenge();
+        var result = await checkout.GetOrderAsync(UserId.Value, id, ct);
+        if (result.Code == CheckoutCode.NotFound) return NotFound();
+        if (result.Code == CheckoutCode.Forbidden) return Forbid();
+        if (result.Code != CheckoutCode.Allowed) return StatusCode(503);
+        return Json(new { status = result.Value!.Status?.ToString(), canLearn = result.Value.CanLearn,
+            expired = result.Value.IsExpired, resultUrl = Url.Action(nameof(Result), new { id }) });
+    }
+    [HttpGet]
     public async Task<IActionResult> History(int page = 1, CancellationToken ct = default)
     {
         if (!UserId.HasValue) return Challenge();
@@ -75,7 +88,22 @@ public sealed class CheckoutController(ICheckoutOrderService checkout, IPaymentW
     {
         if (!UserId.HasValue) return Challenge();
         ViewData["ActiveSection"] = "courses";
+        var returnedOrder = TempData.Peek("VnpayReturnedOrder") as string;
+        ViewData["GatewayReturned"] = returnedOrder == id.ToString("N");
         var result = await checkout.GetOrderAsync(UserId.Value, id, ct);
+        if (result.Code == CheckoutCode.Allowed && vnpay is not null && returnedOrder == id.ToString("N") &&
+            TempData.Peek("VnpayReturnPayload") is string payload)
+        {
+            var signed = JsonSerializer.Deserialize<Dictionary<string,string>>(payload);
+            var confirmed = signed is null ? CheckoutCode.InvalidCallback : await vnpay.ConfirmVnpayReturnAsync(UserId.Value, signed, ct);
+            if (confirmed is CheckoutCode.Allowed or CheckoutCode.Disabled) TempData.Remove("VnpayReturnPayload");
+            if (confirmed == CheckoutCode.Allowed)
+            {
+                TempData.Remove("Error");
+                result = await checkout.GetOrderAsync(UserId.Value, id, ct);
+            }
+            else if (confirmed != CheckoutCode.Disabled) TempData["Error"] = "Chưa xác minh được kết quả thanh toán. Không thanh toán lại nếu VNPay đã báo thành công.";
+        }
         if (result.Code == CheckoutCode.IntegrationError)
         { Response.StatusCode = 503; TempData["Error"] = Message(result.Code); return View("Unavailable"); }
         return result.Code == CheckoutCode.Allowed ? View("Order", result.Value)

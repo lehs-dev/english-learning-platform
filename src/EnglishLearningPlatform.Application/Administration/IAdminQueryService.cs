@@ -13,7 +13,11 @@ public interface IAdminQueryService
 public sealed record AdminPage<T>(IReadOnlyList<T> Items, string Search, int Page, int Pages, int Total);
 
 public sealed record AdminTransaction(Guid OrderId, string StudentEmail, string CourseTitle,
-    decimal Amount, string Currency, DateTimeOffset CreatedAtUtc, PaymentStatus? Status, DateTimeOffset? PaidAtUtc);
+    decimal Amount, string Currency, DateTimeOffset CreatedAtUtc, PaymentStatus? Status, DateTimeOffset? PaidAtUtc)
+{
+    public string Provider { get; init; } = "";
+    public string? ProviderTransactionId { get; init; }
+}
 
 public sealed record AdminUser(Guid UserId, string FullName, string Email, string Role,
     AccountStatus Status, DateTimeOffset CreatedAtUtc);

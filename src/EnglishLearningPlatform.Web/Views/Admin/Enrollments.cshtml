@@ -26,9 +26,17 @@
     @if (Model.Items.Count == 0) { <div class="admin-empty"><h3>Không có lượt đăng ký phù hợp</h3><p>Thử từ khóa hoặc điều kiện hoàn thành khác.</p></div> }
     else {
         <div class="admin-table-wrap"><table class="admin-table admin-responsive"><caption class="visually-hidden">Lượt đăng ký và hoàn thành khóa học</caption>
-        <thead><tr><th>Học viên</th><th>Khóa học</th><th>Ngày đăng ký</th><th>Hoàn thành</th><th>Ngày hoàn thành</th></tr></thead><tbody>
+        <thead><tr><th>Học viên</th><th>Khóa học</th><th>Nguồn đăng ký</th><th>Ngày đăng ký</th><th>Hoàn thành</th><th>Ngày hoàn thành</th></tr></thead><tbody>
         @foreach (var item in Model.Items) {
             <tr><td data-label="Học viên"><div><strong>@item.StudentName</strong><span class="admin-email">@item.StudentEmail</span></div></td><td data-label="Khóa học">@item.CourseTitle</td>
+                <td data-label="Nguồn đăng ký">
+                    @if (item.PaymentId.HasValue)
+                    {
+                        <span>@(item.PaymentProvider == "vnpay-sandbox" ? "VNPay Sandbox" : item.PaymentProvider == "local-sandbox" ? "Sandbox local" : "Qua thanh toán")</span>
+                        @if (item.OrderId.HasValue) { <a class="admin-email" asp-action="Transactions" asp-route-search="@item.OrderId">Xem giao dịch</a> }
+                    }
+                    else { <span>Miễn phí / Không qua thanh toán</span> }
+                </td>
                 <td data-label="Ngày đăng ký" class="admin-date">@item.EnrolledAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</td>
                 <td data-label="Hoàn thành"><span class="admin-badge @(item.CompletedAtUtc.HasValue ? "status-active" : "payment-pending")">@(item.CompletedAtUtc.HasValue ? "Đã hoàn thành" : "Chưa hoàn thành")</span></td>
                 <td data-label="Ngày hoàn thành" class="admin-date">@(item.CompletedAtUtc?.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm") ?? "—")</td></tr>

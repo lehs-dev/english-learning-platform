@@ -13,5 +13,6 @@ EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 # Audio và ảnh đại diện nằm ngoài wwwroot; named volume giữ file khi rebuild container.
 RUN mkdir -p /app/App_Data/stimulus-audio /app/App_Data/avatars && chown -R app:app /app/App_Data
+RUN mkdir -p /home/app/.aspnet/DataProtection-Keys && chown -R app:app /home/app/.aspnet
 USER app
 ENTRYPOINT ["dotnet", "EnglishLearningPlatform.Web.dll"]

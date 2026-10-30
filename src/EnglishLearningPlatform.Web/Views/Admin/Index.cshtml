@@ -16,6 +16,10 @@
 @section Scripts { <script src="~/js/admin-revenue.js" asp-append-version="true" defer></script> }
 <div class="admin-page admin-dashboard">
 <header class="admin-heading"><div><h1>Tổng quan hệ thống</h1><p>Các chỉ số toàn bộ hệ thống và doanh thu tháng @monthLabel tính đến @Model.Today.ToString("dd/MM/yyyy") · Giờ Việt Nam.</p></div></header>
+@if (Model.Revenue.Report.IncludesSandboxRevenue)
+{
+    <p class="notice" role="status">Doanh thu tháng có giao dịch Sandbox dùng để kiểm thử.</p>
+}
 <div class="admin-summary">
     <article class="admin-stat" data-dashboard-tile>
         <span class="admin-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></span>

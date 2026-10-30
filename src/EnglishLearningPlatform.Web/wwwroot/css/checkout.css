@@ -325,3 +325,7 @@
 .checkout-test-label { display:inline-flex; padding:var(--space-3) var(--space-4); background:var(--warning-soft); color:var(--warning); border-radius:var(--radius-control); font-size:var(--text-small); }.checkout-card { box-shadow:none; }.checkout-tools { border:0; border-top:1px solid var(--border); border-radius:0; background:transparent; padding:var(--space-6) 0 0; }.checkout-status { border-left-width:1px; }.checkout-order-id { overflow-wrap:anywhere; }.checkout-actions { gap:var(--space-3); }
 
 .checkout-page .checkout-tools,.checkout-page .checkout-status { background:transparent; border:0; border-top:1px solid var(--border); border-radius:0; padding:var(--space-5) 0; }.checkout-page .checkout-test-label { color:var(--warning); }.checkout-page .checkout-tools { padding-bottom:0; }.checkout-page .checkout-back { display:inline-flex; align-items:center; gap:var(--space-2); }
+
+
+.checkout-status-check { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:12px; }
+.checkout-status-check [data-checkout-message] { flex-basis:100%; margin:0; font-size:14px; }

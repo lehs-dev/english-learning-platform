@@ -1,5 +1,7 @@
 # Checkout local sau hợp nhất main
 
+> Cập nhật 29/10/2026: form thẻ tự dựng đã được loại bỏ. Máy Dương dùng trang VNPay Sandbox chính thức với merchant trong .env riêng; xem [hướng dẫn](vnpay-sandbox.md).
+
 ## Phạm vi
 
 Một service/controller và UI Estudy dùng chung luồng Order → receipt xác thực → Payment/Enrollment.

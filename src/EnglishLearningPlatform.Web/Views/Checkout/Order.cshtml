@@ -2,12 +2,17 @@
 @model OrderCheckout
 @{
     ViewData["Title"] = "Thanh toán khóa học";
+    var gatewayReturned = ViewData["GatewayReturned"] as bool? == true;
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
 }
+@section Scripts { <script src="~/js/checkout-status.js" asp-append-version="true" defer></script> }
 
-<div class="checkout-page">
+<div class="checkout-page" data-checkout-status-url="@Url.Action("Status", new { id = Model.Id })"
+     data-checkout-pending="@((!Model.Status.HasValue).ToString().ToLowerInvariant())"
+     data-checkout-expired="@Model.IsExpired.ToString().ToLowerInvariant()"
+     data-vnpay-order-id="@(Model.IsVnpaySandbox ? Model.Id.ToString("N") : "")">
     <div style="margin-bottom: 20px;">
         <a class="button secondary exam-back-btn checkout-back" asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId">
             <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
@@ -18,6 +23,10 @@
     <header class="checkout-heading">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
             <span class="v2-pill-tag">Đơn hàng</span>
+            @if (Model.IsVnpaySandbox)
+            {
+                <span class="v2-pill-tag">VNPay Sandbox · Không thu tiền thật</span>
+            }
             @if (Model.IsSandbox)
             {
                 <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Thử nghiệm (Sandbox)</span>
@@ -25,8 +34,6 @@
         </div>
         <h1 style="font-size: 28px; font-weight: 800; color: var(--v2-dark); margin: 0;">Trạng thái thanh toán</h1>
     </header>
-
-    <partial name="_CourseNotice" />
 
     <section class="card-v2 checkout-card" style="padding: 32px;" aria-labelledby="checkout-course-title">
         <h2 class="checkout-course-title" id="checkout-course-title" style="font-size: 22px; font-weight: 800; color: var(--v2-dark); margin: 0 0 6px;">
@@ -71,6 +78,10 @@
                 <p style="margin: 0; color: var(--v2-text-secondary); font-size: 14px;">Bạn đã hủy giao dịch này. Bạn có thể đăng ký lại bất cứ khi nào sẵn sàng.</p>
             </div>
         }
+        else if (Model.IsVnpaySandbox && !Model.Status.HasValue && (gatewayReturned || Model.IsExpired))
+        {
+            <div class="notice" role="status">Đang xác nhận kết quả với VNPay. Nếu VNPay đã báo thành công, không thanh toán lại. Trang sẽ tự cập nhật khi có xác nhận.</div>
+        }
         else if (Model.IsExpired)
         {
             <div class="checkout-status checkout-status--expired" role="alert" style="background: #FFF1F2; border: 1px solid #FECDD3; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
@@ -105,6 +116,10 @@
                 <div class="notice error" role="alert">Thanh toán đã được xác nhận nhưng khóa học hoặc tài khoản chưa đủ điều kiện tham gia. Vui lòng liên hệ hỗ trợ kèm mã đơn hàng.</div>
             }
         }
+        else if (Model.IsVnpaySandbox && !Model.Status.HasValue && (gatewayReturned || Model.IsExpired))
+        {
+            <a class="button secondary" asp-action="History">Lịch sử giao dịch</a>
+        }
         else if (Model.IsExpired)
         {
             <div class="actions checkout-actions" style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
@@ -117,13 +132,12 @@
             <div class="actions checkout-actions" style="display: flex; gap: 12px; margin-top: 20px;">
                 @if (Model.CheckoutUrl is not null)
                 {
-                    <a class="button" style="padding: 12px 24px;" href="@Model.CheckoutUrl">Đến trang thanh toán &rarr;</a>
+                    <a class="button" style="padding: 12px 24px;" href="@Model.CheckoutUrl" data-vnpay-pay-link="@Model.IsVnpaySandbox.ToString().ToLowerInvariant()">@(Model.IsVnpaySandbox ? "Thanh toán qua VNPay Sandbox" : "Đến trang thanh toán") &rarr;</a>
                 }
                 else
                 {
                     <p class="muted">Thanh toán hiện không khả dụng.</p>
                 }
-                <a class="button secondary" asp-action="Result" asp-route-id="@Model.Id">Kiểm tra trạng thái</a>
             </div>
         }
         else if (!Model.Status.HasValue && Model.SandboxEnabled && Model.CanCheckout)
@@ -142,6 +156,13 @@
         {
             <div class="actions checkout-actions" style="margin-top: 20px;">
                 <a class="button" style="padding: 12px 24px;" asp-action="Index" asp-route-courseId="@Model.CourseId">Thử thanh toán lại &rarr;</a>
+            </div>
+        }
+        @if (Model.IsVnpaySandbox && !Model.Status.HasValue)
+        {
+            <div class="checkout-status-check">
+                <p class="muted" data-checkout-message role="status" aria-live="polite">Đang chờ xác nhận thanh toán. Trang sẽ tự cập nhật khi có kết quả.</p>
+                <a asp-action="History">Lịch sử giao dịch</a>
             </div>
         }
     </section>

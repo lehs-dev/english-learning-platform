@@ -18,6 +18,10 @@
     <header class="checkout-heading">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
             <span class="v2-pill-tag">Đăng ký khóa học</span>
+            @if (Model.PaymentProvider == "vnpay-sandbox")
+            {
+                <span class="v2-pill-tag">VNPay Sandbox · Không thu tiền thật</span>
+            }
             @if (Model.SandboxEnabled && !Model.HostedEnabled)
             {
                 <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Thử nghiệm (Sandbox)</span>

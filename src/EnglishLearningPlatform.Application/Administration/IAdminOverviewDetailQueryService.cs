@@ -19,4 +19,9 @@ public sealed record AdminCourseOverview(Guid Id, string Title, string TeacherNa
 public enum AdminCourseSort { Newest, Popular, TeacherPopular }
 
 public sealed record AdminEnrollmentOverview(Guid Id, string StudentName, string StudentEmail,
-    Guid CourseId, string CourseTitle, DateTimeOffset EnrolledAtUtc, DateTimeOffset? CompletedAtUtc);
+    Guid CourseId, string CourseTitle, DateTimeOffset EnrolledAtUtc, DateTimeOffset? CompletedAtUtc)
+{
+    public Guid? PaymentId { get; init; }
+    public Guid? OrderId { get; init; }
+    public string? PaymentProvider { get; init; }
+}
