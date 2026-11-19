@@ -1,0 +1,31 @@
+@model EnglishLearningPlatform.Application.Flashcards.FlashcardStudySheet
+@{ ViewData["Title"] = Model.Title; ViewData["ActiveSection"] = "flashcards"; }
+@section Styles { <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" /> }
+<div class="fc-heading"><div><a asp-action="Index">← Các bộ thẻ</a><h1>@Model.Title</h1><p aria-live="polite"><strong>@Model.DueCount</strong> thẻ đến hạn / @Model.TotalCards thẻ</p></div></div>
+@if (TempData["Success"] is string success) { <p class="fc-notice" role="status">@success</p> }
+@if (Model.Card is {} card)
+{
+    <div class="fc-study">
+        <p class="muted" id="flip-hint">Nhớ nghĩa của từ, rồi lật thẻ để kiểm tra.</p>
+        <button class="fc-flip" type="button" aria-expanded="false" aria-controls="card-back" aria-describedby="flip-hint" data-flashcard-flip>
+            <span class="fc-flip-inner"><span class="fc-front" data-flashcard-front><span>@card.FrontText</span><small>Lật thẻ ↻</small></span><span class="fc-back" id="card-back" aria-hidden="true"><span>@card.BackText</span>@if (!string.IsNullOrWhiteSpace(card.Pronunciation)) { <small>@card.Pronunciation</small> }@if (!string.IsNullOrWhiteSpace(card.Example)) { <small>@card.Example</small> }</span></span>
+        </button>
+        <div data-flashcard-answer hidden>
+            @if (!string.IsNullOrWhiteSpace(card.AudioResourceUrl)) { <audio controls preload="none" src="@card.AudioResourceUrl">Trình duyệt không hỗ trợ âm thanh.</audio> }
+            <p>Bạn nhớ thẻ này đến mức nào?</p>
+            <form asp-action="Review" asp-route-id="@Model.DeckId" method="post" class="fc-ratings">
+                <input type="hidden" name="flashcardId" value="@card.Id" /><input type="hidden" name="reviewRequestId" value="@Model.ReviewRequestId" />
+                <button class="button secondary" type="submit" name="rating" value="Again">Again · Chưa nhớ</button><button class="button secondary" type="submit" name="rating" value="Hard">Hard · Còn khó</button><button class="button" type="submit" name="rating" value="Good">Good · Đã nhớ</button>
+            </form>
+            <p class="muted">Chưa nhớ: ôn lại sau 10 phút. Còn khó: ngày mai. Đã nhớ: giãn dần theo số lần ôn.</p>
+        </div>
+        <noscript><p>Vui lòng bật JavaScript để lật thẻ và gửi đánh giá.</p></noscript>
+    </div>
+}
+else
+{
+    <section class="fc-panel"><h2>Bạn đã ôn hết các thẻ đến hạn</h2><p>Hãy quay lại vào lần ôn tiếp theo.</p>
+        @if (Model.NextDueAtUtc is {} next) { <p>Lần ôn tiếp theo: <strong>@TimeZoneInfo.ConvertTime(next, TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh")).ToString("HH:mm dd/MM/yyyy")</strong> (giờ Việt Nam).</p> }
+        <a class="button" asp-action="Index">Chọn bộ thẻ khác</a></section>
+}
+@section Scripts { <script src="~/js/flashcards.js" asp-append-version="true"></script> }

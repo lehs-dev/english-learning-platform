@@ -160,6 +160,11 @@ public static class DependencyInjection
         services.AddScoped<ITeacherCourseFinalService, TeacherCourseFinalService>();
         services.AddScoped<ITeacherAssessmentLifecycleService, TeacherAssessmentLifecycleService>();
         services.AddScoped<ITeacherAssessmentCloneService, TeacherAssessmentCloneService>();
+        services.AddScoped<EnglishLearningPlatform.Application.Flashcards.IFlashcardService, EnglishLearningPlatform.Infrastructure.Flashcards.FlashcardService>();
+        services.AddScoped<EnglishLearningPlatform.Application.Flashcards.ITeacherFlashcardService, EnglishLearningPlatform.Infrastructure.Flashcards.TeacherFlashcardService>();
+        services.AddScoped<EnglishLearningPlatform.Application.LearningPath.ILearningPathService, EnglishLearningPlatform.Infrastructure.LearningPath.LearningPathService>();
+        services.AddScoped<EnglishLearningPlatform.Application.Gamification.IGamificationService, EnglishLearningPlatform.Infrastructure.Gamification.GamificationService>();
+        services.AddScoped<EnglishLearningPlatform.Application.TeacherAnalytics.ITeacherAnalyticsQueryService, EnglishLearningPlatform.Infrastructure.TeacherAnalytics.TeacherAnalyticsQueryService>();
         return services;
     }
 }

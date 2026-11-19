@@ -6,6 +6,9 @@
         "learning" when string.Equals(routeAction, "Dashboard", StringComparison.OrdinalIgnoreCase) => "dashboard",
         "learning" or "courses" => "courses",
         "practice" => "practice",
+        "learningpath" => "learningpath",
+        "flashcards" => "flashcards",
+        "achievements" => "achievements",
         "assessment" => "assessment",
         "checkout" when string.Equals(routeAction, "History", StringComparison.OrdinalIgnoreCase) => "history",
         "profile" => "profile",
@@ -64,6 +67,15 @@
                        asp-controller="Assessment" asp-action="Index" aria-current="@(activeSection is "assessment" or "exams" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
                         <span>Đánh giá năng lực</span>
+                    </a>
+                    <a class="studio-nav-link @(activeSection == "learningpath" ? "is-active" : "")" asp-controller="LearningPath" asp-action="Index" aria-current="@(activeSection == "learningpath" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg><span>Lộ trình học</span>
+                    </a>
+                    <a class="studio-nav-link @(activeSection == "flashcards" ? "is-active" : "")" asp-controller="Flashcards" asp-action="Index" aria-current="@(activeSection == "flashcards" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg><span>Thẻ từ vựng</span>
+                    </a>
+                    <a class="studio-nav-link @(activeSection == "achievements" ? "is-active" : "")" asp-controller="Achievements" asp-action="Index" aria-current="@(activeSection == "achievements" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg><span>Thành tích</span>
                     </a>
                     <a class="studio-nav-link @(activeSection is "history" or "transactions" ? "is-active" : "")"
                        asp-controller="Checkout" asp-action="History" aria-current="@(activeSection is "history" or "transactions" ? "page" : null)">

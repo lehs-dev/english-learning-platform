@@ -37,6 +37,10 @@
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
 }
 
+@if (ViewData["Gamification"] is EnglishLearningPlatform.Application.Gamification.GamificationSummary achievement)
+{
+    <p class="card" style="padding:1rem"><strong>@achievement.TotalXp XP</strong> · Chuỗi học @achievement.CurrentStreak ngày · <a asp-controller="Achievements" asp-action="Index">Xem thành tích</a> · <a asp-controller="LearningPath" asp-action="Index">Lộ trình học</a></p>
+}
 <div class="dashboard-columns-grid">
     @* =========================================================================
        LEFT COLUMN (~66%): Hero Promo Banner + Your Progress + Top Recommendations

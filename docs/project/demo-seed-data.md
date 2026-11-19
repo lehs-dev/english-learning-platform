@@ -15,6 +15,28 @@ Seeder không tạo Attempt hoặc lịch sử điểm giả. Student có thể 
 
 ## Bật seed trong lần chạy local
 
+### VS Code Dev Container
+
+Mở terminal trong Dev Container. Compose đã cấu hình kết nối SQL Server tại `db,1433`. Dùng `--no-launch-profile` để giữ cấu hình đó.
+
+Nếu database local đã có tài khoản demo, chạy web và mở `http://localhost:8080`.
+
+```bash
+dotnet run --project src/EnglishLearningPlatform.Web --no-launch-profile
+```
+
+Nếu đang dùng database demo mới, nhập mật khẩu demo trong terminal khi chạy seed. Lệnh seed áp dụng migration còn thiếu, bổ sung dữ liệu rồi thoát. Chạy lại lệnh mở web ở trên sau khi seed xong.
+
+```bash
+read -rsp 'Mật khẩu demo local: ' estudy_demo_password
+printf '\n'
+LearningDemo__Password="$estudy_demo_password" \
+  dotnet run --project src/EnglishLearningPlatform.Web --no-launch-profile -- --seed-demo
+unset estudy_demo_password
+```
+
+### Windows với SQL Server cài trực tiếp
+
 Trên máy Windows dùng SQL Server local và profile `LocalSqlServer`, chạy seed một lần:
 
 ```powershell

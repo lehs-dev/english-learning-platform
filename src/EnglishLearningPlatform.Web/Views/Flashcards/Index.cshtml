@@ -1,0 +1,18 @@
+@model IReadOnlyList<EnglishLearningPlatform.Application.Flashcards.FlashcardDeckSummary>
+@{ ViewData["Title"] = "Thẻ từ vựng"; ViewData["ActiveSection"] = "flashcards"; }
+@section Styles { <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" /> }
+<div class="fc-heading"><div><h1>Thẻ từ vựng</h1><p>Ôn đúng lúc để nhớ lâu hơn. Chọn một bộ thẻ để bắt đầu.</p></div><a class="button secondary" asp-controller="LearningPath" asp-action="Index">Lộ trình học</a></div>
+@if (TempData["Error"] is string error) { <p class="fc-notice" role="alert">@error</p> }
+@if (Model.Count == 0)
+{
+    <section class="fc-panel"><h2>Chưa có bộ thẻ khả dụng</h2><p>Bộ thẻ đã xuất bản từ các khóa học bạn ghi danh sẽ xuất hiện tại đây.</p><a asp-controller="Learning" asp-action="Index" class="button">Khóa học của tôi</a></section>
+}
+else
+{
+    <div class="fc-grid">
+    @foreach (var deck in Model)
+    {
+        <article class="fc-panel"><p class="muted">@deck.CourseTitle</p><h2>@deck.Title</h2><p>@deck.Description</p><p><strong>@deck.DueCount thẻ đến hạn</strong> / @deck.CardCount thẻ</p><a class="button" asp-action="Study" asp-route-id="@deck.Id">@(deck.DueCount > 0 ? "Bắt đầu ôn tập" : "Xem lịch ôn tập")</a></article>
+    }
+    </div>
+}

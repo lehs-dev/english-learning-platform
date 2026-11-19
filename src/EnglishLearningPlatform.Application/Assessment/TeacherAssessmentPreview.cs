@@ -15,6 +15,8 @@ public sealed class TeacherAssessmentPreview
     public AssessmentType AssessmentType { get; set; }
 
     public AssessmentStatus Status { get; set; }
+    public bool CanEditConfiguration { get; set; }
+    public DateTimeOffset? UpdatedAtUtc { get; set; }
 
     public EnglishSkill? TargetSkill { get; set; }
 

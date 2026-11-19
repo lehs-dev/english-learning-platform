@@ -2,6 +2,7 @@ using System.Security.Claims;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Gamification;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Web.Models.Courses;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +12,8 @@ namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Roles = AppRoles.Student + "," + AppRoles.Teacher, Policy = AuthorizationPolicies.SingleActiveRole)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class LearningController(IStudentLearningCourseService courses, IAssessmentQueryService assessments,
-    IStudentLearningService learning, ICourseAuthoringService authoring, ICourseCatalogService catalog) : Controller
+    IStudentLearningService learning, ICourseAuthoringService authoring, ICourseCatalogService catalog,
+    IGamificationService? gamification = null) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -20,6 +22,8 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
     {
         var result = await learning.DashboardAsync(UserId, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        if (gamification is not null)
+            ViewData["Gamification"] = (await gamification.GetSummaryAsync(UserId, ct)).Value;
         if (result.Value!.Courses.Count == 0)
             ViewData["SuggestedCourses"] = (await catalog.CatalogAsync(new CatalogQuery(), ct)).Courses.Take(3).ToArray();
         return View(result.Value);

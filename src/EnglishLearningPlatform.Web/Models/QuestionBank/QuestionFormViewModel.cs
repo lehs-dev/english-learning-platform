@@ -8,6 +8,12 @@ public sealed class QuestionOptionFormModel
     public string? Content { get; set; }
 }
 
+public sealed class QuestionStructuredItemFormModel
+{
+    public string? Text { get; set; }
+    public string? MatchText { get; set; }
+}
+
 public sealed class StimulusOptionViewModel
 {
     public Guid Id { get; init; }
@@ -20,6 +26,9 @@ public sealed class StimulusOptionViewModel
 
 public sealed class QuestionFormViewModel
 {
+    public QuestionType QuestionType { get; set; } = QuestionType.MultipleChoice;
+    public List<string> AcceptedAnswers { get; set; } = [string.Empty];
+    public List<QuestionStructuredItemFormModel> StructuredItems { get; set; } = [new(), new()];
     public Guid? Id { get; set; }
     public string? Content { get; set; }
     public EnglishSkill? PrimarySkill { get; set; }

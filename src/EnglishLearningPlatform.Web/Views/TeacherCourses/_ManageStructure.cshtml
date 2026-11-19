@@ -1,77 +1,161 @@
 @model AuthoringModel
-@{ var coursePage = Model.Page; var courseId = coursePage.Course.Id; }
-<section class="course-manage-card course-structure" aria-labelledby="course-structure-heading">
-    <div class="course-structure-heading">
-        <div class="course-manage-card-heading"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg><div><h2 id="course-structure-heading">Cấu trúc và nội dung</h2><p>Sắp xếp chương học, bài học và nội dung của khóa học.</p></div></div>
-        <a class="button small" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId"><span class="course-manage-plus" aria-hidden="true">+</span>Thêm chương học</a>
-    </div>
-    @if (coursePage.Modules.Count == 0)
-    {
-        <div class="course-structure-empty">
-            <img src="~/images/course-content-empty.svg" alt="" width="260" height="180" />
-            <h3>Bắt đầu xây dựng khóa học</h3>
-            <p>Tạo chương học đầu tiên, sau đó thêm bài học và nội dung để học viên bắt đầu học.</p>
-            <a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId"><span class="course-manage-plus" aria-hidden="true">+</span>Tạo chương học đầu tiên</a>
+@{
+    var courseId = Model.Page.Course.Id;
+    var modules = Model.Page.Modules;
+    var module = Model.LessonId is { } targetLesson
+        ? modules.FirstOrDefault(item => item.Lessons.Any(lesson => lesson.Id == targetLesson))
+        : null;
+    module ??= modules.FirstOrDefault(item => item.Id == Model.ModuleId) ?? modules.FirstOrDefault();
+    var lesson = module?.Lessons.FirstOrDefault(item => item.Id == Model.LessonId);
+    var resourceItems = lesson is null ? [] : Model.Resources.GetValueOrDefault(lesson.Id) ?? [];
+}
+<div class="curriculum-workspace">
+    <aside class="curriculum-sidebar" aria-labelledby="curriculum-title">
+        <div class="curriculum-sidebar-heading">
+            <h2 id="curriculum-title">Cấu trúc khóa học</h2>
+            <a class="button secondary small" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId">+ Thêm chương</a>
         </div>
-        <ol class="course-structure-steps" aria-label="Cấu trúc nội dung khóa học">
-            <li><span><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg></span><div><strong>Chương học</strong><small>Nhóm bài học theo chủ đề</small></div></li>
-            <li><span><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span><div><strong>Bài học</strong><small>Soạn nội dung bài học</small></div></li>
-            <li><span><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#paperclip")"></use></svg></span><div><strong>Nội dung</strong><small>Bài đọc, liên kết, âm thanh, video</small></div></li>
-        </ol>
-    }
-    @for (var mi = 0; mi < coursePage.Modules.Count; mi++)
-    {
-        var module = coursePage.Modules[mi];
-        <details class="course-module module-panel" open>
-            <summary class="course-module-summary"><span class="course-module-number">@((mi + 1).ToString("00"))</span><div><h3>@module.Title</h3><p>@module.Lessons.Count bài học <span aria-hidden="true">·</span> <partial name="_UiText" model="module.Visibility" /></p></div><svg class="icon course-module-chevron" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chevron-down")"></use></svg></summary>
-            <div class="course-module-body">
-                @if (!string.IsNullOrWhiteSpace(module.Description)) { <p class="course-module-description preserve">@module.Description</p> }
-                <div class="course-module-toolbar">
-                    <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id"><span aria-hidden="true">+</span>Thêm bài học</a>
-                    <a class="course-manage-text-action" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId" asp-route-id="@module.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>Sửa chương học</a>
-                    <div class="course-manage-order" role="group" aria-label="Sắp xếp chương @module.Title"><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Module, courseId, coursePage.Modules.Select(m => m.Id).ToArray(), mi)" /></div>
-                </div>
-                <a class="course-manage-practice-link" asp-controller="TeacherPractices" asp-action="Create" asp-route-courseId="@courseId" asp-route-moduleId="@module.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>Tạo bài luyện tập cho chương</a>
-                @if (module.Lessons.Count == 0) { <p class="course-content-empty-note">Chương học chưa có bài học. Chọn “Thêm bài học” để bắt đầu.</p> }
-                @for (var li = 0; li < module.Lessons.Count; li++)
+        <nav class="curriculum-tree" aria-label="Chương và bài học">
+            <ul>
+                @foreach (var item in modules)
                 {
-                    var lesson = module.Lessons[li];
-                    var resources = Model.Resources.GetValueOrDefault(lesson.Id) ?? [];
-                    <section class="course-lesson lesson-editor" aria-labelledby="lesson-heading-@lesson.Id">
-                        <div class="course-lesson-heading"><span class="course-lesson-number">@(mi + 1).@(li + 1)</span><div><h4 id="lesson-heading-@lesson.Id">@lesson.Title</h4><p><span class="course-manage-badge status-@lesson.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="lesson.Status" /></span><span>@resources.Count mục nội dung</span></p></div></div>
-                        <div class="course-lesson-toolbar">
-                            <a class="course-manage-text-action" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem trước</a>
-                            <a class="course-manage-text-action" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id" asp-route-id="@lesson.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>Sửa bài học</a>
-                            <div class="course-manage-order" role="group" aria-label="Sắp xếp bài học @lesson.Title"><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Lesson, module.Id, module.Lessons.Select(l => l.Id).ToArray(), li)" /></div>
-                        </div>
-                        @if (resources.Count == 0) { <p class="course-content-empty-note">Bài học chưa có nội dung. Thêm nội dung trước khi xuất bản bài học.</p> }
-                        @for (var ri = 0; ri < resources.Count; ri++)
+                    var isSelectedModule = item.Id == module?.Id && Model.Editor is not { Kind: ContentKind.Module, Id: null };
+                    <li>
+                        <a class="curriculum-link curriculum-module-link @(isSelectedModule ? "is-expanded" : "")" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@courseId" asp-route-moduleId="@item.Id" aria-current="@(isSelectedModule && lesson is null ? "page" : null)">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg>
+                            <span>@item.Title</span><small aria-label="@item.Lessons.Count bài học">@item.Lessons.Count</small>
+                        </a>
+                        @if (isSelectedModule && item.Lessons.Count > 0)
                         {
-                            var resource = resources[ri];
-                            var resourceTitle = string.IsNullOrWhiteSpace(resource.Title) ? "Nội dung chưa có tiêu đề" : resource.Title;
-                            var resourceIcon = resource.Type == LessonResourceType.Audio ? "headphones" : resource.Type == LessonResourceType.Text ? "book" : "paperclip";
-                            var isLastPublishedResource = lesson.Status == LessonStatus.Published && resources.Count == 1;
-                            <div class="course-resource resource-row">
-                                <div class="course-resource-info"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#" + resourceIcon)"></use></svg><div><strong>@resourceTitle</strong><span><partial name="_UiText" model="resource.Type" /></span></div></div>
-                                <div class="course-resource-actions">
-                                    <a class="course-manage-text-action" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id" asp-route-id="@resource.Id" aria-label="Sửa nội dung @resourceTitle">Sửa</a>
-                                    <div class="course-manage-order" role="group" aria-label="Sắp xếp nội dung @resourceTitle"><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Resource, lesson.Id, resources.Select(r => r.Id).ToArray(), ri)" /></div>
-                                    <form method="post" asp-controller="TeacherCourses" asp-action="DeleteResource" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id" asp-route-id="@resource.Id"><button class="button small danger" type="submit" disabled="@isLastPublishedResource" aria-describedby="@(isLastPublishedResource ? "resource-lock-" + lesson.Id : null)" title="@(isLastPublishedResource ? "Chuyển bài học về bản nháp hoặc ẩn trước khi xóa nội dung cuối cùng." : "Xóa nội dung khỏi bài học")">Xóa nội dung</button></form>
-                                </div>
-                            </div>
+                            <ul>
+                                @foreach (var itemLesson in item.Lessons)
+                                {
+                                    <li><a class="curriculum-link" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@courseId" asp-route-moduleId="@item.Id" asp-route-lessonId="@itemLesson.Id" aria-current="@(itemLesson.Id == lesson?.Id ? "page" : null)">
+                                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg><span>@itemLesson.Title</span>
+                                    </a></li>
+                                }
+                            </ul>
                         }
-                        @if (lesson.Status == LessonStatus.Published && resources.Count == 1)
-                        {
-                            <p class="course-resource-protection" id="resource-lock-@lesson.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg>Chuyển bài học về bản nháp hoặc ẩn trước khi xóa nội dung cuối cùng.</p>
-                        }
-                        <div class="course-lesson-footer">
-                            <a class="button small secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id"><span aria-hidden="true">+</span>Thêm nội dung</a>
-                            @* A practice belongs to a module OR a lesson, so preserve the single parent parameter. *@
-                            <a class="course-manage-practice-link" asp-controller="TeacherPractices" asp-action="Create" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id">Tạo bài luyện tập cho bài học</a>
-                        </div>
-                    </section>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </aside>
+
+    <section class="curriculum-pane" aria-labelledby="curriculum-item-title">
+        @if (Model.Editor is { } editor)
+        {
+            <partial name="~/Views/TeacherCourses/_ContentForm.cshtml" model="editor" />
+        }
+        else if (module is null)
+        {
+            <div class="curriculum-pane-heading">
+                <h2 id="curriculum-item-title">Chưa có chương học</h2>
+                <p>Thêm chương đầu tiên để bắt đầu tạo bài học.</p>
+            </div>
+            <div class="curriculum-toolbar">
+                <a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId">+ Tạo chương học</a>
+            </div>
+        }
+        else if (lesson is null)
+        {
+            var moduleIds = modules.Select(item => item.Id).ToArray();
+            var lessonIds = module.Lessons.Select(item => item.Id).ToArray();
+            <div class="curriculum-pane-heading">
+                <div class="workspace-meta"><span>Chương học</span><span class="workspace-status status-@module.Visibility.ToString().ToLowerInvariant()"><partial name="_UiText" model="module.Visibility" /></span></div>
+                <h2 id="curriculum-item-title">@module.Title</h2>
+                @if (!string.IsNullOrWhiteSpace(module.Description)) { <p class="preserve">@module.Description</p> }
+            </div>
+            <div class="curriculum-toolbar" aria-label="Thao tác chương học">
+                <a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id">+ Thêm bài học</a>
+                <a class="button secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Module" asp-route-parentId="@courseId" asp-route-id="@module.Id">Sửa chương</a>
+                <a class="button secondary" asp-controller="TeacherPractices" asp-action="Create" asp-route-courseId="@courseId" asp-route-moduleId="@module.Id">Tạo bài luyện tập</a>
+                @if (moduleIds.Length > 1)
+                {
+                    <div class="workspace-actions curriculum-order" role="group" aria-label="Sắp xếp chương">
+                        <partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Module, courseId, moduleIds, Array.IndexOf(moduleIds, module.Id), ModuleId: module.Id)" />
+                    </div>
                 }
             </div>
-        </details>
-    }
-</section>
+            @if (module.Lessons.Count == 0)
+            {
+                <p class="curriculum-empty">Chương này chưa có bài học.</p>
+            }
+            else
+            {
+                <div class="table-scroll">
+                    <table class="workspace-table">
+                        <caption class="visually-hidden">Bài học trong chương @module.Title</caption>
+                        <thead><tr><th scope="col">Bài học</th><th scope="col">Trạng thái</th><th scope="col">Nội dung</th><th scope="col">Thứ tự</th></tr></thead>
+                        <tbody>
+                            @for (var index = 0; index < module.Lessons.Count; index++)
+                            {
+                                var item = module.Lessons[index];
+                                <tr>
+                                    <th scope="row"><a asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@courseId" asp-route-moduleId="@module.Id" asp-route-lessonId="@item.Id">@item.Title</a></th>
+                                    <td><span class="workspace-status status-@item.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="item.Status" /></span></td>
+                                    <td>@(Model.Resources.GetValueOrDefault(item.Id)?.Count ?? 0)</td>
+                                    <td><div class="workspace-actions curriculum-order" role="group" aria-label="Sắp xếp bài học @item.Title"><partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Lesson, module.Id, lessonIds, index, ModuleId: module.Id)" /></div></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+        else
+        {
+            var resourceIds = resourceItems.Select(item => item.Id).ToArray();
+            <div class="curriculum-pane-heading">
+                <div class="workspace-meta">
+                    <a asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@courseId" asp-route-moduleId="@module.Id">@module.Title</a>
+                    <span class="workspace-status status-@lesson.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="lesson.Status" /></span>
+                </div>
+                <h2 id="curriculum-item-title">@lesson.Title</h2>
+            </div>
+            <div class="curriculum-toolbar" aria-label="Thao tác bài học">
+                <a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id">+ Thêm nội dung</a>
+                <a class="button secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id" asp-route-id="@lesson.Id">Sửa bài học</a>
+                <a class="button secondary" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">Xem trước</a>
+                <a class="button secondary" asp-controller="TeacherPractices" asp-action="Create" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id">Tạo bài luyện tập</a>
+            </div>
+            @if (resourceItems.Count == 0)
+            {
+                <p class="curriculum-empty">Thêm nội dung (văn bản, liên kết, âm thanh hoặc video) để có thể xuất bản bài học.</p>
+            }
+            else
+            {
+                var protectedResource = lesson.Status == LessonStatus.Published && resourceItems.Count == 1;
+                <div class="table-scroll">
+                    <table class="workspace-table">
+                        <caption class="visually-hidden">Nội dung bài học @lesson.Title</caption>
+                        <thead><tr><th scope="col">Nội dung</th><th scope="col">Loại</th><th scope="col">Thao tác</th></tr></thead>
+                        <tbody>
+                            @for (var index = 0; index < resourceItems.Count; index++)
+                            {
+                                var item = resourceItems[index];
+                                var title = string.IsNullOrWhiteSpace(item.Title) ? "Nội dung chưa có tiêu đề" : item.Title;
+                                <tr>
+                                    <th scope="row"><a asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id" asp-route-id="@item.Id">@title</a></th>
+                                    <td><partial name="_UiText" model="item.Type" /></td>
+                                    <td>
+                                        <div class="workspace-actions curriculum-order" role="group" aria-label="Thao tác với @title">
+                                            <partial name="_OrderButtons" model="new OrderButtonsModel(courseId, ContentKind.Resource, lesson.Id, resourceIds, index, LessonId: lesson.Id)" />
+                                            <form method="post" asp-controller="TeacherCourses" asp-action="DeleteResource" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id" asp-route-id="@item.Id">
+                                                <button class="button small danger" type="submit" disabled="@protectedResource" aria-describedby="@(protectedResource ? "resource-lock" : null)">Xóa nội dung</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (protectedResource)
+                {
+                    <p class="curriculum-empty" id="resource-lock">Chuyển bài học về bản nháp hoặc ẩn trước khi xóa nội dung cuối cùng.</p>
+                }
+            }
+        }
+    </section>
+</div>

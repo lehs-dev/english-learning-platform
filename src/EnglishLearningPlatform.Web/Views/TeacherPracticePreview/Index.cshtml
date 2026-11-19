@@ -15,6 +15,10 @@
     <div><h1>@Model.Title</h1><p>Xem nội dung bài luyện tập dưới góc nhìn của học viên.</p></div>
     <a class="button secondary" asp-controller="TeacherPracticeQuestions" asp-action="Index" asp-route-id="@Model.PracticeId">Về trang soạn câu hỏi</a>
 </div>
+
+@section Scripts {
+    <script src="~/js/structured-answer.js" asp-append-version="true" defer></script>
+}
 <p class="practice-inline-note" role="status">Bạn đang xem bản đã lưu. Có thể thử chọn đáp án; lựa chọn chỉ hiển thị trong bản xem trước.</p>
 <section class="practice-preview-header">
     <div class="practice-card-heading"><h2>Thông tin bài luyện tập</h2><span class="practice-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span></div>
@@ -57,6 +61,16 @@
                 </div>
             }
             @* Không nằm trong form và không có script Submit: lựa chọn chỉ tồn tại trên trang. *@
+            @if (question.QuestionType == QuestionType.FillBlank)
+            {
+                <label for="preview-blank-@i">Câu trả lời của bạn</label>
+                <input id="preview-blank-@i" type="text" class="form-control" maxlength="500" autocomplete="off" />
+            }
+            else if (question.StructuredPrompt is { } prompt)
+            {
+                <partial name="_StructuredQuestion" model="@(new EnglishLearningPlatform.Web.Models.StructuredQuestionInputModel(
+                    $"preview-structured-{i}", "", question.QuestionType, prompt, Preview: true))" />
+            }
             <div class="exam-options-list">
                 @for (int optionIndex = 0; optionIndex < question.Options.Count; optionIndex++)
                 {

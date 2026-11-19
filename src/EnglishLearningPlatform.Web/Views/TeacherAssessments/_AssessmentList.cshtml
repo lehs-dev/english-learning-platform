@@ -1,0 +1,67 @@
+@model IReadOnlyList<EnglishLearningPlatform.Application.Assessment.TeacherAssessmentListItem>
+@{
+    var courseId = ViewData["AssessmentCourseId"] as Guid?;
+}
+<div class="workspace-list">
+    <div class="workspace-list-heading assessment-list-row" aria-hidden="true">
+        <span>Bài kiểm tra</span><span>Trạng thái</span><span>Cấu hình</span><span>Thao tác</span>
+    </div>
+    @foreach (var item in Model)
+    {
+        var canPreview = item.Status is AssessmentStatus.Draft or AssessmentStatus.Published;
+        var titleController = item.CanEditConfiguration ? "TeacherAssessments" : canPreview ? "TeacherAssessmentPreview" : "TeacherAssessmentScope";
+        var titleAction = !item.CanEditConfiguration && canPreview ? "Index" : "Edit";
+        <article class="assessment-list-row workspace-list-row" data-assessment-card aria-labelledby="assessment-title-@item.Id">
+            <div class="workspace-list-name">
+                <h2 id="assessment-title-@item.Id"><a asp-controller="@titleController" asp-action="@titleAction" asp-route-id="@item.Id">@item.Title</a></h2>
+                <p><partial name="_UiText" model="item.AssessmentType" />@if (!courseId.HasValue) { <text> · @(item.CourseId.HasValue ? item.CourseTitle ?? "Khóa học không khả dụng" : "Bài độc lập")</text> }</p>
+            </div>
+            <div>
+                <span class="workspace-status status-@item.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="item.Status" /></span>
+                @if (!item.CanEditConfiguration) { <p class="workspace-list-secondary">Nội dung đã khóa</p> }
+            </div>
+            <div class="workspace-list-secondary">
+                <p>@item.QuestionCount câu · @item.DurationMinutes phút</p>
+                <p>@item.MaxAttempts lượt · Điểm đạt @(item.PassingScore.HasValue ? item.PassingScore.Value.ToString("0.##") + "%" : "không áp dụng")</p>
+            </div>
+            <div class="workspace-actions assessment-row-actions" role="group" aria-label="Thao tác với @item.Title">
+                @if (item.CanEditConfiguration)
+                {
+                    <a class="button small secondary" asp-controller="TeacherAssessmentQuestions" asp-action="Index" asp-route-id="@item.Id">Soạn câu hỏi</a>
+                }
+                @if (canPreview)
+                {
+                    <a class="button small secondary" asp-controller="TeacherAssessmentPreview" asp-action="Index" asp-route-id="@item.Id">Xem trước</a>
+                }
+                <details class="ta-more-actions">
+                    <summary aria-label="Thao tác khác với @item.Title"><span aria-hidden="true">•••</span></summary>
+                    <div class="ta-action-menu">
+                        @if (item.CanEditConfiguration)
+                        {
+                            <a asp-controller="TeacherAssessments" asp-action="Edit" asp-route-id="@item.Id">Sửa cấu hình</a>
+                        }
+                        <a asp-controller="TeacherAssessmentScope" asp-action="Edit" asp-route-id="@item.Id">Phạm vi truy cập</a>
+                        <form method="post" asp-controller="TeacherAssessmentClone" asp-action="Create" asp-route-id="@item.Id" asp-route-returnCourseId="@courseId">
+                            <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
+                            <button type="submit">Tạo bản sao nháp</button>
+                        </form>
+                        @if (item.Status == AssessmentStatus.Published)
+                        {
+                            <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Unpublish" asp-route-id="@item.Id" asp-route-returnCourseId="@courseId">
+                                <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
+                                <button type="submit">Tạm đóng bài kiểm tra</button>
+                            </form>
+                        }
+                        @if (item.Status is AssessmentStatus.Published or AssessmentStatus.Unpublished)
+                        {
+                            <form method="post" asp-controller="TeacherAssessmentLifecycle" asp-action="Archive" asp-route-id="@item.Id" asp-route-returnCourseId="@courseId">
+                                <input type="hidden" name="expectedUpdatedAtUtc" value="@(item.UpdatedAtUtc?.ToString("O"))" />
+                                <button type="submit" class="ta-danger-action">Lưu trữ đề</button>
+                            </form>
+                        }
+                    </div>
+                </details>
+            </div>
+        </article>
+    }
+</div>

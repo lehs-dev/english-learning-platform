@@ -79,10 +79,14 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         using var client = await ClientAsync(student);
         using var otherClient = await ClientAsync(other);
-        var path = ProfileAvatarStore.PathFor(factory.Services.GetRequiredService<IWebHostEnvironment>(), student.Id);
+        var environment = factory.Services.GetRequiredService<IWebHostEnvironment>();
+        var originalContentRoot = environment.ContentRootPath;
+        var avatarTestRoot = Directory.CreateTempSubdirectory("ELP_AvatarTests_").FullName;
         var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/aMcAAAAASUVORK5CYII=");
         try
         {
+            // This class's tests share a sequential factory; only this test redirects private file storage.
+            environment.ContentRootPath = avatarTestRoot;
             var token = await IdentityTestHelpers.GetTokenAsync(client, "/Profile");
             using var form = new MultipartFormDataContent();
             form.Add(new StringContent(token), "__RequestVerificationToken");
@@ -102,7 +106,11 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
             Assert.Equal(HttpStatusCode.Redirect, (await client.PostAsync("/Profile/Avatar", invalid)).StatusCode);
             Assert.Equal(png, await client.GetByteArrayAsync("/Profile/AvatarImage"));
         }
-        finally { if (File.Exists(path)) File.Delete(path); }
+        finally
+        {
+            environment.ContentRootPath = originalContentRoot;
+            Directory.Delete(avatarTestRoot, recursive: true);
+        }
     }
 
     [Fact]
@@ -1205,7 +1213,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Equal(100m, latest.Score);
         Assert.Equal(3, latest.Answers.Count);
         Assert.Equal(questions.Select(q => q.Question.Options.Single(o => o.IsCorrect).Id).OrderBy(id => id),
-            latest.Answers.Select(a => a.SelectedOptionId).OrderBy(id => id));
+            latest.Answers.Select(a => a.SelectedOptionId!.Value).OrderBy(id => id));
     }
 
 

@@ -367,6 +367,17 @@
 .question-lock-note p { margin: 0; font-size: 13px; line-height: 1.65; }
 .question-lock-note .question-lock-reason { margin-top: 10px; font-size: 12px; }
 
+.question-structured-items { display: grid; gap: 12px; margin-block: 12px; }
+.question-structured-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.question-structured-row.is-matching { grid-template-columns: repeat(2, minmax(0, 1fr)) auto; }
+.question-structured-row label { display: block; margin-bottom: 4px; }
+
+@media (max-width: 680px) {
+    .question-structured-row,
+    .question-structured-row.is-matching { grid-template-columns: minmax(0, 1fr); }
+    .question-structured-row button { justify-self: start; }
+}
+
 @media (max-width: 1100px) {
     .question-edit-page .question-editor-heading .actions { flex-wrap: wrap; }
     .question-locked-content .question-section-heading { gap: 10px; }

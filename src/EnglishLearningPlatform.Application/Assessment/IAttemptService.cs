@@ -25,4 +25,10 @@ public interface IAttemptService
     Guid assessmentQuestionId,
     Guid? selectedOptionId,
     CancellationToken ct = default);
+
+    Task<AttemptSaveStatus> SaveResponsesAsync(
+        Guid studentId,
+        Guid attemptId,
+        IReadOnlyList<AssessmentResponse> responses,
+        CancellationToken ct = default);
 }

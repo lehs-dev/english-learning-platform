@@ -9,6 +9,9 @@ public sealed class PracticeAnswerConfiguration : IEntityTypeConfiguration<Pract
     public void Configure(EntityTypeBuilder<PracticeAnswer> e)
     {
         e.ToTable("PracticeAnswers");
+        e.Property(x => x.SelectedOptionId).IsRequired(false);
+        e.Property(x => x.TextAnswer).HasMaxLength(500);
+        e.Property(x => x.StructuredAnswerJson);
         e.HasIndex(x => new { x.PracticeSubmissionId, x.PracticeQuestionId })
             .IsUnique();
         e.HasOne(x => x.PracticeSubmission)

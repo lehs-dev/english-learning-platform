@@ -39,9 +39,17 @@ public sealed class PracticeVersionMigrationTests : IAsyncLifetime
         var option = new QuestionOption { Question = question, Content = "Original answer", IsCorrect = true };
         db.Users.AddRange(teacher, student);
         db.Modules.Add(module);
-        db.QuestionOptions.Add(option);
-        db.QuestionOptions.Add(new QuestionOption { Question = question, Content = "Wrong", OrderIndex = 1 });
         await db.SaveChangesAsync();
+        var wrong = new QuestionOption { QuestionId = question.Id, Content = "Wrong", OrderIndex = 1 };
+        // The current EF Question mapping includes QuestionType, which this old schema does not have.
+        // Seed options with SQL too: the current immutability guard reads their parent through that mapping.
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO dbo.Questions (Id, OwnerTeacherUserId, Content, PrimarySkill, Status, CreatedAtUtc)
+            VALUES ({question.Id}, {teacher.Id}, {question.Content}, N'Reading', N'Draft', {question.CreatedAtUtc});
+            INSERT INTO dbo.QuestionOptions (Id, QuestionId, Content, OrderIndex, IsCorrect, CreatedAtUtc)
+            VALUES ({option.Id}, {question.Id}, {option.Content}, 0, 1, {option.CreatedAtUtc}),
+                   ({wrong.Id}, {question.Id}, {wrong.Content}, 1, 0, {wrong.CreatedAtUtc});
+            """);
         Guid practiceId = Guid.NewGuid(), linkId = Guid.NewGuid(), submissionId = Guid.NewGuid(), answerId = Guid.NewGuid();
         var submittedAt = new DateTimeOffset(2026, 10, 1, 0, 0, 0, TimeSpan.Zero);
         // Chưa có cột Version: seed đúng cấu trúc trước khi nâng cấp.

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Domain.Enums;
@@ -9,7 +10,8 @@ namespace EnglishLearningPlatform.Web.Controllers;
 
 [Authorize(Policy = AuthorizationPolicies.Teacher)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class TeacherCoursesController(ICourseAuthoringService courses, ITeacherCourseReportService reports, IStudentLearningCourseService learning) : Controller
+public sealed class TeacherCoursesController(ICourseAuthoringService courses, ITeacherCourseReportService reports,
+    IStudentLearningCourseService learning, ITeacherAssessmentDraftService assessments) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -52,22 +54,33 @@ public sealed class TeacherCoursesController(ICourseAuthoringService courses, IT
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         if (!result.Success) { AddErrors(result); return View(new CourseEditModel(id, input)); }
         TempData["Success"] = "Đã lưu khóa học.";
-        return RedirectToAction(nameof(Manage), new { id = result.Id });
+        return RedirectToAction(id.HasValue ? nameof(Edit) : nameof(Manage), new { id = result.Id });
     }
     [HttpGet]
-    public async Task<IActionResult> Manage(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Manage(Guid id, CancellationToken ct, string? tab = null, Guid? moduleId = null, Guid? lessonId = null)
     {
+        tab = tab is "assessments" or "publishing" ? tab : "content";
         var page = await learning.OpenCourseAsync(UserId, id, true, ct);
         if (page.Access != LearningAccessResult.Allowed) return Denied(page.Access);
-        var resources = await courses.AuthoringResourcesAsync(UserId, id, ct);
-        if (resources.Access != LearningAccessResult.Allowed) return Denied(resources.Access);
-        return View(new AuthoringModel(page.Value!, resources.Value!));
+
+        if (tab == "content") return await RenderContentAsync(page.Value!, moduleId, lessonId, null, ct);
+
+        var model = new AuthoringModel(page.Value!, new Dictionary<Guid, IReadOnlyList<ResourceContent>>()) { Tab = tab };
+        if (tab == "assessments")
+        {
+            var result = await assessments.GetListAsync(UserId, ct, courseId: id);
+            if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+            model = model with { Assessments = result.Value! };
+        }
+        return View(model);
     }
     [HttpGet]
     public async Task<IActionResult> Content(Guid courseId, ContentKind kind, Guid parentId, Guid? id, CancellationToken ct)
     {
         var result = await courses.ContentInputAsync(UserId, courseId, kind, parentId, id, ct);
-        return result.Access == LearningAccessResult.Allowed ? View(new ContentEditModel(courseId, kind, parentId, id, result.Value!)) : Denied(result.Access);
+        return result.Access == LearningAccessResult.Allowed
+            ? await RenderContentEditorAsync(new ContentEditModel(courseId, kind, parentId, id, result.Value!), ct)
+            : Denied(result.Access);
     }
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Content(Guid courseId, ContentKind kind, Guid parentId, Guid? id,
@@ -86,31 +99,72 @@ public sealed class TeacherCoursesController(ICourseAuthoringService courses, IT
         if (!ModelState.IsValid)
         {
             var check = await courses.ContentInputAsync(UserId, courseId, kind, parentId, id, ct);
-            return check.Access == LearningAccessResult.Allowed ? View(new ContentEditModel(courseId, kind, parentId, id, input)) : Denied(check.Access);
+            return check.Access == LearningAccessResult.Allowed
+                ? await RenderContentEditorAsync(new ContentEditModel(courseId, kind, parentId, id, input), ct)
+                : Denied(check.Access);
         }
         var result = await courses.SaveContentAsync(UserId, courseId, kind, parentId, id, input, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
-        if (!result.Success) { AddErrors(result); return View(new ContentEditModel(courseId, kind, parentId, id, input)); }
+        if (!result.Success)
+        {
+            AddErrors(result);
+            return await RenderContentEditorAsync(new ContentEditModel(courseId, kind, parentId, id, input), ct);
+        }
         TempData["Success"] = "Đã lưu nội dung.";
-        return RedirectToAction(nameof(Manage), new { id = courseId });
+        return kind switch
+        {
+            ContentKind.Module => RedirectToAction(nameof(Manage), new { id = courseId, moduleId = result.Id }),
+            ContentKind.Lesson => RedirectToAction(nameof(Manage), new { id = courseId, moduleId = parentId, lessonId = result.Id }),
+            _ => RedirectToAction(nameof(Manage), new { id = courseId, lessonId = parentId })
+        };
+    }
+
+    private async Task<IActionResult> RenderContentEditorAsync(ContentEditModel editor, CancellationToken ct)
+    {
+        var page = await learning.OpenCourseAsync(UserId, editor.CourseId, true, ct);
+        if (page.Access != LearningAccessResult.Allowed) return Denied(page.Access);
+        var moduleId = editor.Kind switch
+        {
+            ContentKind.Module => editor.Id,
+            ContentKind.Lesson => editor.ParentId,
+            _ => null
+        };
+        var lessonId = editor.Kind == ContentKind.Resource ? editor.ParentId
+            : editor.Kind == ContentKind.Lesson ? editor.Id : null;
+        return await RenderContentAsync(page.Value!, moduleId, lessonId, editor, ct);
+    }
+
+    private async Task<IActionResult> RenderContentAsync(CoursePage page, Guid? moduleId, Guid? lessonId,
+        ContentEditModel? editor, CancellationToken ct)
+    {
+        var resources = await courses.AuthoringResourcesAsync(UserId, page.Course.Id, ct);
+        if (resources.Access != LearningAccessResult.Allowed) return Denied(resources.Access);
+        return View(nameof(Manage), new AuthoringModel(page, resources.Value!)
+        {
+            ModuleId = moduleId,
+            LessonId = lessonId,
+            Editor = editor
+        });
     }
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteResource(Guid courseId, Guid lessonId, Guid id, CancellationToken ct) =>
-        Mutation(await courses.DeleteResourceAsync(UserId, courseId, lessonId, id, ct), courseId);
+        Mutation(await courses.DeleteResourceAsync(UserId, courseId, lessonId, id, ct), courseId, lessonId: lessonId);
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Reorder(Guid courseId, ContentKind kind, Guid parentId, Guid[] ids, CancellationToken ct) =>
-        !ModelState.IsValid ? BadRequest() : Mutation(await courses.ReorderAsync(UserId, courseId, kind, parentId, ids, ct), courseId);
+    public async Task<IActionResult> Reorder(Guid courseId, ContentKind kind, Guid parentId, Guid[] ids,
+        CancellationToken ct, Guid? moduleId = null, Guid? lessonId = null) =>
+        !ModelState.IsValid ? BadRequest() : Mutation(await courses.ReorderAsync(UserId, courseId, kind, parentId, ids, ct),
+            courseId, moduleId: moduleId, lessonId: lessonId);
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Publish(Guid id, CancellationToken ct) => Mutation(await courses.ChangeStatusAsync(UserId, id, CourseStatus.Published, ct), id);
+    public async Task<IActionResult> Publish(Guid id, CancellationToken ct) => Mutation(await courses.ChangeStatusAsync(UserId, id, CourseStatus.Published, ct), id, "publishing");
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Unpublish(Guid id, CancellationToken ct) => Mutation(await courses.ChangeStatusAsync(UserId, id, CourseStatus.Unpublished, ct), id);
+    public async Task<IActionResult> Unpublish(Guid id, CancellationToken ct) => Mutation(await courses.ChangeStatusAsync(UserId, id, CourseStatus.Unpublished, ct), id, "publishing");
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Archive(Guid id, CancellationToken ct) => Mutation(await courses.ChangeStatusAsync(UserId, id, CourseStatus.Archived, ct), id);
-    private IActionResult Mutation(WriteOutcome result, Guid id)
+    public async Task<IActionResult> Archive(Guid id, CancellationToken ct) => Mutation(await courses.ChangeStatusAsync(UserId, id, CourseStatus.Archived, ct), id, "publishing");
+    private IActionResult Mutation(WriteOutcome result, Guid id, string? tab = null, Guid? moduleId = null, Guid? lessonId = null)
     {
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         TempData[result.Success ? "Success" : "Error"] = result.Success ? "Đã cập nhật khóa học." : string.Join("\n", result.Errors.Values.SelectMany(e => e));
-        return RedirectToAction(nameof(Manage), new { id });
+        return RedirectToAction(nameof(Manage), new { id, tab, moduleId, lessonId });
     }
     private void AddErrors(WriteOutcome result)
     {

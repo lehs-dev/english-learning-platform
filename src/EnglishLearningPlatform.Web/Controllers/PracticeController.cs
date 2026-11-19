@@ -33,7 +33,8 @@ public sealed class PracticeController(IPracticeService practices, IStudentLearn
     public async Task<IActionResult> Submit(Guid id, PracticeSubmissionInput input, CancellationToken ct)
     {
         if (!ModelState.IsValid || id == Guid.Empty || input.Answers is null) return BadRequest();
-        var answers = input.Answers.Select(a => new PracticeResponse(a.PracticeQuestionId, a.SelectedOptionId)).ToList();
+        var answers = input.Answers.Select(a => new PracticeResponse(a.PracticeQuestionId, a.SelectedOptionId,
+            a.TextAnswer, a.StructuredAnswerJson)).ToList();
         // Phiên do server cấp, không nhận version tùy ý từ browser.
         var result = input.SessionId.HasValue
             ? await practices.SubmitSessionAsync(StudentId, id, input.SessionId.Value, answers, ct)

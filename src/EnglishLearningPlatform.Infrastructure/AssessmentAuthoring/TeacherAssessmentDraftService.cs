@@ -58,7 +58,8 @@ public sealed class TeacherAssessmentDraftService
         LearningOutcome<IReadOnlyList<TeacherAssessmentListItem>>>
         GetListAsync(
             Guid actorUserId,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            Guid? courseId = null)
     {
         if (!await IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
@@ -69,7 +70,8 @@ public sealed class TeacherAssessmentDraftService
         var items = await _db.Assessments
             .AsNoTracking()
             .Where(assessment =>
-                assessment.OwnerTeacherUserId == actorUserId)
+                assessment.OwnerTeacherUserId == actorUserId
+                && (!courseId.HasValue || assessment.CourseId == courseId))
             .OrderByDescending(assessment => assessment.CreatedAtUtc)
             .ThenByDescending(assessment => assessment.Id)
             .Select(assessment => new TeacherAssessmentListItem
@@ -180,6 +182,7 @@ public sealed class TeacherAssessmentDraftService
             LearningAccessResult.Allowed,
             new TeacherAssessmentConfigurationEditor
             {
+                CourseId = assessment.CourseId,
                 Status = assessment.Status,
                 Input = input
             });
@@ -232,11 +235,12 @@ public sealed class TeacherAssessmentDraftService
         Guid actorUserId,
         Guid? assessmentId,
         AssessmentDraftRequest request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Guid? newCourseId = null)
     {
         return SaveConfigurationCoreAsync(
             actorUserId, assessmentId, request,
-            allowPublished: true, cancellationToken: cancellationToken);
+            allowPublished: true, cancellationToken: cancellationToken, newCourseId: newCourseId);
     }
 
     /// <summary>
@@ -248,7 +252,8 @@ public sealed class TeacherAssessmentDraftService
         Guid? assessmentId,
         AssessmentDraftRequest request,
         bool allowPublished,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? newCourseId = null)
     {
         if (request == null)
         {
@@ -268,7 +273,7 @@ public sealed class TeacherAssessmentDraftService
 
             // Đọc trước CourseId để giữ thứ tự khóa:
             // Course trước, Assessment sau, giống luồng Student.
-            Guid? courseId = null;
+            Guid? courseId = newCourseId;
 
             if (assessmentId.HasValue)
             {
@@ -307,6 +312,11 @@ public sealed class TeacherAssessmentDraftService
                 {
                     return WriteOutcome.Denied(
                         LearningAccessResult.NotFound);
+                }
+
+                if (!assessmentId.HasValue && linkedCourse.Status == CourseStatus.Archived)
+                {
+                    return Failure(Guid.Empty, "Khóa học đã lưu trữ. Hãy khôi phục khóa học trước khi tạo đề.");
                 }
             }
 
@@ -373,7 +383,7 @@ public sealed class TeacherAssessmentDraftService
                 {
                     OwnerTeacherUserId = actorUserId,
                     Status = AssessmentStatus.Draft,
-                    CourseId = null
+                    CourseId = linkedCourse?.Id
                 };
             }
 
@@ -422,8 +432,10 @@ public sealed class TeacherAssessmentDraftService
                     .Include(item => item.Question)
                         .ThenInclude(question => question.Options)
                     .Include(item => item.Question)
+                        .ThenInclude(question => question.AcceptedAnswers)
+                    .Include(item => item.Question)
                         .ThenInclude(question => question.Stimulus)
-                    .AsSingleQuery()
+                    .AsSplitQuery()
                     .OrderBy(item => item.OrderIndex)
                     .ThenBy(item => item.Id)
                     .ToListAsync(cancellationToken);

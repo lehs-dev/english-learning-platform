@@ -9,6 +9,7 @@ public sealed class AttemptAnswerConfiguration : IEntityTypeConfiguration<Attemp
     public void Configure(EntityTypeBuilder<AttemptAnswer> e)
     {
         e.ToTable("AttemptAnswers");
+        e.Property(x => x.TextAnswer).HasMaxLength(500);
         e.HasIndex(x => new { x.AttemptId, x.AssessmentQuestionId }).IsUnique();
         e.HasOne(x => x.Attempt).WithMany(x => x.Answers)
             .HasForeignKey(x => x.AttemptId).OnDelete(DeleteBehavior.NoAction);

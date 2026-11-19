@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -104,6 +105,111 @@ public sealed class ContentHistoryProtectionTests(IntegrationTestFactory factory
             Assert.Contains("bị khóa", WebUtility.HtmlDecode(await rejected.Content.ReadAsStringAsync()));
             Assert.Equal(before, await SnapshotAsync(data.Teacher.Id));
         }
+    }
+
+    [Theory]
+    [InlineData("add")]
+    [InlineData("edit")]
+    [InlineData("delete")]
+    [InlineData("type")]
+    public async Task LockedFillBlank_ProtectsAcceptedAnswersAndQuestionType(string change)
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var question = new Question { OwnerTeacherUserId = teacher.Id, Content = "I ___ here.", PrimarySkill = EnglishSkill.Grammar,
+            QuestionType = QuestionType.FillBlank, AcceptedAnswers = [new() { AnswerText = "lived" }] };
+        question.LockContent(DateTimeOffset.UtcNow);
+        db.Questions.Add(question);
+        await db.SaveChangesAsync();
+        switch (change)
+        {
+            case "add": question.AcceptedAnswers.Add(new() { AnswerText = "was living", OrderIndex = 1 }); break;
+            case "edit": question.AcceptedAnswers.Single().AnswerText = "live"; break;
+            case "delete": db.Set<QuestionAcceptedAnswer>().Remove(question.AcceptedAnswers.Single()); break;
+            case "type": question.QuestionType = QuestionType.MultipleChoice; break;
+        }
+        await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task LockedStructuredQuestion_ProtectsDefinitionWhileAllowingMetadataEdits()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var question = new Question
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Content = "Order the sequence",
+            PrimarySkill = EnglishSkill.Reading,
+            QuestionType = QuestionType.Ordering,
+            StructuredDefinitionJson = StructuredQuestionEvaluator.CreateDefinition(QuestionType.Ordering, [new("Start"), new("Finish")])
+        };
+        question.LockContent(DateTimeOffset.UtcNow);
+        db.Questions.Add(question);
+        await db.SaveChangesAsync();
+
+        string? original = question.StructuredDefinitionJson;
+        question.Level = "B1";
+        await db.SaveChangesAsync();
+
+        question.StructuredDefinitionJson = StructuredQuestionEvaluator.CreateDefinition(QuestionType.Ordering, [new("Finish"), new("Start")]);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync());
+
+        var saved = await db.Questions.AsNoTracking().SingleAsync(q => q.Id == question.Id);
+        Assert.Equal("B1", saved.Level);
+        Assert.Equal(original, saved.StructuredDefinitionJson);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MovingAcceptedAnswer_ChecksBothPersistedAndDestinationQuestion(bool moveFromLocked)
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Question Make() => new() { OwnerTeacherUserId = teacher.Id, Content = "I ___ here.", PrimarySkill = EnglishSkill.Grammar,
+            QuestionType = QuestionType.FillBlank, AcceptedAnswers = [new() { AnswerText = "lived" }] };
+        var locked = Make(); locked.LockContent(DateTimeOffset.UtcNow);
+        var draft = Make();
+        db.Questions.AddRange(locked, draft);
+        await db.SaveChangesAsync();
+        var source = moveFromLocked ? locked : draft;
+        var destination = moveFromLocked ? draft : locked;
+        source.AcceptedAnswers.Single().QuestionId = destination.Id;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync());
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ArchivedPracticeHistory_RejectsEfUpdatesAndDeletes(bool answerRecord, bool delete)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var history = new PracticeSubmissionHistory { SourceSubmissionId = Guid.NewGuid(), StudentUserId = Guid.NewGuid(), PracticeId = Guid.NewGuid(),
+            SourceCreatedAtUtc = DateTimeOffset.UtcNow, SubmittedAtUtc = DateTimeOffset.UtcNow,
+            Answers = [new() { PracticeQuestionId = Guid.NewGuid(), QuestionContent = "Original", CorrectAnswersJson = "[\"lived\"]" }] };
+        db.Set<PracticeSubmissionHistory>().Add(history);
+        await db.SaveChangesAsync();
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            if (answerRecord)
+            {
+                if (delete) db.Set<PracticeAnswerHistory>().Remove(history.Answers.Single());
+                else history.Answers.Single().TextAnswer = "tampered";
+            }
+            else
+            {
+                if (delete) db.Set<PracticeSubmissionHistory>().Remove(history);
+                else history.Score = 100m;
+            }
+            await db.SaveChangesAsync();
+        });
     }
 
     private async Task<string> SnapshotAsync(Guid teacherId)

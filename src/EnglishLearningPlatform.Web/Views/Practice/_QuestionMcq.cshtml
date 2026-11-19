@@ -1,0 +1,12 @@
+@model (EnglishLearningPlatform.Application.Practice.PracticeQuestionSheet Question, int Index)
+<div class="exam-options-list" role="radiogroup" aria-label="Đáp án câu @(Model.Index + 1)">
+@for (var i = 0; i < Model.Question.Options.Count; i++)
+{
+    var option = Model.Question.Options[i];
+    <label class="exam-option-card" for="opt-@option.Id">
+        <input type="radio" id="opt-@option.Id" class="exam-option-radio" name="Answers[@Model.Index].SelectedOptionId" value="@option.Id" />
+        <span class="exam-option-badge">@((char)('A' + i))</span><span class="exam-option-text preserve">@option.Content</span>
+    </label>
+}
+<label class="exam-clear-selection"><input type="radio" name="Answers[@Model.Index].SelectedOptionId" value="" checked /> Bỏ trống câu này</label>
+</div>

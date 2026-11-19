@@ -1,0 +1,13 @@
+@model EnglishLearningPlatform.Web.Models.Flashcards.FlashcardDeckForm
+@{ ViewData["Title"] = "Tạo bộ thẻ"; ViewData["ActiveSection"] = "flashcards"; }
+@section Styles { <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" /> }
+<a asp-action="Index">← Bộ thẻ từ vựng</a><h1>Tạo bộ thẻ</h1>
+<form method="post" asp-action="Create" class="fc-panel fc-form">
+    <div asp-validation-summary="All" role="alert"></div>
+    <label asp-for="Input.Title">Tên bộ thẻ</label><input asp-for="Input.Title" required maxlength="200" />
+    <label asp-for="Input.CourseId">Khóa học</label><select asp-for="Input.CourseId" required data-flashcard-course><option value="">Chọn khóa học</option>@foreach (var c in Model.Courses) { <option value="@c.Id">@c.Title</option> }</select>
+    <label asp-for="Input.LessonId">Bài học (tùy chọn)</label><select asp-for="Input.LessonId" data-flashcard-lesson><option value="">Toàn khóa học</option>@foreach (var c in Model.Courses) { @foreach (var lesson in c.Lessons) { <option value="@lesson.Id" data-course="@c.Id">@lesson.Title</option> } }</select>
+    <label asp-for="Input.Description">Mô tả</label><textarea asp-for="Input.Description" maxlength="4000" rows="3"></textarea>
+    <div class="actions"><button type="submit" class="button">Tạo và thêm thẻ</button><a class="button secondary" asp-action="Index">Hủy</a></div>
+</form>
+@section Scripts { <script src="~/js/flashcards.js" asp-append-version="true"></script> }

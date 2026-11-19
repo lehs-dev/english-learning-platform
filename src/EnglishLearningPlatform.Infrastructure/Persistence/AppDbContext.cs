@@ -38,6 +38,17 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<AttemptAnswer> AttemptAnswers => Set<AttemptAnswer>();
     public DbSet<AttemptSkillResult> AttemptSkillResults => Set<AttemptSkillResult>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<QuestionAcceptedAnswer> QuestionAcceptedAnswers => Set<QuestionAcceptedAnswer>();
+    public DbSet<PracticeSubmissionHistory> PracticeSubmissionHistories => Set<PracticeSubmissionHistory>();
+    public DbSet<PracticeAnswerHistory> PracticeAnswerHistories => Set<PracticeAnswerHistory>();
+    public DbSet<FlashcardDeck> FlashcardDecks => Set<FlashcardDeck>();
+    public DbSet<Flashcard> Flashcards => Set<Flashcard>();
+    public DbSet<FlashcardReview> FlashcardReviews => Set<FlashcardReview>();
+    public DbSet<FlashcardReviewState> FlashcardReviewStates => Set<FlashcardReviewState>();
+    public DbSet<LearningPlan> LearningPlans => Set<LearningPlan>();
+    public DbSet<LearningPlanItem> LearningPlanItems => Set<LearningPlanItem>();
+    public DbSet<GamificationEvent> GamificationEvents => Set<GamificationEvent>();
+    public DbSet<StudentAchievement> StudentAchievements => Set<StudentAchievement>();
 
     // Cả API sync/async đều qua cùng một hàng rào. Những bảng khác giữ nguyên luồng EF mặc định.
     public override int SaveChanges(bool acceptAllChangesOnSuccess) =>

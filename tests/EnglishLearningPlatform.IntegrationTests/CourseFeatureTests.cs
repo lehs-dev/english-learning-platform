@@ -24,8 +24,7 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         using var teacherLogin = await IdentityTestHelpers.LoginAsync(teacherClient, teacher);
         Assert.Equal(HttpStatusCode.Redirect, teacherLogin.StatusCode);
 
-        // Chỉ đổi chữ trên UI: route Resource và tên field POST phải giữ nguyên.
-        using var manage = await teacherClient.GetAsync($"/TeacherCourses/Manage/{course.Id}");
+        using var manage = await teacherClient.GetAsync($"/TeacherCourses/Manage/{course.Id}?lessonId={lesson.Id}");
         Assert.Equal(HttpStatusCode.OK, manage.StatusCode);
         var manageHtml = WebUtility.HtmlDecode(await manage.Content.ReadAsStringAsync());
         Assert.Contains("Thêm nội dung", manageHtml);
@@ -147,7 +146,13 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         using var resourcePost = await Post(resourcePath, new() { ["Input.Title"] = "Text via UI", ["Input.ResourceType"] = "1", ["Input.ContentText"] = "<script>alert('xss')</script>UI_SECRET" }); Assert.Equal(HttpStatusCode.Redirect, resourcePost.StatusCode);
         using var publishedLesson = await Post(lessonPath + $"&id={lessonId}", new() { ["Input.Title"] = "Lesson via UI", ["Input.Status"] = "2" }); Assert.Equal(HttpStatusCode.Redirect, publishedLesson.StatusCode);
         using var publishedCourse = await Post($"/TeacherCourses/Publish/{courseId}", new()); Assert.Equal(HttpStatusCode.Redirect, publishedCourse.StatusCode);
-        using var manage = await client.GetAsync($"/TeacherCourses/Manage/{courseId}"); Assert.Equal(HttpStatusCode.OK, manage.StatusCode); Assert.Contains("Text via UI", await manage.Content.ReadAsStringAsync());
+        Assert.Contains("tab=publishing", publishedCourse.Headers.Location?.ToString());
+        using var manage = await client.GetAsync(resourcePost.Headers.Location);
+        Assert.Equal(HttpStatusCode.OK, manage.StatusCode);
+        var lessonHtml = await manage.Content.ReadAsStringAsync();
+        Assert.Contains($"lessonId={lessonId}", resourcePost.Headers.Location?.ToString());
+        Assert.Contains("Text via UI", lessonHtml);
+        Assert.Contains("curriculum-tree", lessonHtml);
         using var preview = await client.GetAsync($"/Learning/Lesson/{lessonId}"); Assert.Equal(HttpStatusCode.OK, preview.StatusCode);
         Assert.DoesNotContain("<script>alert", await preview.Content.ReadAsStringAsync()); Assert.Contains("&lt;script&gt;", await preview.Content.ReadAsStringAsync());
         using var guestClient = IdentityTestHelpers.CreateClient(factory); using var detail = await guestClient.GetAsync($"/Courses/Details/{courseId}"); Assert.DoesNotContain("UI_SECRET", await detail.Content.ReadAsStringAsync());

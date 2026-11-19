@@ -96,6 +96,7 @@ public sealed class TeacherAssessmentQuestionService
             .Select(assessment => new TeacherAssessmentQuestionEditor
             {
                 AssessmentId = assessment.Id,
+                CourseId = assessment.CourseId,
                 Title = assessment.Title,
                 AssessmentType = assessment.AssessmentType,
                 Status = assessment.Status,
@@ -110,6 +111,7 @@ public sealed class TeacherAssessmentQuestionService
                         QuestionId = item.QuestionId,
                         Content = item.Question.Content,
                         PrimarySkill = item.Question.PrimarySkill,
+                        QuestionType = item.Question.QuestionType,
                         Status = item.Question.Status,
                         Points = item.Points
                     })
@@ -263,14 +265,16 @@ public sealed class TeacherAssessmentQuestionService
                 .ToArray();
 
             // Chỉ đọc Question thuộc Teacher hiện tại.
-            // Validator cần Options và Stimulus đã được tải đầy đủ.
+            // Validator cần thông tin đáp án và ngữ liệu đã được tải đầy đủ.
             var questions = await _db.Questions
                 .AsNoTracking()
                 .Where(question =>
                     question.OwnerTeacherUserId == actorUserId
                     && requestedIds.Contains(question.Id))
                 .Include(question => question.Options)
+                .Include(question => question.AcceptedAnswers)
                 .Include(question => question.Stimulus)
+                .AsSplitQuery()
                 .ToDictionaryAsync(
                     question => question.Id,
                     cancellationToken);

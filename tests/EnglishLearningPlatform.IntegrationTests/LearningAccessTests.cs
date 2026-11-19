@@ -30,9 +30,12 @@ public sealed class LearningAccessTests(IntegrationTestFactory factory) : IClass
             var html = await response.Content.ReadAsStringAsync();
             Assert.Contains("/TeacherCourses/Content", html);
             Assert.Contains($"/TeacherCourses/Edit/{course.Id}", html);
-            Assert.Contains($"/TeacherCourses/Publish/{course.Id}", html);
+            Assert.Contains($"/TeacherCourses/Manage/{course.Id}?tab=publishing", html);
             Assert.DoesNotContain("/Learning/Content", html);
             Assert.DoesNotContain("/Learning/Publish", html);
+            using var publishing = await client.GetAsync($"/TeacherCourses/Manage/{course.Id}?tab=publishing");
+            Assert.Equal(HttpStatusCode.OK, publishing.StatusCode);
+            Assert.Contains($"/TeacherCourses/Unpublish/{course.Id}", await publishing.Content.ReadAsStringAsync());
         }
     }
 

@@ -1,6 +1,8 @@
 using System.Data;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Gamification;
+using EnglishLearningPlatform.Application.LearningPath;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -11,7 +13,8 @@ namespace EnglishLearningPlatform.Infrastructure.Learning;
 
 public sealed class StudentLearningCourseService(
     AppDbContext db, ILearningAccessService access, IActiveUserValidator activeUsers,
-    CourseQueries queries, CourseProgressService courseProgress) : IStudentLearningCourseService
+    CourseQueries queries, CourseProgressService courseProgress,
+    IGamificationService? gamification = null, ILearningPathService? learningPath = null) : IStudentLearningCourseService
 {
     private Task<LearningAccessResult> Manage(Guid user, Guid course, CancellationToken ct) =>
         access.CheckAccessAsync(user, LearningResourceType.Course, course, LearningOperation.ManageContent, ct);
@@ -147,6 +150,14 @@ public sealed class StudentLearningCourseService(
         await db.SaveChangesAsync(ct);
         await courseProgress.ReconcileCompletionAsync(courseId.Value, ct);
         await tx.CommitAsync(ct);
+        await tx.DisposeAsync();
+        if (completed)
+        {
+            if (gamification is not null)
+                await gamification.AwardXpAsync(userId, GamificationEventType.LessonCompleted, id, 10, ct);
+            if (learningPath is not null)
+                await learningPath.TrackCompletionAsync(userId, LearningPlanTargetType.Lesson, id, ct);
+        }
         return WriteOutcome.Ok(id);
     }
 }

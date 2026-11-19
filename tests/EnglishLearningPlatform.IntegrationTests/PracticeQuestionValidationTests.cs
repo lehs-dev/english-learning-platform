@@ -576,7 +576,7 @@ public sealed class PracticeQuestionValidationTests : IClassFixture<IntegrationT
 
     private sealed record SubmissionSnapshot(Guid SubmissionId, decimal Score,
         DateTimeOffset SubmittedAtUtc, DateTimeOffset CreatedAtUtc, DateTimeOffset? UpdatedAtUtc,
-        Guid AnswerId, Guid PracticeQuestionId, Guid SelectedOptionId,
+        Guid AnswerId, Guid PracticeQuestionId, Guid? SelectedOptionId,
         DateTimeOffset AnswerCreatedAtUtc, DateTimeOffset? AnswerUpdatedAtUtc);
 
     // Test double chỉ ghi nhận hoặc trả lỗi; mặc định vẫn dùng validator thật.

@@ -165,7 +165,7 @@ try {
     await submit(teacher, teacher.getByRole('button', { name: 'Lưu cấu hình', exact: true }));
     assessmentId = new URL(teacher.url()).pathname.split('/').pop();
     assert.match(assessmentId, /^[0-9a-f-]{36}$/i);
-    await teacher.goto(await teacher.getByRole('link', { name: 'Chọn câu hỏi và điểm', exact: true }).getAttribute('href'));
+    await teacher.goto(await teacher.getByRole('navigation', { name: 'Quản lý bài kiểm tra' }).getByRole('link', { name: 'Câu hỏi và điểm', exact: true }).getAttribute('href'));
     await teacher.locator('#Search').fill(runId);
     await submit(teacher, teacher.getByRole('button', { name: 'Tìm / lọc', exact: true }));
     const add = teacher.locator('[data-add]');

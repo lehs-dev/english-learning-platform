@@ -11,6 +11,9 @@ public sealed class Question : BaseEntity, IOwnedResource
     public Guid? StimulusId { get; set; }
     public Stimulus? Stimulus { get; set; }
     public string Content { get; set; } = string.Empty;
+    public QuestionType QuestionType { get; set; } = QuestionType.MultipleChoice;
+    public string? StructuredDefinitionJson { get; set; }
+    public ICollection<QuestionAcceptedAnswer> AcceptedAnswers { get; set; } = new List<QuestionAcceptedAnswer>();
     public EnglishSkill PrimarySkill { get; set; }
     public string? Level { get; set; }
     public string? Explanation { get; set; }

@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
@@ -124,6 +125,7 @@ public class QuestionQueryService : IQuestionQueryService
         .Take(pageSize).Select(question => new QuestionListItem
         {
             Id = question.Id,
+            QuestionType = question.QuestionType,
             Content = question.Content,
             Level = question.Level,
             PrimarySkill = question.PrimarySkill,
@@ -155,6 +157,7 @@ public class QuestionQueryService : IQuestionQueryService
         Question? question = await _dbContext.Questions
             .AsNoTracking()
             .Include(q => q.Options)
+            .Include(q => q.AcceptedAnswers)
             .Include(q => q.Stimulus)
             .FirstOrDefaultAsync(q => q.Id == questionId && q.OwnerTeacherUserId == actorUserId, cancellationToken);
         if (question == null)
@@ -171,10 +174,13 @@ public class QuestionQueryService : IQuestionQueryService
         QuestionDetail detail = new QuestionDetail
         {
             Id = question.Id,
+            QuestionType = question.QuestionType,
             Content = question.Content,
             Level = question.Level,
             PrimarySkill = question.PrimarySkill,
             Status = question.Status,
+            AcceptedAnswers = question.AcceptedAnswers.OrderBy(a => a.OrderIndex).Select(a => a.AnswerText).ToArray(),
+            StructuredItems = StructuredQuestionEvaluator.GetAuthorItems(question) ?? [],
             Explanation = question.Explanation,
             CreatedAtUtc = question.CreatedAtUtc,
             UpdatedAtUtc = question.UpdatedAtUtc,

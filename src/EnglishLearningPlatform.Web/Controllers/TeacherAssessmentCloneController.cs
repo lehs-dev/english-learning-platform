@@ -13,7 +13,7 @@ public sealed class TeacherAssessmentCloneController(ITeacherAssessmentCloneServ
 {
     // Chỉ POST có CSRF mới tạo bản sao; GET/F5 danh sách không tạo dữ liệu.
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Guid id, DateTimeOffset? expectedUpdatedAtUtc, CancellationToken ct)
+    public async Task<IActionResult> Create(Guid id, DateTimeOffset? expectedUpdatedAtUtc, CancellationToken ct, Guid? returnCourseId = null)
     {
         if (!ModelState.IsValid || id == Guid.Empty) return BadRequest();
         Guid actor = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -23,7 +23,9 @@ public sealed class TeacherAssessmentCloneController(ITeacherAssessmentCloneServ
         if (!result.Success)
         {
             TempData["Error"] = string.Join("\n", result.Errors.Values.SelectMany(messages => messages));
-            return RedirectToAction("Index", "TeacherAssessments");
+            return returnCourseId.HasValue
+                ? RedirectToAction("Manage", "TeacherCourses", new { id = returnCourseId, tab = "assessments" })
+                : RedirectToAction("Index", "TeacherAssessments");
         }
         TempData["Success"] = "Đã tạo bản sao nháp, giữ khóa học của bản gốc và liên kết bài thi cuối khóa hiện tại. "
             + "Câu hỏi và ngữ liệu được dùng lại vẫn giữ trạng thái khóa.";

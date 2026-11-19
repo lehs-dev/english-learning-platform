@@ -1,0 +1,50 @@
+@model EnglishLearningPlatform.Application.TeacherAnalytics.TeacherAnalyticsPage
+@{
+    Layout = "_LayoutTeacher";
+    ViewData["Title"] = "Thống kê lớp học";
+    ViewData["ActiveSection"] = "analytics";
+    string Score(decimal? value) => value.HasValue ? value.Value.ToString("0.##") + "%" : "Chưa có bài làm";
+}
+<h1>Thống kê lớp học</h1>
+<p>Kết quả trong khoảng ngày Việt Nam đã chọn; tiến độ phản ánh nội dung hiện có của các khóa học.</p>
+<form method="get" class="analytics-filters">
+    <label>Khóa học<select name="CourseId"><option value="">Tất cả khóa học của tôi</option>@foreach (var course in Model.Courses) { <option value="@course.Id" selected="@(course.Id == Model.Query.CourseId)">@course.Title</option> }</select></label>
+    <label>Từ ngày<input name="From" type="date" value="@Model.Query.From?.ToString("yyyy-MM-dd")" /></label>
+    <label>Đến ngày<input name="To" type="date" value="@Model.Query.To?.ToString("yyyy-MM-dd")" /></label>
+    <button class="button button-primary" type="submit">Xem thống kê</button>
+</form>
+<div class="analytics-stats">
+    <article class="card"><h2>@Model.StudentCount</h2><p>Học viên · @Model.EnrollmentCount lượt ghi danh</p></article>
+    <article class="card"><h2>@Model.CompletionPercent%</h2><p>Hoàn thành khóa học (@Model.CompletedEnrollments lượt)</p></article>
+    <article class="card"><h2>@Score(Model.AveragePracticeScore)</h2><p>Điểm luyện tập trung bình (kết quả gần nhất)</p></article>
+    <article class="card"><h2>@Score(Model.AverageAssessmentScore)</h2><p>Điểm đánh giá trung bình</p></article>
+</div>
+<h2>Điểm kỹ năng từ bài đánh giá</h2>
+@if (Model.Skills.Count == 0) { <p>Chưa có kết quả đánh giá trong khoảng thời gian này.</p> }
+@foreach (var skill in Model.Skills)
+{
+    <p><partial name="_UiText" model="skill.Skill" />: @skill.AverageScore.ToString("0.##")% · @skill.ResultCount kết quả</p>
+    <meter min="0" max="100" value="@skill.AverageScore.ToString(System.Globalization.CultureInfo.InvariantCulture)" aria-label="@skill.Skill">@skill.AverageScore%</meter>
+}
+<h2>Câu hỏi thường làm sai</h2>
+@if (Model.MostMissedQuestions.Count == 0) { <p>Chưa có câu trả lời sai.</p> }
+else
+{
+    <div class="analytics-table"><table><thead><tr><th>Câu hỏi</th><th>Số lần sai</th><th>Số câu trả lời</th></tr></thead><tbody>
+    @foreach (var question in Model.MostMissedQuestions) { <tr><td>@question.Content</td><td>@question.WrongCount</td><td>@question.AnswerCount</td></tr> }
+    </tbody></table></div>
+}
+<h2>Học viên và tiến độ</h2>
+@if (Model.Students.Count == 0) { <p>Chưa có học viên ghi danh.</p> }
+else
+{
+    <div class="analytics-table"><table><thead><tr><th>Họ tên</th><th>Bài học hoàn thành</th><th>Luyện tập</th><th>Đánh giá</th></tr></thead><tbody>
+    @foreach (var student in Model.Students) { <tr><td>@student.FullName</td><td>@student.CompletedLessons/@student.TotalLessons</td><td>@Score(student.PracticeScore)</td><td>@Score(student.AssessmentScore)</td></tr> }
+    </tbody></table></div>
+    <nav aria-label="Phân trang học viên">
+        @if (Model.Query.Page > 1) { <a asp-route-Page="@(Model.Query.Page - 1)" asp-route-CourseId="@Model.Query.CourseId" asp-route-From="@Model.Query.From?.ToString("yyyy-MM-dd")" asp-route-To="@Model.Query.To?.ToString("yyyy-MM-dd")">Trang trước</a> }
+        <span>Trang @Model.Query.Page</span>
+        @if ((long)Model.Query.Page * 25 < Model.StudentRows) { <a asp-route-Page="@(Model.Query.Page + 1)" asp-route-CourseId="@Model.Query.CourseId" asp-route-From="@Model.Query.From?.ToString("yyyy-MM-dd")" asp-route-To="@Model.Query.To?.ToString("yyyy-MM-dd")">Trang sau</a> }
+    </nav>
+}
+@section Styles { <style>.analytics-filters,.analytics-stats{display:flex;gap:1rem;flex-wrap:wrap;margin:1.5rem 0}.analytics-filters label{display:grid;gap:.4rem}.analytics-stats article{padding:1rem;flex:1 1 180px}.analytics-table{overflow:auto;max-width:100%}.analytics-table table{width:100%;border-collapse:collapse}.analytics-table th,.analytics-table td{padding:.75rem;text-align:left;border-bottom:1px solid #ddd;overflow-wrap:anywhere}meter{width:min(100%,32rem);height:1.2rem}</style> }

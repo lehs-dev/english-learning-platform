@@ -46,7 +46,7 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
         Assert.Contains(RemovalMigration, await db.Database.GetAppliedMigrationsAsync());
         var questionType = db.Model.FindEntityType(typeof(Question))!;
         Assert.Equal(new[] { "Content", "ContentLockedAtUtc", "CreatedAtUtc", "Explanation", "Id", "Level",
-                "OwnerTeacherUserId", "PrimarySkill", "Status", "StimulusId", "UpdatedAtUtc" },
+                "OwnerTeacherUserId", "PrimarySkill", "QuestionType", "Status", "StimulusId", "StructuredDefinitionJson", "UpdatedAtUtc" },
             questionType.GetProperties().Select(property => property.Name).OrderBy(name => name, StringComparer.Ordinal));
         Assert.False(await HasDifficultyAsync(db));
     }
@@ -142,8 +142,25 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
     private static async Task<ScoringResult> ScoreAsync(AppDbContext db, SeedData data)
     {
         db.ChangeTracker.Clear();
-        var assessment = await db.Assessments.Include(a => a.Questions).ThenInclude(aq => aq.Question)
-            .ThenInclude(q => q.Options).SingleAsync(a => a.Id == data.AssessmentId);
+        // Only these columns exist at the historical schema under test. MCQ was
+        // the only format supported there, so reconstruct that scoring input.
+        var entries = await db.AssessmentQuestions.AsNoTracking().Where(link => link.AssessmentId == data.AssessmentId)
+            .Select(link => new
+            {
+                link.QuestionId,
+                link.Points,
+                Options = link.Question.Options.Select(option => new { option.Id, option.IsCorrect }).ToList()
+            }).ToListAsync();
+        var assessment = new Assessment
+        {
+            Questions = entries.Select(entry => new AssessmentQuestion
+            {
+                QuestionId = entry.QuestionId,
+                Points = entry.Points,
+                Question = new Question { Options = entry.Options.Select(option => new QuestionOption
+                    { Id = option.Id, IsCorrect = option.IsCorrect }).ToList() }
+            }).ToList()
+        };
         return new ExamScoringService().Score(assessment, [new QuestionResponse(data.QuestionId, data.OptionId)]);
     }
 
@@ -166,9 +183,22 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
         passage.LockContent(lockedAt);
         var archived = NewQuestion(teacher.Id, "Archived question");
         archived.Status = QuestionStatus.Archived;
-        db.Questions.AddRange(question, NewQuestion(teacher.Id, "Unused draft"), archived);
+        db.Stimuli.Add(passage);
+        await db.SaveChangesAsync();
+        foreach (var legacy in new[] { question, NewQuestion(teacher.Id, "Unused draft"), archived })
+        {
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO dbo.Questions (Id, OwnerTeacherUserId, StimulusId, Content, PrimarySkill, Level, Explanation, Status, ContentLockedAtUtc, CreatedAtUtc)
+                VALUES ({legacy.Id}, {teacher.Id}, {legacy.Stimulus?.Id}, {legacy.Content}, {legacy.PrimarySkill.ToString()}, {legacy.Level}, {legacy.Explanation}, {legacy.Status.ToString()}, {legacy.ContentLockedAtUtc}, {legacy.CreatedAtUtc});
+                """);
+            foreach (var legacyOption in legacy.Options)
+                await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    INSERT INTO dbo.QuestionOptions (Id, QuestionId, Content, OrderIndex, IsCorrect, CreatedAtUtc)
+                    VALUES ({legacyOption.Id}, {legacy.Id}, {legacyOption.Content}, {legacyOption.OrderIndex}, {legacyOption.IsCorrect}, {legacyOption.CreatedAtUtc});
+                    """);
+        }
 
-        var assessmentQuestion = new AssessmentQuestion { Question = question, Points = 2.5m, OrderIndex = 0 };
+        var assessmentQuestion = new AssessmentQuestion { QuestionId = question.Id, Points = 2.5m, OrderIndex = 0 };
         var assessment = new Assessment
         {
             OwnerTeacherUserId = teacher.Id,
@@ -193,7 +223,6 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
             FinalizationReason = AttemptFinalizationReason.ManualSubmit,
             OverallScore = 100m,
             Passed = true,
-            Answers = [new AttemptAnswer { AssessmentQuestion = assessmentQuestion, SelectedOption = option }],
             SkillResults = [new AttemptSkillResult { Skill = EnglishSkill.Reading, Score = 100m, QuestionCount = 1 }]
         };
         db.Attempts.Add(attempt);
@@ -223,6 +252,8 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
         var submissionId = Guid.NewGuid();
         var answerId = Guid.NewGuid();
         await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO dbo.AttemptAnswers (Id, AttemptId, AssessmentQuestionId, SelectedOptionId, SavedAtUtc, CreatedAtUtc)
+            VALUES ({Guid.NewGuid()}, {attempt.Id}, {assessmentQuestion.Id}, {option.Id}, {lockedAt}, {lockedAt});
             INSERT INTO dbo.Practices (Id, OwnerTeacherUserId, ModuleId, Title, Status, CreatedAtUtc)
             VALUES ({practice.Id}, {teacher.Id}, {practice.Module!.Id}, {practice.Title}, N'Published', {lockedAt});
             INSERT INTO dbo.PracticeQuestions (Id, PracticeId, QuestionId, OrderIndex, CreatedAtUtc)

@@ -55,13 +55,14 @@
     }
 
     // Khung HTML cố định; nội dung Question dùng textContent để tránh chèn HTML.
-    function createRow(id, content) {
+    function createRow(id, content, questionType) {
         var row = document.createElement("li");
         row.setAttribute("data-selected-row", "");
         row.innerHTML =
             '<span class="ta-question-number" data-question-number></span>' +
             '<input type="hidden" data-question-id />' +
             '<p class="preserve" data-content></p>' +
+            '<p class="muted" data-question-type></p>' +
             '<label>Điểm ' +
                 '<input type="number" data-points min="0.01" ' +
                     'max="999999.99" step="0.01" value="1" required />' +
@@ -77,6 +78,7 @@
 
         row.querySelector("[data-question-id]").value = id;
         row.querySelector("[data-content]").textContent = content;
+        row.querySelector("[data-question-type]").textContent = questionType;
         return row;
     }
 
@@ -84,10 +86,11 @@
         button.addEventListener("click", function () {
             if (saving || this.disabled) return;
 
-            var content = this.closest("tr")
-                .querySelector("[data-bank-content]").textContent;
+            var bankRow = this.closest("tr");
+            var content = bankRow.querySelector("[data-bank-content]").textContent;
+            var type = bankRow.querySelector("[data-bank-type]")?.textContent.trim() ?? "";
 
-            list.appendChild(createRow(this.dataset.id, content));
+            list.appendChild(createRow(this.dataset.id, content, type));
             markChanged();
         });
     }

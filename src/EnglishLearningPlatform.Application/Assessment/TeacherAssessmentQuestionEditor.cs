@@ -8,6 +8,7 @@ namespace EnglishLearningPlatform.Application.Assessment;
 public sealed class TeacherAssessmentQuestionEditor
 {
     public Guid AssessmentId { get; set; }
+    public Guid? CourseId { get; set; }
 
     public string Title { get; set; } = string.Empty;
 
@@ -35,6 +36,8 @@ public sealed class SelectedAssessmentQuestion
     public string Content { get; set; } = string.Empty;
 
     public EnglishSkill PrimarySkill { get; set; }
+
+    public QuestionType QuestionType { get; set; } = QuestionType.MultipleChoice;
 
     public QuestionStatus Status { get; set; }
 

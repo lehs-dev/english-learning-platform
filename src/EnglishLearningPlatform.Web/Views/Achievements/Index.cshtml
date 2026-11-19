@@ -1,0 +1,30 @@
+@model EnglishLearningPlatform.Application.Gamification.GamificationSummary
+@{
+    Layout = "_LayoutStudent";
+    ViewData["Title"] = "Thành tích";
+    ViewData["ActiveSection"] = "achievements";
+}
+<h1>Thành tích của bạn</h1>
+<p>Mỗi hoạt động là một bước tiến. Chuỗi ngày học được tính theo ngày Việt Nam.</p>
+<div class="estudy-stats">
+    <article class="card"><h2>@Model.TotalXp XP</h2><p>Tổng điểm kinh nghiệm</p></article>
+    <article class="card"><h2>@Model.CurrentStreak ngày</h2><p>Chuỗi học hiện tại</p></article>
+    <article class="card"><h2>@Model.LongestStreak ngày</h2><p>Chuỗi học dài nhất</p></article>
+</div>
+<h2>Huy hiệu</h2>
+@if (Model.Badges.Count == 0)
+{
+    <p>Hoàn thành bài học đầu tiên để nhận huy hiệu.</p>
+    <a class="button button-primary" asp-controller="Learning" asp-action="Index">Đến khóa học của tôi</a>
+}
+else
+{
+    <div class="estudy-stats">
+    @foreach (var badge in Model.Badges)
+    {
+        <article class="card"><h3>🏅 @badge.Title</h3><p>Nhận ngày @badge.AwardedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</p></article>
+    }
+    </div>
+}
+<details><summary>Cách nhận XP</summary><p>Bài học: 10 XP một lần. Mỗi bài luyện tập: 5 XP/ngày và thêm 10 XP khi đạt ít nhất 80%. Ôn 5 thẻ khác nhau trong một bộ: 5 XP/ngày. Hoàn thành 2 hoạt động khác nhau: thêm 10 XP/ngày.</p></details>
+@section Styles { <style>.estudy-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:1rem;margin:1.5rem 0}.estudy-stats .card{padding:1.5rem}</style> }

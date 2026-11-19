@@ -28,6 +28,7 @@ public sealed class TeacherPracticePreviewService(
             .Include(item => item.Lesson).ThenInclude(item => item!.Module).ThenInclude(item => item.Course)
             .Include(item => item.Module).ThenInclude(item => item!.Course)
             .Include(item => item.Questions).ThenInclude(item => item.Question).ThenInclude(item => item.Options)
+            .Include(item => item.Questions).ThenInclude(item => item.Question).ThenInclude(item => item.AcceptedAnswers)
             .Include(item => item.Questions).ThenInclude(item => item.Question).ThenInclude(item => item.Stimulus)
             .AsSingleQuery().SingleOrDefaultAsync(cancellationToken);
         if (practice == null) return new(LearningAccessResult.NotFound);
@@ -64,7 +65,8 @@ public sealed class TeacherPracticePreviewService(
                  CourseRules.ValidResource(LessonResourceType.Audio, null, stimulus.ResourceUrl)))
                 audioUrl = stimulus.ResourceUrl;
             questions.Add(new PracticeQuestionSheet(item.Id, question.Content, question.PrimarySkill,
-                stimulus?.StimulusType == StimulusType.Passage ? stimulus.ContentText : null, audioUrl, options));
+                stimulus?.StimulusType == StimulusType.Passage ? stimulus.ContentText : null, audioUrl, options)
+                { QuestionType = question.QuestionType, StructuredPrompt = StructuredQuestionEvaluator.GetPrompt(question) });
 
             // Draft thiếu nội dung vẫn Preview được; cảnh báo không thay thế validator Publish.
             foreach (var error in questionValidator.ValidateForExistingUse(actorUserId, question))

@@ -7,6 +7,7 @@ public sealed class QuestionListItem
     public Guid Id { get; set; }
     public string Content { get; set; } = string.Empty;
     public string? Level { get; set; }
+    public QuestionType QuestionType { get; set; } = QuestionType.MultipleChoice;
     public EnglishSkill PrimarySkill { get; set; }
     public QuestionStatus Status { get; set; }
 

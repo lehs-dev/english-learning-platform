@@ -1,0 +1,18 @@
+@model CourseWorkspaceNav
+@{
+    var tabs = new (string Key, string Label, string Controller, string Action, string? Tab)[]
+    {
+        ("content", "Nội dung", "TeacherCourses", "Manage", null),
+        ("info", "Thông tin và học phí", "TeacherCourses", "Edit", null),
+        ("assessments", "Bài kiểm tra", "TeacherCourses", "Manage", "assessments"),
+        ("publishing", "Xuất bản", "TeacherCourses", "Manage", "publishing"),
+        ("students", "Học viên", "TeacherCourses", "Students", null)
+    };
+}
+<nav class="workspace-tabs" aria-label="Quản lý khóa học">
+    @foreach (var tab in tabs)
+    {
+        <a asp-controller="@tab.Controller" asp-action="@tab.Action" asp-route-id="@Model.CourseId"
+           asp-route-tab="@tab.Tab" aria-current="@(tab.Key == Model.Tab ? "page" : null)">@tab.Label</a>
+    }
+</nav>

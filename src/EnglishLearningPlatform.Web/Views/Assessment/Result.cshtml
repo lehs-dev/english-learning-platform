@@ -139,4 +139,23 @@
             </div>
         }
     </section>
+
+    @if (Model.QuestionFeedback.Count > 0)
+    {
+        <section class="card-v2" aria-labelledby="assessment-feedback-title" style="padding: 32px; margin-top: 24px;">
+            <h2 id="assessment-feedback-title">Chi tiết câu điền từ, ghép cặp và sắp xếp</h2>
+            @foreach (var item in Model.QuestionFeedback)
+            {
+                <article class="exam-question-card">
+                    <h3>Câu @item.Number</h3>
+                    <p class="preserve">@item.Content</p>
+                    <p>Điểm @item.EarnedPoints.ToString("0.##") / @item.Points.ToString("0.##")</p>
+                    <dl>
+                        <dt>Câu trả lời của bạn</dt>
+                        <dd class="preserve">@(item.SubmittedAnswer ?? "Bỏ trống")</dd>
+                    </dl>
+                </article>
+            }
+        </section>
+    }
 </div>

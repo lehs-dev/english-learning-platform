@@ -1,4 +1,5 @@
 @using EnglishLearningPlatform.Web.Models.Assessment
+@using EnglishLearningPlatform.Web.Models
 @using EnglishLearningPlatform.Domain.Enums
 @model AssessmentTakePage
 @{
@@ -91,19 +92,32 @@
                             </div>
                         }
 
-                        <div class="exam-options-list" role="radiogroup" aria-label="Đáp án câu @(i + 1)">
-                            @for (var optIdx = 0; optIdx < question.Options.Count; optIdx++)
-                            {
-                                var option = question.Options[optIdx];
-                                var optionLetter = (char)('A' + optIdx);
-                                var isChecked = question.SelectedOptionId == option.Id;
-                                <label class="exam-option-card @(isChecked ? "is-selected" : "")" for="option-@option.Id">
-                                    <input type="radio" id="option-@option.Id" class="exam-option-radio" name="Answers[@i].SelectedOptionId" value="@option.Id" checked="@isChecked" />
-                                    <span class="exam-option-badge">@optionLetter</span>
-                                    <span class="exam-option-text preserve">@option.Content</span>
-                                </label>
-                            }
-                        </div>
+                        @if (question.QuestionType == QuestionType.MultipleChoice)
+                        {
+                            <div class="exam-options-list" role="radiogroup" aria-label="Đáp án câu @(i + 1)">
+                                @for (var optIdx = 0; optIdx < question.Options.Count; optIdx++)
+                                {
+                                    var option = question.Options[optIdx];
+                                    var optionLetter = (char)('A' + optIdx);
+                                    var isChecked = question.SelectedOptionId == option.Id;
+                                    <label class="exam-option-card @(isChecked ? "is-selected" : "")" for="option-@option.Id">
+                                        <input type="radio" id="option-@option.Id" class="exam-option-radio" name="Answers[@i].SelectedOptionId" value="@option.Id" checked="@isChecked" />
+                                        <span class="exam-option-badge">@optionLetter</span>
+                                        <span class="exam-option-text preserve">@option.Content</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+                        else if (question.QuestionType == QuestionType.FillBlank)
+                        {
+                            <label for="assessment-text-@i">Câu trả lời của bạn</label>
+                            <input type="text" id="assessment-text-@i" name="Answers[@i].TextAnswer"
+                                   value="@question.TextAnswer" maxlength="500" autocomplete="off" class="form-control" data-assessment-text />
+                        }
+                        else if (question.StructuredPrompt is { } prompt)
+                        {
+                            <partial name="_StructuredQuestion" model='new StructuredQuestionInputModel($"assessment-{i}", $"Answers[{i}].StructuredAnswerJson", question.QuestionType, prompt, question.StructuredAnswerJson)' />
+                        }
 
                         <div class="exam-question-footer">
                             @* Chỉ đổi vị trí trong trang; không gửi form hay tạo Attempt mới. *@
@@ -117,13 +131,16 @@
                                     <a class="button secondary" href="#question-@(i + 2)">Câu tiếp</a>
                                 }
                             </nav>
-                            <label class="exam-clear-selection" for="clear-q-@(i + 1)">
-                                <input type="radio" id="clear-q-@(i + 1)" class="exam-option-radio visually-hidden" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" />
-                                <span class="exam-clear-text">
-                                    <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#rotate-ccw")"></use></svg>
-                                    <span>Bỏ chọn đáp án</span>
-                                </span>
-                            </label>
+                            @if (question.QuestionType == QuestionType.MultipleChoice)
+                            {
+                                <label class="exam-clear-selection" for="clear-q-@(i + 1)">
+                                    <input type="radio" id="clear-q-@(i + 1)" class="exam-option-radio visually-hidden" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" />
+                                    <span class="exam-clear-text">
+                                        <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#rotate-ccw")"></use></svg>
+                                        <span>Bỏ chọn đáp án</span>
+                                    </span>
+                                </label>
+                            }
                         </div>
                     </fieldset>
                 }
@@ -148,7 +165,7 @@
                     <nav class="exam-palette-card" aria-label="Danh sách câu hỏi">
                         <div class="exam-palette-header">
                             <h3>Danh sách câu hỏi</h3>
-                            <p class="exam-timer-note" data-answer-progress role="status">@sheet.Questions.Count(q => q.SelectedOptionId.HasValue)/@sheet.Questions.Count câu đã trả lời</p>
+                            <p class="exam-timer-note" data-answer-progress role="status">@sheet.Questions.Count(q => q.HasAnswer)/@sheet.Questions.Count câu đã trả lời</p>
                         </div>
                         <div class="exam-palette-grid">
                             @for (var i = 0; i < sheet.Questions.Count; i++)
@@ -172,7 +189,7 @@
                     <div class="exam-actions-card">
                         <button class="button exam-submit-btn" type="submit" data-submit-button>Nộp bài thi</button>
                         <button class="button secondary exam-save-btn" type="submit" asp-action="Save" asp-route-id="@sheet.AttemptId" data-save-button>Lưu đáp án</button>
-                        <p class="exam-save-status" data-save-status role="status">Tự động lưu khi bạn chọn đáp án</p>
+                        <p class="exam-save-status" data-save-status role="status">Tự động lưu khi bạn trả lời</p>
                     </div>
 
                 </div>
@@ -228,4 +245,7 @@
     }
 </div>
 
-@section Scripts { <script src="~/js/assessment.js" asp-append-version="true" defer></script> }
+@section Scripts {
+    <script src="~/js/structured-answer.js" asp-append-version="true" defer></script>
+    <script src="~/js/assessment.js" asp-append-version="true" defer></script>
+}

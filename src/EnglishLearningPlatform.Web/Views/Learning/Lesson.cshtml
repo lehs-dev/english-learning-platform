@@ -1,5 +1,6 @@
 @using EnglishLearningPlatform.Application.Assessment
 @using EnglishLearningPlatform.Domain.Enums
+@using EnglishLearningPlatform.Infrastructure.Identity
 @model LessonPage
 @{
     ViewData["Title"] = Model.Title;
@@ -10,11 +11,15 @@
 }
 
 <div class="lesson-study-layout">
-    <div style="margin-bottom: 20px;">
+    <div class="workspace-actions" style="margin-bottom: 20px;">
         <a class="button secondary exam-back-btn" asp-action="Course" asp-route-id="@Model.CourseId">
             <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
             <span>@Model.CourseTitle</span>
         </a>
+        @if (User.IsInRole(AppRoles.Teacher))
+        {
+            <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.CourseId" asp-route-moduleId="@Model.ModuleId" asp-route-lessonId="@Model.Id">Về trình soạn bài</a>
+        }
     </div>
 
     <div class="lesson-workspace">

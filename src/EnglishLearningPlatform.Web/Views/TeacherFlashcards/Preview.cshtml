@@ -1,0 +1,27 @@
+@model EnglishLearningPlatform.Application.Flashcards.TeacherFlashcardDeck
+@{
+    ViewData["Title"] = "Xem trước · " + Model.Title; ViewData["ActiveSection"] = "flashcards";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" />
+}
+<a asp-action="Edit" asp-route-id="@Model.Id">← Quản lý bộ thẻ</a>
+<h1>@Model.Title</h1>
+<p>@Model.Description</p>
+<p class="fc-notice">Xem trước dành cho giảng viên. Trang này không ghi nhận lượt ôn tập.</p>
+@if (Model.Cards.Count == 0)
+{
+    <p>Chưa có thẻ. Thêm thẻ tại trang quản lý.</p>
+}
+<div class="fc-grid">@foreach (var card in Model.Cards) {
+    <article class="fc-panel">
+        <h2>@card.FrontText</h2>
+        <p>@card.Pronunciation</p>
+        <p><strong>@card.BackText</strong></p>
+        <p>@card.Example</p>@if (card.AudioResourceUrl != null) {
+        <audio controls preload="none"
+               src="@card.AudioResourceUrl"></audio>
+    }
+</article>
+}
+</div>

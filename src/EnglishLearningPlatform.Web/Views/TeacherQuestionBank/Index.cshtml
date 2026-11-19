@@ -132,11 +132,17 @@ else
                         _ => "is-draft"
                     };
                     <tr data-question-row>
-                        <td class="question-bank-text"><p class="preserve">@question.Content</p></td>
+                        <td class="question-bank-text">
+                            <p class="preserve">@question.Content</p>
+                            @if (question.QuestionType != QuestionType.MultipleChoice)
+                            {
+                                <small><partial name="_UiText" model="question.QuestionType" /></small>
+                            }
+                        </td>
                         <td><span class="question-skill-badge"><partial name="_UiText" model="question.PrimarySkill" /></span></td>
                         <td class="question-level">@QuestionLevels.Display(question.Level)</td>
                         <td><span class="question-status-badge @statusClass"><partial name="_UiText" model="question.Status" /></span></td>
-                        <td class="question-option-count">@question.OptionCount</td>
+                        <td class="question-option-count">@(question.QuestionType == QuestionType.MultipleChoice ? question.OptionCount.ToString() : "—")</td>
                         <td>
                             <div class="question-bank-row-actions">
                                 <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Details" asp-route-id="@question.Id">Xem</a>

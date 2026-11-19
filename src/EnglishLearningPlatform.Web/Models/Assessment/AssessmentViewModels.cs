@@ -16,4 +16,6 @@ public sealed class AssessmentAnswerInput
 {
     public Guid AssessmentQuestionId { get; set; }
     public Guid? SelectedOptionId { get; set; }
+    public string? TextAnswer { get; set; }
+    public string? StructuredAnswerJson { get; set; }
 }

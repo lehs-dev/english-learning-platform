@@ -8,6 +8,9 @@
 <form id="question-editor-form" method="post" asp-action="Edit" asp-route-id="@Model.Id" class="editor-form question-form question-locked-form">
     <div asp-validation-summary="All" class="validation" role="alert"></div>
     @* Gửi nguyên nội dung đã khóa để giữ hợp đồng lưu; máy chủ kiểm tra lại mọi thay đổi. *@
+    <input type="hidden" asp-for="QuestionType" />
+    @for (var index = 0; index < Model.AcceptedAnswers.Count; index++)
+    { <input type="hidden" asp-for="AcceptedAnswers[index]" /> }
     <input type="hidden" asp-for="Content" />
     <input type="hidden" asp-for="PrimarySkill" />
     <input type="hidden" asp-for="StimulusId" />
@@ -54,6 +57,23 @@
                     </div>
                     <partial name="_ReadOnlyBadge" />
                 </div>
+                @if (Model.QuestionType == QuestionType.FillBlank)
+                { <ul>@foreach (var answer in Model.AcceptedAnswers) { <li>@answer</li> }</ul> }
+                @if (Model.StructuredItems.Count > 0)
+                {
+                    <ol>
+                        @foreach (var item in Model.StructuredItems)
+                        {
+                            <li class="preserve">
+                                @item.Text
+                                @if (item.MatchText is not null)
+                                {
+                                    <text> ↔ @item.MatchText</text>
+                                }
+                            </li>
+                        }
+                    </ol>
+                }
                 <ol class="question-locked-options" aria-label="Các lựa chọn đã khóa">
                     @for (var index = 0; index < Model.Options.Count; index++)
                     {

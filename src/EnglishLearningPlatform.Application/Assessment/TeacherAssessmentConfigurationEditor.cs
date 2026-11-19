@@ -8,6 +8,7 @@ namespace EnglishLearningPlatform.Application.Assessment;
 /// </summary>
 public sealed class TeacherAssessmentConfigurationEditor
 {
+    public Guid? CourseId { get; set; }
     public AssessmentStatus Status { get; set; }
 
     public AssessmentDraftRequest Input { get; set; }

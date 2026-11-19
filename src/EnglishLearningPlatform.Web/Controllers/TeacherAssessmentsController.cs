@@ -17,10 +17,12 @@ public sealed class TeacherAssessmentsController : Controller
 {
     private readonly ITeacherAssessmentDraftService _service;
     private readonly ITeacherAssessmentPublishService _publishService;
+    private readonly IStudentLearningCourseService _courses;
 
     public TeacherAssessmentsController(
         ITeacherAssessmentDraftService service,
-        ITeacherAssessmentPublishService publishService)
+        ITeacherAssessmentPublishService publishService,
+        IStudentLearningCourseService courses)
     {
         if (service == null)
         {
@@ -34,6 +36,7 @@ public sealed class TeacherAssessmentsController : Controller
 
         _service = service;
         _publishService = publishService;
+        _courses = courses;
     }
 
     /// <summary>
@@ -93,7 +96,8 @@ public sealed class TeacherAssessmentsController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(
         Guid? id,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? courseId = null)
     {
         if (!TryGetActorUserId(out Guid actorUserId))
         {
@@ -127,6 +131,12 @@ public sealed class TeacherAssessmentsController : Controller
 
             model.Input = result.Value.Input;
             model.Status = result.Value.Status;
+            model.CourseId = result.Value.CourseId;
+        }
+        else if (courseId.HasValue
+            && await GetNewCourseErrorAsync(model, actorUserId, courseId.Value, cancellationToken) is { } error)
+        {
+            return error;
         }
 
         return View(model);
@@ -141,7 +151,8 @@ public sealed class TeacherAssessmentsController : Controller
     public async Task<IActionResult> Edit(
         Guid? id,
         [Bind(Prefix = "Input")] AssessmentDraftRequest input,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? courseId = null)
     {
         if (!TryGetActorUserId(out Guid actorUserId))
         {
@@ -156,6 +167,7 @@ public sealed class TeacherAssessmentsController : Controller
         // Kiểm tra owner trước khi hiển thị lại form có id.
         // Service lưu vẫn kiểm tra lần nữa trong transaction.
         AssessmentStatus status = AssessmentStatus.Draft;
+        Guid? existingCourseId = null;
 
         if (id.HasValue)
         {
@@ -173,14 +185,22 @@ public sealed class TeacherAssessmentsController : Controller
             }
 
             status = access.Value.Status;
+            existingCourseId = access.Value.CourseId;
         }
 
         var model = new TeacherAssessmentDraftViewModel
         {
             Id = id,
             Input = input,
-            Status = status
+            Status = status,
+            CourseId = existingCourseId
         };
+
+        if (!id.HasValue && courseId.HasValue
+            && await GetNewCourseErrorAsync(model, actorUserId, courseId.Value, cancellationToken) is { } error)
+        {
+            return error;
+        }
 
         if (!ModelState.IsValid)
         {
@@ -188,7 +208,7 @@ public sealed class TeacherAssessmentsController : Controller
         }
 
         var result = await _service.SaveConfigurationAsync(
-            actorUserId, id, input, cancellationToken);
+            actorUserId, id, input, cancellationToken, newCourseId: id.HasValue ? null : model.CourseId);
 
         if (result.Access != LearningAccessResult.Allowed)
         {
@@ -213,6 +233,21 @@ public sealed class TeacherAssessmentsController : Controller
             new { id = result.Id });
     }
 
+    private async Task<IActionResult?> GetNewCourseErrorAsync(TeacherAssessmentDraftViewModel model,
+        Guid actorUserId, Guid courseId, CancellationToken cancellationToken)
+    {
+        var result = await _courses.OpenCourseAsync(actorUserId, courseId, true, cancellationToken);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        var course = result.Value!.Course;
+        model.CourseId = course.Id;
+        model.CourseTitle = course.Title;
+        if (course.Status == CourseStatus.Archived)
+        {
+            ModelState.AddModelError(string.Empty, "Khóa học đã lưu trữ. Hãy khôi phục khóa học trước khi tạo đề.");
+        }
+        return null;
+    }
+
     /// <summary>
     /// Công bố đề đã lưu.
     /// Không lưu kèm những chỉnh sửa chưa được submit ở form cấu hình.
@@ -222,7 +257,8 @@ public sealed class TeacherAssessmentsController : Controller
     public async Task<IActionResult> Publish(
         Guid id,
         DateTimeOffset? expectedUpdatedAtUtc,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? returnCourseId = null)
     {
         if (!TryGetActorUserId(out Guid actorUserId))
         {
@@ -251,11 +287,13 @@ public sealed class TeacherAssessmentsController : Controller
                 "Đã mở bài kiểm tra và khóa nội dung câu hỏi, ngữ liệu.";
 
             // Draft đã thành Published nên quay về danh sách.
-            return RedirectToAction(nameof(Index));
+            return returnCourseId.HasValue
+                ? RedirectToAction("Manage", "TeacherCourses", new { id = returnCourseId, tab = "assessments" })
+                : RedirectToAction(nameof(Index));
         }
 
         // Đọc lại Draft để hiển thị cấu hình thật cùng các lỗi Publish.
-        var draft = await _service.GetDraftAsync(
+        var draft = await _service.GetConfigurationEditorAsync(
             actorUserId,
             id,
             cancellationToken);
@@ -266,7 +304,7 @@ public sealed class TeacherAssessmentsController : Controller
         }
 
         if (draft.Access != LearningAccessResult.Allowed
-            || draft.Value == null)
+            || draft.Value?.Status != AssessmentStatus.Draft)
         {
             // Có thể đề vừa được Publish ở tab khác.
             // Không tự đưa Published trở lại Draft.
@@ -280,7 +318,8 @@ public sealed class TeacherAssessmentsController : Controller
         var model = new TeacherAssessmentDraftViewModel
         {
             Id = id,
-            Input = draft.Value
+            CourseId = draft.Value.CourseId,
+            Input = draft.Value.Input
         };
 
         // Hiển thị toàn bộ lỗi bằng validation-summary đã có.

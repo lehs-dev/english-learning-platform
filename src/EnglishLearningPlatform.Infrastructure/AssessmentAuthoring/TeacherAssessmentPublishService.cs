@@ -179,15 +179,16 @@ public sealed class TeacherAssessmentPublishService
                     + "Hãy tải lại và kiểm tra trước khi Publish.");
             }
 
-            // Đọc danh sách đã lưu, gồm dữ liệu cần để kiểm tra MCQ
-            // và passage/audio. Không nhận danh sách này từ form.
+            // Đọc định nghĩa câu hỏi và ngữ liệu đã lưu để xác thực trước khi mở đề.
             var questions = await _db.AssessmentQuestions
                 .Where(item => item.AssessmentId == assessmentId)
                 .Include(item => item.Question)
                     .ThenInclude(question => question.Options)
                 .Include(item => item.Question)
+                    .ThenInclude(question => question.AcceptedAnswers)
+                .Include(item => item.Question)
                     .ThenInclude(question => question.Stimulus)
-                .AsSingleQuery()
+                .AsSplitQuery()
                 .OrderBy(item => item.OrderIndex)
                 .ThenBy(item => item.Id)
                 .ToListAsync(cancellationToken);

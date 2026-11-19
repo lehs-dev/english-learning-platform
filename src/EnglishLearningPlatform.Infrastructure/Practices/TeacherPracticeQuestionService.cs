@@ -375,6 +375,7 @@ public sealed class TeacherPracticeQuestionService
                     question.OwnerTeacherUserId == actorUserId
                     && questionIds.Contains(question.Id))
                 .Include(question => question.Options)
+                .Include(question => question.AcceptedAnswers)
                 .Include(question => question.Stimulus)
                 .ToListAsync(cancellationToken);
 
@@ -655,6 +656,7 @@ public sealed class TeacherPracticeQuestionService
                 .Where(item => item.PracticeId == practiceId && item.Version == practice.Version)
                 .Include(item => item.Question)
                     .ThenInclude(question => question.Options)
+                .Include(item => item.Question).ThenInclude(question => question.AcceptedAnswers)
                 .Include(item => item.Question)
                     .ThenInclude(question => question.Stimulus)
                 .OrderBy(item => item.OrderIndex)

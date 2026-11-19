@@ -1,0 +1,28 @@
+@model EnglishLearningPlatform.Web.Models.StructuredQuestionInputModel
+@{
+    bool matching = Model.QuestionType == QuestionType.Matching;
+    var options = matching ? Model.Prompt.Matches : Model.Prompt.Items;
+}
+<div class="structured-question" data-structured-question="@(matching ? "matching" : "ordering")">
+    <p id="@Model.Id-help">@(matching ? "Chọn một vế tương ứng cho mỗi mục." : "Chọn mục cho từng vị trí theo thứ tự đúng.")</p>
+    <noscript><p>Bật JavaScript để trả lời dạng câu hỏi này.</p></noscript>
+    <input type="hidden" name="@(Model.Preview ? null : Model.Name)" value="@Model.SavedJson" data-structured-answer />
+    @for (int index = 0; index < Model.Prompt.Items.Count; index++)
+    {
+        var item = Model.Prompt.Items[index];
+        var selectId = $"{Model.Id}-{index}";
+        <div class="structured-question-row">
+            <label for="@selectId">@(matching ? item.Text : $"Vị trí {index + 1}")</label>
+            <select id="@selectId" class="form-control" aria-describedby="@Model.Id-help @Model.Id-status" data-structured-select
+                    data-left-id="@(matching ? item.Id : (Guid?)null)">
+                <option value="">@(matching ? "Chọn vế tương ứng" : "Chọn mục")</option>
+                @foreach (var option in options)
+                {
+                    <option value="@option.Id">@option.Text</option>
+                }
+            </select>
+        </div>
+    }
+    <button type="button" class="button secondary" data-structured-clear>Xóa lựa chọn</button>
+    <p id="@Model.Id-status" class="structured-question-status" data-structured-status role="status"></p>
+</div>

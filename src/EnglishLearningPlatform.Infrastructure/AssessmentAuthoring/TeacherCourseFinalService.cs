@@ -167,8 +167,9 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
                 var questions = await _db.AssessmentQuestions.AsNoTracking()
                     .Where(q => q.AssessmentId == candidate.Id)
                     .Include(q => q.Question).ThenInclude(q => q.Options)
+                    .Include(q => q.Question).ThenInclude(q => q.AcceptedAnswers)
                     .Include(q => q.Question).ThenInclude(q => q.Stimulus)
-                    .AsSingleQuery().OrderBy(q => q.OrderIndex).ThenBy(q => q.Id).ToListAsync(cancellationToken);
+                    .AsSplitQuery().OrderBy(q => q.OrderIndex).ThenBy(q => q.Id).ToListAsync(cancellationToken);
                 // Kiểm tra cả điều kiện Final dự kiến, chưa gán FK vào Course thật.
                 var futureCourse = new Course
                 {

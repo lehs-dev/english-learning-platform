@@ -3,7 +3,16 @@
     ViewData["Title"] = Model.Title;
     ViewData["ActiveSection"] = "practice";
 }
-@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+@section Styles {
+<link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+<style>
+.practice-reading-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.practice-reading-grid .exam-questions-column{min-width:0}.practice-passages{position:sticky;top:1rem;align-self:start;min-width:0;max-height:85vh;overflow:auto;overflow-wrap:anywhere;padding:1rem;border:1px solid #ddd;border-radius:16px}
+.practice-passages summary{cursor:pointer;font-size:1.25rem;font-weight:700}.practice-passages[open] summary{margin-bottom:.75rem}
+.practice-reading-grid .exam-sidebar-column{grid-column:2}.practice-back-passage{display:inline-block;margin-bottom:1rem}
+@@media(max-width:767px){.practice-reading-grid{grid-template-columns:minmax(0,1fr)}.practice-passages{position:static;max-height:55vh}.practice-reading-grid .exam-sidebar-column{grid-column:1}.exam-workspace-layout,.exam-question-card{min-width:0}.exam-question-content{overflow-wrap:anywhere}.exam-workspace-layout input[type=text]{max-width:100%;box-sizing:border-box}}
+</style>
+}
 
 <div class="exam-workspace-layout">
     <header class="exam-header-bar">
@@ -27,8 +36,17 @@
         </div>
     </header>
 
-    <form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="exam-form-grid" data-practice-form>
+    <form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="exam-form-grid @(Model.Questions.Any(q => !string.IsNullOrWhiteSpace(q.Passage)) ? "practice-reading-grid" : "")" data-practice-form>
         <input type="hidden" name="SessionId" value="@Model.SessionId" />
+        @if (Model.Questions.Any(q => !string.IsNullOrWhiteSpace(q.Passage)))
+        {
+            <details class="practice-passages" id="practice-passages" tabindex="-1" open>
+                <summary>Bài đọc / Ngữ cảnh</summary>
+                @foreach (var passage in Model.Questions.Where(q => !string.IsNullOrWhiteSpace(q.Passage)).Select(q => q.Passage).Distinct())
+                { <div class="exam-stimulus-box preserve">@passage</div> }
+                <a href="#practice-question-1">Đến câu hỏi ↓</a>
+            </details>
+        }
         <!-- LEFT: Questions Column -->
         <div class="exam-questions-column">
             <div class="exam-intro-card">
@@ -54,13 +72,7 @@
 
                     @if (!string.IsNullOrWhiteSpace(question.Passage))
                     {
-                        <div class="exam-stimulus-box">
-                            <div class="stimulus-label">
-                                <svg class="icon icon-sm" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                                <span>Bài đọc / Ngữ cảnh:</span>
-                            </div>
-                            <div class="preserve">@question.Passage</div>
-                        </div>
+                        <a class="practice-back-passage" href="#practice-passages">↑ Xem lại bài đọc</a>
                     }
 
                     <div class="exam-question-content preserve">@question.Content</div>
@@ -73,28 +85,16 @@
                         </div>
                     }
 
-                    <div class="exam-options-list" role="radiogroup" aria-label="Đáp án câu @(index + 1)">
-                        @for (var optIdx = 0; optIdx < question.Options.Count; optIdx++)
-                        {
-                            var option = question.Options[optIdx];
-                            var optionLetter = (char)('A' + optIdx);
-                            <label class="exam-option-card" for="opt-@(question.Id)-@option.Id">
-                                <input type="radio" id="opt-@(question.Id)-@option.Id" class="exam-option-radio" name="Answers[@index].SelectedOptionId" value="@option.Id" />
-                                <span class="exam-option-badge">@optionLetter</span>
-                                <span class="exam-option-text preserve">@option.Content</span>
-                            </label>
-                        }
-                    </div>
+                    @if (question.QuestionType == EnglishLearningPlatform.Domain.Enums.QuestionType.FillBlank)
+                    { <partial name="_QuestionFillBlank" model="@((question, index))" /> }
+                    else if (question.StructuredPrompt is { } prompt)
+                    {
+                        <partial name="_StructuredQuestion" model="@(new EnglishLearningPlatform.Web.Models.StructuredQuestionInputModel(
+                            $"practice-structured-{index}", $"Answers[{index}].StructuredAnswerJson", question.QuestionType, prompt))" />
+                    }
+                    else
+                    { <partial name="_QuestionMcq" model="@((question, index))" /> }
 
-                    <div class="exam-question-footer">
-                        <label class="exam-clear-selection" for="clear-practice-@(index + 1)">
-                            <input type="radio" id="clear-practice-@(index + 1)" class="exam-option-radio visually-hidden" name="Answers[@index].SelectedOptionId" value="" checked />
-                            <span class="exam-clear-text">
-                                <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#rotate-ccw")"></use></svg>
-                                <span>Bỏ trống câu này</span>
-                            </span>
-                        </label>
-                    </div>
                 </fieldset>
             }
         </div>
@@ -148,4 +148,7 @@
     </form>
 </div>
 
-@section Scripts { <script src="~/js/practice.js" asp-append-version="true" defer></script> }
+@section Scripts {
+    <script src="~/js/structured-answer.js" asp-append-version="true" defer></script>
+    <script src="~/js/practice.js" asp-append-version="true" defer></script>
+}

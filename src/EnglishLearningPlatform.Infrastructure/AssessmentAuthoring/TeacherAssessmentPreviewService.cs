@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Domain.Common;
@@ -70,8 +71,11 @@ public sealed class TeacherAssessmentPreviewService
                     .ThenInclude(question => question.Options)
             .Include(item => item.Questions)
                 .ThenInclude(item => item.Question)
+                    .ThenInclude(question => question.AcceptedAnswers)
+            .Include(item => item.Questions)
+                .ThenInclude(item => item.Question)
                     .ThenInclude(question => question.Stimulus)
-            .AsSingleQuery()
+            .AsSplitQuery()
             .SingleOrDefaultAsync(cancellationToken);
 
         if (assessment == null)
@@ -168,7 +172,9 @@ public sealed class TeacherAssessmentPreviewService
                 null, // Preview không đọc đáp án của Attempt.
                 options)
             {
-                AudioUrl = audioUrl
+                AudioUrl = audioUrl,
+                QuestionType = question.QuestionType,
+                StructuredPrompt = StructuredQuestionEvaluator.GetPrompt(question)
             });
         }
 
@@ -179,6 +185,8 @@ public sealed class TeacherAssessmentPreviewService
             Description = assessment.Description,
             AssessmentType = assessment.AssessmentType,
             Status = assessment.Status,
+            CanEditConfiguration = !await _db.Attempts.AnyAsync(attempt => attempt.AssessmentId == assessment.Id, cancellationToken),
+            UpdatedAtUtc = assessment.UpdatedAtUtc,
             TargetSkill = assessment.TargetSkill,
             CourseId = assessment.CourseId,
             CourseTitle = assessment.Course?.Title,

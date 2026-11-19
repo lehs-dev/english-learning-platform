@@ -1,5 +1,6 @@
 using System.Data;
 using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
@@ -35,6 +36,7 @@ public sealed class QuestionAuthoringService(
         var question = await db.Questions
             .AsNoTracking()
             .Include(q => q.Options)
+                .Include(q => q.AcceptedAnswers)
             .SingleOrDefaultAsync(
                 q => q.Id == questionId && q.OwnerTeacherUserId == actorUserId,
                 cancellationToken);
@@ -67,7 +69,12 @@ public sealed class QuestionAuthoringService(
             question.CreatedAtUtc,
             options,
             lockReason is not null,
-            lockReason);
+            lockReason)
+        {
+            QuestionType = question.QuestionType,
+            AcceptedAnswers = question.AcceptedAnswers.OrderBy(a => a.OrderIndex).Select(a => a.AnswerText).ToArray(),
+            StructuredItems = StructuredQuestionEvaluator.GetAuthorItems(question) ?? []
+        };
     }
 
     public async Task<IReadOnlyList<QuestionStimulusOption>> GetStimuliAsync(
@@ -215,6 +222,12 @@ public sealed class QuestionAuthoringService(
         {
             return QuestionWriteResult.Failure(validationErrors);
         }
+        request = request with
+        {
+            Options = request.Options ?? [],
+            AcceptedAnswers = request.AcceptedAnswers ?? [],
+            StructuredItems = request.StructuredItems ?? []
+        };
 
         try
         {
@@ -224,6 +237,7 @@ public sealed class QuestionAuthoringService(
 
             var question = await db.Questions
                 .Include(q => q.Options)
+                .Include(q => q.AcceptedAnswers)
                 .SingleOrDefaultAsync(
                     q => q.Id == questionId && q.OwnerTeacherUserId == actorUserId,
                     cancellationToken);
@@ -286,11 +300,18 @@ public sealed class QuestionAuthoringService(
 
             if (scoringContentChanged)
             {
+                if (question.QuestionType != request.QuestionType || !StructuredQuestionEvaluator.HasSameDefinition(question, request.StructuredItems))
+                    question.StructuredDefinitionJson = StructuredQuestionEvaluator.CreateDefinition(request.QuestionType, request.StructuredItems);
+                question.QuestionType = request.QuestionType;
                 question.Content = request.Content;
                 question.PrimarySkill = request.PrimarySkill!.Value;
                 question.StimulusId = request.StimulusId;
 
                 db.QuestionOptions.RemoveRange(question.Options);
+                db.Set<QuestionAcceptedAnswer>().RemoveRange(question.AcceptedAnswers);
+                for (var i = 0; i < request.AcceptedAnswers.Count; i++)
+                    db.Set<QuestionAcceptedAnswer>().Add(new QuestionAcceptedAnswer
+                    { QuestionId = question.Id, AnswerText = request.AcceptedAnswers[i], OrderIndex = i });
 
                 for (var i = 0; i < request.Options.Count; i++)
                 {
@@ -425,7 +446,10 @@ public sealed class QuestionAuthoringService(
 
     private static bool ScoringContentEquals(Question question, CreateQuestionRequest request)
     {
-        if (question.Content != request.Content ||
+        if (question.QuestionType != request.QuestionType ||
+            !StructuredQuestionEvaluator.HasSameDefinition(question, request.StructuredItems) ||
+            !question.AcceptedAnswers.OrderBy(a => a.OrderIndex).Select(a => a.AnswerText).SequenceEqual(request.AcceptedAnswers) ||
+            question.Content != request.Content ||
             question.PrimarySkill != request.PrimarySkill ||
             question.StimulusId != request.StimulusId || question.Explanation != request.Explanation)
         {

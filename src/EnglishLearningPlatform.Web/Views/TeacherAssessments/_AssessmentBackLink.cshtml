@@ -1,0 +1,9 @@
+@model Guid?
+@if (Model.HasValue)
+{
+    <a asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Value" asp-route-tab="assessments" data-editor-navigation data-configuration-navigation>Bài kiểm tra của khóa học</a>
+}
+else
+{
+    <a asp-controller="TeacherAssessments" asp-action="Index" data-editor-navigation data-configuration-navigation>Bài kiểm tra</a>
+}

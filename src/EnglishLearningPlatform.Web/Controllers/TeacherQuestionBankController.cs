@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EnglishLearningPlatform.Application.Authorization;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Web.Models.QuestionBank;
@@ -322,6 +323,15 @@ public sealed class TeacherQuestionBankController : Controller
         {
             model.ScoringContentLocked = true;
             model.LockReason = editor.LockReason;
+            if (!Request.Form.ContainsKey(nameof(model.QuestionType))) model.QuestionType = editor.QuestionType;
+            if (!Request.Form.Keys.Any(k => k == nameof(model.AcceptedAnswers) || k.StartsWith("AcceptedAnswers[", StringComparison.Ordinal)))
+                model.AcceptedAnswers = editor.AcceptedAnswers.ToList();
+            if (!Request.Form.Keys.Any(k => k == nameof(model.StructuredItems) || k.StartsWith("StructuredItems[", StringComparison.OrdinalIgnoreCase)))
+                model.StructuredItems = editor.StructuredItems.Select(item => new QuestionStructuredItemFormModel
+                {
+                    Text = item.Text,
+                    MatchText = item.MatchText
+                }).ToList();
             if (!Request.Form.ContainsKey(nameof(model.Content)))
             {
                 model.Content = editor.Content;
@@ -397,12 +407,18 @@ public sealed class TeacherQuestionBankController : Controller
 
         return new CreateQuestionRequest
         {
+            QuestionType = model.QuestionType,
+            AcceptedAnswers = model.QuestionType == QuestionType.FillBlank ? (model.AcceptedAnswers ?? []).ToArray() : [],
+            StructuredItems = StructuredQuestionEvaluator.IsStructured(model.QuestionType)
+                ? (model.StructuredItems ?? []).Select(item => new StructuredQuestionAuthorItem(
+                    item?.Text ?? string.Empty, item?.MatchText)).ToArray()
+                : [],
             Content = model.Content?.Trim() ?? string.Empty,
             PrimarySkill = model.PrimarySkill,
             Level = QuestionLevels.Normalize(model.Level),
             Explanation = string.IsNullOrWhiteSpace(model.Explanation) ? null : model.Explanation.Trim(),
             StimulusId = model.StimulusId,
-            Options = options
+            Options = model.QuestionType == QuestionType.MultipleChoice ? options : []
         };
     }
 
@@ -415,6 +431,10 @@ public sealed class TeacherQuestionBankController : Controller
 
         return new QuestionFormViewModel
         {
+            QuestionType = editor.QuestionType,
+            AcceptedAnswers = editor.AcceptedAnswers.Count > 0 ? editor.AcceptedAnswers.ToList() : [string.Empty],
+            StructuredItems = editor.StructuredItems.Count == 0 ? [new(), new()] : editor.StructuredItems.Select(item =>
+                new QuestionStructuredItemFormModel { Text = item.Text, MatchText = item.MatchText }).ToList(),
             Id = editor.Id,
             Content = editor.Content,
             PrimarySkill = editor.PrimarySkill,
@@ -443,6 +463,10 @@ public sealed class TeacherQuestionBankController : Controller
                 nameof(CreateQuestionRequest.Explanation) => "Explanation",
                 nameof(CreateQuestionRequest.StimulusId) => "StimulusId",
                 nameof(CreateQuestionRequest.Options) => "Options",
+                nameof(CreateQuestionRequest.QuestionType) => "QuestionType",
+                nameof(CreateQuestionRequest.AcceptedAnswers) => "AcceptedAnswers",
+                nameof(CreateQuestionRequest.StructuredItems) => "StructuredItems",
+                _ when error.Field.StartsWith("AcceptedAnswers[", StringComparison.Ordinal) => error.Field,
                 _ when error.Field.StartsWith("Options[", StringComparison.Ordinal) => error.Field,
                 _ => string.Empty
             };
