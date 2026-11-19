@@ -16,9 +16,14 @@ public sealed class EnrollmentProgressTests(IntegrationTestFactory factory) : IC
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
-        var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Progress course", Status = CourseStatus.Published,
+        var course = new Course
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Progress course",
+            Status = CourseStatus.Published,
             Modules = [new Module { Title = "Module", Lessons = [Lesson("One", 0), Lesson("Two", 1), new Lesson { Title = "Draft", OrderIndex = 2 }] },
-                new Module { Title = "Hidden", Visibility = ModuleVisibility.Hidden, OrderIndex = 1, Lessons = [Lesson("Hidden lesson", 0)] }] };
+                new Module { Title = "Hidden", Visibility = ModuleVisibility.Hidden, OrderIndex = 1, Lessons = [Lesson("Hidden lesson", 0)] }]
+        };
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Courses.Add(course);
@@ -27,8 +32,13 @@ public sealed class EnrollmentProgressTests(IntegrationTestFactory factory) : IC
         return (student.Id, teacher.Id, course);
     }
 
-    private static Lesson Lesson(string title, int index) => new() { Title = title, OrderIndex = index, Status = LessonStatus.Published,
-        Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = title }] };
+    private static Lesson Lesson(string title, int index) => new()
+    {
+        Title = title,
+        OrderIndex = index,
+        Status = LessonStatus.Published,
+        Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = title }]
+    };
 
     [Fact]
     public async Task Progress_FollowsEffectiveLessonsAndPreservesFirstCompletion()
@@ -110,8 +120,12 @@ public sealed class EnrollmentProgressTests(IntegrationTestFactory factory) : IC
         using var missing = await client.PostAsync($"/Learning/Completion/{lesson.Id}", new FormUrlEncodedContent(new Dictionary<string, string> { ["completed"] = "true" }));
         Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
         var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Learning/Lesson/{lesson.Id}");
-        using var posted = await client.PostAsync($"/Learning/Completion/{lesson.Id}", new FormUrlEncodedContent(new Dictionary<string, string> {
-            ["completed"] = "true", ["__RequestVerificationToken"] = token, ["EnrollmentId"] = Guid.NewGuid().ToString() }));
+        using var posted = await client.PostAsync($"/Learning/Completion/{lesson.Id}", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["completed"] = "true",
+            ["__RequestVerificationToken"] = token,
+            ["EnrollmentId"] = Guid.NewGuid().ToString()
+        }));
         Assert.Equal(HttpStatusCode.Redirect, posted.StatusCode);
         using var module = await client.GetAsync($"/Learning/Module/{data.Course.Modules.First().Id}");
         Assert.Equal(HttpStatusCode.OK, module.StatusCode); Assert.Contains("50%", await module.Content.ReadAsStringAsync());
@@ -137,16 +151,34 @@ public sealed class EnrollmentProgressTests(IntegrationTestFactory factory) : IC
         var data = await Seed();
         using var scope = factory.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var service = scope.ServiceProvider.GetRequiredService<ICourseService>();
-        var final = new Assessment { OwnerTeacherUserId = data.Teacher, CourseId = data.Course.Id, Title = "Final",
-            AssessmentType = AssessmentType.PracticeExam, Status = AssessmentStatus.Published, PassingScore = 70, DurationMinutes = 15, MaxAttempts = 3 };
+        var final = new Assessment
+        {
+            OwnerTeacherUserId = data.Teacher,
+            CourseId = data.Course.Id,
+            Title = "Final",
+            AssessmentType = AssessmentType.PracticeExam,
+            Status = AssessmentStatus.Published,
+            PassingScore = 70,
+            DurationMinutes = 15,
+            MaxAttempts = 3
+        };
         db.Assessments.Add(final); await db.SaveChangesAsync();
         await db.Courses.Where(c => c.Id == data.Course.Id).ExecuteUpdateAsync(s => s.SetProperty(c => c.FinalAssessmentId, final.Id));
         foreach (var lesson in data.Course.Modules.First().Lessons.Where(l => l.Status == LessonStatus.Published))
             Assert.True((await service.SetLessonCompletedAsync(data.Student, lesson.Id, true)).Success);
         Assert.Equal(100m, (await service.OpenCourseAsync(data.Student, data.Course.Id, false)).Value!.Progress!.Percentage);
         Assert.Null((await service.OpenCourseAsync(data.Student, data.Course.Id, false)).Value!.Progress!.CompletedAtUtc);
-        var attempt = new Attempt { StudentUserId = data.Student, AssessmentId = final.Id, Status = AttemptStatus.Graded,
-            OverallScore = 69.99m, Passed = false, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(15), FinalizedAtUtc = DateTimeOffset.UtcNow, FinalizationReason = AttemptFinalizationReason.ManualSubmit };
+        var attempt = new Attempt
+        {
+            StudentUserId = data.Student,
+            AssessmentId = final.Id,
+            Status = AttemptStatus.Graded,
+            OverallScore = 69.99m,
+            Passed = false,
+            DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(15),
+            FinalizedAtUtc = DateTimeOffset.UtcNow,
+            FinalizationReason = AttemptFinalizationReason.ManualSubmit
+        };
         db.Attempts.Add(attempt); await db.SaveChangesAsync();
         var first = data.Course.Modules.First().Lessons.First();
         Assert.True((await service.SetLessonCompletedAsync(data.Student, first.Id, true)).Success);

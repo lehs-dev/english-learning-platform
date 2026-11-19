@@ -14,30 +14,30 @@ public sealed class AdminDashboardQueryTests(IntegrationTestFactory factory) : I
 {
     private async Task VerifyMonthRevenueMatchesReportAsync()
     {
-        var admin=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Admin);
-        var teacher=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Teacher);
-        var student=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Student);
-        using var scope=factory.Services.CreateScope();
-        var db=scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var today=DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
-        var start=new DateTimeOffset(today.Year,today.Month,1,0,0,0,TimeSpan.FromHours(7));
-        var course=new Course{Title="Dashboard revenue reconciliation",OwnerTeacherUserId=teacher.Id};
-        void Add(decimal amount,DateTimeOffset paid,string currency="VND",bool duplicate=false)
+        var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var start = new DateTimeOffset(today.Year, today.Month, 1, 0, 0, 0, TimeSpan.FromHours(7));
+        var course = new Course { Title = "Dashboard revenue reconciliation", OwnerTeacherUserId = teacher.Id };
+        void Add(decimal amount, DateTimeOffset paid, string currency = "VND", bool duplicate = false)
         {
-            var order=new Order{Course=course,StudentUserId=student.Id,Amount=amount,Currency=currency,CreatedAtUtc=paid};
-            db.Payments.Add(new(){Order=order,Amount=amount,Status=PaymentStatus.Succeeded,PaidAtUtc=paid,ProviderTransactionId=$"dashboard-report-{Guid.NewGuid():N}"});
-            if(duplicate)db.Payments.Add(new(){Order=order,Amount=amount,Status=PaymentStatus.Succeeded,PaidAtUtc=paid,ProviderTransactionId=$"dashboard-report-{Guid.NewGuid():N}"});
+            var order = new Order { Course = course, StudentUserId = student.Id, Amount = amount, Currency = currency, CreatedAtUtc = paid };
+            db.Payments.Add(new() { Order = order, Amount = amount, Status = PaymentStatus.Succeeded, PaidAtUtc = paid, ProviderTransactionId = $"dashboard-report-{Guid.NewGuid():N}" });
+            if (duplicate) db.Payments.Add(new() { Order = order, Amount = amount, Status = PaymentStatus.Succeeded, PaidAtUtc = paid, ProviderTransactionId = $"dashboard-report-{Guid.NewGuid():N}" });
         }
-        Add(199000,start,duplicate:true);Add(99999,start.AddTicks(-1));Add(15,start,"USD");
+        Add(199000, start, duplicate: true); Add(99999, start.AddTicks(-1)); Add(15, start, "USD");
         await db.SaveChangesAsync();
-        using var client=IdentityTestHelpers.CreateClient(factory);
-        using var login=await IdentityTestHelpers.LoginAsync(client,admin);
-        var html=WebUtility.HtmlDecode(await client.GetStringAsync("/Admin"));
-        Assert.Contains("data-month-revenue>199.000 <small>",html);
-        Assert.Contains($"Doanh thu tháng {today:MM/yyyy}",html);
-        Assert.Contains(today.Day==1?$"Ngày {today:dd/MM/yyyy}":$"Từ 01/{today:MM/yyyy} đến hết {today:dd/MM/yyyy}",html);
-        Assert.DoesNotContain("Công việc quản trị",html);
-        Assert.DoesNotContain("Tài khoản đã khóa</p>",html);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, admin);
+        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/Admin"));
+        Assert.Contains("data-month-revenue>199.000 <small>", html);
+        Assert.Contains($"Doanh thu tháng {today:MM/yyyy}", html);
+        Assert.Contains(today.Day == 1 ? $"Ngày {today:dd/MM/yyyy}" : $"Từ 01/{today:MM/yyyy} đến hết {today:dd/MM/yyyy}", html);
+        Assert.DoesNotContain("Công việc quản trị", html);
+        Assert.DoesNotContain("Tài khoản đã khóa</p>", html);
     }
 
     [Fact]
@@ -57,23 +57,36 @@ public sealed class AdminDashboardQueryTests(IntegrationTestFactory factory) : I
         var disabled = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         (await db.Users.SingleAsync(u => u.Id == locked.Id)).AccountStatus = AccountStatus.Locked;
         (await db.Users.SingleAsync(u => u.Id == disabled.Id)).AccountStatus = AccountStatus.Disabled;
-        var courses = Enum.GetValues<CourseStatus>().Select(status => new Course {
-            OwnerTeacherUserId = teacher.Id, Title = $"dashboard-{status}", Status = status }).ToArray();
+        var courses = Enum.GetValues<CourseStatus>().Select(status => new Course
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = $"dashboard-{status}",
+            Status = status
+        }).ToArray();
         db.Courses.AddRange(courses);
         var published = courses.Single(c => c.Status == CourseStatus.Published);
         db.Enrollments.AddRange(
             new Enrollment { Course = published, StudentUserId = student.Id, CompletedAtUtc = DateTimeOffset.UtcNow },
             new Enrollment { Course = published, StudentUserId = locked.Id },
-            new Enrollment { Course = courses.Single(c => c.Status == CourseStatus.Archived), StudentUserId = student.Id,
-                CompletedAtUtc = DateTimeOffset.UtcNow });
+            new Enrollment
+            {
+                Course = courses.Single(c => c.Status == CourseStatus.Archived),
+                StudentUserId = student.Id,
+                CompletedAtUtc = DateTimeOffset.UtcNow
+            });
         var paid = new Order { Course = published, StudentUserId = student.Id, Amount = 100000 };
         var failed = new Order { Course = published, StudentUserId = student.Id, Amount = 100000 };
         var cancelled = new Order { Course = published, StudentUserId = student.Id, Amount = 100000 };
         var pending = new Order { Course = published, StudentUserId = student.Id, Amount = 100000 };
         db.Orders.AddRange(paid, failed, cancelled, pending);
-        void PaymentFor(Order order, PaymentStatus status, int minute) => db.Payments.Add(new Payment {
-            Order = order, Status = status, Amount = order.Amount,
-            ProviderTransactionId = $"dashboard-{Guid.NewGuid():N}", CreatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(minute) });
+        void PaymentFor(Order order, PaymentStatus status, int minute) => db.Payments.Add(new Payment
+        {
+            Order = order,
+            Status = status,
+            Amount = order.Amount,
+            ProviderTransactionId = $"dashboard-{Guid.NewGuid():N}",
+            CreatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(minute)
+        });
         PaymentFor(paid, PaymentStatus.Failed, -3);
         PaymentFor(paid, PaymentStatus.Succeeded, -2);
         PaymentFor(paid, PaymentStatus.Succeeded, -1);

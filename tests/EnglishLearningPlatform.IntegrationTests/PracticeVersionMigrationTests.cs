@@ -24,10 +24,18 @@ public sealed class PracticeVersionMigrationTests : IAsyncLifetime
         await db.GetService<IMigrator>().MigrateAsync("20261023165551_RemoveQuestionDifficulty");
         var teacher = new ApplicationUser { Id = Guid.NewGuid(), FullName = "Teacher", UserName = "migration-teacher" };
         var student = new ApplicationUser { Id = Guid.NewGuid(), FullName = "Student", UserName = "migration-student" };
-        var module = new Module { Title = "Module", Course = new Course
-            { Title = "Course", OwnerTeacherUserId = teacher.Id } };
-        var question = new Question { OwnerTeacherUserId = teacher.Id, Content = "Original question",
-            PrimarySkill = EnglishSkill.Reading };
+        var module = new Module
+        {
+            Title = "Module",
+            Course = new Course
+            { Title = "Course", OwnerTeacherUserId = teacher.Id }
+        };
+        var question = new Question
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Content = "Original question",
+            PrimarySkill = EnglishSkill.Reading
+        };
         var option = new QuestionOption { Question = question, Content = "Original answer", IsCorrect = true };
         db.Users.AddRange(teacher, student);
         db.Modules.Add(module);

@@ -173,7 +173,8 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
                 var other = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);
                 db.Courses.Add(new Course
                 {
-                    OwnerTeacherUserId = other.Id, Title = "Foreign final course",
+                    OwnerTeacherUserId = other.Id,
+                    Title = "Foreign final course",
                     FinalAssessmentId = data.Assessment.Id
                 });
                 await db.SaveChangesAsync();
@@ -207,7 +208,8 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
                 var student = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Student);
                 db.Attempts.Add(new Attempt
                 {
-                    AssessmentId = data.Assessment.Id, StudentUserId = student.Id,
+                    AssessmentId = data.Assessment.Id,
+                    StudentUserId = student.Id,
                     DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(20)
                 });
                 await db.SaveChangesAsync();
@@ -332,8 +334,10 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
             var fifth = data.Assessment.Questions.Single(q => q.OrderIndex == 4);
             db.AssessmentQuestions.Add(new AssessmentQuestion
             {
-                AssessmentId = data.Assessment.Id, QuestionId = fifth.QuestionId,
-                OrderIndex = 4, Points = fifth.Points
+                AssessmentId = data.Assessment.Id,
+                QuestionId = fifth.QuestionId,
+                OrderIndex = 4,
+                Points = fifth.Points
             });
             await db.SaveChangesAsync();
         }
@@ -376,7 +380,8 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
         string token = await IdentityTestHelpers.GetTokenAsync(client, "/TeacherAssessments/Edit");
         using var post = await client.PostAsync(PublishPath(data), new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["expectedUpdatedAtUtc"] = InitialVersion.ToString("O"), ["__RequestVerificationToken"] = token
+            ["expectedUpdatedAtUtc"] = InitialVersion.ToString("O"),
+            ["__RequestVerificationToken"] = token
         }));
         Assert.Equal(HttpStatusCode.NotFound, post.StatusCode);
         Assert.Equal(before, Snapshot(await ReadAsync(data)));
@@ -406,19 +411,37 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
     {
         return JsonSerializer.Serialize(new
         {
-            assessment.Id, assessment.OwnerTeacherUserId, assessment.Title, assessment.Description,
-            assessment.AssessmentType, assessment.TargetSkill, assessment.CourseId,
-            assessment.DurationMinutes, assessment.MaxAttempts, assessment.PassingScore,
+            assessment.Id,
+            assessment.OwnerTeacherUserId,
+            assessment.Title,
+            assessment.Description,
+            assessment.AssessmentType,
+            assessment.TargetSkill,
+            assessment.CourseId,
+            assessment.DurationMinutes,
+            assessment.MaxAttempts,
+            assessment.PassingScore,
             Questions = assessment.Questions.OrderBy(q => q.OrderIndex).Select(q => new
             {
-                q.Id, q.QuestionId, q.OrderIndex, q.Points, q.Question.Content, q.Question.PrimarySkill,
-                q.Question.Level, q.Question.Explanation, q.Question.Status,
-                q.Question.OwnerTeacherUserId, q.Question.StimulusId,
+                q.Id,
+                q.QuestionId,
+                q.OrderIndex,
+                q.Points,
+                q.Question.Content,
+                q.Question.PrimarySkill,
+                q.Question.Level,
+                q.Question.Explanation,
+                q.Question.Status,
+                q.Question.OwnerTeacherUserId,
+                q.Question.StimulusId,
                 Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.OrderIndex, o.IsCorrect }),
                 Stimulus = q.Question.Stimulus == null ? null : new
                 {
-                    q.Question.Stimulus.Id, q.Question.Stimulus.OwnerTeacherUserId,
-                    q.Question.Stimulus.StimulusType, q.Question.Stimulus.ContentText, q.Question.Stimulus.ResourceUrl
+                    q.Question.Stimulus.Id,
+                    q.Question.Stimulus.OwnerTeacherUserId,
+                    q.Question.Stimulus.StimulusType,
+                    q.Question.Stimulus.ContentText,
+                    q.Question.Stimulus.ResourceUrl
                 }
             })
         });
@@ -428,15 +451,23 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
     {
         return JsonSerializer.Serialize(new
         {
-            Definition = Definition(assessment), assessment.Status, assessment.UpdatedAtUtc,
+            Definition = Definition(assessment),
+            assessment.Status,
+            assessment.UpdatedAtUtc,
             Locks = assessment.Questions.OrderBy(q => q.OrderIndex).Select(q => new
             {
-                q.Question.ContentLockedAtUtc, StimulusLock = q.Question.Stimulus?.ContentLockedAtUtc
+                q.Question.ContentLockedAtUtc,
+                StimulusLock = q.Question.Stimulus?.ContentLockedAtUtc
             }),
             Attempts = assessment.Attempts.OrderBy(a => a.Id).Select(a => new
             {
-                a.Id, a.Status, a.DeadlineUtc, a.OverallScore, a.FinalizedAtUtc,
-                AnswerCount = a.Answers.Count, ResultCount = a.SkillResults.Count
+                a.Id,
+                a.Status,
+                a.DeadlineUtc,
+                a.OverallScore,
+                a.FinalizedAtUtc,
+                AnswerCount = a.Answers.Count,
+                ResultCount = a.SkillResults.Count
             })
         });
     }
@@ -467,34 +498,43 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var passage = new Stimulus
         {
-            OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage,
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Passage,
             ContentText = "A passage used by two questions."
         };
         passage.LockContent(OldLock);
         var audio = new Stimulus
         {
-            OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Audio,
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Audio,
             ResourceUrl = await scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>().StoreAsync(StimulusAudioTestData.Wav())
         };
         var assessment = new AssessmentEntity
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Task 4 saved assessment",
-            AssessmentType = type, TargetSkill = type == AssessmentType.SkillAssessment ? EnglishSkill.Reading : null,
-            DurationMinutes = 20, MaxAttempts = 3,
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Task 4 saved assessment",
+            AssessmentType = type,
+            TargetSkill = type == AssessmentType.SkillAssessment ? EnglishSkill.Reading : null,
+            DurationMinutes = 20,
+            MaxAttempts = 3,
             PassingScore = type == AssessmentType.PlacementTest ? null : 70m,
             UpdatedAtUtc = InitialVersion,
             Course = final ? new Course
             {
-                OwnerTeacherUserId = teacher.Id, Title = "Task 4 course", Status = CourseStatus.Published
+                OwnerTeacherUserId = teacher.Id,
+                Title = "Task 4 course",
+                Status = CourseStatus.Published
             } : null
         };
         for (int index = 0; index < 5; index++)
         {
             var question = new Question
             {
-                OwnerTeacherUserId = teacher.Id, Content = "TASK4_QUESTION_" + index,
+                OwnerTeacherUserId = teacher.Id,
+                Content = "TASK4_QUESTION_" + index,
                 PrimarySkill = index == 1 && type != AssessmentType.SkillAssessment ? EnglishSkill.Listening : EnglishSkill.Reading,
-                Level = "Beginner", Explanation = "A saved explanation.",
+                Level = "Beginner",
+                Explanation = "A saved explanation.",
                 Stimulus = index == 0 || index == 2 ? passage : index == 1 ? audio : null,
                 Options = new List<QuestionOption>
                 {

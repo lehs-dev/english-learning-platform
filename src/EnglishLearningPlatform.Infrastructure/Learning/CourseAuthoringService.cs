@@ -38,8 +38,17 @@ public sealed class CourseAuthoringService(
         var allowed = await Manage(userId, id, ct);
         if (allowed != LearningAccessResult.Allowed) return new(allowed);
         var c = await db.Courses.AsNoTracking().Include(c => c.Skills).Include(c => c.Topics).SingleAsync(c => c.Id == id, ct);
-        return new(allowed, new() { Title = c.Title, Description = c.Description, Objectives = c.Objectives, Level = c.Level,
-            IsPaid = c.IsPaid, Price = c.Price, Skills = c.Skills.Select(s => s.Skill).ToArray(), Topics = string.Join(", ", c.Topics.Select(t => t.Topic)) });
+        return new(allowed, new()
+        {
+            Title = c.Title,
+            Description = c.Description,
+            Objectives = c.Objectives,
+            Level = c.Level,
+            IsPaid = c.IsPaid,
+            Price = c.Price,
+            Skills = c.Skills.Select(s => s.Skill).ToArray(),
+            Topics = string.Join(", ", c.Topics.Select(t => t.Topic))
+        });
     }
 
     private static Dictionary<string, string[]> Validate(object input)

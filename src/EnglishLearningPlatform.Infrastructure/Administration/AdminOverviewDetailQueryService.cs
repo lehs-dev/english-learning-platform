@@ -48,7 +48,8 @@ public sealed class AdminOverviewDetailQueryService(AppDbContext db) : IAdminOve
         var pages = Math.Max(1, (int)Math.Ceiling(total / (double)PageSize));
         page = Math.Clamp(page, 1, pages);
         // Count, filter and pagination run in SQL; correlated counts do not load Enrollment rows.
-        var ordered = sort switch {
+        var ordered = sort switch
+        {
             AdminCourseSort.Popular => query.OrderByDescending(row => row.Enrollments).ThenByDescending(row => row.Course.CreatedAtUtc).ThenByDescending(row => row.Course.Id),
             AdminCourseSort.TeacherPopular => query.OrderByDescending(row => row.TeacherEnrollments).ThenByDescending(row => row.Enrollments).ThenByDescending(row => row.Course.CreatedAtUtc).ThenByDescending(row => row.Course.Id),
             _ => query.OrderByDescending(row => row.Course.CreatedAtUtc).ThenByDescending(row => row.Course.Id)
@@ -101,11 +102,11 @@ public sealed class AdminOverviewDetailQueryService(AppDbContext db) : IAdminOve
             .Select(row => new AdminEnrollmentOverview(row.Enrollment.Id, row.StudentName, row.StudentEmail,
                 row.Enrollment.CourseId, row.Enrollment.Course.Title,
                 row.Enrollment.EnrolledAtUtc, row.Enrollment.CompletedAtUtc)
-                {
-                    PaymentId = row.Enrollment.PaymentId,
-                    OrderId = row.Enrollment.Payment != null ? (Guid?)row.Enrollment.Payment.OrderId : null,
-                    PaymentProvider = row.Enrollment.Payment != null ? row.Enrollment.Payment.Provider : null
-                })
+            {
+                PaymentId = row.Enrollment.PaymentId,
+                OrderId = row.Enrollment.Payment != null ? (Guid?)row.Enrollment.Payment.OrderId : null,
+                PaymentProvider = row.Enrollment.Payment != null ? row.Enrollment.Payment.Provider : null
+            })
             .ToListAsync(ct);
         return new(items, term, page, pages, total);
     }

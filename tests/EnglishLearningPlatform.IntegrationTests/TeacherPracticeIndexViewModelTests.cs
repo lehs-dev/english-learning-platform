@@ -16,14 +16,20 @@ public sealed class TeacherPracticeIndexViewModelTests
         var courseId = Guid.NewGuid();
         var item = new TeacherPracticeListItem
         {
-            Id = Guid.NewGuid(), Title = "Grammar practice",
-            Status = PracticeStatus.Draft, QuestionCount = 3,
-            CourseId = courseId, CourseTitle = "English course"
+            Id = Guid.NewGuid(),
+            Title = "Grammar practice",
+            Status = PracticeStatus.Draft,
+            QuestionCount = 3,
+            CourseId = courseId,
+            CourseTitle = "English course"
         };
         var query = new TeacherPracticeSearchRequest
         {
-            Search = "Grammar", Status = PracticeStatus.Draft,
-            CourseId = courseId, PageNumber = 2, PageSize = 5
+            Search = "Grammar",
+            Status = PracticeStatus.Draft,
+            CourseId = courseId,
+            PageNumber = 2,
+            PageSize = 5
         };
         var result = new TeacherPracticeSearchResult(
             new List<TeacherPracticeListItem> { item }, 12, 2, 5);
@@ -150,8 +156,11 @@ public sealed class TeacherPracticeIndexViewModelTests
     {
         var query = new TeacherPracticeSearchRequest
         {
-            Search = "  Grammar  ", Status = PracticeStatus.Unpublished,
-            CourseId = Guid.NewGuid(), PageNumber = 2, PageSize = 20
+            Search = "  Grammar  ",
+            Status = PracticeStatus.Unpublished,
+            CourseId = Guid.NewGuid(),
+            PageNumber = 2,
+            PageSize = 20
         };
         var courseId = query.CourseId;
         var result = new TeacherPracticeSearchResult(

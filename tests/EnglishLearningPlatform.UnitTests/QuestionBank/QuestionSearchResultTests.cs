@@ -3,6 +3,7 @@ using EnglishLearningPlatform.Domain.Enums;
 using Xunit;
 
 namespace EnglishLearningPlatform.UnitTests.QuestionBank;
+
 public class QuestionSearchResultTests
 {
     [Fact]
@@ -22,12 +23,12 @@ public class QuestionSearchResultTests
         };
         List<QuestionListItem> items = new List<QuestionListItem> { item };
         // Act: tạo một QuestionSearchResult với dữ liệu mẫu.
-        QuestionSearchResult result = new QuestionSearchResult(items,25,3,10);
+        QuestionSearchResult result = new QuestionSearchResult(items, 25, 3, 10);
         // Assert: kiểm tra các thuộc tính của result.
-        Assert.Equal(25,result.TotalCount);
-        Assert.Equal(3,result.PageNumber);
-        Assert.Equal(10,result.PageSize);
-        Assert.Equal(item.Id,result.Items[0].Id);
+        Assert.Equal(25, result.TotalCount);
+        Assert.Equal(3, result.PageNumber);
+        Assert.Equal(10, result.PageSize);
+        Assert.Equal(item.Id, result.Items[0].Id);
     }
     // Kiểm tra số trang khi không có câu, đủ trang và có câu dư.
     [Theory]

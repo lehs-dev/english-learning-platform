@@ -181,7 +181,8 @@ public sealed class AssessmentDefinitionValidatorTests
                 data.FinalCourses.Add(new Course
                 {
                     OwnerTeacherUserId = data.Assessment.OwnerTeacherUserId,
-                    Title = "Other course", FinalAssessmentId = data.Assessment.Id
+                    Title = "Other course",
+                    FinalAssessmentId = data.Assessment.Id
                 });
                 break;
         }
@@ -255,9 +256,12 @@ public sealed class AssessmentDefinitionValidatorTests
     {
         var assessment = new AssessmentEntity
         {
-            OwnerTeacherUserId = Guid.NewGuid(), Title = "Definition test", AssessmentType = type,
+            OwnerTeacherUserId = Guid.NewGuid(),
+            Title = "Definition test",
+            AssessmentType = type,
             TargetSkill = type == AssessmentType.SkillAssessment ? EnglishSkill.Reading : null,
-            DurationMinutes = 20, MaxAttempts = 3,
+            DurationMinutes = 20,
+            MaxAttempts = 3,
             PassingScore = type == AssessmentType.PlacementTest ? null : 72.25m
         };
         var questions = new List<AssessmentQuestion>();
@@ -266,7 +270,8 @@ public sealed class AssessmentDefinitionValidatorTests
             var question = new Question
             {
                 OwnerTeacherUserId = assessment.OwnerTeacherUserId,
-                Content = $"Question {index + 1}", PrimarySkill = EnglishSkill.Reading,
+                Content = $"Question {index + 1}",
+                PrimarySkill = EnglishSkill.Reading,
                 Options = new List<QuestionOption>
                 {
                     new QuestionOption { Content = "First", OrderIndex = 0, IsCorrect = true },
@@ -275,9 +280,12 @@ public sealed class AssessmentDefinitionValidatorTests
             };
             questions.Add(new AssessmentQuestion
             {
-                AssessmentId = assessment.Id, Assessment = assessment,
-                QuestionId = question.Id, Question = question,
-                OrderIndex = index, Points = index + 1m
+                AssessmentId = assessment.Id,
+                Assessment = assessment,
+                QuestionId = question.Id,
+                Question = question,
+                OrderIndex = index,
+                Points = index + 1m
             });
         }
         assessment.Questions = questions;
@@ -288,7 +296,8 @@ public sealed class AssessmentDefinitionValidatorTests
     {
         var stimulus = new Stimulus
         {
-            OwnerTeacherUserId = question.OwnerTeacherUserId, StimulusType = type,
+            OwnerTeacherUserId = question.OwnerTeacherUserId,
+            StimulusType = type,
             Title = "Validator stimulus",
             ContentText = type == StimulusType.Passage ? "Reading passage." : null,
             ResourceUrl = type == StimulusType.Audio ? EnglishLearningPlatform.Application.Stimuli.StimulusAudioConstants.RoutePrefix + new string('a', 64) : null
@@ -302,7 +311,8 @@ public sealed class AssessmentDefinitionValidatorTests
     {
         var course = new Course
         {
-            OwnerTeacherUserId = data.Assessment.OwnerTeacherUserId, Title = "Definition course",
+            OwnerTeacherUserId = data.Assessment.OwnerTeacherUserId,
+            Title = "Definition course",
             FinalAssessmentId = asFinal ? data.Assessment.Id : null
         };
         data.Assessment.CourseId = course.Id;
@@ -318,27 +328,50 @@ public sealed class AssessmentDefinitionValidatorTests
         var a = data.Assessment;
         return JsonSerializer.Serialize(new
         {
-            a.Id, a.OwnerTeacherUserId, a.Title, a.Description, a.AssessmentType,
-            a.TargetSkill, a.DurationMinutes, a.MaxAttempts, a.PassingScore,
-            a.Status, a.CourseId, a.CreatedAtUtc, a.UpdatedAtUtc,
+            a.Id,
+            a.OwnerTeacherUserId,
+            a.Title,
+            a.Description,
+            a.AssessmentType,
+            a.TargetSkill,
+            a.DurationMinutes,
+            a.MaxAttempts,
+            a.PassingScore,
+            a.Status,
+            a.CourseId,
+            a.CreatedAtUtc,
+            a.UpdatedAtUtc,
             Attempts = a.Attempts.Count,
             Questions = data.Questions.Select(q => new
             {
-                q.Id, q.AssessmentId, q.QuestionId, q.OrderIndex, q.Points,
-                q.Question.Content, q.Question.PrimarySkill, q.Question.Status,
-                q.Question.StimulusId, q.Question.ContentLockedAtUtc, q.Question.UpdatedAtUtc,
+                q.Id,
+                q.AssessmentId,
+                q.QuestionId,
+                q.OrderIndex,
+                q.Points,
+                q.Question.Content,
+                q.Question.PrimarySkill,
+                q.Question.Status,
+                q.Question.StimulusId,
+                q.Question.ContentLockedAtUtc,
+                q.Question.UpdatedAtUtc,
                 Options = q.Question.Options.Select(o => new { o.Id, o.Content, o.OrderIndex, o.IsCorrect }),
                 Stimulus = q.Question.Stimulus == null ? null : new
                 {
-                    q.Question.Stimulus.Id, q.Question.Stimulus.ContentText,
-                    q.Question.Stimulus.ResourceUrl, q.Question.Stimulus.ContentLockedAtUtc,
+                    q.Question.Stimulus.Id,
+                    q.Question.Stimulus.ContentText,
+                    q.Question.Stimulus.ResourceUrl,
+                    q.Question.Stimulus.ContentLockedAtUtc,
                     q.Question.Stimulus.UpdatedAtUtc
                 }
             }),
             Course = data.LinkedCourse == null ? null : new
             {
-                data.LinkedCourse.Id, data.LinkedCourse.OwnerTeacherUserId,
-                data.LinkedCourse.Status, data.LinkedCourse.FinalAssessmentId, data.LinkedCourse.UpdatedAtUtc
+                data.LinkedCourse.Id,
+                data.LinkedCourse.OwnerTeacherUserId,
+                data.LinkedCourse.Status,
+                data.LinkedCourse.FinalAssessmentId,
+                data.LinkedCourse.UpdatedAtUtc
             }
         });
     }

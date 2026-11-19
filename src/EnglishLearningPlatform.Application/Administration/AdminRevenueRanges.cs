@@ -6,7 +6,8 @@ public static class AdminRevenueRanges
     public static AdminDateRange Resolve(string period, DateOnly today, DateOnly? fromDate, DateOnly? toDate)
     {
         var monday = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
-        return period switch {
+        return period switch
+        {
             "week" => new(monday, monday.AddDays(6)),
             "month" => new(new(today.Year, today.Month, 1), new(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month))),
             "year" => new(new(today.Year, 1, 1), new(today.Year, 12, 31)),

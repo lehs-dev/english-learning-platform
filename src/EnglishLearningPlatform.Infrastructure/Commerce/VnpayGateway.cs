@@ -52,11 +52,16 @@ public sealed class VnpayGateway(IOptions<VnpayOptions> options, IHttpContextAcc
         if (ip.IsIPv4MappedToIPv6) ip = ip.MapToIPv4();
         var data = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["vnp_Version"] = "2.1.0", ["vnp_Command"] = "pay", ["vnp_TmnCode"] = settings.TmnCode,
+            ["vnp_Version"] = "2.1.0",
+            ["vnp_Command"] = "pay",
+            ["vnp_TmnCode"] = settings.TmnCode,
             ["vnp_Amount"] = (quoted * 100).ToString("0", CultureInfo.InvariantCulture),
-            ["vnp_CurrCode"] = "VND", ["vnp_TxnRef"] = order.Id.ToString("N"),
-            ["vnp_OrderInfo"] = $"Thanh toan khoa hoc {order.Id:N}", ["vnp_OrderType"] = "other",
-            ["vnp_Locale"] = "vn", ["vnp_IpAddr"] = ip.ToString(),
+            ["vnp_CurrCode"] = "VND",
+            ["vnp_TxnRef"] = order.Id.ToString("N"),
+            ["vnp_OrderInfo"] = $"Thanh toan khoa hoc {order.Id:N}",
+            ["vnp_OrderType"] = "other",
+            ["vnp_Locale"] = "vn",
+            ["vnp_IpAddr"] = ip.ToString(),
             ["vnp_ReturnUrl"] = BrowserBaseUrl() + "/payments/vnpay/return",
             ["vnp_CreateDate"] = VietnamTime(order.CreatedAtUtc == default ? DateTimeOffset.UtcNow : order.CreatedAtUtc),
             ["vnp_ExpireDate"] = VietnamTime(order.ExpiresAtUtc)

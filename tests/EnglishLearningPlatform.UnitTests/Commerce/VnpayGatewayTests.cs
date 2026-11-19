@@ -21,10 +21,14 @@ public sealed class VnpayGatewayTests
     {
         var context = new DefaultHttpContext();
         context.Request.Scheme = "http"; context.Request.Host = new HostString("localhost", port);
-        var gateway = new VnpayGateway(Options.Create(new VnpayOptions { Enabled = true,
-            TmnCode = "TEST0001", HashSecret = TestKey }), new HttpContextAccessor { HttpContext = context });
+        var gateway = new VnpayGateway(Options.Create(new VnpayOptions
+        {
+            Enabled = true,
+            TmnCode = "TEST0001",
+            HashSecret = TestKey
+        }), new HttpContextAccessor { HttpContext = context });
         Assert.True(gateway.IsConfigured);
-        var url = gateway.CreateCheckoutUrl(new(Guid.NewGuid(),199000m,"VND",DateTimeOffset.UtcNow.AddMinutes(15)));
+        var url = gateway.CreateCheckoutUrl(new(Guid.NewGuid(), 199000m, "VND", DateTimeOffset.UtcNow.AddMinutes(15)));
         Assert.Equal($"http://localhost:{port}/payments/vnpay/return", QueryHelpers.ParseQuery(new Uri(url).Query)["vnp_ReturnUrl"]);
     }
 
@@ -41,7 +45,9 @@ public sealed class VnpayGatewayTests
         context.Request.Headers["X-Forwarded-Host"] = "attacker.example.test";
         var gateway = new VnpayGateway(Options.Create(new VnpayOptions
         {
-            Enabled = true, TmnCode = "TEST0001", HashSecret = TestKey,
+            Enabled = true,
+            TmnCode = "TEST0001",
+            HashSecret = TestKey,
             PublicBaseUrl = "https://merchant.example.test",
             BrowserBaseUrls = ["http://localhost:8080", "http://127.0.0.1:8080"]
         }), new HttpContextAccessor { HttpContext = context });
@@ -153,9 +159,13 @@ public sealed class VnpayGatewayTests
     {
         var data = new Dictionary<string, string>
         {
-            ["vnp_TmnCode"] = "TEST0001", ["vnp_TxnRef"] = Guid.NewGuid().ToString("N"),
-            ["vnp_Amount"] = "19900000", ["vnp_ResponseCode"] = response, ["vnp_TransactionStatus"] = state,
-            ["vnp_TransactionNo"] = "123456", ["vnp_PayDate"] = "20270101000000",
+            ["vnp_TmnCode"] = "TEST0001",
+            ["vnp_TxnRef"] = Guid.NewGuid().ToString("N"),
+            ["vnp_Amount"] = "19900000",
+            ["vnp_ResponseCode"] = response,
+            ["vnp_TransactionStatus"] = state,
+            ["vnp_TransactionNo"] = "123456",
+            ["vnp_PayDate"] = "20270101000000",
             ["vnp_OrderInfo"] = "Thanh toan: Đọc / nghe & học"
         };
         Sign(data); return data;

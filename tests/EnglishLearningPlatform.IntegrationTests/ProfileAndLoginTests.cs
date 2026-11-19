@@ -75,9 +75,12 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var response = await client.PostAsync("/Account/Register", new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
-                ["FullName"] = "Học viên mới", ["Email"] = email,
-                ["Password"] = IdentityTestHelpers.Password, ["ConfirmPassword"] = IdentityTestHelpers.Password,
-                ["Role"] = AppRoles.Teacher, ["__RequestVerificationToken"] = token
+                ["FullName"] = "Học viên mới",
+                ["Email"] = email,
+                ["Password"] = IdentityTestHelpers.Password,
+                ["ConfirmPassword"] = IdentityTestHelpers.Password,
+                ["Role"] = AppRoles.Teacher,
+                ["__RequestVerificationToken"] = token
             }));
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         using var scope = factory.Services.CreateScope();
@@ -107,9 +110,12 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var response = await client.PostAsync("/Account/Register", new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
-                ["FullName"] = "Học viên quay lại", ["Email"] = email,
-                ["Password"] = IdentityTestHelpers.Password, ["ConfirmPassword"] = IdentityTestHelpers.Password,
-                ["ReturnUrl"] = returnUrl, ["__RequestVerificationToken"] = token
+                ["FullName"] = "Học viên quay lại",
+                ["Email"] = email,
+                ["Password"] = IdentityTestHelpers.Password,
+                ["ConfirmPassword"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl,
+                ["__RequestVerificationToken"] = token
             }));
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         var location = response.Headers.Location!;
@@ -125,7 +131,9 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var login = await client.PostAsync("/Account/Login", new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
-                ["Email"] = email, ["Password"] = IdentityTestHelpers.Password, ["ReturnUrl"] = returnUrl,
+                ["Email"] = email,
+                ["Password"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl,
                 ["__RequestVerificationToken"] = WebUtility.HtmlDecode(Regex.Match(loginHtml,
                     "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value)
             }));
@@ -149,7 +157,8 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
             builder.UseEnvironment(environment);
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["LearningDemo:Enabled"] = "false", ["LearningDemo:Password"] = password,
+                ["LearningDemo:Enabled"] = "false",
+                ["LearningDemo:Password"] = password,
                 ["Database:ApplyMigrationsOnStartup"] = "false"
             }));
         });
@@ -202,7 +211,8 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var response = await SendModalAsync(client, HttpMethod.Post, path,
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["Email"] = "invalid-email", ["ReturnUrl"] = "/Practice",
+                ["Email"] = "invalid-email",
+                ["ReturnUrl"] = "/Practice",
                 ["__RequestVerificationToken"] = token
             }));
 
@@ -226,8 +236,10 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var response = await SendModalAsync(client, HttpMethod.Post, "/Account/Login",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["Email"] = user.Email!, ["Password"] = "Wrong_123!",
-                ["ReturnUrl"] = "https://attacker.example/steal", ["__RequestVerificationToken"] = token
+                ["Email"] = user.Email!,
+                ["Password"] = "Wrong_123!",
+                ["ReturnUrl"] = "https://attacker.example/steal",
+                ["__RequestVerificationToken"] = token
             }));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -256,8 +268,10 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var response = await SendModalAsync(client, HttpMethod.Post, "/Account/Login",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["Email"] = user.Email!, ["Password"] = IdentityTestHelpers.Password,
-                ["ReturnUrl"] = returnUrl ?? string.Empty, ["__RequestVerificationToken"] = token
+                ["Email"] = user.Email!,
+                ["Password"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl ?? string.Empty,
+                ["__RequestVerificationToken"] = token
             }));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -278,9 +292,12 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var response = await SendModalAsync(client, HttpMethod.Post, "/Account/Register",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["FullName"] = "Học viên popup", ["Email"] = email,
-                ["Password"] = IdentityTestHelpers.Password, ["ConfirmPassword"] = IdentityTestHelpers.Password,
-                ["ReturnUrl"] = returnUrl, ["__RequestVerificationToken"] = token
+                ["FullName"] = "Học viên popup",
+                ["Email"] = email,
+                ["Password"] = IdentityTestHelpers.Password,
+                ["ConfirmPassword"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl,
+                ["__RequestVerificationToken"] = token
             }));
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
@@ -300,8 +317,10 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var login = await SendModalAsync(client, HttpMethod.Post, "/Account/Login",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["Email"] = email, ["Password"] = IdentityTestHelpers.Password,
-                ["ReturnUrl"] = returnUrl, ["__RequestVerificationToken"] = loginToken
+                ["Email"] = email,
+                ["Password"] = IdentityTestHelpers.Password,
+                ["ReturnUrl"] = returnUrl,
+                ["__RequestVerificationToken"] = loginToken
             }));
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         using var result = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
@@ -317,7 +336,8 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         using var response = await SendModalAsync(client, HttpMethod.Post, path,
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["Email"] = "guest@example.test", ["Password"] = IdentityTestHelpers.Password
+                ["Email"] = "guest@example.test",
+                ["Password"] = IdentityTestHelpers.Password
             }));
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -332,9 +352,12 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         var token = await IdentityTestHelpers.GetTokenAsync(client, "/Profile");
         using var response = await client.PostAsync("/Profile", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["FullName"] = "  Nguyễn Khang  ", ["UserId"] = other.Id.ToString(),
-            ["Email"] = "changed@example.test", ["Role"] = AppRoles.Admin,
-            ["AccountStatus"] = "Disabled", ["__RequestVerificationToken"] = token
+            ["FullName"] = "  Nguyễn Khang  ",
+            ["UserId"] = other.Id.ToString(),
+            ["Email"] = "changed@example.test",
+            ["Role"] = AppRoles.Admin,
+            ["AccountStatus"] = "Disabled",
+            ["__RequestVerificationToken"] = token
         }));
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
 

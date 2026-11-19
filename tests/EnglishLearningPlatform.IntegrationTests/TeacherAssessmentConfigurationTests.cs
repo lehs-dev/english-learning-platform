@@ -279,12 +279,18 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
         Assert.True(version.Success);
         var fields = new Dictionary<string, string>
         {
-            ["Input.Title"] = "HTTP configuration", ["Input.AssessmentType"] = "SkillAssessment",
-            ["Input.TargetSkill"] = "Listening", ["Input.DurationMinutes"] = "35", ["Input.MaxAttempts"] = "4",
-            ["Input.PassingScore"] = "75.25", ["Input.ExpectedUpdatedAtUtc"] = WebUtility.HtmlDecode(version.Groups[1].Value),
+            ["Input.Title"] = "HTTP configuration",
+            ["Input.AssessmentType"] = "SkillAssessment",
+            ["Input.TargetSkill"] = "Listening",
+            ["Input.DurationMinutes"] = "35",
+            ["Input.MaxAttempts"] = "4",
+            ["Input.PassingScore"] = "75.25",
+            ["Input.ExpectedUpdatedAtUtc"] = WebUtility.HtmlDecode(version.Groups[1].Value),
             // Match the number input's hidden field emitted by the MVC form tag helper.
             ["__Invariant"] = "Input.PassingScore",
-            ["Status"] = "Draft", ["Input.Status"] = "Draft", ["Input.CourseId"] = Guid.NewGuid().ToString(),
+            ["Status"] = "Draft",
+            ["Input.Status"] = "Draft",
+            ["Input.CourseId"] = Guid.NewGuid().ToString(),
             ["Input.OwnerTeacherUserId"] = Guid.NewGuid().ToString()
         };
         string before = Snapshot(await ReadAsync(data));
@@ -510,7 +516,8 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             ExpectedUpdatedAtUtc = assessment.UpdatedAtUtc,
             Items = assessment.Questions.OrderBy(q => q.OrderIndex).Select(q => new AssessmentQuestionInput
             {
-                QuestionId = q.QuestionId, Points = q.Points
+                QuestionId = q.QuestionId,
+                Points = q.Points
             }).ToList()
         };
     }
@@ -528,10 +535,14 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var question = new Question
         {
-            OwnerTeacherUserId = data.Teacher.Id, Content = "New question before first Attempt", PrimarySkill = EnglishSkill.Reading,
+            OwnerTeacherUserId = data.Teacher.Id,
+            Content = "New question before first Attempt",
+            PrimarySkill = EnglishSkill.Reading,
             Stimulus = new Stimulus
             {
-                OwnerTeacherUserId = data.Teacher.Id, StimulusType = StimulusType.Passage, ContentText = "New passage."
+                OwnerTeacherUserId = data.Teacher.Id,
+                StimulusType = StimulusType.Passage,
+                ContentText = "New passage."
             },
             Options = new List<QuestionOption>
             {
@@ -553,12 +564,25 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
             .Where(q => q.OwnerTeacherUserId == data.Teacher.Id).OrderBy(q => q.Id).ToListAsync();
         return JsonSerializer.Serialize(questions.Select(q => new
         {
-            q.Id, q.OwnerTeacherUserId, q.Content, q.PrimarySkill, q.Status, q.StimulusId, q.Level, q.Explanation, q.UpdatedAtUtc,
+            q.Id,
+            q.OwnerTeacherUserId,
+            q.Content,
+            q.PrimarySkill,
+            q.Status,
+            q.StimulusId,
+            q.Level,
+            q.Explanation,
+            q.UpdatedAtUtc,
             Lock = includeLocks ? q.ContentLockedAtUtc : null,
             Options = q.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex, o.UpdatedAtUtc }),
             Stimulus = q.Stimulus == null ? null : new
             {
-                q.Stimulus.Id, q.Stimulus.OwnerTeacherUserId, q.Stimulus.StimulusType, q.Stimulus.ContentText, q.Stimulus.ResourceUrl, q.Stimulus.UpdatedAtUtc,
+                q.Stimulus.Id,
+                q.Stimulus.OwnerTeacherUserId,
+                q.Stimulus.StimulusType,
+                q.Stimulus.ContentText,
+                q.Stimulus.ResourceUrl,
+                q.Stimulus.UpdatedAtUtc,
                 Lock = includeLocks ? q.Stimulus.ContentLockedAtUtc : null
             }
         }));
@@ -600,26 +624,58 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
     // Chiếu dữ liệu rõ ràng để không serialize vòng navigation của EF.
     private static string Content(AssessmentEntity a) => JsonSerializer.Serialize(a.Questions.OrderBy(q => q.OrderIndex).Select(q => new
     {
-        q.Id, q.QuestionId, q.OrderIndex, q.Points, q.Question.OwnerTeacherUserId, q.Question.Content,
-        q.Question.PrimarySkill, q.Question.Status, q.Question.Explanation, q.Question.Level,
-        q.Question.StimulusId, q.Question.UpdatedAtUtc,
+        q.Id,
+        q.QuestionId,
+        q.OrderIndex,
+        q.Points,
+        q.Question.OwnerTeacherUserId,
+        q.Question.Content,
+        q.Question.PrimarySkill,
+        q.Question.Status,
+        q.Question.Explanation,
+        q.Question.Level,
+        q.Question.StimulusId,
+        q.Question.UpdatedAtUtc,
         Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.OrderIndex, o.Content, o.IsCorrect, o.UpdatedAtUtc }),
         Stimulus = q.Question.Stimulus == null ? null : new
         {
-            q.Question.Stimulus.Id, q.Question.Stimulus.OwnerTeacherUserId, q.Question.Stimulus.StimulusType,
-            q.Question.Stimulus.ContentText, q.Question.Stimulus.ResourceUrl, q.Question.Stimulus.UpdatedAtUtc
+            q.Question.Stimulus.Id,
+            q.Question.Stimulus.OwnerTeacherUserId,
+            q.Question.Stimulus.StimulusType,
+            q.Question.Stimulus.ContentText,
+            q.Question.Stimulus.ResourceUrl,
+            q.Question.Stimulus.UpdatedAtUtc
         }
     }));
 
     private static string Snapshot(AssessmentEntity a) => JsonSerializer.Serialize(new
     {
-        a.Id, a.Title, a.Description, a.OwnerTeacherUserId, a.Status, a.UpdatedAtUtc, a.CourseId,
-        a.AssessmentType, a.TargetSkill, a.DurationMinutes, a.MaxAttempts, a.PassingScore, Content = Content(a),
+        a.Id,
+        a.Title,
+        a.Description,
+        a.OwnerTeacherUserId,
+        a.Status,
+        a.UpdatedAtUtc,
+        a.CourseId,
+        a.AssessmentType,
+        a.TargetSkill,
+        a.DurationMinutes,
+        a.MaxAttempts,
+        a.PassingScore,
+        Content = Content(a),
         Locks = a.Questions.OrderBy(q => q.OrderIndex).Select(q => new
         { q.Question.ContentLockedAtUtc, StimulusLock = q.Question.Stimulus?.ContentLockedAtUtc }),
         Attempts = a.Attempts.OrderBy(t => t.Id).Select(t => new
         {
-            t.Id, t.Status, t.StudentUserId, t.StartedAtUtc, t.DeadlineUtc, t.OverallScore, t.Passed, t.FinalizedAtUtc, t.FinalizationReason,
+            t.Id,
+            t.Status,
+            t.StudentUserId,
+            t.StartedAtUtc,
+            t.DeadlineUtc,
+            t.OverallScore,
+            t.Passed,
+            t.FinalizedAtUtc,
+            t.FinalizationReason,
             Answers = t.Answers.OrderBy(answer => answer.Id).Select(answer => new { answer.Id, answer.SelectedOptionId, answer.SavedAtUtc }),
             Results = t.SkillResults.OrderBy(r => r.Id).Select(r => new { r.Id, r.Skill, r.Score, r.QuestionCount })
         })
@@ -639,27 +695,39 @@ public sealed class TeacherAssessmentConfigurationTests : IClassFixture<Integrat
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var passage = new Stimulus
         {
-            OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage, ContentText = "Shared passage."
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Passage,
+            ContentText = "Shared passage."
         };
         passage.LockContent(OldLock);
         var audio = new Stimulus
         {
-            OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Audio, ResourceUrl = "https://media.example.test/config.mp3"
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Audio,
+            ResourceUrl = "https://media.example.test/config.mp3"
         };
         // Dựng Published cũ thiếu một số dấu khóa để kiểm tra giữ/bổ sung dấu khóa an toàn.
         var assessment = new AssessmentEntity
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Published configuration", Status = AssessmentStatus.Published,
-            AssessmentType = AssessmentType.SkillAssessment, TargetSkill = EnglishSkill.Reading,
-            DurationMinutes = 20, MaxAttempts = 3, PassingScore = 70m, UpdatedAtUtc = Version,
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Published configuration",
+            Status = AssessmentStatus.Published,
+            AssessmentType = AssessmentType.SkillAssessment,
+            TargetSkill = EnglishSkill.Reading,
+            DurationMinutes = 20,
+            MaxAttempts = 3,
+            PassingScore = 70m,
+            UpdatedAtUtc = Version,
             Course = final ? new Course { OwnerTeacherUserId = teacher.Id, Title = "Final course", Status = CourseStatus.Published } : null
         };
         for (int index = 0; index < 5; index++)
         {
             var question = new Question
             {
-                OwnerTeacherUserId = teacher.Id, Content = "Configuration question " + index,
-                PrimarySkill = EnglishSkill.Reading, Status = QuestionStatus.Published,
+                OwnerTeacherUserId = teacher.Id,
+                Content = "Configuration question " + index,
+                PrimarySkill = EnglishSkill.Reading,
+                Status = QuestionStatus.Published,
                 Stimulus = index == 0 || index == 2 ? passage : index == 1 ? audio
                     : index == 4 && withRemovedStimulus ? new Stimulus
                     { OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage, ContentText = "Removed passage." } : null,

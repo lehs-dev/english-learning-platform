@@ -41,15 +41,28 @@ public sealed class AdminRevenueQueryService(AppDbContext db) : IAdminRevenueQue
             .Select(g => new { Currency = g.Key, Revenue = g.Sum(r => r.Amount), PaidOrders = g.Count() })
             .ToListAsync(ct);
         var daily = await revenue.GroupBy(r => new
-            { r.Currency, Year = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Year, Month = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Month, Day = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Day })
-            .Select(g => new { g.Key.Currency, g.Key.Year, g.Key.Month, g.Key.Day,
-                Revenue = g.Sum(r => r.Amount), PaidOrders = g.Count() })
+        { r.Currency, Year = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Year, Month = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Month, Day = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Day })
+            .Select(g => new
+            {
+                g.Key.Currency,
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.Day,
+                Revenue = g.Sum(r => r.Amount),
+                PaidOrders = g.Count()
+            })
             .OrderBy(r => r.Year).ThenBy(r => r.Month).ThenBy(r => r.Day).ThenBy(r => r.Currency)
             .ToListAsync(ct);
         var monthly = await revenue.GroupBy(r => new
-            { r.Currency, Year = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Year, Month = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Month })
-            .Select(g => new { g.Key.Currency, g.Key.Year, g.Key.Month,
-                Revenue = g.Sum(r => r.Amount), PaidOrders = g.Count() })
+        { r.Currency, Year = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Year, Month = EF.Functions.AtTimeZone(r.PaidAt, "SE Asia Standard Time").Month })
+            .Select(g => new
+            {
+                g.Key.Currency,
+                g.Key.Year,
+                g.Key.Month,
+                Revenue = g.Sum(r => r.Amount),
+                PaidOrders = g.Count()
+            })
             .OrderBy(r => r.Year).ThenBy(r => r.Month).ThenBy(r => r.Currency)
             .ToListAsync(ct);
 
@@ -105,6 +118,6 @@ public sealed class AdminRevenueQueryService(AppDbContext db) : IAdminRevenueQue
         return new(dates, currency, summary,
             daily.Select(r => new AdminRevenuePeriod(new(r.Year, r.Month, r.Day), r.Currency, r.Revenue, r.PaidOrders)).ToList(),
             monthly.Select(r => new AdminRevenuePeriod(new(r.Year, r.Month, 1), r.Currency, r.Revenue, r.PaidOrders)).ToList())
-            { IncludesSandboxRevenue = includesSandbox };
+        { IncludesSandboxRevenue = includesSandbox };
     }
 }

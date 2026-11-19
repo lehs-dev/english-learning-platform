@@ -27,12 +27,17 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         Course? course = courseLinked ? new Course
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Query course", Status = CourseStatus.Published,
-            IsPaid = paid, Price = paid ? 100m : 0m
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Query course",
+            Status = CourseStatus.Published,
+            IsPaid = paid,
+            Price = paid ? 100m : 0m
         } : null;
         Payment? payment = paid ? new Payment
         {
-            Amount = 100m, Status = PaymentStatus.Succeeded, Provider = "Test",
+            Amount = 100m,
+            Status = PaymentStatus.Succeeded,
+            Provider = "Test",
             ProviderTransactionId = Guid.NewGuid().ToString("N"),
             Order = new Order { StudentUserId = student.Id, Course = course!, Amount = 100m, Currency = "VND", Provider = "Test" }
         } : null;
@@ -41,20 +46,31 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
 
         var assessment = new Assessment
         {
-            OwnerTeacherUserId = teacher.Id, Course = course, Title = "Query assessment", Description = "Safe description",
-            AssessmentType = AssessmentType.PracticeExam, Status = AssessmentStatus.Published,
-            DurationMinutes = 15, MaxAttempts = 10, PassingScore = 80m,
+            OwnerTeacherUserId = teacher.Id,
+            Course = course,
+            Title = "Query assessment",
+            Description = "Safe description",
+            AssessmentType = AssessmentType.PracticeExam,
+            Status = AssessmentStatus.Published,
+            DurationMinutes = 15,
+            MaxAttempts = 10,
+            PassingScore = 80m,
             Questions = Enumerable.Range(0, 5).Reverse().Select(index => new AssessmentQuestion
             {
-                OrderIndex = index, Points = index == 0 ? 2m : 1m,
+                OrderIndex = index,
+                Points = index == 0 ? 2m : 1m,
                 Question = new Question
                 {
-                    OwnerTeacherUserId = teacher.Id, Content = $"Question {index}",
-                    Explanation = "Private explanation sentinel", Status = QuestionStatus.Published,
+                    OwnerTeacherUserId = teacher.Id,
+                    Content = $"Question {index}",
+                    Explanation = "Private explanation sentinel",
+                    Status = QuestionStatus.Published,
                     PrimarySkill = index == 0 ? EnglishSkill.Vocabulary : EnglishSkill.Grammar,
                     Stimulus = index == 0 ? new Stimulus
                     {
-                        OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage, ContentText = "Shared passage"
+                        OwnerTeacherUserId = teacher.Id,
+                        StimulusType = StimulusType.Passage,
+                        ContentText = "Shared passage"
                     } : null,
                     Options =
                     [
@@ -74,8 +90,12 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
 
     private static Attempt AttemptFor(Fixture data, AttemptStatus status = AttemptStatus.InProgress, decimal? score = null) => new()
     {
-        StudentUserId = data.Student, AssessmentId = data.Assessment.Id, Status = status,
-        StartedAtUtc = Now.AddMinutes(-1), DeadlineUtc = Now.AddMinutes(14), OverallScore = score,
+        StudentUserId = data.Student,
+        AssessmentId = data.Assessment.Id,
+        Status = status,
+        StartedAtUtc = Now.AddMinutes(-1),
+        DeadlineUtc = Now.AddMinutes(14),
+        OverallScore = score,
         Passed = score.HasValue ? score >= 80m : null,
         FinalizedAtUtc = status == AttemptStatus.Graded ? Now.AddSeconds(-30) : null,
         FinalizationReason = status == AttemptStatus.Graded ? AttemptFinalizationReason.ManualSubmit : null
@@ -170,7 +190,9 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var savedOption = first.Question.Options.Single(o => o.OrderIndex == 1).Id;
         attempt.Answers.Add(new AttemptAnswer
         {
-            AssessmentQuestionId = first.Id, SelectedOptionId = savedOption, SavedAtUtc = Now.AddSeconds(-10)
+            AssessmentQuestionId = first.Id,
+            SelectedOptionId = savedOption,
+            SavedAtUtc = Now.AddSeconds(-10)
         });
         seedDb.Attempts.Add(attempt);
         await seedDb.SaveChangesAsync();
@@ -671,7 +693,9 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         // Dữ liệu cũ khai báo 3 nhưng đề thực tế chỉ có 1 Question Vocabulary.
         attempt.SkillResults.Add(new AttemptSkillResult
         {
-            Skill = EnglishSkill.Vocabulary, Score = 0m, QuestionCount = 3
+            Skill = EnglishSkill.Vocabulary,
+            Score = 0m,
+            QuestionCount = 3
         });
         db.Attempts.Add(attempt);
         await db.SaveChangesAsync();
@@ -714,7 +738,13 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var before = await db.Attempts.AsNoTracking().Where(a => a.AssessmentId == data.Assessment.Id)
             .OrderBy(a => a.Id).Select(a => new
             {
-                a.Id, a.Status, a.OverallScore, a.FinalizedAtUtc, a.FinalizationReason, a.DeadlineUtc, a.UpdatedAtUtc
+                a.Id,
+                a.Status,
+                a.OverallScore,
+                a.FinalizedAtUtc,
+                a.FinalizationReason,
+                a.DeadlineUtc,
+                a.UpdatedAtUtc
             }).ToArrayAsync();
         var query = new AssessmentQueryService(db, new FixedTimeProvider(Now));
 
@@ -744,7 +774,13 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var afterQuery = await db.Attempts.AsNoTracking().Where(a => a.AssessmentId == data.Assessment.Id)
             .OrderBy(a => a.Id).Select(a => new
             {
-                a.Id, a.Status, a.OverallScore, a.FinalizedAtUtc, a.FinalizationReason, a.DeadlineUtc, a.UpdatedAtUtc
+                a.Id,
+                a.Status,
+                a.OverallScore,
+                a.FinalizedAtUtc,
+                a.FinalizationReason,
+                a.DeadlineUtc,
+                a.UpdatedAtUtc
             }).ToArrayAsync();
         Assert.Equal(before, afterQuery); // Query vẫn chỉ đọc; HTTP gọi write service riêng cho expiry.
 
@@ -770,7 +806,13 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var after = await db.Attempts.AsNoTracking().Where(a => a.AssessmentId == data.Assessment.Id)
             .OrderBy(a => a.Id).Select(a => new
             {
-                a.Id, a.Status, a.OverallScore, a.FinalizedAtUtc, a.FinalizationReason, a.DeadlineUtc, a.UpdatedAtUtc
+                a.Id,
+                a.Status,
+                a.OverallScore,
+                a.FinalizedAtUtc,
+                a.FinalizationReason,
+                a.DeadlineUtc,
+                a.UpdatedAtUtc
             }).ToArrayAsync();
         Assert.Equal(before.Where(a => a.Id != expired.Id), after.Where(a => a.Id != expired.Id));
         var expiredAfter = after.Single(a => a.Id == expired.Id);

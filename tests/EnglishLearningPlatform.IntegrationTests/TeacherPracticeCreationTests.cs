@@ -474,8 +474,10 @@ public sealed class TeacherPracticeCreationTests : IClassFixture<IntegrationTest
         Assert.True(result.Success);
         var question = new Question
         {
-            OwnerTeacherUserId = data.TeacherId, Content = "Choose the correct answer.",
-            PrimarySkill = EnglishSkill.Grammar, Status = QuestionStatus.Published,
+            OwnerTeacherUserId = data.TeacherId,
+            Content = "Choose the correct answer.",
+            PrimarySkill = EnglishSkill.Grammar,
+            Status = QuestionStatus.Published,
             Options = new List<QuestionOption>
             {
                 new QuestionOption { Content = "Correct", IsCorrect = true, OrderIndex = 0 },
@@ -509,12 +511,14 @@ public sealed class TeacherPracticeCreationTests : IClassFixture<IntegrationTest
         var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Practice test course", Status = status };
         var module = new Module
         {
-            Course = course, Title = "Practice test module",
+            Course = course,
+            Title = "Practice test module",
             Visibility = visible ? ModuleVisibility.Visible : ModuleVisibility.Hidden
         };
         var lesson = new Lesson
         {
-            Module = module, Title = "Practice test lesson",
+            Module = module,
+            Title = "Practice test lesson",
             Status = visible ? LessonStatus.Published : LessonStatus.Draft
         };
         if (visible)

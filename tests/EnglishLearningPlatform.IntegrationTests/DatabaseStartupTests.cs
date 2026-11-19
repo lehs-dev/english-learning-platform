@@ -54,11 +54,20 @@ public sealed class DatabaseStartupTests : IAsyncLifetime
         var attempt = new Attempt
         {
             StudentUserId = student.Id,
-            Assessment = new Assessment { OwnerTeacherUserId = teacher.Id, Title = "Existing result",
-                DurationMinutes = 20, MaxAttempts = 3, AssessmentType = AssessmentType.PlacementTest },
-            Status = AttemptStatus.Graded, OverallScore = 80m,
-            StartedAtUtc = startedAt, DeadlineUtc = startedAt.AddMinutes(20),
-            FinalizedAtUtc = startedAt.AddMinutes(10), FinalizationReason = AttemptFinalizationReason.ManualSubmit
+            Assessment = new Assessment
+            {
+                OwnerTeacherUserId = teacher.Id,
+                Title = "Existing result",
+                DurationMinutes = 20,
+                MaxAttempts = 3,
+                AssessmentType = AssessmentType.PlacementTest
+            },
+            Status = AttemptStatus.Graded,
+            OverallScore = 80m,
+            StartedAtUtc = startedAt,
+            DeadlineUtc = startedAt.AddMinutes(20),
+            FinalizedAtUtc = startedAt.AddMinutes(10),
+            FinalizationReason = AttemptFinalizationReason.ManualSubmit
         };
         db.Attempts.Add(attempt);
         await db.SaveChangesAsync();

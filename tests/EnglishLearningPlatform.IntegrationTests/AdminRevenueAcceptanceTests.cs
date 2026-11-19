@@ -26,15 +26,27 @@ public sealed class AdminRevenueAcceptanceTests(IntegrationTestFactory factory) 
         var course = new Course { Title = "Year-end VND receipt reconciliation", OwnerTeacherUserId = teacher.Id };
         Order AddOrder(decimal amount, DateTimeOffset created)
         {
-            var order = new Order { Course = course, StudentUserId = student.Id,
-                Amount = amount, Currency = "VND", CreatedAtUtc = created };
+            var order = new Order
+            {
+                Course = course,
+                StudentUserId = student.Id,
+                Amount = amount,
+                Currency = "VND",
+                CreatedAtUtc = created
+            };
             db.Orders.Add(order);
             return order;
         }
         void Receipt(Order order, PaymentStatus status, DateTimeOffset at)
-            => db.Payments.Add(new Payment { Order = order, Amount = order.Amount, Status = status,
-                CreatedAtUtc = at, PaidAtUtc = status == PaymentStatus.Succeeded ? at : null,
-                ProviderTransactionId = $"acceptance-{Guid.NewGuid():N}" });
+            => db.Payments.Add(new Payment
+            {
+                Order = order,
+                Amount = order.Amount,
+                Status = status,
+                CreatedAtUtc = at,
+                PaidAtUtc = status == PaymentStatus.Succeeded ? at : null,
+                ProviderTransactionId = $"acceptance-{Guid.NewGuid():N}"
+            });
 
         using var client = IdentityTestHelpers.CreateClient(factory);
         using var login = await IdentityTestHelpers.LoginAsync(client, admin);

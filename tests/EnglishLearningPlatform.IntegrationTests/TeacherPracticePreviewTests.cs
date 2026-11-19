@@ -134,20 +134,47 @@ public sealed class TeacherPracticePreviewTests(IntegrationTestFactory factory) 
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var value = await db.Practices.AsNoTracking().Where(p => p.Id == id).Select(p => new
         {
-            p.Id, p.Title, p.Description, p.Status, p.LessonId, p.ModuleId, p.UpdatedAtUtc, p.CreatedAtUtc,
+            p.Id,
+            p.Title,
+            p.Description,
+            p.Status,
+            p.LessonId,
+            p.ModuleId,
+            p.UpdatedAtUtc,
+            p.CreatedAtUtc,
             Questions = p.Questions.OrderBy(q => q.Id).Select(q => new
             {
-                q.Id, q.OrderIndex, q.QuestionId, q.Question.Content, q.Question.Explanation,
-                q.Question.PrimarySkill, q.Question.StimulusId, q.Question.ContentLockedAtUtc,
+                q.Id,
+                q.OrderIndex,
+                q.QuestionId,
+                q.Question.Content,
+                q.Question.Explanation,
+                q.Question.PrimarySkill,
+                q.Question.StimulusId,
+                q.Question.ContentLockedAtUtc,
                 Options = q.Question.Options.OrderBy(o => o.Id).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex }),
-                Stimulus = q.Question.Stimulus == null ? null : new { q.Question.Stimulus.ContentText,
-                    q.Question.Stimulus.ResourceUrl, q.Question.Stimulus.ContentLockedAtUtc }
+                Stimulus = q.Question.Stimulus == null ? null : new
+                {
+                    q.Question.Stimulus.ContentText,
+                    q.Question.Stimulus.ResourceUrl,
+                    q.Question.Stimulus.ContentLockedAtUtc
+                }
             }),
-            Results = p.Submissions.OrderBy(s => s.Id).Select(s => new { s.Id, s.Score, s.SubmittedAtUtc,
-                Answers = s.Answers.OrderBy(a => a.Id).Select(a => new { a.Id, a.SelectedOptionId, a.PracticeQuestionId }) })
+            Results = p.Submissions.OrderBy(s => s.Id).Select(s => new
+            {
+                s.Id,
+                s.Score,
+                s.SubmittedAtUtc,
+                Answers = s.Answers.OrderBy(a => a.Id).Select(a => new { a.Id, a.SelectedOptionId, a.PracticeQuestionId })
+            })
         }).SingleAsync();
-        return JsonSerializer.Serialize(new { value, Attempts = await db.Attempts.CountAsync(),
-            Results = await db.AttemptSkillResults.CountAsync(), PracticeResults = await db.PracticeSubmissions.CountAsync() });
+        return JsonSerializer.Serialize(new
+        {
+            value,
+            Attempts = await db.Attempts.CountAsync(),
+            Results = await db.AttemptSkillResults.CountAsync(),
+            PracticeResults = await db.PracticeSubmissions.CountAsync()
+        });
     }
 
     private async Task<(ApplicationUser Teacher, Guid Id, string AudioUrl)> Seed(PracticeStatus status)
@@ -160,22 +187,47 @@ public sealed class TeacherPracticePreviewTests(IntegrationTestFactory factory) 
             new CreateStimulusRequest { StimulusType = StimulusType.Audio, AudioContent = StimulusAudioTestData.Wav() });
         Assert.True(audio.Success);
         var audioStimulus = await db.Stimuli.SingleAsync(s => s.Id == audio.Id);
-        var practice = new Practice { OwnerTeacherUserId = teacher.Id, Title = "Preview practice", Description = "Instructions",
-            Status = status, Lesson = new Lesson { Title = "Lesson", Status = LessonStatus.Published,
-                Module = new Module { Title = "Module", Course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Course" } } } };
-        for (int index = 1; index >= 0; index--)
-            practice.Questions.Add(new PracticeQuestion { OrderIndex = index, Question = new Question
+        var practice = new Practice
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Preview practice",
+            Description = "Instructions",
+            Status = status,
+            Lesson = new Lesson
             {
-                OwnerTeacherUserId = teacher.Id, Content = "<script>PRIVATE_QUESTION</script> " + index,
-                Explanation = "PRIVATE_EXPLANATION", PrimarySkill = index == 0 ? EnglishSkill.Reading : EnglishSkill.Listening,
-                Stimulus = index == 0 ? new Stimulus { OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage,
-                    ContentText = "QA5_PASSAGE" } : audioStimulus,
-                Options = [new QuestionOption { Content = "Right", IsCorrect = true, OrderIndex = 1 }, new QuestionOption { Content = "Wrong", OrderIndex = 0 }]
-            } });
+                Title = "Lesson",
+                Status = LessonStatus.Published,
+                Module = new Module { Title = "Module", Course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Course" } }
+            }
+        };
+        for (int index = 1; index >= 0; index--)
+            practice.Questions.Add(new PracticeQuestion
+            {
+                OrderIndex = index,
+                Question = new Question
+                {
+                    OwnerTeacherUserId = teacher.Id,
+                    Content = "<script>PRIVATE_QUESTION</script> " + index,
+                    Explanation = "PRIVATE_EXPLANATION",
+                    PrimarySkill = index == 0 ? EnglishSkill.Reading : EnglishSkill.Listening,
+                    Stimulus = index == 0 ? new Stimulus
+                    {
+                        OwnerTeacherUserId = teacher.Id,
+                        StimulusType = StimulusType.Passage,
+                        ContentText = "QA5_PASSAGE"
+                    } : audioStimulus,
+                    Options = [new QuestionOption { Content = "Right", IsCorrect = true, OrderIndex = 1 }, new QuestionOption { Content = "Wrong", OrderIndex = 0 }]
+                }
+            });
         db.Practices.Add(practice);
         if (status == PracticeStatus.Published)
-            db.PracticeSubmissions.Add(new PracticeSubmission { Practice = practice, StudentUserId = student.Id, Score = 50m,
-                Answers = [new PracticeAnswer { PracticeQuestion = practice.Questions.First(), SelectedOptionId = practice.Questions.First().Question.Options.First().Id }] });
+            db.PracticeSubmissions.Add(new PracticeSubmission
+            {
+                Practice = practice,
+                StudentUserId = student.Id,
+                Score = 50m,
+                Answers = [new PracticeAnswer { PracticeQuestion = practice.Questions.First(), SelectedOptionId = practice.Questions.First().Question.Options.First().Id }]
+            });
         await db.SaveChangesAsync();
         return (teacher, practice.Id, audioStimulus.ResourceUrl!);
     }

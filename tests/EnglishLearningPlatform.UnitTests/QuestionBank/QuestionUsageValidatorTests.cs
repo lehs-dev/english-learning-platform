@@ -237,11 +237,15 @@ public sealed class QuestionUsageValidatorTests
         Question question = CreateValidQuestion();
         question.Options.Add(new QuestionOption
         {
-            Content = "Option 3", OrderIndex = 2, IsCorrect = false
+            Content = "Option 3",
+            OrderIndex = 2,
+            IsCorrect = false
         });
         question.Options.Add(new QuestionOption
         {
-            Content = "Option 4", OrderIndex = 3, IsCorrect = false
+            Content = "Option 4",
+            OrderIndex = 3,
+            IsCorrect = false
         });
 
         var errors = _validator.ValidateForNewUse(question.OwnerTeacherUserId, question);

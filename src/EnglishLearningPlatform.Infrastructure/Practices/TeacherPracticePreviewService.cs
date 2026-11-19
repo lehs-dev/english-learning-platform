@@ -79,8 +79,13 @@ public sealed class TeacherPracticePreviewService(
 
         return new(LearningAccessResult.Allowed, new TeacherPracticePreview
         {
-            PracticeId = practice.Id, Title = practice.Title, Description = practice.Description,
-            Status = practice.Status, ParentTitle = parent, Questions = questions, Warnings = warnings
+            PracticeId = practice.Id,
+            Title = practice.Title,
+            Description = practice.Description,
+            Status = practice.Status,
+            ParentTitle = parent,
+            Questions = questions,
+            Warnings = warnings
         });
     }
 }

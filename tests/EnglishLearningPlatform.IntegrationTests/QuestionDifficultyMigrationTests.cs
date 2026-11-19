@@ -152,8 +152,13 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
         var teacher = new ApplicationUser { FullName = "Teacher", UserName = "migration-teacher@example.test" };
         var student = new ApplicationUser { FullName = "Student", UserName = "migration-student@example.test" };
         db.Users.AddRange(teacher, student);
-        var passage = new Stimulus { OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage,
-            Title = "Existing passage", ContentText = "Read this existing passage." };
+        var passage = new Stimulus
+        {
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Passage,
+            Title = "Existing passage",
+            ContentText = "Read this existing passage."
+        };
         var question = NewQuestion(teacher.Id, "Existing locked question");
         question.Stimulus = passage;
         var lockedAt = new DateTimeOffset(2026, 10, 20, 8, 0, 0, TimeSpan.Zero);
@@ -164,24 +169,53 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
         db.Questions.AddRange(question, NewQuestion(teacher.Id, "Unused draft"), archived);
 
         var assessmentQuestion = new AssessmentQuestion { Question = question, Points = 2.5m, OrderIndex = 0 };
-        var assessment = new Assessment { OwnerTeacherUserId = teacher.Id, Title = "Existing assessment",
-            AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 15, MaxAttempts = 3,
-            PassingScore = 70m, Status = AssessmentStatus.Published, Questions = [assessmentQuestion] };
+        var assessment = new Assessment
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Existing assessment",
+            AssessmentType = AssessmentType.PracticeExam,
+            DurationMinutes = 15,
+            MaxAttempts = 3,
+            PassingScore = 70m,
+            Status = AssessmentStatus.Published,
+            Questions = [assessmentQuestion]
+        };
         db.Assessments.Add(assessment);
         var option = question.Options.Single(o => o.IsCorrect);
-        var attempt = new Attempt { Assessment = assessment, StudentUserId = student.Id,
-            Status = AttemptStatus.Graded, StartedAtUtc = lockedAt, DeadlineUtc = lockedAt.AddMinutes(15),
-            FinalizedAtUtc = lockedAt.AddMinutes(10), FinalizationReason = AttemptFinalizationReason.ManualSubmit,
-            OverallScore = 100m, Passed = true,
+        var attempt = new Attempt
+        {
+            Assessment = assessment,
+            StudentUserId = student.Id,
+            Status = AttemptStatus.Graded,
+            StartedAtUtc = lockedAt,
+            DeadlineUtc = lockedAt.AddMinutes(15),
+            FinalizedAtUtc = lockedAt.AddMinutes(10),
+            FinalizationReason = AttemptFinalizationReason.ManualSubmit,
+            OverallScore = 100m,
+            Passed = true,
             Answers = [new AttemptAnswer { AssessmentQuestion = assessmentQuestion, SelectedOption = option }],
-            SkillResults = [new AttemptSkillResult { Skill = EnglishSkill.Reading, Score = 100m, QuestionCount = 1 }] };
+            SkillResults = [new AttemptSkillResult { Skill = EnglishSkill.Reading, Score = 100m, QuestionCount = 1 }]
+        };
         db.Attempts.Add(attempt);
 
         var practiceQuestion = new PracticeQuestion { Question = question, OrderIndex = 0 };
-        var practice = new Practice { OwnerTeacherUserId = teacher.Id, Title = "Existing practice",
-            Module = new Module { Title = "Existing module", Course = new Course {
-                OwnerTeacherUserId = teacher.Id, Title = "Existing course", Status = CourseStatus.Published } },
-            Status = PracticeStatus.Published, Questions = [practiceQuestion] };
+        var practice = new Practice
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Existing practice",
+            Module = new Module
+            {
+                Title = "Existing module",
+                Course = new Course
+                {
+                    OwnerTeacherUserId = teacher.Id,
+                    Title = "Existing course",
+                    Status = CourseStatus.Published
+                }
+            },
+            Status = PracticeStatus.Published,
+            Questions = [practiceQuestion]
+        };
         db.Modules.Add(practice.Module!);
         await db.SaveChangesAsync();
         // Schema lịch sử chưa có Version: chèn các cột thật của thời điểm đó bằng SQL tham số.
@@ -203,8 +237,11 @@ public sealed class QuestionDifficultyMigrationTests : IAsyncLifetime
 
     private static Question NewQuestion(Guid teacherId, string content) => new()
     {
-        OwnerTeacherUserId = teacherId, Content = content, PrimarySkill = EnglishSkill.Reading,
-        Level = "B1", Explanation = "Existing feedback.",
+        OwnerTeacherUserId = teacherId,
+        Content = content,
+        PrimarySkill = EnglishSkill.Reading,
+        Level = "B1",
+        Explanation = "Existing feedback.",
         Options = [new QuestionOption { Content = "Correct", IsCorrect = true, OrderIndex = 0 },
             new QuestionOption { Content = "Incorrect", IsCorrect = false, OrderIndex = 1 }]
     };

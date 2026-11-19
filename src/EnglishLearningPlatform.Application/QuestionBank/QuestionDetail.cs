@@ -1,9 +1,10 @@
 using EnglishLearningPlatform.Domain.Enums;
 
 namespace EnglishLearningPlatform.Application.QuestionBank;
+
 public sealed class QuestionDetail
 {   //Id of the question
-    public Guid Id {get; set;}
+    public Guid Id { get; set; }
     //Content of the question
     public string Content { get; set; } = string.Empty;
     public EnglishSkill PrimarySkill { get; set; }

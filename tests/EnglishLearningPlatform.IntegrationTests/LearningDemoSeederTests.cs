@@ -130,17 +130,39 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
             var teacher = await CreateDemoUser(users, "teacher1", AppRoles.Teacher);
             var student = await CreateDemoUser(users, "student1", AppRoles.Student);
             teacherId = teacher.Id; studentId = student.Id;
-            var lesson = new Lesson { Title = "Existing lesson", Status = LessonStatus.Published,
-                Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = "Keep this content." }] };
-            var free = new Course { OwnerTeacherUserId = teacher.Id, Title = FreeTitle, Status = CourseStatus.Published,
-                Description = "Edited course description", Modules = [new Module { Title = "Existing module", Lessons = [lesson] }] };
+            var lesson = new Lesson
+            {
+                Title = "Existing lesson",
+                Status = LessonStatus.Published,
+                Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = "Keep this content." }]
+            };
+            var free = new Course
+            {
+                OwnerTeacherUserId = teacher.Id,
+                Title = FreeTitle,
+                Status = CourseStatus.Published,
+                Description = "Edited course description",
+                Modules = [new Module { Title = "Existing module", Lessons = [lesson] }]
+            };
             var unrelated = new Course { OwnerTeacherUserId = teacher.Id, Title = "Teacher's own course", Description = "Untouched" };
-            var enrollment = new Enrollment { Course = free, StudentUserId = student.Id, CompletedAtUtc = completed,
-                LastAccessedLesson = lesson, LessonProgressEntries = [new LessonProgress { Lesson = lesson, IsCompleted = true }] };
+            var enrollment = new Enrollment
+            {
+                Course = free,
+                StudentUserId = student.Id,
+                CompletedAtUtc = completed,
+                LastAccessedLesson = lesson,
+                LessonProgressEntries = [new LessonProgress { Lesson = lesson, IsCompleted = true }]
+            };
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Courses.AddRange(free, unrelated, new Course { OwnerTeacherUserId = teacher.Id, Title = PaidTitle,
-                IsPaid = true, Price = 199000, Status = CourseStatus.Published,
-                Description = "Khóa trả phí mẫu; chưa tích hợp thanh toán." });
+            db.Courses.AddRange(free, unrelated, new Course
+            {
+                OwnerTeacherUserId = teacher.Id,
+                Title = PaidTitle,
+                IsPaid = true,
+                Price = 199000,
+                Status = CourseStatus.Published,
+                Description = "Khóa trả phí mẫu; chưa tích hợp thanh toán."
+            });
             db.Enrollments.Add(enrollment); await db.SaveChangesAsync();
             freeId = free.Id; lessonId = lesson.Id; enrollmentId = enrollment.Id; unrelatedId = unrelated.Id;
         }

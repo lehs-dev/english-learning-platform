@@ -82,9 +82,15 @@ public sealed class QuestionContentLockServiceTests(IntegrationTestFactory facto
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var request = OriginalRequest();
-        var question = new Question { OwnerTeacherUserId = teacher.Id, Content = request.Content,
-            PrimarySkill = EnglishSkill.Reading, Level = request.Level,
-            Explanation = request.Explanation, Status = QuestionStatus.Draft };
+        var question = new Question
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Content = request.Content,
+            PrimarySkill = EnglishSkill.Reading,
+            Level = request.Level,
+            Explanation = request.Explanation,
+            Status = QuestionStatus.Draft
+        };
         question.Options.Add(new QuestionOption { Content = "First", IsCorrect = true, OrderIndex = 0 });
         question.Options.Add(new QuestionOption { Content = "Second", IsCorrect = false, OrderIndex = 1 });
         question.LockContent(LockedAt);
@@ -95,8 +101,10 @@ public sealed class QuestionContentLockServiceTests(IntegrationTestFactory facto
 
     private static CreateQuestionRequest OriginalRequest() => new()
     {
-        Content = "Choose the correct answer.", PrimarySkill = EnglishSkill.Reading,
-        Level = "Beginner", Explanation = "Original explanation",
+        Content = "Choose the correct answer.",
+        PrimarySkill = EnglishSkill.Reading,
+        Level = "Beginner",
+        Explanation = "Original explanation",
         Options = new[] { new QuestionOptionRequest("First", true), new QuestionOptionRequest("Second", false) }
     };
 }

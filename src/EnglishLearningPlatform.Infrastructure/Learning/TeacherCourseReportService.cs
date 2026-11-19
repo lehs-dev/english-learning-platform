@@ -43,7 +43,10 @@ public sealed class TeacherCourseReportService(AppDbContext db, ILearningAccessS
             .Skip((query.Page - 1) * TeacherCourseReport.PageSize).Take(TeacherCourseReport.PageSize)
             .Select(s => new
             {
-                s.Enrollment.StudentUserId, s.FullName, s.Enrollment.EnrolledAtUtc, s.Enrollment.CompletedAtUtc,
+                s.Enrollment.StudentUserId,
+                s.FullName,
+                s.Enrollment.EnrolledAtUtc,
+                s.Enrollment.CompletedAtUtc,
                 CompletedLessons = s.Enrollment.LessonProgressEntries.Count(p => p.IsCompleted && available.Any(l => l.Id == p.LessonId))
             }).ToListAsync(ct);
         return new(allowed, new(courseId, title, query, rows.Select(s => new CourseStudent(s.StudentUserId, s.FullName,

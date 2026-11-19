@@ -65,11 +65,15 @@ public sealed class PracticeQuestionValidationTests : IClassFixture<IntegrationT
         };
         QuestionOption correct = new QuestionOption
         {
-            Content = "Yesterday", OrderIndex = 0, IsCorrect = true
+            Content = "Yesterday",
+            OrderIndex = 0,
+            IsCorrect = true
         };
         QuestionOption wrong = new QuestionOption
         {
-            Content = "Tomorrow", OrderIndex = 1, IsCorrect = false
+            Content = "Tomorrow",
+            OrderIndex = 1,
+            IsCorrect = false
         };
         Question question = new Question
         {

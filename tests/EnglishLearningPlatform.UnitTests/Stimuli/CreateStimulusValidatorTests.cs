@@ -14,8 +14,13 @@ public sealed class CreateStimulusValidatorTests
     [InlineData(StimulusType.Audio, null, "https://example.test/audio.mp3")]
     public void Validate_ValidTypeAndContent_HasNoErrors(StimulusType type, string? text, string? url)
     {
-        var request = new CreateStimulusRequest { StimulusType = type,
-            Title = new string('a', 200), ContentText = text, ResourceUrl = url };
+        var request = new CreateStimulusRequest
+        {
+            StimulusType = type,
+            Title = new string('a', 200),
+            ContentText = text,
+            ResourceUrl = url
+        };
 
         Assert.Empty(_validator.Validate(request));
     }
@@ -36,8 +41,11 @@ public sealed class CreateStimulusValidatorTests
     [Fact]
     public void Validate_BlankPassage_ReturnsContentError()
     {
-        var errors = _validator.Validate(new CreateStimulusRequest {
-            StimulusType = StimulusType.Passage, ContentText = "   " });
+        var errors = _validator.Validate(new CreateStimulusRequest
+        {
+            StimulusType = StimulusType.Passage,
+            ContentText = "   "
+        });
 
         Assert.Contains(nameof(CreateStimulusRequest.ContentText), errors.Keys);
     }
@@ -49,8 +57,11 @@ public sealed class CreateStimulusValidatorTests
     [InlineData("/audio.mp3")]
     public void Validate_InvalidAudioUrl_ReturnsUrlError(string url)
     {
-        var errors = _validator.Validate(new CreateStimulusRequest {
-            StimulusType = StimulusType.Audio, ResourceUrl = url });
+        var errors = _validator.Validate(new CreateStimulusRequest
+        {
+            StimulusType = StimulusType.Audio,
+            ResourceUrl = url
+        });
 
         Assert.Contains(nameof(CreateStimulusRequest.ResourceUrl), errors.Keys);
     }
@@ -59,9 +70,12 @@ public sealed class CreateStimulusValidatorTests
     [Fact]
     public void Validate_OverDatabaseLengths_ReturnsFieldErrors()
     {
-        var errors = _validator.Validate(new CreateStimulusRequest {
-            StimulusType = StimulusType.Audio, Title = new string('a', 201),
-            ResourceUrl = "https://example.test/" + new string('a', 2048) });
+        var errors = _validator.Validate(new CreateStimulusRequest
+        {
+            StimulusType = StimulusType.Audio,
+            Title = new string('a', 201),
+            ResourceUrl = "https://example.test/" + new string('a', 2048)
+        });
 
         Assert.Contains(nameof(CreateStimulusRequest.Title), errors.Keys);
         Assert.Contains(nameof(CreateStimulusRequest.ResourceUrl), errors.Keys);
@@ -73,8 +87,12 @@ public sealed class CreateStimulusValidatorTests
     [InlineData(StimulusType.Audio, nameof(CreateStimulusRequest.ContentText))]
     public void Validate_DataForBothTypes_RejectsUnusedField(StimulusType type, string field)
     {
-        var errors = _validator.Validate(new CreateStimulusRequest {
-            StimulusType = type, ContentText = "Passage", ResourceUrl = "https://example.test/audio.mp3" });
+        var errors = _validator.Validate(new CreateStimulusRequest
+        {
+            StimulusType = type,
+            ContentText = "Passage",
+            ResourceUrl = "https://example.test/audio.mp3"
+        });
 
         Assert.Single(errors);
         Assert.Contains(field, errors.Keys);

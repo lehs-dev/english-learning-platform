@@ -103,7 +103,8 @@ public sealed class LearningCommerceJourneyTests(CheckoutTestFactory factory) : 
         var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => student.PostAsync(
             $"/Courses/EnrollFree/{data.Course.Id}", new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["__RequestVerificationToken"] = token, ["StudentUserId"] = otherStudent.Id.ToString()
+                ["__RequestVerificationToken"] = token,
+                ["StudentUserId"] = otherStudent.Id.ToString()
             }))));
         foreach (var response in responses)
         {
@@ -261,9 +262,14 @@ public sealed class LearningCommerceJourneyTests(CheckoutTestFactory factory) : 
         };
         using var response = await PostAsync(other, path, new()
         {
-            ["Input.Title"] = "Hijacked", ["Input.Price"] = "0", ["Input.Level"] = "1",
-            ["Input.Status"] = "3", ["OwnerTeacherUserId"] = foreignTeacher.Id.ToString(),
-            ["ids[0]"] = data.Second.Id.ToString(), ["ids[1]"] = data.First.Id.ToString(), ["ids[2]"] = data.Draft.Id.ToString()
+            ["Input.Title"] = "Hijacked",
+            ["Input.Price"] = "0",
+            ["Input.Level"] = "1",
+            ["Input.Status"] = "3",
+            ["OwnerTeacherUserId"] = foreignTeacher.Id.ToString(),
+            ["ids[0]"] = data.Second.Id.ToString(),
+            ["ids[1]"] = data.First.Id.ToString(),
+            ["ids[2]"] = data.Draft.Id.ToString()
         });
         AssertDenied(response);
         await AssertRowsAsync(data, 1, 1, 1);
@@ -401,8 +407,11 @@ public sealed class LearningCommerceJourneyTests(CheckoutTestFactory factory) : 
         var module = new Module { Title = "Week 6 visible module", Lessons = [first, second, draft] };
         var course = new Course
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Week 6 journey " + Guid.NewGuid().ToString("N"),
-            Status = CourseStatus.Published, IsPaid = paid, Price = paid ? 199000m : 0m,
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Week 6 journey " + Guid.NewGuid().ToString("N"),
+            Status = CourseStatus.Published,
+            IsPaid = paid,
+            Price = paid ? 199000m : 0m,
             Modules = [module, new Module { Title = "Hidden module", OrderIndex = 1, Visibility = ModuleVisibility.Hidden,
                 Lessons = [Lesson("Hidden parent lesson", 0)] }]
         };
@@ -415,7 +424,9 @@ public sealed class LearningCommerceJourneyTests(CheckoutTestFactory factory) : 
 
     private static Lesson Lesson(string title, int index) => new()
     {
-        Title = title, OrderIndex = index, Status = LessonStatus.Published,
+        Title = title,
+        OrderIndex = index,
+        Status = LessonStatus.Published,
         Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = "WEEK6_PRIVATE_CONTENT " + title }]
     };
 

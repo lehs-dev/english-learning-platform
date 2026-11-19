@@ -7,8 +7,8 @@ namespace EnglishLearningPlatform.Application.QuestionBank;
 
 public sealed class QuestionUsageValidator : IQuestionUsageValidator
 {
-     private readonly ICreateQuestionValidator _createQuestionValidator;
-     // Nhận validator đã có qua DI.
+    private readonly ICreateQuestionValidator _createQuestionValidator;
+    // Nhận validator đã có qua DI.
     // Tận dụng các rule MCQ hiện tại, không viết lại cùng một logic.
     public QuestionUsageValidator(
         ICreateQuestionValidator createQuestionValidator)
@@ -21,7 +21,7 @@ public sealed class QuestionUsageValidator : IQuestionUsageValidator
 
         _createQuestionValidator = createQuestionValidator;
     }
-        // Dùng khi Teacher chọn câu hỏi cho nội dung mới.
+    // Dùng khi Teacher chọn câu hỏi cho nội dung mới.
     // Archived sẽ bị từ chối.
     public IReadOnlyList<QuestionError> ValidateForNewUse(
         Guid ownerTeacherUserId,
@@ -98,7 +98,7 @@ public sealed class QuestionUsageValidator : IQuestionUsageValidator
                 "invalid",
                 "Trạng thái câu hỏi không hợp lệ."));
         }
-                // Chỉ chặn Archived khi chọn câu hỏi cho nội dung mới.
+        // Chỉ chặn Archived khi chọn câu hỏi cho nội dung mới.
         // Các kiểm tra còn lại vẫn áp dụng cho cả hai trường hợp.
         else if (isNewUse
             && question.Status == QuestionStatus.Archived)

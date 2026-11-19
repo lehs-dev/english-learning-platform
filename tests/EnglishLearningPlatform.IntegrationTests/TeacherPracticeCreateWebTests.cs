@@ -186,7 +186,9 @@ public sealed class TeacherPracticeCreateWebTests : IClassFixture<IntegrationTes
             {
                 var secondLesson = new Lesson
                 {
-                    ModuleId = own.ModuleId, Title = "Second lesson", OrderIndex = 1,
+                    ModuleId = own.ModuleId,
+                    Title = "Second lesson",
+                    OrderIndex = 1,
                     Status = LessonStatus.Draft
                 };
                 db.Lessons.Add(secondLesson);
@@ -196,7 +198,9 @@ public sealed class TeacherPracticeCreateWebTests : IClassFixture<IntegrationTes
             // nhầm bên trong vòng lặp Lesson và biến mất khi không có Lesson.
             var emptyModule = new Module
             {
-                CourseId = own.CourseId, Title = "Empty second module", OrderIndex = 1,
+                CourseId = own.CourseId,
+                Title = "Empty second module",
+                OrderIndex = 1,
                 Visibility = ModuleVisibility.Hidden
             };
             db.Modules.Add(emptyModule);
@@ -620,7 +624,8 @@ public sealed class TeacherPracticeCreateWebTests : IClassFixture<IntegrationTes
         var studentRoleId = await db.Roles.Where(r => r.Name == AppRoles.Student).Select(r => r.Id).SingleAsync();
         db.UserRoles.Add(new Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>
         {
-            UserId = own.Teacher.Id, RoleId = studentRoleId
+            UserId = own.Teacher.Id,
+            RoleId = studentRoleId
         });
         await db.SaveChangesAsync();
 

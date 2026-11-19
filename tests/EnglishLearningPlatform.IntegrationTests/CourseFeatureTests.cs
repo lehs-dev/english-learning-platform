@@ -153,16 +153,16 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         using var guestClient = IdentityTestHelpers.CreateClient(factory); using var detail = await guestClient.GetAsync($"/Courses/Details/{courseId}"); Assert.DoesNotContain("UI_SECRET", await detail.Content.ReadAsStringAsync());
         using var otherClient = IdentityTestHelpers.CreateClient(factory); using var otherLogin = await IdentityTestHelpers.LoginAsync(otherClient, otherOwner);
         var otherToken = await IdentityTestHelpers.GetTokenAsync(otherClient, "/TeacherCourses/Edit");
-        using var deniedMutation = await otherClient.PostAsync(lessonPath + $"&id={lessonId}", new FormUrlEncodedContent(new Dictionary<string,string> { ["__RequestVerificationToken"] = otherToken, ["Input.Title"] = "Hijacked", ["Input.Status"] = "1" })); Assert.Contains("/Account/AccessDenied", deniedMutation.Headers.Location!.ToString());
+        using var deniedMutation = await otherClient.PostAsync(lessonPath + $"&id={lessonId}", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = otherToken, ["Input.Title"] = "Hijacked", ["Input.Status"] = "1" })); Assert.Contains("/Account/AccessDenied", deniedMutation.Headers.Location!.ToString());
         using var studentClient = IdentityTestHelpers.CreateClient(factory); using var studentLogin = await IdentityTestHelpers.LoginAsync(studentClient, student);
         var enrollToken = await IdentityTestHelpers.GetTokenAsync(studentClient, $"/Courses/Details/{courseId}");
-        using var enrolled = await studentClient.PostAsync($"/Courses/EnrollFree/{courseId}", new FormUrlEncodedContent(new Dictionary<string,string> { ["__RequestVerificationToken"] = enrollToken })); Assert.Equal(HttpStatusCode.Redirect, enrolled.StatusCode);
+        using var enrolled = await studentClient.PostAsync($"/Courses/EnrollFree/{courseId}", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = enrollToken })); Assert.Equal(HttpStatusCode.Redirect, enrolled.StatusCode);
         using var studentLesson = await studentClient.GetAsync($"/Learning/Lesson/{lessonId}"); Assert.Equal(HttpStatusCode.OK, studentLesson.StatusCode);
         using var unpublish = await Post($"/TeacherCourses/Unpublish/{courseId}", new());
         using var archive = await Post($"/TeacherCourses/Archive/{courseId}", new());
         using var historical = await studentClient.GetAsync($"/Learning/Lesson/{lessonId}"); Assert.Equal(HttpStatusCode.OK, historical.StatusCode);
 
-        Task<HttpResponseMessage> Post(string path, Dictionary<string,string> data) { data["__RequestVerificationToken"] = token; return client.PostAsync(path, new FormUrlEncodedContent(data)); }
+        Task<HttpResponseMessage> Post(string path, Dictionary<string, string> data) { data["__RequestVerificationToken"] = token; return client.PostAsync(path, new FormUrlEncodedContent(data)); }
     }
 
     [Fact]
@@ -219,13 +219,22 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
     }
     private async Task<Course> Seed(Guid owner, string title = "Course", bool paid = false, CourseStatus status = CourseStatus.Published)
     {
-        var course = new Course { OwnerTeacherUserId = owner, Title = title, Status = status, IsPaid = paid, Price = paid ? 199000 : 0,
-            Level = CourseLevel.Intermediate, Skills = [new CourseSkill { Skill = EnglishSkill.Reading }], Topics = [new CourseTopic { Topic = "Travel" }],
+        var course = new Course
+        {
+            OwnerTeacherUserId = owner,
+            Title = title,
+            Status = status,
+            IsPaid = paid,
+            Price = paid ? 199000 : 0,
+            Level = CourseLevel.Intermediate,
+            Skills = [new CourseSkill { Skill = EnglishSkill.Reading }],
+            Topics = [new CourseTopic { Topic = "Travel" }],
             Modules = [new Module { Title = "Visible module", Lessons = [new Lesson { Title = "Published title", Status = LessonStatus.Published,
                 Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = "SECRET_CONTENT", Title = "Text" },
                     new LessonResource { ResourceType = LessonResourceType.Link, ResourceUrl = "https://example.test/SECRET_URL", OrderIndex = 1 }] },
                 new Lesson { Title = "DRAFT_TITLE", OrderIndex = 1 }, new Lesson { Title = "HIDDEN_TITLE", Status = LessonStatus.Hidden, OrderIndex = 2 }] },
-                new Module { Title = "HIDDEN_MODULE", Visibility = ModuleVisibility.Hidden, OrderIndex = 1 }] };
+                new Module { Title = "HIDDEN_MODULE", Visibility = ModuleVisibility.Hidden, OrderIndex = 1 }]
+        };
         using var scope = factory.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Courses.Add(course); await db.SaveChangesAsync(); return course;
     }
@@ -348,12 +357,12 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         { using var denied = await client.GetAsync(path); Assert.Contains("/Account/AccessDenied", denied.Headers.Location!.ToString()); }
         using var missingCsrf = await client.PostAsync($"/Courses/EnrollFree/{course.Id}", new FormUrlEncodedContent([])); Assert.Equal(HttpStatusCode.BadRequest, missingCsrf.StatusCode);
         var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Courses/Details/{course.Id}");
-        for (var i = 0; i < 2; i++) { using var enrolled = await client.PostAsync($"/Courses/EnrollFree/{course.Id}", new FormUrlEncodedContent(new Dictionary<string,string> { ["__RequestVerificationToken"] = token, ["StudentUserId"] = otherStudent.Id.ToString() })); Assert.Contains("/Learning/Course", enrolled.Headers.Location!.ToString()); }
+        for (var i = 0; i < 2; i++) { using var enrolled = await client.PostAsync($"/Courses/EnrollFree/{course.Id}", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token, ["StudentUserId"] = otherStudent.Id.ToString() })); Assert.Contains("/Learning/Course", enrolled.Headers.Location!.ToString()); }
         using var scope = factory.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<AppDbContext>(); var service = scope.ServiceProvider.GetRequiredService<ICourseService>();
         Assert.Equal(1, await db.Enrollments.CountAsync(e => e.CourseId == course.Id && e.StudentUserId == student.Id));
         Assert.False(await db.Enrollments.AnyAsync(e => e.CourseId == course.Id && e.StudentUserId == otherStudent.Id));
         Assert.Equal(LearningAccessResult.Forbidden, (await service.EnrollFreeAsync(student.Id, paid.Id)).Access);
-        using var paidPost = await client.PostAsync($"/Courses/EnrollFree/{paid.Id}", new FormUrlEncodedContent(new Dictionary<string,string> { ["__RequestVerificationToken"] = token }));
+        using var paidPost = await client.PostAsync($"/Courses/EnrollFree/{paid.Id}", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token }));
         Assert.Contains("/Account/AccessDenied", paidPost.Headers.Location!.ToString());
         Assert.Equal(LearningAccessResult.Forbidden, (await service.OpenLessonAsync(student.Id, other.Modules.First().Lessons.First().Id)).Access);
         Assert.Equal(LearningAccessResult.Forbidden, (await service.OpenResourceAsync(otherStudent.Id, resource.Id)).Access);
@@ -388,7 +397,7 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         using var client = IdentityTestHelpers.CreateClient(factory); using var login = await IdentityTestHelpers.LoginAsync(client, owner);
         using var missingCsrf = await client.PostAsync($"/TeacherCourses/Publish/{course.Id}", new FormUrlEncodedContent([])); Assert.Equal(HttpStatusCode.BadRequest, missingCsrf.StatusCode);
         var token = await IdentityTestHelpers.GetTokenAsync(client, "/TeacherCourses/Edit");
-        using var created = await client.PostAsync("/TeacherCourses/Edit", new FormUrlEncodedContent(new Dictionary<string,string> { ["__RequestVerificationToken"] = token, ["Input.Title"] = "Overpost test", ["Input.Level"] = "1", ["Input.Price"] = "0", ["OwnerTeacherUserId"] = otherOwner.Id.ToString(), ["Status"] = "Published" }));
+        using var created = await client.PostAsync("/TeacherCourses/Edit", new FormUrlEncodedContent(new Dictionary<string, string> { ["__RequestVerificationToken"] = token, ["Input.Title"] = "Overpost test", ["Input.Level"] = "1", ["Input.Price"] = "0", ["OwnerTeacherUserId"] = otherOwner.Id.ToString(), ["Status"] = "Published" }));
         Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
         var saved = await db.Courses.SingleAsync(c => c.OwnerTeacherUserId == owner.Id && c.Title == "Overpost test"); Assert.Equal(CourseStatus.Draft, saved.Status);
     }
@@ -427,7 +436,8 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         db.Enrollments.Add(new Enrollment { CourseId = paid.Id, StudentUserId = student.Id, Payment = payment, CompletedAtUtc = DateTimeOffset.UtcNow }); await db.SaveChangesAsync();
         Assert.True((await service.SaveCourseAsync(owner.Id, free.Id, new() { Title = "Free now paid", IsPaid = true, Price = 299000 })).Success);
         Assert.True((await service.SaveCourseAsync(owner.Id, paid.Id, new() { Title = "Paid changed price", IsPaid = true, Price = 399000 })).Success);
-        foreach (var c in new[] { free, paid }) {
+        foreach (var c in new[] { free, paid })
+        {
             var lessonId = c.Modules.First().Lessons.First().Id;
             Assert.Equal(LearningAccessResult.Allowed, (await service.OpenLessonAsync(student.Id, lessonId)).Access);
             Assert.True((await service.ChangeStatusAsync(owner.Id, c.Id, CourseStatus.Unpublished)).Success);

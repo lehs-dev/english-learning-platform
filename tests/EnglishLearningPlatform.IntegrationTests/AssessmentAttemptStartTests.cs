@@ -262,7 +262,8 @@ public sealed class AssessmentAttemptStartTests(
                     db.Courses.Add(new Course
                     {
                         OwnerTeacherUserId = assessment.OwnerTeacherUserId,
-                        Title = "Invalid final reference", FinalAssessmentId = assessmentId
+                        Title = "Invalid final reference",
+                        FinalAssessmentId = assessmentId
                     });
                     break;
             }
@@ -365,14 +366,29 @@ public sealed class AssessmentAttemptStartTests(
             .SingleAsync(a => a.Id == assessmentId);
         return JsonSerializer.Serialize(new
         {
-            assessment.OwnerTeacherUserId, assessment.Title, assessment.AssessmentType, assessment.TargetSkill,
-            assessment.Status, assessment.UpdatedAtUtc, assessment.CourseId, assessment.DurationMinutes,
-            assessment.MaxAttempts, assessment.PassingScore,
+            assessment.OwnerTeacherUserId,
+            assessment.Title,
+            assessment.AssessmentType,
+            assessment.TargetSkill,
+            assessment.Status,
+            assessment.UpdatedAtUtc,
+            assessment.CourseId,
+            assessment.DurationMinutes,
+            assessment.MaxAttempts,
+            assessment.PassingScore,
             Questions = assessment.Questions.OrderBy(q => q.OrderIndex).Select(q => new
             {
-                q.Id, q.QuestionId, q.Points, q.OrderIndex, q.Question.OwnerTeacherUserId,
-                q.Question.Content, q.Question.PrimarySkill, q.Question.Status, q.Question.StimulusId,
-                q.Question.ContentLockedAtUtc, q.Question.UpdatedAtUtc,
+                q.Id,
+                q.QuestionId,
+                q.Points,
+                q.OrderIndex,
+                q.Question.OwnerTeacherUserId,
+                q.Question.Content,
+                q.Question.PrimarySkill,
+                q.Question.Status,
+                q.Question.StimulusId,
+                q.Question.ContentLockedAtUtc,
+                q.Question.UpdatedAtUtc,
                 Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect })
             })
         });

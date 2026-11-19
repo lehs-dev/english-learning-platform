@@ -333,42 +333,80 @@ public sealed class TeacherAssessmentPreviewTests : IClassFixture<IntegrationTes
             .SingleAsync(a => a.Id == data.Assessment.Id);
         return JsonSerializer.Serialize(new
         {
-            assessment.Id, assessment.Title, assessment.Description, assessment.Status,
-            assessment.AssessmentType, assessment.TargetSkill, assessment.CourseId,
-            assessment.DurationMinutes, assessment.MaxAttempts, assessment.PassingScore,
-            assessment.CreatedAtUtc, assessment.UpdatedAtUtc,
+            assessment.Id,
+            assessment.Title,
+            assessment.Description,
+            assessment.Status,
+            assessment.AssessmentType,
+            assessment.TargetSkill,
+            assessment.CourseId,
+            assessment.DurationMinutes,
+            assessment.MaxAttempts,
+            assessment.PassingScore,
+            assessment.CreatedAtUtc,
+            assessment.UpdatedAtUtc,
             Questions = assessment.Questions.OrderBy(q => q.Id).Select(q => new
             {
-                q.Id, q.QuestionId, q.OrderIndex, q.Points, q.CreatedAtUtc, q.UpdatedAtUtc,
+                q.Id,
+                q.QuestionId,
+                q.OrderIndex,
+                q.Points,
+                q.CreatedAtUtc,
+                q.UpdatedAtUtc,
                 Question = new
                 {
-                    q.Question.Content, q.Question.PrimarySkill, q.Question.Status,
-                    q.Question.Explanation, q.Question.StimulusId, q.Question.ContentLockedAtUtc,
+                    q.Question.Content,
+                    q.Question.PrimarySkill,
+                    q.Question.Status,
+                    q.Question.Explanation,
+                    q.Question.StimulusId,
+                    q.Question.ContentLockedAtUtc,
                     q.Question.UpdatedAtUtc,
                     Options = q.Question.Options.OrderBy(o => o.Id).Select(o => new
                     {
-                        o.Id, o.Content, o.OrderIndex, o.IsCorrect, o.UpdatedAtUtc
+                        o.Id,
+                        o.Content,
+                        o.OrderIndex,
+                        o.IsCorrect,
+                        o.UpdatedAtUtc
                     }),
                     Stimulus = q.Question.Stimulus == null ? null : new
                     {
-                        q.Question.Stimulus.Id, q.Question.Stimulus.StimulusType,
-                        q.Question.Stimulus.ContentText, q.Question.Stimulus.ResourceUrl,
-                        q.Question.Stimulus.ContentLockedAtUtc, q.Question.Stimulus.UpdatedAtUtc
+                        q.Question.Stimulus.Id,
+                        q.Question.Stimulus.StimulusType,
+                        q.Question.Stimulus.ContentText,
+                        q.Question.Stimulus.ResourceUrl,
+                        q.Question.Stimulus.ContentLockedAtUtc,
+                        q.Question.Stimulus.UpdatedAtUtc
                     }
                 }
             }),
             Attempts = assessment.Attempts.OrderBy(a => a.Id).Select(a => new
             {
-                a.Id, a.StudentUserId, a.Status, a.StartedAtUtc, a.DeadlineUtc,
-                a.FinalizedAtUtc, a.FinalizationReason, a.OverallScore, a.Passed,
-                a.CreatedAtUtc, a.UpdatedAtUtc,
+                a.Id,
+                a.StudentUserId,
+                a.Status,
+                a.StartedAtUtc,
+                a.DeadlineUtc,
+                a.FinalizedAtUtc,
+                a.FinalizationReason,
+                a.OverallScore,
+                a.Passed,
+                a.CreatedAtUtc,
+                a.UpdatedAtUtc,
                 Answers = a.Answers.OrderBy(answer => answer.Id).Select(answer => new
                 {
-                    answer.Id, answer.AssessmentQuestionId, answer.SelectedOptionId, answer.SavedAtUtc
+                    answer.Id,
+                    answer.AssessmentQuestionId,
+                    answer.SelectedOptionId,
+                    answer.SavedAtUtc
                 }),
                 Results = a.SkillResults.OrderBy(r => r.Id).Select(r => new
                 {
-                    r.Id, r.Skill, r.Score, r.QuestionCount
+                    r.Id,
+                    r.Skill,
+                    r.Score,
+                    r.QuestionCount
                 })
             })
         });
@@ -383,10 +421,14 @@ public sealed class TeacherAssessmentPreviewTests : IClassFixture<IntegrationTes
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var assessment = new AssessmentEntity
         {
-            OwnerTeacherUserId = teacher.Id, Title = "TASK3_PREVIEW",
-            Description = "TASK3_INSTRUCTIONS", AssessmentType = type, Status = status,
+            OwnerTeacherUserId = teacher.Id,
+            Title = "TASK3_PREVIEW",
+            Description = "TASK3_INSTRUCTIONS",
+            AssessmentType = type,
+            Status = status,
             TargetSkill = type == AssessmentType.SkillAssessment ? EnglishSkill.Reading : null,
-            DurationMinutes = 37, MaxAttempts = 2,
+            DurationMinutes = 37,
+            MaxAttempts = 2,
             PassingScore = type == AssessmentType.PlacementTest ? null : 72.5m,
             UpdatedAtUtc = DateTimeOffset.UtcNow.AddDays(-3),
             Course = courseLinked ? new Course { OwnerTeacherUserId = teacher.Id, Title = "TASK3_COURSE" } : null
@@ -422,7 +464,9 @@ public sealed class TeacherAssessmentPreviewTests : IClassFixture<IntegrationTes
             }
             assessment.Questions.Add(new AssessmentQuestion
             {
-                Question = question, OrderIndex = i, Points = i + 1.25m
+                Question = question,
+                OrderIndex = i,
+                Points = i + 1.25m
             });
         }
         db.Assessments.Add(assessment);
@@ -436,12 +480,15 @@ public sealed class TeacherAssessmentPreviewTests : IClassFixture<IntegrationTes
             {
                 var attempt = new Attempt
                 {
-                    AssessmentId = assessment.Id, StudentUserId = student.Id,
+                    AssessmentId = assessment.Id,
+                    StudentUserId = student.Id,
                     Status = graded ? AttemptStatus.Graded : AttemptStatus.InProgress,
-                    StartedAtUtc = started, DeadlineUtc = started.AddMinutes(37),
+                    StartedAtUtc = started,
+                    DeadlineUtc = started.AddMinutes(37),
                     FinalizedAtUtc = graded ? started.AddMinutes(20) : null,
                     FinalizationReason = graded ? AttemptFinalizationReason.ManualSubmit : null,
-                    OverallScore = graded ? 81.25m : null, Passed = graded ? true : null,
+                    OverallScore = graded ? 81.25m : null,
+                    Passed = graded ? true : null,
                     Answers = new List<AttemptAnswer>
                     {
                         new AttemptAnswer
@@ -453,7 +500,9 @@ public sealed class TeacherAssessmentPreviewTests : IClassFixture<IntegrationTes
                 };
                 if (graded) attempt.SkillResults.Add(new AttemptSkillResult
                 {
-                    Skill = EnglishSkill.Reading, Score = 81.25m, QuestionCount = 4
+                    Skill = EnglishSkill.Reading,
+                    Score = 81.25m,
+                    QuestionCount = 4
                 });
                 db.Attempts.Add(attempt);
             }

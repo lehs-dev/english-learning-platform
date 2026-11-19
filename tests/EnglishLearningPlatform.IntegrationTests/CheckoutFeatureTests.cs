@@ -131,8 +131,12 @@ public sealed class CheckoutFeatureTests : IClassFixture<IntegrationTestFactory>
         using var client = IdentityTestHelpers.CreateClient(factory); using var login = await IdentityTestHelpers.LoginAsync(client, data.Student);
         using var missing = await client.PostAsync($"/Checkout/Start/{data.Course.Id}", new FormUrlEncodedContent([])); Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
         var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Courses/Details/{data.Course.Id}");
-        using var post = await client.PostAsync($"/Checkout/Start/{data.Course.Id}", new FormUrlEncodedContent(new Dictionary<string, string> {
-            ["__RequestVerificationToken"] = token, ["Amount"] = "1", ["StudentUserId"] = other.Id.ToString() }));
+        using var post = await client.PostAsync($"/Checkout/Start/{data.Course.Id}", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = token,
+            ["Amount"] = "1",
+            ["StudentUserId"] = other.Id.ToString()
+        }));
         Assert.Equal(HttpStatusCode.Redirect, post.StatusCode);
         using var scope = factory.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var order = await db.Orders.SingleAsync(o => o.CourseId == data.Course.Id);

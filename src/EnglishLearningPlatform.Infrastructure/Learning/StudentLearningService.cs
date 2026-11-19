@@ -49,7 +49,7 @@ public sealed class StudentLearningService(AppDbContext db, IStudentLearningCour
                 p.UpdatedAtUtc >= startUtc && p.UpdatedAtUtc < endUtc)
             .Select(p => new DashboardActivity(DashboardActivityKind.LessonCompleted, p.LessonId,
                 p.Enrollment.CourseId, p.Lesson.Title, p.UpdatedAtUtc!.Value)
-                { CanOpenTarget = accessibleLessons.Any(l => l.Id == p.LessonId) }).ToListAsync(ct);
+            { CanOpenTarget = accessibleLessons.Any(l => l.Id == p.LessonId) }).ToListAsync(ct);
         var practices = await db.PracticeSubmissions.AsNoTracking()
             .Where(s => s.StudentUserId == studentId && s.SubmittedAtUtc >= startUtc && s.SubmittedAtUtc < endUtc)
             .Select(s => new DashboardActivity(DashboardActivityKind.PracticeSubmitted, s.PracticeId,
@@ -107,9 +107,16 @@ public sealed class StudentLearningService(AppDbContext db, IStudentLearningCour
         var rows = await db.AvailablePractices(studentId)
             .Where(p => !courseId.HasValue || (p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId) == courseId)
             .OrderBy(p => p.Title).ThenBy(p => p.Id)
-            .Select(p => new { p.Id, CourseId = p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
+            .Select(p => new
+            {
+                p.Id,
+                CourseId = p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
                 CourseTitle = p.LessonId.HasValue ? p.Lesson!.Module.Course.Title : p.Module!.Course.Title,
-                p.ModuleId, p.LessonId, p.Title, Count = p.Questions.Count(q => q.Version == p.Version) }).ToListAsync(ct);
+                p.ModuleId,
+                p.LessonId,
+                p.Title,
+                Count = p.Questions.Count(q => q.Version == p.Version)
+            }).ToListAsync(ct);
         var ids = rows.Select(p => p.Id).ToArray();
         if (ids.Length == 0) return [];
         // Keep metadata expansion separate from the authorization query; a correlated
@@ -126,17 +133,26 @@ public sealed class StudentLearningService(AppDbContext db, IStudentLearningCour
         var now = time.GetUtcNow();
         var rows = await db.AvailableAssessments(studentId, now).Where(a => !courseId.HasValue || a.CourseId == courseId)
             .OrderBy(a => a.Title).ThenBy(a => a.Id)
-            .Select(a => new { a.Id, a.CourseId, a.Title, a.AssessmentType, Count = a.Questions.Count,
-                a.DurationMinutes, a.Status,
+            .Select(a => new
+            {
+                a.Id,
+                a.CourseId,
+                a.Title,
+                a.AssessmentType,
+                Count = a.Questions.Count,
+                a.DurationMinutes,
+                a.Status,
                 ActiveId = a.Attempts.Where(t => t.StudentUserId == studentId && t.Status == AttemptStatus.InProgress && t.DeadlineUtc > now)
-                    .Select(t => (Guid?)t.Id).FirstOrDefault() }).ToListAsync(ct);
+                    .Select(t => (Guid?)t.Id).FirstOrDefault()
+            }).ToListAsync(ct);
         var ids = rows.Select(a => a.Id).ToArray();
         if (ids.Length == 0) return [];
         var skills = await db.AssessmentQuestions.AsNoTracking().Where(q => ids.Contains(q.AssessmentId))
             .Select(q => new { q.AssessmentId, q.Question.PrimarySkill }).Distinct().ToListAsync(ct);
         var groups = skills.ToLookup(q => q.AssessmentId, q => q.PrimarySkill);
         return rows.Select(a => new AssessmentLink(a.Id, a.CourseId, a.Title, a.AssessmentType, a.Count,
-            a.DurationMinutes, groups[a.Id].Order().ToList(), a.ActiveId) { Status = a.Status }).ToList();
+            a.DurationMinutes, groups[a.Id].Order().ToList(), a.ActiveId)
+        { Status = a.Status }).ToList();
     }
 
     private async Task<List<RepresentativeAssessmentResult>> RepresentativeResultsAsync(Guid studentId, CancellationToken ct)
@@ -157,7 +173,10 @@ public sealed class StudentLearningService(AppDbContext db, IStudentLearningCour
                 s.QuestionCount >= SkillAnalysisRules.MinimumQuestionCount)
             .Select(s => new
             {
-                s.AttemptId, s.Skill, s.Score, s.QuestionCount,
+                s.AttemptId,
+                s.Skill,
+                s.Score,
+                s.QuestionCount,
                 DistinctCount = s.Attempt.Assessment.Questions.Where(q => q.Question.PrimarySkill == s.Skill)
                     .Select(q => q.QuestionId).Distinct().Count(),
                 Maximum = s.Attempt.Assessment.Questions.Where(q => q.Question.PrimarySkill == s.Skill).Sum(q => q.Points),

@@ -8,12 +8,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.QuestionBank;
+
 public class QuestionQueryService : IQuestionQueryService
-{   
+{
     private readonly AppDbContext _dbContext;
 
     private readonly IActiveUserValidator _activeUsers;
-   public QuestionQueryService(AppDbContext db, UserManager<ApplicationUser> userManager, IActiveUserValidator? activeUsers = null)
+    public QuestionQueryService(AppDbContext db, UserManager<ApplicationUser> userManager, IActiveUserValidator? activeUsers = null)
     {
         if (db == null)
         {
@@ -26,22 +27,22 @@ public class QuestionQueryService : IQuestionQueryService
         _dbContext = db;
         _activeUsers = activeUsers ?? new ActiveUserValidator(userManager, db);
     }
-    public async Task<QuestionSearchResult?> SearchAsync(Guid actorUserId,QuestionSearchRequest request, CancellationToken cancellationToken = default)
+    public async Task<QuestionSearchResult?> SearchAsync(Guid actorUserId, QuestionSearchRequest request, CancellationToken cancellationToken = default)
     {
-        if(request == null)
+        if (request == null)
         {
             throw new ArgumentNullException(nameof(request));
         }
         //dừng thao tác nếu phía gọi dừng
         cancellationToken.ThrowIfCancellationRequested();
-        
-        if(!await _activeUsers.IsActiveTeacherAsync(actorUserId, cancellationToken))
+
+        if (!await _activeUsers.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
-           return null;
+            return null;
         }
         int pageNumber = request.PageNumber;
         int pageSize = request.PageSize;
-        if(pageNumber <= 0)
+        if (pageNumber <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(request.PageNumber), "PageNumber must be greater than 0");
         }
@@ -80,7 +81,7 @@ public class QuestionQueryService : IQuestionQueryService
             .Where(question => question.OwnerTeacherUserId == actorUserId);
         // Tìm từ khóa trong nội dung câu hỏi.
         // Bỏ qua nếu không nhập từ khóa hoặc chỉ nhập khoảng trắng.
-        if(!string.IsNullOrWhiteSpace(request.Search))
+        if (!string.IsNullOrWhiteSpace(request.Search))
         {
             string search = request.Search.Trim();
             query = query.Where(question => question.Content.Contains(search));
@@ -101,7 +102,7 @@ public class QuestionQueryService : IQuestionQueryService
             string level = request.Level.Trim();
             query = query.Where(question => question.Level == level);
         }
-            // Đếm sau khi áp dụng owner và toàn bộ bộ lọc,
+        // Đếm sau khi áp dụng owner và toàn bộ bộ lọc,
         // nhưng trước khi lấy một trang.
         int totalCount = await query.CountAsync(cancellationToken);
 
@@ -136,7 +137,7 @@ public class QuestionQueryService : IQuestionQueryService
         pageNumber,
         pageSize);
     }
-    public async Task<QuestionDetail?> GetByIdAsync(Guid actorUserId,Guid questionId, CancellationToken cancellationToken = default)
+    public async Task<QuestionDetail?> GetByIdAsync(Guid actorUserId, Guid questionId, CancellationToken cancellationToken = default)
     {
         // Nếu phía gọi đã hủy yêu cầu thì dừng trước khi truy vấn.
         cancellationToken.ThrowIfCancellationRequested();
@@ -147,7 +148,7 @@ public class QuestionQueryService : IQuestionQueryService
         {
             return null;
         }
-        if(!await _activeUsers.IsActiveTeacherAsync(actorUserId, cancellationToken))
+        if (!await _activeUsers.IsActiveTeacherAsync(actorUserId, cancellationToken))
         {
             return null;
         }
@@ -156,7 +157,7 @@ public class QuestionQueryService : IQuestionQueryService
             .Include(q => q.Options)
             .Include(q => q.Stimulus)
             .FirstOrDefaultAsync(q => q.Id == questionId && q.OwnerTeacherUserId == actorUserId, cancellationToken);
-        if(question == null)
+        if (question == null)
         {
             return null;
         }
@@ -164,7 +165,7 @@ public class QuestionQueryService : IQuestionQueryService
         if (stimulus != null
         && stimulus.OwnerTeacherUserId != actorUserId)
         {
-          return null;
+            return null;
         }
         // chuyển đối tượng từ entity sang dto
         QuestionDetail detail = new QuestionDetail
@@ -192,7 +193,7 @@ public class QuestionQueryService : IQuestionQueryService
             optionItems.Add(optionItem);
         }
         detail.Options = optionItems;
-        if(stimulus != null)
+        if (stimulus != null)
         {
             detail.Stimulus = new QuestionStimulusDetail
             {
@@ -205,5 +206,5 @@ public class QuestionQueryService : IQuestionQueryService
         }
         return detail;
     }
-    
+
 }

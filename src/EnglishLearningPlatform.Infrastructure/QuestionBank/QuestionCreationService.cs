@@ -6,6 +6,7 @@ using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.QuestionBank;
+
 public sealed class QuestionCreationService(
     AppDbContext db,
     IActiveUserValidator activeUsers,

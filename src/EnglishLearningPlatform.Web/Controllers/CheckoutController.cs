@@ -26,8 +26,11 @@ public sealed class CheckoutController(ICheckoutOrderService checkout, IPaymentW
         if (result.Code == CheckoutCode.IntegrationError) TempData["Error"] = Message(result.Code);
         return result.Code switch
         {
-            CheckoutCode.Allowed => View(result.Value), CheckoutCode.AlreadyEnrolled => Learn(courseId),
-            CheckoutCode.Forbidden => Forbid(), CheckoutCode.NotFound => NotFound(), _ => View("Unavailable")
+            CheckoutCode.Allowed => View(result.Value),
+            CheckoutCode.AlreadyEnrolled => Learn(courseId),
+            CheckoutCode.Forbidden => Forbid(),
+            CheckoutCode.NotFound => NotFound(),
+            _ => View("Unavailable")
         };
     }
     [HttpPost, ValidateAntiForgeryToken]
@@ -67,8 +70,13 @@ public sealed class CheckoutController(ICheckoutOrderService checkout, IPaymentW
         if (result.Code == CheckoutCode.NotFound) return NotFound();
         if (result.Code == CheckoutCode.Forbidden) return Forbid();
         if (result.Code != CheckoutCode.Allowed) return StatusCode(503);
-        return Json(new { status = result.Value!.Status?.ToString(), canLearn = result.Value.CanLearn,
-            expired = result.Value.IsExpired, resultUrl = Url.Action(nameof(Result), new { id }) });
+        return Json(new
+        {
+            status = result.Value!.Status?.ToString(),
+            canLearn = result.Value.CanLearn,
+            expired = result.Value.IsExpired,
+            resultUrl = Url.Action(nameof(Result), new { id })
+        });
     }
     [HttpGet]
     public async Task<IActionResult> History(int page = 1, CancellationToken ct = default)
@@ -94,7 +102,7 @@ public sealed class CheckoutController(ICheckoutOrderService checkout, IPaymentW
         if (result.Code == CheckoutCode.Allowed && vnpay is not null && returnedOrder == id.ToString("N") &&
             TempData.Peek("VnpayReturnPayload") is string payload)
         {
-            var signed = JsonSerializer.Deserialize<Dictionary<string,string>>(payload);
+            var signed = JsonSerializer.Deserialize<Dictionary<string, string>>(payload);
             var confirmed = signed is null ? CheckoutCode.InvalidCallback : await vnpay.ConfirmVnpayReturnAsync(UserId.Value, signed, ct);
             if (confirmed is CheckoutCode.Allowed or CheckoutCode.Disabled) TempData.Remove("VnpayReturnPayload");
             if (confirmed == CheckoutCode.Allowed)

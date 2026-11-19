@@ -374,7 +374,9 @@ public sealed class TeacherCourseFinalTests(IntegrationTestFactory factory) : IC
     }
     private static CourseFinalRequest Request(Course course, Guid? id) => new()
     {
-        FinalAssessmentId = id, ExpectedFinalAssessmentId = course.FinalAssessmentId, ExpectedUpdatedAtUtc = course.UpdatedAtUtc
+        FinalAssessmentId = id,
+        ExpectedFinalAssessmentId = course.FinalAssessmentId,
+        ExpectedUpdatedAtUtc = course.UpdatedAtUtc
     };
     private async Task<WriteOutcome> SaveAsync(Data data, Guid? id)
     {
@@ -413,19 +415,35 @@ public sealed class TeacherCourseFinalTests(IntegrationTestFactory factory) : IC
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Final management " + Guid.NewGuid().ToString("N"), Status = CourseStatus.Published };
         var module = new Module { Course = course, Title = "Visible module" };
-        var lesson = new Lesson { Module = module, Title = "Published lesson", Status = LessonStatus.Published,
-            Resources = new List<LessonResource> { new() { ResourceType = LessonResourceType.Text, ContentText = "Lesson" } } };
+        var lesson = new Lesson
+        {
+            Module = module,
+            Title = "Published lesson",
+            Status = LessonStatus.Published,
+            Resources = new List<LessonResource> { new() { ResourceType = LessonResourceType.Text, ContentText = "Lesson" } }
+        };
         var enrollment = new Enrollment { Course = course, StudentUserId = student.Id };
         Assessment Build(string title, AssessmentType kind) => new()
         {
-            Course = course, OwnerTeacherUserId = teacher.Id, Title = title, Status = AssessmentStatus.Published,
-            AssessmentType = kind, TargetSkill = kind == AssessmentType.SkillAssessment ? EnglishSkill.Grammar : null,
-            DurationMinutes = 20, MaxAttempts = 3, PassingScore = 70m, UpdatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-10),
+            Course = course,
+            OwnerTeacherUserId = teacher.Id,
+            Title = title,
+            Status = AssessmentStatus.Published,
+            AssessmentType = kind,
+            TargetSkill = kind == AssessmentType.SkillAssessment ? EnglishSkill.Grammar : null,
+            DurationMinutes = 20,
+            MaxAttempts = 3,
+            PassingScore = 70m,
+            UpdatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-10),
             Questions = Enumerable.Range(0, 5).Select(i => new AssessmentQuestion
             {
-                OrderIndex = i, Points = 1m, Question = new Question
+                OrderIndex = i,
+                Points = 1m,
+                Question = new Question
                 {
-                    OwnerTeacherUserId = teacher.Id, Content = title + " question " + i, PrimarySkill = EnglishSkill.Grammar,
+                    OwnerTeacherUserId = teacher.Id,
+                    Content = title + " question " + i,
+                    PrimarySkill = EnglishSkill.Grammar,
                     Options = new List<QuestionOption> { new() { Content = "Correct", IsCorrect = true, OrderIndex = 0 }, new() { Content = "Wrong", OrderIndex = 1 } }
                 }
             }).ToList()

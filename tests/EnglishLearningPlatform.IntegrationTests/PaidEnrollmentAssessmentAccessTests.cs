@@ -317,8 +317,12 @@ public sealed class PaidEnrollmentAssessmentAccessTests(CheckoutTestFactory fact
                 case "cancelled": payment.Status = PaymentStatus.Cancelled; break;
                 case "buyer": payment.Order.StudentUserId = other!.Id; break;
                 case "course":
-                    var foreignCourse = new Course { OwnerTeacherUserId = data.Course.OwnerTeacherUserId,
-                        Title = "Foreign payment course", Status = CourseStatus.Published };
+                    var foreignCourse = new Course
+                    {
+                        OwnerTeacherUserId = data.Course.OwnerTeacherUserId,
+                        Title = "Foreign payment course",
+                        Status = CourseStatus.Published
+                    };
                     db.Courses.Add(foreignCourse);
                     payment.Order.Course = foreignCourse;
                     break;

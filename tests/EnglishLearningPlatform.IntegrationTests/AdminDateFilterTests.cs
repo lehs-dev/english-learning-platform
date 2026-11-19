@@ -31,20 +31,35 @@ public sealed class AdminDateFilterTests(IntegrationTestFactory factory) : IClas
         var course = new Course { Title = marker, OwnerTeacherUserId = teacher.Id };
         Order AddOrder(Course target, DateTimeOffset created, PaymentStatus? latest)
         {
-            var order = new Order { Course = target, StudentUserId = student.Id,
-                Amount = 199000m, Currency = "VND", CreatedAtUtc = created };
+            var order = new Order
+            {
+                Course = target,
+                StudentUserId = student.Id,
+                Amount = 199000m,
+                Currency = "VND",
+                CreatedAtUtc = created
+            };
             db.Orders.Add(order);
             if (latest.HasValue)
             {
                 // Transactions intentionally displays the latest attempt, unlike booked revenue.
-                db.Payments.Add(new Payment { Order = order, Amount = order.Amount,
+                db.Payments.Add(new Payment
+                {
+                    Order = order,
+                    Amount = order.Amount,
                     ProviderTransactionId = $"combined-{Guid.NewGuid():N}",
                     Status = latest == PaymentStatus.Failed ? PaymentStatus.Pending : PaymentStatus.Failed,
-                    CreatedAtUtc = created.AddMinutes(1) });
-                db.Payments.Add(new Payment { Order = order, Amount = order.Amount, Status = latest.Value,
+                    CreatedAtUtc = created.AddMinutes(1)
+                });
+                db.Payments.Add(new Payment
+                {
+                    Order = order,
+                    Amount = order.Amount,
+                    Status = latest.Value,
                     ProviderTransactionId = $"combined-{Guid.NewGuid():N}",
                     CreatedAtUtc = created.AddMinutes(2),
-                    PaidAtUtc = latest == PaymentStatus.Succeeded ? created.AddMinutes(2) : null });
+                    PaidAtUtc = latest == PaymentStatus.Succeeded ? created.AddMinutes(2) : null
+                });
             }
             return order;
         }

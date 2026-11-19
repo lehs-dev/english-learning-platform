@@ -28,26 +28,51 @@ public sealed class CourseCompletionIntegrationTests(IntegrationTestFactory fact
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
-        var visible = new Module { Title = "Visible", Lessons =
-            [Lesson("One", 0), Lesson("Two", 1), Lesson("Draft", 2, LessonStatus.Draft), Lesson("Hidden", 3, LessonStatus.Hidden)] };
-        var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Completion " + Guid.NewGuid().ToString("N"),
-            Status = CourseStatus.Published, IsPaid = paid, Price = paid ? 199000 : 0,
+        var visible = new Module
+        {
+            Title = "Visible",
+            Lessons =
+            [Lesson("One", 0), Lesson("Two", 1), Lesson("Draft", 2, LessonStatus.Draft), Lesson("Hidden", 3, LessonStatus.Hidden)]
+        };
+        var course = new Course
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Completion " + Guid.NewGuid().ToString("N"),
+            Status = CourseStatus.Published,
+            IsPaid = paid,
+            Price = paid ? 199000 : 0,
             Modules = [visible, new Module { Title = "Hidden module", Visibility = ModuleVisibility.Hidden,
-                OrderIndex = 1, Lessons = [Lesson("Unavailable published lesson", 0)] }] };
+                OrderIndex = 1, Lessons = [Lesson("Unavailable published lesson", 0)] }]
+        };
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Courses.Add(course); await db.SaveChangesAsync();
-        var final = new Assessment { OwnerTeacherUserId = teacher.Id, CourseId = course.Id, Title = "Final",
-            Status = AssessmentStatus.Published, AssessmentType = AssessmentType.SkillAssessment,
-            TargetSkill = EnglishSkill.Grammar, PassingScore = 70, DurationMinutes = 20, MaxAttempts = 3,
+        var final = new Assessment
+        {
+            OwnerTeacherUserId = teacher.Id,
+            CourseId = course.Id,
+            Title = "Final",
+            Status = AssessmentStatus.Published,
+            AssessmentType = AssessmentType.SkillAssessment,
+            TargetSkill = EnglishSkill.Grammar,
+            PassingScore = 70,
+            DurationMinutes = 20,
+            MaxAttempts = 3,
             Questions = Enumerable.Range(0, 5).Select(i => new AssessmentQuestion
             {
-                OrderIndex = i, Points = roundingBoundary ? (i == 0 ? 6999.60m : 750.10m) : 1,
-                Question = new Question { OwnerTeacherUserId = teacher.Id, Content = "Question " + i,
-                    PrimarySkill = EnglishSkill.Grammar, Status = QuestionStatus.Published,
+                OrderIndex = i,
+                Points = roundingBoundary ? (i == 0 ? 6999.60m : 750.10m) : 1,
+                Question = new Question
+                {
+                    OwnerTeacherUserId = teacher.Id,
+                    Content = "Question " + i,
+                    PrimarySkill = EnglishSkill.Grammar,
+                    Status = QuestionStatus.Published,
                     Options = [new QuestionOption { Content = "Correct", IsCorrect = true, OrderIndex = 0 },
-                        new QuestionOption { Content = "Wrong", IsCorrect = false, OrderIndex = 1 }] }
-            }).ToList() };
+                        new QuestionOption { Content = "Wrong", IsCorrect = false, OrderIndex = 1 }]
+                }
+            }).ToList()
+        };
         db.Assessments.Add(final); await db.SaveChangesAsync();
         await db.Courses.Where(c => c.Id == course.Id)
             .ExecuteUpdateAsync(s => s.SetProperty(c => c.FinalAssessmentId, (Guid?)final.Id));
@@ -59,7 +84,9 @@ public sealed class CourseCompletionIntegrationTests(IntegrationTestFactory fact
 
     private static Lesson Lesson(string title, int order, LessonStatus status = LessonStatus.Published) => new()
     {
-        Title = title, OrderIndex = order, Status = status,
+        Title = title,
+        OrderIndex = order,
+        Status = status,
         Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = title }]
     };
 
@@ -209,8 +236,16 @@ public sealed class CourseCompletionIntegrationTests(IntegrationTestFactory fact
     {
         var data = await Seed(); await CompleteLessons(data); await Finalize(data, await StartAndAnswer(data));
         var completed = await CompletedAt(data); Assert.NotNull(completed);
-        await InDb(async db => { db.Lessons.Add(new Lesson { ModuleId = data.Module, Title = "Added after completion", OrderIndex = 4,
-            Status = LessonStatus.Published }); await db.SaveChangesAsync(); });
+        await InDb(async db =>
+        {
+            db.Lessons.Add(new Lesson
+            {
+                ModuleId = data.Module,
+                Title = "Added after completion",
+                OrderIndex = 4,
+                Status = LessonStatus.Published
+            }); await db.SaveChangesAsync();
+        });
         Assert.True((await SetLesson(data, data.Lessons[0], false)).Success);
         var progress = await Progress(data); Assert.Equal(3, progress.TotalLessons);
         Assert.Equal(1, progress.CompletedLessons); Assert.Equal(completed, progress.CompletedAtUtc);
@@ -318,10 +353,22 @@ public sealed class CourseCompletionIntegrationTests(IntegrationTestFactory fact
         {
             await db.Courses.Where(c => c.Id == data.Course)
                 .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsPaid, true).SetProperty(c => c.Price, 199000m));
-            var payment = new Payment { Order = new Order { StudentUserId = data.Student, CourseId = data.Course,
-                    Amount = 199000, Currency = "VND", Provider = "CompletionFixture", ExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(30) },
-                Amount = pending ? 199000 : 1, Status = pending ? PaymentStatus.Pending : PaymentStatus.Succeeded,
-                Provider = "CompletionFixture", ProviderTransactionId = "invalid-" + Guid.NewGuid().ToString("N") };
+            var payment = new Payment
+            {
+                Order = new Order
+                {
+                    StudentUserId = data.Student,
+                    CourseId = data.Course,
+                    Amount = 199000,
+                    Currency = "VND",
+                    Provider = "CompletionFixture",
+                    ExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+                },
+                Amount = pending ? 199000 : 1,
+                Status = pending ? PaymentStatus.Pending : PaymentStatus.Succeeded,
+                Provider = "CompletionFixture",
+                ProviderTransactionId = "invalid-" + Guid.NewGuid().ToString("N")
+            };
             db.Payments.Add(payment);
             var enrollment = await db.Enrollments.SingleOrDefaultAsync(e => e.StudentUserId == data.Student && e.CourseId == data.Course);
             if (enrollment is null) db.Enrollments.Add(new Enrollment { StudentUserId = data.Student, CourseId = data.Course, Payment = payment });

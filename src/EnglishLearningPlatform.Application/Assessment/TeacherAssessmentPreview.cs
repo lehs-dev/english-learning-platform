@@ -30,10 +30,10 @@ public sealed class TeacherAssessmentPreview
 
     // Danh sách này không gắn với Attempt nào.
     public IReadOnlyList<AssessmentQuestionTakingModel> Questions
-        { get; set; } = new List<AssessmentQuestionTakingModel>();
+    { get; set; } = new List<AssessmentQuestionTakingModel>();
 
     // Cảnh báo giúp Teacher biết Draft đang thiếu hoặc sai phần nào.
     // Danh sách rỗng không có nghĩa bài đã được Publish.
     public IReadOnlyList<string> Warnings
-        { get; set; } = new List<string>();
+    { get; set; } = new List<string>();
 }
