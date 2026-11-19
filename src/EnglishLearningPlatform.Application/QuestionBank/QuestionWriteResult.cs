@@ -1,4 +1,5 @@
 namespace EnglishLearningPlatform.Application.QuestionBank;
+
 public sealed class QuestionWriteResult
 {
     private QuestionWriteResult(Guid? questionId, IReadOnlyList<QuestionError> errors)
@@ -12,14 +13,14 @@ public sealed class QuestionWriteResult
     public IReadOnlyList<QuestionError> GetErrors() => Errors;
     public static QuestionWriteResult Success(Guid questionId)
     {
-        if(questionId == Guid.Empty)
+        if (questionId == Guid.Empty)
         {
             throw new ArgumentException(
                 "QuestionId cannot be empty.",
                 nameof(questionId));
         }
         return new QuestionWriteResult(
-            questionId, 
+            questionId,
             Array.Empty<QuestionError>());
     }
     public static QuestionWriteResult Failure(

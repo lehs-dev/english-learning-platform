@@ -306,10 +306,18 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         var data = await SeedAsync(configure: assessment =>
         {
             var questions = assessment.Questions.OrderBy(q => q.OrderIndex).ToList();
-            var passage = new Stimulus { OwnerTeacherUserId = assessment.OwnerTeacherUserId,
-                StimulusType = StimulusType.Passage, ContentText = "RESULT_PRIVATE_PASSAGE" };
-            var audio = new Stimulus { OwnerTeacherUserId = assessment.OwnerTeacherUserId,
-                StimulusType = StimulusType.Audio, ResourceUrl = "https://example.com/result-listening.mp3" };
+            var passage = new Stimulus
+            {
+                OwnerTeacherUserId = assessment.OwnerTeacherUserId,
+                StimulusType = StimulusType.Passage,
+                ContentText = "RESULT_PRIVATE_PASSAGE"
+            };
+            var audio = new Stimulus
+            {
+                OwnerTeacherUserId = assessment.OwnerTeacherUserId,
+                StimulusType = StimulusType.Audio,
+                ResourceUrl = "https://example.com/result-listening.mp3"
+            };
 
             // Hai đề kiểm tra: 3 Reading + 2 Listening; hoặc 2 Reading + 2 Listening + 1 Grammar.
             for (int i = 0; i < questions.Count; i++)
@@ -1015,10 +1023,18 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
             course.Price = 1000m;
             var payment = new Payment
             {
-                Status = PaymentStatus.Succeeded, Amount = 1000m, Provider = "QA4_TestOnly",
+                Status = PaymentStatus.Succeeded,
+                Amount = 1000m,
+                Provider = "QA4_TestOnly",
                 ProviderTransactionId = Guid.NewGuid().ToString("N"),
-                Order = new Order { CourseId = course.Id, StudentUserId = data.Student.Id,
-                    Amount = 1000m, Currency = "VND", Provider = "QA4_TestOnly" }
+                Order = new Order
+                {
+                    CourseId = course.Id,
+                    StudentUserId = data.Student.Id,
+                    Amount = 1000m,
+                    Currency = "VND",
+                    Provider = "QA4_TestOnly"
+                }
             };
             db.Payments.Add(payment);
             (await db.Enrollments.SingleAsync(e => e.CourseId == course.Id && e.StudentUserId == data.Student.Id)).Payment = payment;
@@ -1087,8 +1103,13 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         {
             var entity = assessment.Questions.OrderBy(q => q.OrderIndex).First().Question;
             entity.PrimarySkill = EnglishSkill.Listening;
-            entity.Stimulus = new Stimulus { OwnerTeacherUserId = assessment.OwnerTeacherUserId,
-                StimulusType = StimulusType.Audio, ResourceUrl = audioUrl, ContentText = "Listen and choose." };
+            entity.Stimulus = new Stimulus
+            {
+                OwnerTeacherUserId = assessment.OwnerTeacherUserId,
+                StimulusType = StimulusType.Audio,
+                ResourceUrl = audioUrl,
+                ContentText = "Listen and choose."
+            };
         });
         var question = data.Assessment.Questions.OrderBy(q => q.OrderIndex).First();
         using var client = await StudentClient(data.Student);
@@ -1128,17 +1149,35 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
             .SingleAsync(item => item.Id == attemptId);
         return JsonSerializer.Serialize(new
         {
-            attempt.Id, attempt.StudentUserId, attempt.AssessmentId, attempt.Status,
-            attempt.StartedAtUtc, attempt.DeadlineUtc, attempt.FinalizedAtUtc, attempt.FinalizationReason,
-            attempt.OverallScore, attempt.Passed, attempt.CreatedAtUtc, attempt.UpdatedAtUtc,
+            attempt.Id,
+            attempt.StudentUserId,
+            attempt.AssessmentId,
+            attempt.Status,
+            attempt.StartedAtUtc,
+            attempt.DeadlineUtc,
+            attempt.FinalizedAtUtc,
+            attempt.FinalizationReason,
+            attempt.OverallScore,
+            attempt.Passed,
+            attempt.CreatedAtUtc,
+            attempt.UpdatedAtUtc,
             Answers = attempt.Answers.OrderBy(answer => answer.Id).Select(answer => new
             {
-                answer.Id, answer.AssessmentQuestionId, answer.SelectedOptionId,
-                answer.SavedAtUtc, answer.CreatedAtUtc, answer.UpdatedAtUtc
+                answer.Id,
+                answer.AssessmentQuestionId,
+                answer.SelectedOptionId,
+                answer.SavedAtUtc,
+                answer.CreatedAtUtc,
+                answer.UpdatedAtUtc
             }),
             Skills = attempt.SkillResults.OrderBy(skill => skill.Id).Select(skill => new
             {
-                skill.Id, skill.Skill, skill.Score, skill.QuestionCount, skill.CreatedAtUtc, skill.UpdatedAtUtc
+                skill.Id,
+                skill.Skill,
+                skill.Score,
+                skill.QuestionCount,
+                skill.CreatedAtUtc,
+                skill.UpdatedAtUtc
             })
         });
     }
@@ -1221,15 +1260,22 @@ public sealed class AssessmentUiFlowTests(IntegrationTestFactory factory) : ICla
         var course = new Course { Title = "UI final course", OwnerTeacherUserId = teacher.Id, Status = CourseStatus.Published, Modules = [module] };
         var assessment = new Assessment
         {
-            Title = "Final via browser", OwnerTeacherUserId = teacher.Id, Course = course,
-            Status = AssessmentStatus.Published, DurationMinutes = 20, MaxAttempts = maxAttempts,
-            PassingScore = passingScore, AssessmentType = passingScore.HasValue ? AssessmentType.PracticeExam : AssessmentType.PlacementTest,
+            Title = "Final via browser",
+            OwnerTeacherUserId = teacher.Id,
+            Course = course,
+            Status = AssessmentStatus.Published,
+            DurationMinutes = 20,
+            MaxAttempts = maxAttempts,
+            PassingScore = passingScore,
+            AssessmentType = passingScore.HasValue ? AssessmentType.PracticeExam : AssessmentType.PlacementTest,
             Questions = Enumerable.Range(0, 5).Select(i => new AssessmentQuestion
             {
-                OrderIndex = i, Points = 1m,
+                OrderIndex = i,
+                Points = 1m,
                 Question = new Question
                 {
-                    OwnerTeacherUserId = teacher.Id, Status = QuestionStatus.Published,
+                    OwnerTeacherUserId = teacher.Id,
+                    Status = QuestionStatus.Published,
                     Content = i == 0 ? "<script>alert('xss')</script> Encoded question" : $"Question {i + 1}",
                     Explanation = "QUESTION_PRIVATE_EXPLANATION",
                     PrimarySkill = i < 3 ? EnglishSkill.Grammar : EnglishSkill.Vocabulary,

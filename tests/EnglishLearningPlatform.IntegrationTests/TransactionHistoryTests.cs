@@ -194,17 +194,29 @@ public sealed class TransactionHistoryTests(IntegrationTestFactory factory) : IC
         var now = DateTimeOffset.UtcNow;
         var expired = new Order
         {
-            StudentUserId = data.StudentA.Id, CourseId = data.CourseA.Id, Amount = data.CourseA.Price,
-            Currency = "VND", Provider = "test", CreatedAtUtc = now.AddHours(-2), ExpiresAtUtc = now.AddMinutes(-1)
+            StudentUserId = data.StudentA.Id,
+            CourseId = data.CourseA.Id,
+            Amount = data.CourseA.Price,
+            Currency = "VND",
+            Provider = "test",
+            CreatedAtUtc = now.AddHours(-2),
+            ExpiresAtUtc = now.AddMinutes(-1)
         };
         var paid = new Order
         {
-            StudentUserId = data.StudentA.Id, CourseId = data.CourseB.Id, Amount = data.CourseB.Price,
-            Currency = "VND", Provider = "test", CreatedAtUtc = now.AddHours(-3), ExpiresAtUtc = now.AddMinutes(-1)
+            StudentUserId = data.StudentA.Id,
+            CourseId = data.CourseB.Id,
+            Amount = data.CourseB.Price,
+            Currency = "VND",
+            Provider = "test",
+            CreatedAtUtc = now.AddHours(-3),
+            ExpiresAtUtc = now.AddMinutes(-1)
         };
         paid.Payments.Add(new Payment
         {
-            Amount = paid.Amount, Status = PaymentStatus.Succeeded, Provider = "test",
+            Amount = paid.Amount,
+            Status = PaymentStatus.Succeeded,
+            Provider = "test",
             ProviderTransactionId = $"success-{Guid.NewGuid():N}"
         });
         using (var scope = factory.Services.CreateScope())

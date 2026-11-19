@@ -1,4 +1,5 @@
 namespace EnglishLearningPlatform.Application.QuestionBank;
+
 public interface IQuestionQueryService
 {   //create question list
     Task<QuestionSearchResult?> SearchAsync(Guid actorUserId, QuestionSearchRequest request, CancellationToken cancellationToken = default);

@@ -2,6 +2,7 @@ using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Application.QuestionBank;
 using Xunit;
 namespace EnglishLearningPlatform.UnitTests.QuestionBank;
+
 public sealed class CreateQuestionValidatorTests
 {
     private readonly CreateQuestionValidator _validator = new();
@@ -10,7 +11,7 @@ public sealed class CreateQuestionValidatorTests
         Content = "Choose the correct answer.",
         PrimarySkill = EnglishSkill.Reading,
         Level = "Beginner",
-        Options = 
+        Options =
         [
             new QuestionOptionRequest("Option 1", false),
             new QuestionOptionRequest("Option 2", true)
@@ -26,7 +27,7 @@ public sealed class CreateQuestionValidatorTests
     [Fact]
     public void Validate_InvalidRequest_ReturnsErrors()
     {
-        var errors = _validator.Validate(validRequest with 
+        var errors = _validator.Validate(validRequest with
         {
             Content = "",
             PrimarySkill = null,
@@ -57,7 +58,7 @@ public sealed class CreateQuestionValidatorTests
     [Fact]
     public void Validate_ContentOverLimit_ReturnsMaxLengthError()
     {
-        var request = validRequest with {Content = new string('a',4001)};
+        var request = validRequest with { Content = new string('a', 4001) };
         var errors = _validator.Validate(request);
         Assert.Contains(errors, error =>
         error.Field == nameof(CreateQuestionRequest.Content)
@@ -79,9 +80,9 @@ public sealed class CreateQuestionValidatorTests
             && error.Code == "invalid");
     }
     [Theory]
-[InlineData(0)]
-[InlineData(-1)]
-[InlineData(999)]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(999)]
     public void Validate_UndefinedPrimarySkill_ReturnsInvalidError(int value)
     {
         var request = validRequest with

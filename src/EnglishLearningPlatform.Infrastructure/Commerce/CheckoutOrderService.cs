@@ -43,7 +43,7 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
             return new(CheckoutCode.Allowed, new(courseId, course!.Title, teacher,
                 PurchaseGateway is VnpayGateway ? VnpayGateway.QuoteAmount(course.Price) : course.Price, "VND",
                 PurchaseGateway == local && local.IsConfigured, PurchaseGateway != local && hosted.IsConfigured)
-                { PaymentProvider = PurchaseGateway.Provider });
+            { PaymentProvider = PurchaseGateway.Provider });
         }, new(CheckoutCode.IntegrationError), ct);
 
     private Task<CheckoutOutcome<OrderCheckout>> StartCore(Guid userId, Guid courseId, IPaymentGateway gateway, CancellationToken ct) =>
@@ -66,8 +66,14 @@ public sealed class CheckoutOrderService(AppDbContext db, IActiveUserValidator a
                 o.ExpiresAtUtc > now && !o.Payments.Any()).OrderByDescending(o => o.CreatedAtUtc).ThenBy(o => o.Id).FirstOrDefaultAsync(ct);
             if (order is null)
             {
-                order = new Order { StudentUserId = userId, CourseId = courseId, Amount = quoted,
-                    Provider = gateway.Provider, ExpiresAtUtc = gateway.CheckoutDeadline };
+                order = new Order
+                {
+                    StudentUserId = userId,
+                    CourseId = courseId,
+                    Amount = quoted,
+                    Provider = gateway.Provider,
+                    ExpiresAtUtc = gateway.CheckoutDeadline
+                };
                 db.Orders.Add(order); await db.SaveChangesAsync(ct);
             }
             var teacher = await db.Users.Where(u => u.Id == course!.OwnerTeacherUserId).Select(u => u.FullName).SingleAsync(ct);

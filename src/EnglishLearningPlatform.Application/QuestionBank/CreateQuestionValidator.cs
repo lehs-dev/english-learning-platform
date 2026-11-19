@@ -1,11 +1,12 @@
 using EnglishLearningPlatform.Domain.Enums;
 namespace EnglishLearningPlatform.Application.QuestionBank;
+
 public sealed class CreateQuestionValidator : ICreateQuestionValidator
 {
     public IReadOnlyList<QuestionError> Validate(CreateQuestionRequest request)
     {
-         ArgumentNullException.ThrowIfNull(request);
-         var errors = new List<QuestionError>();
+        ArgumentNullException.ThrowIfNull(request);
+        var errors = new List<QuestionError>();
         if (string.IsNullOrWhiteSpace(request.Content))
         {
             errors.Add(new QuestionError(
@@ -20,23 +21,23 @@ public sealed class CreateQuestionValidator : ICreateQuestionValidator
                 "max_length",
                 "Nội dung câu hỏi không được vượt quá 4000 ký tự."));
         }
-        if(request.PrimarySkill is not EnglishSkill skill || !Enum.IsDefined(skill))
+        if (request.PrimarySkill is not EnglishSkill skill || !Enum.IsDefined(skill))
         {
             errors.Add(new QuestionError(nameof(request.PrimarySkill),
             "invalid",
             "Vui lòng chọn một kỹ năng hợp lệ cho câu hỏi."));
         }
-        if(request.Level?.Length > 32)
+        if (request.Level?.Length > 32)
         {
-            errors.Add(new (nameof(request.Level)
-            ,"max_length"
-            ,"Trình độ không được vượt quá 32 ký tự."));
+            errors.Add(new(nameof(request.Level)
+            , "max_length"
+            , "Trình độ không được vượt quá 32 ký tự."));
         }
-        if(request.Options is null)
+        if (request.Options is null)
         {
             errors.Add(new(nameof(request.Options)
-            ,"required"
-            ,"Danh sách lựa chọn không được để trống."));
+            , "required"
+            , "Danh sách lựa chọn không được để trống."));
             return errors.AsReadOnly();
         }
         if (request.Options.Count < 2)
@@ -49,7 +50,7 @@ public sealed class CreateQuestionValidator : ICreateQuestionValidator
 
         var correctCount = 0;
 
-        for(var index = 0; index < request.Options.Count; index++)
+        for (var index = 0; index < request.Options.Count; index++)
         {
             var option = request.Options[index];
             var field = $"Options[{index}]";

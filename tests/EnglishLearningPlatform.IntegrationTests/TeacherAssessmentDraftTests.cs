@@ -87,10 +87,13 @@ public sealed class TeacherAssessmentDraftTests : IClassFixture<IntegrationTestF
             var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Owned course" };
             var link = new AssessmentQuestion
             {
-                AssessmentId = id, Points = 2.5m, OrderIndex = 0,
+                AssessmentId = id,
+                Points = 2.5m,
+                OrderIndex = 0,
                 Question = new Question
                 {
-                    OwnerTeacherUserId = teacher.Id, Content = "Existing question",
+                    OwnerTeacherUserId = teacher.Id,
+                    Content = "Existing question",
                     PrimarySkill = EnglishSkill.Grammar,
                     Options = new List<QuestionOption>
                     {
@@ -224,8 +227,10 @@ public sealed class TeacherAssessmentDraftTests : IClassFixture<IntegrationTestF
                 // Dữ liệu phòng vệ: kể cả Draft bất thường đã có Attempt cũng phải bị khóa.
                 db.Attempts.Add(new Attempt
                 {
-                    AssessmentId = id, StudentUserId = student.Id,
-                    StartedAtUtc = DateTimeOffset.UtcNow, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(15)
+                    AssessmentId = id,
+                    StudentUserId = student.Id,
+                    StartedAtUtc = DateTimeOffset.UtcNow,
+                    DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(15)
                 });
                 await db.SaveChangesAsync();
             }
@@ -391,10 +396,12 @@ public sealed class TeacherAssessmentDraftTests : IClassFixture<IntegrationTestF
     {
         return new AssessmentDraftRequest
         {
-            Title = "Test draft", AssessmentType = type,
+            Title = "Test draft",
+            AssessmentType = type,
             TargetSkill = type == AssessmentType.SkillAssessment ? EnglishSkill.Grammar : null,
             PassingScore = type == AssessmentType.SkillAssessment ? 70m : null,
-            DurationMinutes = 20, MaxAttempts = 3
+            DurationMinutes = 20,
+            MaxAttempts = 3
         };
     }
 
@@ -428,8 +435,10 @@ public sealed class TeacherAssessmentDraftTests : IClassFixture<IntegrationTestF
         {
             ["__RequestVerificationToken"] = WebUtility.HtmlDecode(token.Groups[1].Value),
             ["Input.ExpectedUpdatedAtUtc"] = WebUtility.HtmlDecode(version.Groups[1].Value),
-            ["Input.Title"] = "HTTP draft", ["Input.AssessmentType"] = "PracticeExam",
-            ["Input.DurationMinutes"] = "20", ["Input.MaxAttempts"] = "3"
+            ["Input.Title"] = "HTTP draft",
+            ["Input.AssessmentType"] = "PracticeExam",
+            ["Input.DurationMinutes"] = "20",
+            ["Input.MaxAttempts"] = "3"
         };
     }
 }

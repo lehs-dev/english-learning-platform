@@ -140,9 +140,15 @@ public static class LearningDemoSeeder
 
     private static Course PaidCourse(Guid teacherId) => new()
     {
-        OwnerTeacherUserId = teacherId, Title = PaidCourseTitle, Description = PaidDescription,
-        IsPaid = true, Price = 199000, Status = CourseStatus.Published, Level = CourseLevel.Intermediate,
-        Topics = [new CourseTopic { Topic = "Business" }], Skills = [new CourseSkill { Skill = EnglishSkill.Reading }],
+        OwnerTeacherUserId = teacherId,
+        Title = PaidCourseTitle,
+        Description = PaidDescription,
+        IsPaid = true,
+        Price = 199000,
+        Status = CourseStatus.Published,
+        Level = CourseLevel.Intermediate,
+        Topics = [new CourseTopic { Topic = "Business" }],
+        Skills = [new CourseSkill { Skill = EnglishSkill.Reading }],
         Modules = [new Module { Title = "At work", Lessons = [new Lesson { Title = "Business introductions",
             Status = LessonStatus.Published, Resources = [new LessonResource { ResourceType = LessonResourceType.Text,
                 ContentText = "Good morning. Let me introduce our team." }] }] }]
@@ -150,13 +156,18 @@ public static class LearningDemoSeeder
 
     private static Assessment FinalAssessment(Guid teacherId, Guid courseId) => new()
     {
-        OwnerTeacherUserId = teacherId, CourseId = courseId, Title = FinalAssessmentTitle,
+        OwnerTeacherUserId = teacherId,
+        CourseId = courseId,
+        Title = FinalAssessmentTitle,
         Description = "Bài kiểm tra ngữ pháp và từ vựng: đúng ít nhất 4/5 câu để đạt 80%.",
         // Đề kết hợp Grammar và Vocabulary nên dùng Practice Exam.
         // Thay đổi mẫu tạo mới, không cập nhật Assessment đã có trong database.
         AssessmentType = AssessmentType.PracticeExam,
         TargetSkill = null,
-        DurationMinutes = 15, MaxAttempts = 3, PassingScore = 80, Status = AssessmentStatus.Published,
+        DurationMinutes = 15,
+        MaxAttempts = 3,
+        PassingScore = 80,
+        Status = AssessmentStatus.Published,
         Questions =
         [
             Question(teacherId, 0, EnglishSkill.Grammar, "She ___ to school every day.", "Use 'goes' with she/he/it in the present simple.",
@@ -174,16 +185,23 @@ public static class LearningDemoSeeder
 
     private static AssessmentQuestion Question(Guid teacherId, int order, EnglishSkill skill, string content, string explanation,
         params (string Content, bool IsCorrect)[] options) => new()
-    {
-        OrderIndex = order, Points = 1,
-        Question = new Question
         {
-            OwnerTeacherUserId = teacherId, Content = content, PrimarySkill = skill, Level = "A1",
-            Explanation = explanation, Status = QuestionStatus.Published,
-            Options = options.Select((option, index) => new QuestionOption
+            OrderIndex = order,
+            Points = 1,
+            Question = new Question
             {
-                Content = option.Content, IsCorrect = option.IsCorrect, OrderIndex = index
-            }).ToList()
-        }
-    };
+                OwnerTeacherUserId = teacherId,
+                Content = content,
+                PrimarySkill = skill,
+                Level = "A1",
+                Explanation = explanation,
+                Status = QuestionStatus.Published,
+                Options = options.Select((option, index) => new QuestionOption
+                {
+                    Content = option.Content,
+                    IsCorrect = option.IsCorrect,
+                    OrderIndex = index
+                }).ToList()
+            }
+        };
 }

@@ -79,7 +79,9 @@ public sealed class TeacherCourseListTests(IntegrationTestFactory factory) : ICl
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var courses = Enum.GetValues<CourseStatus>().Select(status => new Course
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Khóa học " + (int)status, Status = status
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Khóa học " + (int)status,
+            Status = status
         }).ToArray();
         using (var scope = factory.Services.CreateScope())
         {
@@ -109,8 +111,10 @@ public sealed class TeacherCourseListTests(IntegrationTestFactory factory) : ICl
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Courses.AddRange(Enumerable.Range(1, count).Select(index => new Course
         {
-            OwnerTeacherUserId = owner, Title = title ?? $"Khóa học nghe {index:00}",
-            Level = CourseLevel.Elementary, Status = CourseStatus.Draft,
+            OwnerTeacherUserId = owner,
+            Title = title ?? $"Khóa học nghe {index:00}",
+            Level = CourseLevel.Elementary,
+            Status = CourseStatus.Draft,
             CreatedAtUtc = DateTimeOffset.UtcNow.Date.AddDays(index - 30),
             Skills = [new CourseSkill { Skill = EnglishSkill.Listening }]
         }));

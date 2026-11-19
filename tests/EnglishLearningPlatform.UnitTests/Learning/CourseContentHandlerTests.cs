@@ -71,7 +71,8 @@ public sealed class CourseContentHandlerTests
     {
         var extended = new MemoryHandler(new ModuleCourseContentHandler(null!))
         {
-            RegisteredKind = (ContentKind)42, ParentMatches = true,
+            RegisteredKind = (ContentKind)42,
+            ParentMatches = true,
             ExistingInput = new() { Title = "Extension content" }
         };
         var service = Service(new AccessStub(), extended);

@@ -1,14 +1,15 @@
 namespace EnglishLearningPlatform.Application.QuestionBank;
+
 public sealed class QuestionSearchResult
 {
     // Danh sách các câu hỏi phù hợp với bộ lọc tìm kiếm.
-    public IReadOnlyList<QuestionListItem> Items {get;}
+    public IReadOnlyList<QuestionListItem> Items { get; }
     // Tổng số câu hỏi phù hợp với bộ lọc tìm kiếm, không phụ thuộc vào phân trang.
-    public int TotalCount {get;}
+    public int TotalCount { get; }
     // Trang đang xem, bắt đầu từ 1.
-    public int PageNumber {get;}
+    public int PageNumber { get; }
     // Số câu tối đa trên mỗi trang
-    public int PageSize {get;}
+    public int PageSize { get; }
 
     public QuestionSearchResult(IReadOnlyList<QuestionListItem> items, int totalCount, int pageNumber, int pageSize)
     {
@@ -16,16 +17,20 @@ public sealed class QuestionSearchResult
         TotalCount = totalCount;
         PageNumber = pageNumber;
         PageSize = pageSize;
-        if (items == null){
+        if (items == null)
+        {
             throw new ArgumentNullException(nameof(items));
         }
-        if (totalCount < 0){
+        if (totalCount < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(totalCount), "Total count must be at least 0.");
         }
-        if (pageNumber < 1){
+        if (pageNumber < 1)
+        {
             throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be at least 1.");
         }
-        if (pageSize < 1){
+        if (pageSize < 1)
+        {
             throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be at least 1.");
         }
         // Sao chép danh sách để việc thêm/xóa trên danh sách gốc

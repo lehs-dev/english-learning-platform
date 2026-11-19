@@ -25,9 +25,16 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var data = await SeedAsync();
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var independent = new Assessment { Title = "Independent skill assessment", OwnerTeacherUserId = data.Teacher.Id,
-            Status = AssessmentStatus.Published, AssessmentType = AssessmentType.SkillAssessment, TargetSkill = EnglishSkill.Reading,
-            DurationMinutes = 15, MaxAttempts = 30 };
+        var independent = new Assessment
+        {
+            Title = "Independent skill assessment",
+            OwnerTeacherUserId = data.Teacher.Id,
+            Status = AssessmentStatus.Published,
+            AssessmentType = AssessmentType.SkillAssessment,
+            TargetSkill = EnglishSkill.Reading,
+            DurationMinutes = 15,
+            MaxAttempts = 30
+        };
         db.Assessments.Add(independent);
         var courseAttempt = Graded(data, 80, 1);
         db.Attempts.Add(courseAttempt);
@@ -105,10 +112,20 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var published = new Course { Title = "000 Suggested " + Guid.NewGuid(), OwnerTeacherUserId = teacher.Id,
-            Status = CourseStatus.Published, IsPaid = true, Price = 199000 };
-        var draft = new Course { Title = "000 Draft " + Guid.NewGuid(), OwnerTeacherUserId = teacher.Id,
-            Status = CourseStatus.Draft };
+        var published = new Course
+        {
+            Title = "000 Suggested " + Guid.NewGuid(),
+            OwnerTeacherUserId = teacher.Id,
+            Status = CourseStatus.Published,
+            IsPaid = true,
+            Price = 199000
+        };
+        var draft = new Course
+        {
+            Title = "000 Draft " + Guid.NewGuid(),
+            OwnerTeacherUserId = teacher.Id,
+            Status = CourseStatus.Draft
+        };
         db.Courses.AddRange(published, draft);
         await db.SaveChangesAsync();
 
@@ -132,20 +149,45 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var course = new Course { Title = "Reading course " + Guid.NewGuid().ToString("N"), OwnerTeacherUserId = teacher.Id,
-            Status = CourseStatus.Published, Skills = [new CourseSkill { Skill = EnglishSkill.Reading }] };
+        var course = new Course
+        {
+            Title = "Reading course " + Guid.NewGuid().ToString("N"),
+            OwnerTeacherUserId = teacher.Id,
+            Status = CourseStatus.Published,
+            Skills = [new CourseSkill { Skill = EnglishSkill.Reading }]
+        };
         var module = new Module { Course = course, Title = "Visible module", Visibility = ModuleVisibility.Visible };
-        var first = new Lesson { Module = module, Title = "First lesson", Status = LessonStatus.Published,
-            Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = "Lesson content" }] };
+        var first = new Lesson
+        {
+            Module = module,
+            Title = "First lesson",
+            Status = LessonStatus.Published,
+            Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = "Lesson content" }]
+        };
         var second = new Lesson { Module = module, Title = "Second lesson", Status = LessonStatus.Published, OrderIndex = 1 };
         var enrollment = new Enrollment { StudentUserId = student.Id, Course = course, LastAccessedLesson = second };
-        var practice = new Practice { Lesson = first, OwnerTeacherUserId = teacher.Id, Status = PracticeStatus.Published,
-            Title = "Reading practice", Questions = Enumerable.Range(0, practiceQuestionCount).Select(i => new PracticeQuestion
-            { OrderIndex = i, Question = Question(teacher.Id, EnglishSkill.Reading, i) }).ToList() };
-        var assessment = new Assessment { Course = course, OwnerTeacherUserId = teacher.Id, Status = AssessmentStatus.Published,
-            AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 15, MaxAttempts = 10, PassingScore = 80,
-            Title = "Reading assessment", Questions = Enumerable.Range(0, 5).Select(i => new AssessmentQuestion
-            { OrderIndex = i, Points = 1, Question = Question(teacher.Id, i < 3 ? EnglishSkill.Reading : EnglishSkill.Grammar, i) }).ToList() };
+        var practice = new Practice
+        {
+            Lesson = first,
+            OwnerTeacherUserId = teacher.Id,
+            Status = PracticeStatus.Published,
+            Title = "Reading practice",
+            Questions = Enumerable.Range(0, practiceQuestionCount).Select(i => new PracticeQuestion
+            { OrderIndex = i, Question = Question(teacher.Id, EnglishSkill.Reading, i) }).ToList()
+        };
+        var assessment = new Assessment
+        {
+            Course = course,
+            OwnerTeacherUserId = teacher.Id,
+            Status = AssessmentStatus.Published,
+            AssessmentType = AssessmentType.PracticeExam,
+            DurationMinutes = 15,
+            MaxAttempts = 10,
+            PassingScore = 80,
+            Title = "Reading assessment",
+            Questions = Enumerable.Range(0, 5).Select(i => new AssessmentQuestion
+            { OrderIndex = i, Points = 1, Question = Question(teacher.Id, i < 3 ? EnglishSkill.Reading : EnglishSkill.Grammar, i) }).ToList()
+        };
         db.Enrollments.Add(enrollment);
         db.Lessons.AddRange(first, second);
         db.Practices.Add(practice);
@@ -156,16 +198,26 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
 
     private static Question Question(Guid teacherId, EnglishSkill skill, int i) => new()
     {
-        OwnerTeacherUserId = teacherId, PrimarySkill = skill, Status = QuestionStatus.Published, Content = "Question " + i,
-        Explanation = "PRIVATE_PRACTICE_EXPLANATION", Options =
+        OwnerTeacherUserId = teacherId,
+        PrimarySkill = skill,
+        Status = QuestionStatus.Published,
+        Content = "Question " + i,
+        Explanation = "PRIVATE_PRACTICE_EXPLANATION",
+        Options =
         [new QuestionOption { Content = "Correct " + i, IsCorrect = true }, new QuestionOption { Content = "Wrong " + i, OrderIndex = 1 }]
     };
 
     private static Attempt Graded(Data data, decimal overall, int correctReading, Guid? id = null, DateTimeOffset? finalized = null) => new()
     {
-        Id = id ?? Guid.NewGuid(), StudentUserId = data.Student.Id, AssessmentId = data.Assessment.Id, Status = AttemptStatus.Graded,
-        StartedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-20), DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
-        OverallScore = overall, Passed = overall >= 80, FinalizedAtUtc = finalized ?? DateTimeOffset.UtcNow.AddMinutes(-1),
+        Id = id ?? Guid.NewGuid(),
+        StudentUserId = data.Student.Id,
+        AssessmentId = data.Assessment.Id,
+        Status = AttemptStatus.Graded,
+        StartedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-20),
+        DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
+        OverallScore = overall,
+        Passed = overall >= 80,
+        FinalizedAtUtc = finalized ?? DateTimeOffset.UtcNow.AddMinutes(-1),
         FinalizationReason = AttemptFinalizationReason.ManualSubmit,
         SkillResults = [new AttemptSkillResult { Skill = EnglishSkill.Reading, QuestionCount = 3, Score = Math.Round(correctReading * 100m / 3, 2) },
             new AttemptSkillResult { Skill = EnglishSkill.Grammar, QuestionCount = 2, Score = 0 }],
@@ -246,15 +298,23 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         // 12 câu, mỗi skill có đúng 3 câu; tổng vẫn là 20 điểm để kiểm tra 60/85/70%.
         decimal[] points = [3m, 2m, 1m, 3m, 2m, 1m, 3m, 2m, 1m, 1m, 0.5m, 0.5m];
         EnglishSkill[] skills = [EnglishSkill.Reading, EnglishSkill.Grammar, EnglishSkill.Listening, EnglishSkill.Vocabulary];
-        var audio = new Stimulus { OwnerTeacherUserId = data.Teacher.Id, StimulusType = StimulusType.Audio,
-            ResourceUrl = "https://example.com/r4-listening.mp3" };
+        var audio = new Stimulus
+        {
+            OwnerTeacherUserId = data.Teacher.Id,
+            StimulusType = StimulusType.Audio,
+            ResourceUrl = "https://example.com/r4-listening.mp3"
+        };
         db.Stimuli.Add(audio);
         for (int index = 0; index < points.Length; index++)
         {
             if (index >= questions.Count)
             {
-                var added = new AssessmentQuestion { AssessmentId = data.Assessment.Id, OrderIndex = index,
-                    Question = Question(data.Teacher.Id, skills[index / 3], index) };
+                var added = new AssessmentQuestion
+                {
+                    AssessmentId = data.Assessment.Id,
+                    OrderIndex = index,
+                    Question = Question(data.Teacher.Id, skills[index / 3], index)
+                };
                 db.AssessmentQuestions.Add(added);
                 questions.Add(added);
             }
@@ -270,11 +330,18 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var extraAttemptIds = new List<Guid>();
         for (int index = 0; index < 2; index++)
         {
-            var extra = new Assessment { Title = $"R4 additional assessment {index}",
-                OwnerTeacherUserId = data.Teacher.Id, CourseId = data.Course.Id, Status = AssessmentStatus.Published,
-                AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 15, MaxAttempts = 1,
+            var extra = new Assessment
+            {
+                Title = $"R4 additional assessment {index}",
+                OwnerTeacherUserId = data.Teacher.Id,
+                CourseId = data.Course.Id,
+                Status = AssessmentStatus.Published,
+                AssessmentType = AssessmentType.PracticeExam,
+                DurationMinutes = 15,
+                MaxAttempts = 1,
                 Questions = questions.Select(q => new AssessmentQuestion
-                { QuestionId = q.QuestionId, OrderIndex = q.OrderIndex, Points = q.Points }).ToList() };
+                { QuestionId = q.QuestionId, OrderIndex = q.OrderIndex, Points = q.Points }).ToList()
+            };
             db.Assessments.Add(extra);
             await db.SaveChangesAsync();
             var started = await attempts.StartAsync(data.Student.Id, extra.Id);
@@ -368,7 +435,8 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         string token = await IdentityTestHelpers.GetTokenAsync(client, "/Profile");
         using var invalidProfile = await client.PostAsync("/Profile", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["FullName"] = "", ["AssessmentHistory[0].Attempts[0].OverallScore"] = "100",
+            ["FullName"] = "",
+            ["AssessmentHistory[0].Attempts[0].OverallScore"] = "100",
             ["__RequestVerificationToken"] = token
         }));
         Assert.Equal(HttpStatusCode.OK, invalidProfile.StatusCode);
@@ -411,24 +479,63 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Attempts.Add(Graded(data, 20, 0));
-        var grammar = new Course { Title = "English Reading in name only", OwnerTeacherUserId = data.Teacher.Id,
-            Status = CourseStatus.Published, Skills = [new CourseSkill { Skill = EnglishSkill.Grammar }] };
-        var archived = new Course { Title = "Archived Reading", OwnerTeacherUserId = data.Teacher.Id,
-            Status = CourseStatus.Archived, Skills = [new CourseSkill { Skill = EnglishSkill.Reading }] };
-        var unenrolled = new Course { Title = "Unenrolled Reading", OwnerTeacherUserId = data.Teacher.Id,
-            Status = CourseStatus.Published, Skills = [new CourseSkill { Skill = EnglishSkill.Reading }] };
+        var grammar = new Course
+        {
+            Title = "English Reading in name only",
+            OwnerTeacherUserId = data.Teacher.Id,
+            Status = CourseStatus.Published,
+            Skills = [new CourseSkill { Skill = EnglishSkill.Grammar }]
+        };
+        var archived = new Course
+        {
+            Title = "Archived Reading",
+            OwnerTeacherUserId = data.Teacher.Id,
+            Status = CourseStatus.Archived,
+            Skills = [new CourseSkill { Skill = EnglishSkill.Reading }]
+        };
+        var unenrolled = new Course
+        {
+            Title = "Unenrolled Reading",
+            OwnerTeacherUserId = data.Teacher.Id,
+            Status = CourseStatus.Published,
+            Skills = [new CourseSkill { Skill = EnglishSkill.Reading }]
+        };
         db.Enrollments.AddRange(new Enrollment { Course = grammar, StudentUserId = data.Student.Id }, new Enrollment { Course = archived, StudentUserId = data.Student.Id });
         db.Courses.Add(unenrolled);
         foreach (var course in new[] { grammar, archived, unenrolled })
-            db.Lessons.Add(new Lesson { Title = "Available lesson", Status = LessonStatus.Published,
-                Module = new Module { Course = course, Title = "Module", Visibility = ModuleVisibility.Visible } });
+            db.Lessons.Add(new Lesson
+            {
+                Title = "Available lesson",
+                Status = LessonStatus.Published,
+                Module = new Module { Course = course, Title = "Module", Visibility = ModuleVisibility.Visible }
+            });
         var hiddenModule = new Module { CourseId = data.Course.Id, Title = "Hidden", OrderIndex = 1, Visibility = ModuleVisibility.Hidden };
-        var hidden = new Practice { Module = hiddenModule, Title = "Hidden practice", OwnerTeacherUserId = data.Teacher.Id,
-            Status = PracticeStatus.Published, Questions = [new PracticeQuestion { Question = Question(data.Teacher.Id, EnglishSkill.Reading, 0) }] };
-        var foreign = new Practice { LessonId = data.First.Id, Title = "Foreign practice", OwnerTeacherUserId = foreignTeacher.Id,
-            Status = PracticeStatus.Published, Questions = [new PracticeQuestion { Question = Question(foreignTeacher.Id, EnglishSkill.Reading, 0) }] };
-        var draft = new Assessment { CourseId = data.Course.Id, OwnerTeacherUserId = data.Teacher.Id, Title = "Draft assessment", Status = AssessmentStatus.Draft,
-            AssessmentType = AssessmentType.PlacementTest, DurationMinutes = 15, MaxAttempts = 1 };
+        var hidden = new Practice
+        {
+            Module = hiddenModule,
+            Title = "Hidden practice",
+            OwnerTeacherUserId = data.Teacher.Id,
+            Status = PracticeStatus.Published,
+            Questions = [new PracticeQuestion { Question = Question(data.Teacher.Id, EnglishSkill.Reading, 0) }]
+        };
+        var foreign = new Practice
+        {
+            LessonId = data.First.Id,
+            Title = "Foreign practice",
+            OwnerTeacherUserId = foreignTeacher.Id,
+            Status = PracticeStatus.Published,
+            Questions = [new PracticeQuestion { Question = Question(foreignTeacher.Id, EnglishSkill.Reading, 0) }]
+        };
+        var draft = new Assessment
+        {
+            CourseId = data.Course.Id,
+            OwnerTeacherUserId = data.Teacher.Id,
+            Title = "Draft assessment",
+            Status = AssessmentStatus.Draft,
+            AssessmentType = AssessmentType.PlacementTest,
+            DurationMinutes = 15,
+            MaxAttempts = 1
+        };
         db.Practices.AddRange(hidden, foreign);
         db.Assessments.Add(draft);
         await db.SaveChangesAsync();
@@ -458,8 +565,13 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
 
         // Chỉ có lượt đang làm vẫn là "Chưa có kết quả", không phải representative 0%.
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var activeAttempt = new Attempt { StudentUserId = data.Student.Id, AssessmentId = data.Assessment.Id,
-            Status = AttemptStatus.InProgress, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(10) };
+        var activeAttempt = new Attempt
+        {
+            StudentUserId = data.Student.Id,
+            AssessmentId = data.Assessment.Id,
+            Status = AttemptStatus.InProgress,
+            DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(10)
+        };
         db.Attempts.Add(activeAttempt);
         await db.SaveChangesAsync();
         Assert.Empty((await learning.GetRepresentativeResultsAsync(data.Student.Id)).Value!);
@@ -559,7 +671,10 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.LessonProgressEntries.Add(new LessonProgress
             {
-                EnrollmentId = data.Enrollment.Id, LessonId = data.First.Id, IsCompleted = true, UpdatedAtUtc = now
+                EnrollmentId = data.Enrollment.Id,
+                LessonId = data.First.Id,
+                IsCompleted = true,
+                UpdatedAtUtc = now
             });
             db.Attempts.Add(gradedAttempt);
             await db.SaveChangesAsync();
@@ -664,10 +779,12 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var newerPractice = new Practice
         {
-            ModuleId = data.Module.Id, OwnerTeacherUserId = data.Teacher.Id,
-            Title = "Module practice after lesson practice", Status = PracticeStatus.Published,
+            ModuleId = data.Module.Id,
+            OwnerTeacherUserId = data.Teacher.Id,
+            Title = "Module practice after lesson practice",
+            Status = PracticeStatus.Published,
             Questions = Enumerable.Range(0, 2).Select(i => new PracticeQuestion
-                { OrderIndex = i, Question = Question(data.Teacher.Id, EnglishSkill.Reading, i) }).ToList()
+            { OrderIndex = i, Question = Question(data.Teacher.Id, EnglishSkill.Reading, i) }).ToList()
         };
         db.Practices.Add(newerPractice);
         await db.SaveChangesAsync();
@@ -834,13 +951,29 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var independent = new Assessment { Title = "Independent", OwnerTeacherUserId = data.Teacher.Id, DurationMinutes = 10, MaxAttempts = 1,
-            Status = AssessmentStatus.Published, AssessmentType = AssessmentType.PlacementTest,
-            Questions = Enumerable.Range(0, 5).Select(i => new AssessmentQuestion { OrderIndex = i, Points = 1,
-                Question = Question(data.Teacher.Id, EnglishSkill.Reading, i) }).ToList() };
+        var independent = new Assessment
+        {
+            Title = "Independent",
+            OwnerTeacherUserId = data.Teacher.Id,
+            DurationMinutes = 10,
+            MaxAttempts = 1,
+            Status = AssessmentStatus.Published,
+            AssessmentType = AssessmentType.PlacementTest,
+            Questions = Enumerable.Range(0, 5).Select(i => new AssessmentQuestion
+            {
+                OrderIndex = i,
+                Points = 1,
+                Question = Question(data.Teacher.Id, EnglishSkill.Reading, i)
+            }).ToList()
+        };
         db.Assessments.Add(independent);
-        var attempt = new Attempt { StudentUserId = data.Student.Id, AssessmentId = data.Assessment.Id,
-            Status = AttemptStatus.InProgress, DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(10) };
+        var attempt = new Attempt
+        {
+            StudentUserId = data.Student.Id,
+            AssessmentId = data.Assessment.Id,
+            Status = AttemptStatus.InProgress,
+            DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(10)
+        };
         db.Attempts.Add(attempt);
         await db.SaveChangesAsync();
         var learning = scope.ServiceProvider.GetRequiredService<IStudentLearningService>();
@@ -934,7 +1067,8 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var stimulus = await db.Stimuli.AsNoTracking().SingleAsync(s => s.Id == created.Id);
         var practice = new Practice
         {
-            OwnerTeacherUserId = data.Teacher.Id, Title = "Practice result stimulus context",
+            OwnerTeacherUserId = data.Teacher.Id,
+            Title = "Practice result stimulus context",
             Status = PracticeStatus.Draft,
             Questions = Enumerable.Range(0, 2).Select(i =>
             {
@@ -1197,7 +1331,10 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
     private static Payment Receipt(Data data, PaymentStatus status, decimal amount) => new()
     {
         Order = new Order { CourseId = data.Course.Id, StudentUserId = data.Student.Id, Amount = amount, Currency = "VND" },
-        Amount = amount, Status = status, Provider = "Test", ProviderTransactionId = Guid.NewGuid().ToString("N")
+        Amount = amount,
+        Status = status,
+        Provider = "Test",
+        ProviderTransactionId = Guid.NewGuid().ToString("N")
     };
 
     private async Task<HttpClient> ClientAsync(ApplicationUser user)

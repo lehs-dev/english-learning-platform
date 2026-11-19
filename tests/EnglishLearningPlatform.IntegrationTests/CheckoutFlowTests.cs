@@ -24,8 +24,11 @@ public sealed partial class CheckoutFlowTests(CheckoutTestFactory factory) : ICl
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         var course = new Course
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Checkout " + Guid.NewGuid().ToString("N"),
-            IsPaid = paid, Price = paid ? 199000 : 0, Status = status,
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Checkout " + Guid.NewGuid().ToString("N"),
+            IsPaid = paid,
+            Price = paid ? 199000 : 0,
+            Status = status,
             Modules = [new Module { Title = "Module", Lessons = [new Lesson { Title = "Lesson", Status = LessonStatus.Published,
                 Resources = [new LessonResource { ResourceType = LessonResourceType.Text, ContentText = "Lesson content" }] }] }]
         };
@@ -82,8 +85,12 @@ public sealed partial class CheckoutFlowTests(CheckoutTestFactory factory) : ICl
         var token = await IdentityTestHelpers.GetTokenAsync(client, path);
         var form = new Dictionary<string, string>
         {
-            ["CourseId"] = course.Id.ToString(), ["Amount"] = "1", ["Currency"] = "USD",
-            ["StudentUserId"] = other.Id.ToString(), ["Status"] = "Succeeded", ["__RequestVerificationToken"] = token
+            ["CourseId"] = course.Id.ToString(),
+            ["Amount"] = "1",
+            ["Currency"] = "USD",
+            ["StudentUserId"] = other.Id.ToString(),
+            ["Status"] = "Succeeded",
+            ["__RequestVerificationToken"] = token
         };
         using var post = await client.PostAsync("/Checkout/CreateOrder", new FormUrlEncodedContent(form));
         Assert.Equal(HttpStatusCode.Redirect, post.StatusCode);
@@ -514,8 +521,14 @@ public sealed partial class CheckoutFlowTests(CheckoutTestFactory factory) : ICl
         using (var scope = factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Payments.Add(new Payment { OrderId = order.Id, Amount = order.Amount, Provider = callback.Data.Provider,
-                ProviderTransactionId = callback.Data.ProviderTransactionId, Status = PaymentStatus.Succeeded });
+            db.Payments.Add(new Payment
+            {
+                OrderId = order.Id,
+                Amount = order.Amount,
+                Provider = callback.Data.Provider,
+                ProviderTransactionId = callback.Data.ProviderTransactionId,
+                Status = PaymentStatus.Succeeded
+            });
             await db.SaveChangesAsync();
         }
         Assert.Equal(CheckoutCode.Allowed, await Process(callback));

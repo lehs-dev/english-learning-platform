@@ -60,7 +60,10 @@ public sealed class StudentLearningCourseService(
                 .Select(r => new ResourceContent(r.Id, r.Title, r.ResourceType, r.ContentText, r.ResourceUrl)).ToList())).SingleAsync(ct);
         var module = await db.Lessons.Where(l => l.Id == id).Select(l => new
         {
-            l.ModuleId, l.Module.Title, l.Module.Course.Status, l.Module.Course.FinalAssessmentId
+            l.ModuleId,
+            l.Module.Title,
+            l.Module.Course.Status,
+            l.Module.Course.FinalAssessmentId
         }).SingleAsync(ct);
         var owner = await Manage(userId, lesson.CourseId, ct) == LearningAccessResult.Allowed;
         var navigation = (await queries.OutlineAsync(lesson.CourseId, owner, ct)).SelectMany(m => m.Lessons).ToList();
@@ -68,11 +71,18 @@ public sealed class StudentLearningCourseService(
         var progress = owner ? null : (await courseProgress.GetAsync(userId, [lesson.CourseId], ct)).GetValueOrDefault(lesson.CourseId);
         var completed = !owner && await db.LessonProgressEntries.AnyAsync(p => p.LessonId == id && p.IsCompleted &&
             p.Enrollment.StudentUserId == userId && p.Enrollment.CourseId == lesson.CourseId, ct);
-        return new(allowed, lesson with { ModuleId = module.ModuleId, ModuleTitle = module.Title, CourseStatus = module.Status,
-            IsCompleted = completed, CanRecordProgress = !owner && module.Status is CourseStatus.Published or CourseStatus.Unpublished,
-            Progress = progress, FinalAssessmentId = module.FinalAssessmentId,
+        return new(allowed, lesson with
+        {
+            ModuleId = module.ModuleId,
+            ModuleTitle = module.Title,
+            CourseStatus = module.Status,
+            IsCompleted = completed,
+            CanRecordProgress = !owner && module.Status is CourseStatus.Published or CourseStatus.Unpublished,
+            Progress = progress,
+            FinalAssessmentId = module.FinalAssessmentId,
             Previous = position > 0 ? navigation[position - 1] : null,
-            Next = position >= 0 && position + 1 < navigation.Count ? navigation[position + 1] : null });
+            Next = position >= 0 && position + 1 < navigation.Count ? navigation[position + 1] : null
+        });
     }
 
     public async Task<LearningOutcome<ResourceContent>> OpenResourceAsync(Guid userId, Guid id, CancellationToken ct = default)

@@ -67,18 +67,25 @@ public sealed class TeacherAssessmentCloneService(
             if (title.Length > 200 - suffix.Length) title = title.Substring(0, 200 - suffix.Length);
             var copy = new Assessment
             {
-                OwnerTeacherUserId = actorUserId, CourseId = source.CourseId,
-                Title = title + suffix, Description = source.Description,
-                Status = AssessmentStatus.Draft, AssessmentType = source.AssessmentType,
-                TargetSkill = source.TargetSkill, DurationMinutes = source.DurationMinutes,
-                MaxAttempts = source.MaxAttempts, PassingScore = source.PassingScore
+                OwnerTeacherUserId = actorUserId,
+                CourseId = source.CourseId,
+                Title = title + suffix,
+                Description = source.Description,
+                Status = AssessmentStatus.Draft,
+                AssessmentType = source.AssessmentType,
+                TargetSkill = source.TargetSkill,
+                DurationMinutes = source.DurationMinutes,
+                MaxAttempts = source.MaxAttempts,
+                PassingScore = source.PassingScore
             };
             foreach (var item in items)
             {
                 // Link có ID mới, nhưng QuestionId giữ nguyên. Question/Stimulus KHÔNG được mở khóa.
                 copy.Questions.Add(new AssessmentQuestion
                 {
-                    QuestionId = item.QuestionId, OrderIndex = item.OrderIndex, Points = item.Points
+                    QuestionId = item.QuestionId,
+                    OrderIndex = item.OrderIndex,
+                    Points = item.Points
                 });
             }
             db.Assessments.Add(copy);

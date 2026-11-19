@@ -220,7 +220,8 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
                 var student = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Student);
                 db.Attempts.Add(new Attempt
                 {
-                    AssessmentId = data.AssessmentId, StudentUserId = student.Id,
+                    AssessmentId = data.AssessmentId,
+                    StudentUserId = student.Id,
                     DeadlineUtc = DateTimeOffset.UtcNow.AddMinutes(20)
                 });
                 await db.SaveChangesAsync();
@@ -465,15 +466,20 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
         var second = NewQuestion(teacher.Id, "TASK2_SECOND", EnglishSkill.Reading);
         var stimulus = new Stimulus
         {
-            OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage,
-            Title = "Test passage", ContentText = "Passage for the first question."
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Passage,
+            Title = "Test passage",
+            ContentText = "Passage for the first question."
         };
         first.Stimulus = stimulus;
         var assessment = new AssessmentEntity
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Task 2 draft",
-            AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 20,
-            MaxAttempts = 3, UpdatedAtUtc = InitialVersion,
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Task 2 draft",
+            AssessmentType = AssessmentType.PracticeExam,
+            DurationMinutes = 20,
+            MaxAttempts = 3,
+            UpdatedAtUtc = InitialVersion,
             Questions = new List<AssessmentQuestion>
             {
                 new AssessmentQuestion { Question = first, Points = 3m, OrderIndex = 0 }
@@ -489,7 +495,9 @@ public sealed class TeacherAssessmentQuestionsTests : IClassFixture<IntegrationT
     {
         return new Question
         {
-            OwnerTeacherUserId = ownerId, Content = content, PrimarySkill = skill,
+            OwnerTeacherUserId = ownerId,
+            Content = content,
+            PrimarySkill = skill,
             Level = "Beginner",
             Options = new List<QuestionOption>
             {

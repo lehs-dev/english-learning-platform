@@ -42,9 +42,12 @@ public sealed class HostedPaymentGateway(IOptions<HostedPaymentOptions> options,
         var baseUrl = settings.PublicBaseUrl.TrimEnd('/');
         var values = new Dictionary<string, string?>
         {
-            ["orderId"] = order.Id.ToString("D"), ["amount"] = order.Amount.ToString("0.00", CultureInfo.InvariantCulture),
-            ["currency"] = order.Currency, ["expiresAt"] = order.ExpiresAtUtc.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
-            ["returnUrl"] = $"{baseUrl}/Checkout/Result/{order.Id:D}", ["webhookUrl"] = $"{baseUrl}/payments/webhook"
+            ["orderId"] = order.Id.ToString("D"),
+            ["amount"] = order.Amount.ToString("0.00", CultureInfo.InvariantCulture),
+            ["currency"] = order.Currency,
+            ["expiresAt"] = order.ExpiresAtUtc.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
+            ["returnUrl"] = $"{baseUrl}/Checkout/Result/{order.Id:D}",
+            ["webhookUrl"] = $"{baseUrl}/payments/webhook"
         };
         // Field order is part of the gateway protocol. URLs and all values are encoded independently.
         var canonical = string.Join("&", values.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value!)}"));

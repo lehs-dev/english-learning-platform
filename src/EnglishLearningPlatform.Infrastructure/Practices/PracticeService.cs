@@ -50,7 +50,10 @@ public sealed class PracticeService(
         {
             db.PracticeSessions.Add(new PracticeSession
             {
-                Id = sessionId, StudentUserId = studentId, PracticeId = practiceId, Version = version
+                Id = sessionId,
+                StudentUserId = studentId,
+                PracticeId = practiceId,
+                Version = version
             });
             await db.SaveChangesAsync(ct);
         }
@@ -66,14 +69,18 @@ public sealed class PracticeService(
             .Select(p => new
             {   // Owner lấy từ database, không lấy từ form của Student.
                 p.OwnerTeacherUserId,
-                p.Id, p.Title, p.Description, p.Version, HasResult = p.Submissions.Any(s => s.StudentUserId == studentId),
+                p.Id,
+                p.Title,
+                p.Description,
+                p.Version,
+                HasResult = p.Submissions.Any(s => s.StudentUserId == studentId),
                 CourseId = p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
                 CourseTitle = p.LessonId.HasValue ? p.Lesson!.Module.Course.Title : p.Module!.Course.Title
             }).SingleOrDefaultAsync(ct);
         if (practice is null) return new(LearningAccessResult.NotFound);
         int sheetVersion = version ?? practice.Version;
         var questions = await QuestionsAsync(practiceId, sheetVersion, ct);
-                // Kiểm tra trước khi trả nội dung đề cho Student.
+        // Kiểm tra trước khi trả nội dung đề cho Student.
         if (!ValidQuestions(practice.OwnerTeacherUserId, questions))
         {
             return new LearningOutcome<PracticeSheet>(
@@ -84,7 +91,7 @@ public sealed class PracticeService(
                 q.Question.Stimulus?.ContentText,
                 q.Question.Stimulus?.StimulusType == StimulusType.Audio ? q.Question.Stimulus.ResourceUrl : null,
                 q.Question.Options.OrderBy(o => o.OrderIndex).ThenBy(o => o.Id).Select(o => new PracticeOption(o.Id, o.Content)).ToList())).ToList())
-                { HasResult = practice.HasResult, Version = sheetVersion, SessionId = sessionId });
+        { HasResult = practice.HasResult, Version = sheetVersion, SessionId = sessionId });
     }
 
     public Task<PracticeSubmitResult> SubmitAsync(Guid studentId, Guid practiceId,
@@ -130,7 +137,7 @@ public sealed class PracticeService(
         }
         int version = session?.Version ?? practice.Version;
         var questions = await QuestionsAsync(practiceId, version, ct);
-                // Kiểm tra lại trước khi chấm hoặc thay thế kết quả đã lưu.
+        // Kiểm tra lại trước khi chấm hoặc thay thế kết quả đã lưu.
         if (!ValidQuestions(practice.OwnerTeacherUserId, questions))
         {
             return new PracticeSubmitResult(
@@ -162,8 +169,12 @@ public sealed class PracticeService(
         if (session != null) session.SubmittedAtUtc = submission.SubmittedAtUtc;
         submission.UpdatedAtUtc = submission.SubmittedAtUtc;
         foreach (var response in responses.Where(r => r.SelectedOptionId.HasValue))
-            db.PracticeAnswers.Add(new PracticeAnswer { PracticeSubmissionId = submission.Id,
-                PracticeQuestionId = response.PracticeQuestionId, SelectedOptionId = response.SelectedOptionId!.Value });
+            db.PracticeAnswers.Add(new PracticeAnswer
+            {
+                PracticeSubmissionId = submission.Id,
+                PracticeQuestionId = response.PracticeQuestionId,
+                SelectedOptionId = response.SelectedOptionId!.Value
+            });
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return new(PracticeSubmitStatus.Saved);
@@ -186,7 +197,8 @@ public sealed class PracticeService(
                     q.Question.Explanation,
                     q.Question.Stimulus == null ? null : q.Question.Stimulus.ContentText,
                     q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Audio
-                        ? q.Question.Stimulus.ResourceUrl : null)).ToList()) { Version = s.Version }).SingleOrDefaultAsync(ct);
+                        ? q.Question.Stimulus.ResourceUrl : null)).ToList())
+            { Version = s.Version }).SingleOrDefaultAsync(ct);
         return result is null ? new(LearningAccessResult.NotFound) : new(LearningAccessResult.Allowed, result);
     }
 

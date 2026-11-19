@@ -63,8 +63,14 @@ public sealed class AdminReadOnlyTests(IntegrationTestFactory factory) : IClassF
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var order = new Order { StudentUserId = student.Id, Course = new Course { OwnerTeacherUserId = teacher.Id, Title = title }, Amount = 199000 };
-            db.Payments.Add(new Payment { Order = order, Amount = order.Amount, Status = PaymentStatus.Succeeded,
-                ProviderTransactionId = $"admin-{Guid.NewGuid():N}", PaidAtUtc = DateTimeOffset.UtcNow });
+            db.Payments.Add(new Payment
+            {
+                Order = order,
+                Amount = order.Amount,
+                Status = PaymentStatus.Succeeded,
+                ProviderTransactionId = $"admin-{Guid.NewGuid():N}",
+                PaidAtUtc = DateTimeOffset.UtcNow
+            });
             (await db.Users.SingleAsync(u => u.Id == student.Id)).AccountStatus = AccountStatus.Locked;
             await db.SaveChangesAsync();
             orderId = order.Id;

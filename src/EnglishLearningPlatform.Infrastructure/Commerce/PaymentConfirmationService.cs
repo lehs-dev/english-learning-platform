@@ -105,9 +105,14 @@ public sealed class PaymentConfirmationService(AppDbContext db, IActiveUserValid
                 notification.Amount == VnpayGateway.QuoteAmount(order.Amount) &&
                 !await db.Payments.AnyAsync(p => p.OrderId == order.Id, ct))
             {
-                db.AuditLogs.Add(new AuditLog { Action = "Payment.VnpayWholeDongQuote", ActorSnapshot = gateway.Provider,
-                    TargetUserId = order.StudentUserId, BeforeData = $"Order={order.Id:D};Amount={order.Amount}",
-                    AfterData = $"Order={order.Id:D};Amount={notification.Amount}" });
+                db.AuditLogs.Add(new AuditLog
+                {
+                    Action = "Payment.VnpayWholeDongQuote",
+                    ActorSnapshot = gateway.Provider,
+                    TargetUserId = order.StudentUserId,
+                    BeforeData = $"Order={order.Id:D};Amount={order.Amount}",
+                    AfterData = $"Order={order.Id:D};Amount={notification.Amount}"
+                });
                 order.Amount = notification.Amount;
             }
             if (order.Provider != gateway.Provider || order.Amount != notification.Amount || order.Currency != notification.Currency ||
@@ -136,9 +141,15 @@ public sealed class PaymentConfirmationService(AppDbContext db, IActiveUserValid
             }
             if (await db.Payments.AnyAsync(p => p.OrderId == order.Id && (isLocal || reportReplay || p.Status == PaymentStatus.Succeeded), ct))
                 return PaymentConfirmation.Conflict;
-            var payment = new Payment { OrderId = order.Id, Amount = notification.Amount, Status = notification.Status,
-                Provider = gateway.Provider, ProviderTransactionId = notification.ProviderTransactionId,
-                PaidAtUtc = notification.Status == PaymentStatus.Succeeded ? notification.OccurredAtUtc : null };
+            var payment = new Payment
+            {
+                OrderId = order.Id,
+                Amount = notification.Amount,
+                Status = notification.Status,
+                Provider = gateway.Provider,
+                ProviderTransactionId = notification.ProviderTransactionId,
+                PaidAtUtc = notification.Status == PaymentStatus.Succeeded ? notification.OccurredAtUtc : null
+            };
             db.Payments.Add(payment); await db.SaveChangesAsync(ct);
             if (eligible && !await db.Enrollments.AnyAsync(e => e.StudentUserId == order.StudentUserId && e.CourseId == order.CourseId, ct))
                 db.Enrollments.Add(new Enrollment { StudentUserId = order.StudentUserId, CourseId = order.CourseId, Payment = payment });
@@ -148,7 +159,9 @@ public sealed class PaymentConfirmationService(AppDbContext db, IActiveUserValid
         }, result => result is PaymentConfirmation.Accepted or PaymentConfirmation.AlreadyConfirmed, PaymentConfirmation.Unavailable, ct);
     private void Audit(Order order, Payment payment, string action, bool eligible) => db.AuditLogs.Add(new AuditLog
     {
-        Action = action, ActorSnapshot = payment.Provider, TargetUserId = order.StudentUserId,
+        Action = action,
+        ActorSnapshot = payment.Provider,
+        TargetUserId = order.StudentUserId,
         AfterData = $"Order={order.Id:D};Payment={payment.Id:D};Status={payment.Status};EnrollmentEligible={eligible}"
     });
 }

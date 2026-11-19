@@ -31,10 +31,18 @@ public sealed class ContentLockMigrationTests : IAsyncLifetime
         await db.Database.MigrateAsync();
         var teacher = await AddUserAsync(db, AppRoles.Teacher);
         var student = await AddUserAsync(db, AppRoles.Student);
-        var shared = new Stimulus { OwnerTeacherUserId = teacher.Id,
-            StimulusType = StimulusType.Passage, ContentText = "Shared passage" };
-        var draftOnly = new Stimulus { OwnerTeacherUserId = teacher.Id,
-            StimulusType = StimulusType.Passage, ContentText = "Draft passage" };
+        var shared = new Stimulus
+        {
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Passage,
+            ContentText = "Shared passage"
+        };
+        var draftOnly = new Stimulus
+        {
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Passage,
+            ContentText = "Draft passage"
+        };
         string[] cases = { "Unused draft", "Published", "Archived", "Published assessment",
             "Unpublished practice", "Attempt exists", "Submission exists", "Draft assessment", "Draft practice" };
         var questions = new List<Question>();
@@ -54,27 +62,54 @@ public sealed class ContentLockMigrationTests : IAsyncLifetime
         var started = new DateTimeOffset(2026, 10, 16, 2, 0, 0, TimeSpan.Zero);
         foreach (int index in new[] { 3, 5, 7 })
         {
-            var assessment = new Assessment { OwnerTeacherUserId = teacher.Id,
-                Title = cases[index], AssessmentType = AssessmentType.PlacementTest,
-                DurationMinutes = 30, MaxAttempts = 3,
+            var assessment = new Assessment
+            {
+                OwnerTeacherUserId = teacher.Id,
+                Title = cases[index],
+                AssessmentType = AssessmentType.PlacementTest,
+                DurationMinutes = 30,
+                MaxAttempts = 3,
                 Status = index == 3 ? AssessmentStatus.Published : AssessmentStatus.Draft,
-                Questions = new List<AssessmentQuestion> { new() { Question = questions[index] } } };
+                Questions = new List<AssessmentQuestion> { new() { Question = questions[index] } }
+            };
             db.Assessments.Add(assessment);
             if (index == 5)
-                db.Attempts.Add(new Attempt { Assessment = assessment, StudentUserId = student.Id,
-                    StartedAtUtc = started, DeadlineUtc = started.AddMinutes(30) });
+                db.Attempts.Add(new Attempt
+                {
+                    Assessment = assessment,
+                    StudentUserId = student.Id,
+                    StartedAtUtc = started,
+                    DeadlineUtc = started.AddMinutes(30)
+                });
         }
-        var module = new Module { Title = "Module", Course = new Course {
-            OwnerTeacherUserId = teacher.Id, Title = "Legacy course" } };
+        var module = new Module
+        {
+            Title = "Module",
+            Course = new Course
+            {
+                OwnerTeacherUserId = teacher.Id,
+                Title = "Legacy course"
+            }
+        };
         foreach (int index in new[] { 4, 6, 8 })
         {
-            var practice = new Practice { OwnerTeacherUserId = teacher.Id, Title = cases[index],
-                Module = module, Status = index == 4 ? PracticeStatus.Unpublished : PracticeStatus.Draft,
-                Questions = new List<PracticeQuestion> { new() { Question = questions[index] } } };
+            var practice = new Practice
+            {
+                OwnerTeacherUserId = teacher.Id,
+                Title = cases[index],
+                Module = module,
+                Status = index == 4 ? PracticeStatus.Unpublished : PracticeStatus.Draft,
+                Questions = new List<PracticeQuestion> { new() { Question = questions[index] } }
+            };
             db.Practices.Add(practice);
             if (index == 6)
-                db.PracticeSubmissions.Add(new PracticeSubmission { Practice = practice,
-                    StudentUserId = student.Id, Score = 60m, SubmittedAtUtc = started });
+                db.PracticeSubmissions.Add(new PracticeSubmission
+                {
+                    Practice = practice,
+                    StudentUserId = student.Id,
+                    Score = 60m,
+                    SubmittedAtUtc = started
+                });
         }
         await db.SaveChangesAsync();
 
@@ -124,8 +159,12 @@ public sealed class ContentLockMigrationTests : IAsyncLifetime
         await db.Database.MigrateAsync();
         var teacher = await AddUserAsync(db, AppRoles.Teacher);
         var question = NewQuestion(teacher.Id, "New question");
-        question.Stimulus = new Stimulus { OwnerTeacherUserId = teacher.Id,
-            StimulusType = StimulusType.Passage, ContentText = "New passage" };
+        question.Stimulus = new Stimulus
+        {
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Passage,
+            ContentText = "New passage"
+        };
         db.Questions.Add(question);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -157,8 +196,12 @@ public sealed class ContentLockMigrationTests : IAsyncLifetime
     // Chỉ tạo user và role cần cho khóa ngoại; không cần đăng nhập HTTP trong test migration.
     private static async Task<ApplicationUser> AddUserAsync(AppDbContext db, string role)
     {
-        var user = new ApplicationUser { Id = Guid.NewGuid(), FullName = role,
-            UserName = Guid.NewGuid() + "@example.test" };
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            FullName = role,
+            UserName = Guid.NewGuid() + "@example.test"
+        };
         db.Users.Add(user);
         var roleId = await db.Roles.Where(r => r.Name == role).Select(r => r.Id).SingleAsync();
         db.UserRoles.Add(new IdentityUserRole<Guid> { UserId = user.Id, RoleId = roleId });
@@ -167,7 +210,9 @@ public sealed class ContentLockMigrationTests : IAsyncLifetime
 
     private static Question NewQuestion(Guid teacherId, string content) => new()
     {
-        OwnerTeacherUserId = teacherId, Content = content, PrimarySkill = EnglishSkill.Reading,
+        OwnerTeacherUserId = teacherId,
+        Content = content,
+        PrimarySkill = EnglishSkill.Reading,
         Options = new List<QuestionOption>
         {
             new() { Content = "Correct", IsCorrect = true, OrderIndex = 0 },

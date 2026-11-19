@@ -134,9 +134,9 @@ public static class DependencyInjection
         services.AddScoped<IPracticeService, PracticeService>();
         services.AddScoped<ITeacherPracticeService, TeacherPracticeService>();
         // Service riêng để lưu danh sách câu hỏi của Practice Draft.
-        services.AddScoped<ITeacherPracticeQuestionService,TeacherPracticeQuestionService>();
+        services.AddScoped<ITeacherPracticeQuestionService, TeacherPracticeQuestionService>();
         // Service đọc danh sách Practice dành cho Teacher.
-        services.AddScoped<ITeacherPracticeQueryService,TeacherPracticeQueryService>();
+        services.AddScoped<ITeacherPracticeQueryService, TeacherPracticeQueryService>();
         // Preview Teacher chỉ đọc, không dùng service Student Submit/chấm điểm.
         services.AddScoped<ITeacherPracticePreviewService, TeacherPracticePreviewService>();
         // Tạo ngữ liệu riêng của Teacher, không dùng service chấm bài của Student.
@@ -147,11 +147,11 @@ public static class DependencyInjection
         services.AddScoped<IStimulusAudioAccessService, StimulusAudioAccessService>();
         // Service riêng cho Teacher soạn cấu hình Draft.
         // Không thay thế service Student làm bài.
-        services.AddScoped<ITeacherAssessmentDraftService,TeacherAssessmentDraftService>();
+        services.AddScoped<ITeacherAssessmentDraftService, TeacherAssessmentDraftService>();
         // Soạn câu hỏi và points, tách khỏi cấu hình Draft và luồng Student.
-        services.AddScoped<ITeacherAssessmentQuestionService,TeacherAssessmentQuestionService>();
+        services.AddScoped<ITeacherAssessmentQuestionService, TeacherAssessmentQuestionService>();
         // Preview chỉ đọc, không sử dụng service Start/Submit của Student.
-        services.AddScoped<ITeacherAssessmentPreviewService,TeacherAssessmentPreviewService>();
+        services.AddScoped<ITeacherAssessmentPreviewService, TeacherAssessmentPreviewService>();
         // Publish đề đã lưu, tách khỏi service Preview và Student làm bài.
         services.AddScoped<ITeacherAssessmentPublishService, TeacherAssessmentPublishService>();
         // Đổi Independent/Course-linked, không thay Final hoặc service Start.

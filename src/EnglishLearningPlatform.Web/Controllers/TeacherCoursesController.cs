@@ -6,6 +6,7 @@ using EnglishLearningPlatform.Web.Models.Courses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
+
 [Authorize(Policy = AuthorizationPolicies.Teacher)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class TeacherCoursesController(ICourseAuthoringService courses, ITeacherCourseReportService reports, IStudentLearningCourseService learning) : Controller

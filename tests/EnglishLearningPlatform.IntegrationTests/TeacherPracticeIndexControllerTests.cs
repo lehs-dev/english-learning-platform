@@ -335,7 +335,9 @@ public sealed class TeacherPracticeIndexControllerTests
         context.Courses.Outcome = AllowedCourses(NewCourse(context.ActorId, "Course"));
         var draft = new TeacherPracticeListItem
         {
-            Id = Guid.NewGuid(), Title = "Unattached draft", Status = PracticeStatus.Draft
+            Id = Guid.NewGuid(),
+            Title = "Unattached draft",
+            Status = PracticeStatus.Draft
         };
         context.Query.Outcome = new LearningOutcome<TeacherPracticeSearchResult>(
             LearningAccessResult.Allowed,

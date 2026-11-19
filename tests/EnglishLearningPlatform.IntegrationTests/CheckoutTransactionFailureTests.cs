@@ -47,7 +47,7 @@ public sealed partial class CheckoutFlowTests
             using var response = webhook
                 ? await client.PostAsJsonAsync("/payments/webhook", Event(order!))
                 : await client.PostAsync("/Checkout/CreateOrder", new FormUrlEncodedContent(new Dictionary<string, string>
-                  { ["CourseId"] = course.Id.ToString(), ["__RequestVerificationToken"] = token }));
+                { ["CourseId"] = course.Id.ToString(), ["__RequestVerificationToken"] = token }));
             Assert.Equal(webhook ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.Redirect, response.StatusCode);
             if (webhook) Assert.Contains("retry_later", await response.Content.ReadAsStringAsync());
             else
@@ -100,7 +100,7 @@ public sealed partial class CheckoutFlowTests
             using var response = webhook
                 ? await client.PostAsJsonAsync("/payments/webhook", Event(order))
                 : await client.PostAsync($"/Checkout/Simulate/{order.Id}", new FormUrlEncodedContent(new Dictionary<string, string>
-                  { ["scenario"] = "success", ["__RequestVerificationToken"] = token }));
+                { ["scenario"] = "success", ["__RequestVerificationToken"] = token }));
             Assert.Equal(webhook ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.Redirect, response.StatusCode);
             if (webhook) Assert.Contains("retry_later", await response.Content.ReadAsStringAsync());
             else

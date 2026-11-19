@@ -200,13 +200,19 @@ public sealed class TeacherAssessmentScopeTests(IntegrationTestFactory factory)
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var order = new Order
             {
-                CourseId = data.First.Id, StudentUserId = student.Id, Amount = 100000m,
-                Currency = "VND", Provider = "scope-test"
+                CourseId = data.First.Id,
+                StudentUserId = student.Id,
+                Amount = 100000m,
+                Currency = "VND",
+                Provider = "scope-test"
             };
             var payment = new Payment
             {
-                Order = order, Amount = order.Amount, Status = PaymentStatus.Pending,
-                Provider = "scope-test", ProviderTransactionId = Guid.NewGuid().ToString("N")
+                Order = order,
+                Amount = order.Amount,
+                Status = PaymentStatus.Pending,
+                Provider = "scope-test",
+                ProviderTransactionId = Guid.NewGuid().ToString("N")
             };
             db.Enrollments.Add(new Enrollment { CourseId = data.First.Id, StudentUserId = student.Id, Payment = payment });
             await db.SaveChangesAsync();
@@ -421,12 +427,25 @@ public sealed class TeacherAssessmentScopeTests(IntegrationTestFactory factory)
             .SingleAsync(a => a.Id == data.Assessment.Id);
         return JsonSerializer.Serialize(new
         {
-            assessment.Id, assessment.OwnerTeacherUserId, assessment.Title, assessment.Description,
-            assessment.AssessmentType, assessment.TargetSkill, assessment.DurationMinutes, assessment.MaxAttempts, assessment.PassingScore,
+            assessment.Id,
+            assessment.OwnerTeacherUserId,
+            assessment.Title,
+            assessment.Description,
+            assessment.AssessmentType,
+            assessment.TargetSkill,
+            assessment.DurationMinutes,
+            assessment.MaxAttempts,
+            assessment.PassingScore,
             Questions = assessment.Questions.OrderBy(q => q.OrderIndex).Select(q => new
             {
-                q.Id, q.QuestionId, q.OrderIndex, q.Points, q.Question.Content, q.Question.PrimarySkill,
-                q.Question.UpdatedAtUtc, q.Question.ContentLockedAtUtc,
+                q.Id,
+                q.QuestionId,
+                q.OrderIndex,
+                q.Points,
+                q.Question.Content,
+                q.Question.PrimarySkill,
+                q.Question.UpdatedAtUtc,
+                q.Question.ContentLockedAtUtc,
                 Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex })
             })
         });
@@ -434,7 +453,8 @@ public sealed class TeacherAssessmentScopeTests(IntegrationTestFactory factory)
 
     private static AssessmentScopeRequest Request(AssessmentEntity assessment, Guid? target) => new()
     {
-        CourseId = target, ExpectedUpdatedAtUtc = assessment.UpdatedAtUtc
+        CourseId = target,
+        ExpectedUpdatedAtUtc = assessment.UpdatedAtUtc
     };
 
     private static void AssertRejected(WriteOutcome result)
@@ -456,21 +476,32 @@ public sealed class TeacherAssessmentScopeTests(IntegrationTestFactory factory)
         var foreign = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var first = new Course
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Scope course A", Status = CourseStatus.Published, IsPaid = true, Price = 100000m
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Scope course A",
+            Status = CourseStatus.Published,
+            IsPaid = true,
+            Price = 100000m
         };
         var second = new Course { OwnerTeacherUserId = teacher.Id, Title = "Scope course B", Status = CourseStatus.Unpublished };
         var foreignCourse = new Course { OwnerTeacherUserId = foreign.Id, Title = "Private foreign course", Status = CourseStatus.Published };
         var assessment = new AssessmentEntity
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Scope test assessment", Status = status,
-            AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 20, MaxAttempts = 3, PassingScore = 70m,
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Scope test assessment",
+            Status = status,
+            AssessmentType = AssessmentType.PracticeExam,
+            DurationMinutes = 20,
+            MaxAttempts = 3,
+            PassingScore = 70m,
             UpdatedAtUtc = new DateTimeOffset(2026, 10, 21, 2, 0, 0, TimeSpan.Zero)
         };
         for (int index = 0; index < 5; index++)
         {
             var question = new Question
             {
-                OwnerTeacherUserId = teacher.Id, Content = "Scope question " + index, PrimarySkill = EnglishSkill.Grammar,
+                OwnerTeacherUserId = teacher.Id,
+                Content = "Scope question " + index,
+                PrimarySkill = EnglishSkill.Grammar,
                 Status = QuestionStatus.Published,
                 Options = new List<QuestionOption>
                 {

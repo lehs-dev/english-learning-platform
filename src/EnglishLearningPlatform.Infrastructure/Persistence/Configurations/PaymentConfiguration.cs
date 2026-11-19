@@ -9,12 +9,12 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
     public void Configure(EntityTypeBuilder<Payment> e)
     {
         e.ToTable("Payment");
-        e.Property(x => x.Amount).HasPrecision(18,2);
-        e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);  
-        e.Property(x => x.Provider).HasMaxLength(64).IsRequired();   
-        
-        
-        e.Property(x => x.ProviderTransactionId).HasMaxLength(128).IsRequired();   
+        e.Property(x => x.Amount).HasPrecision(18, 2);
+        e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+        e.Property(x => x.Provider).HasMaxLength(64).IsRequired();
+
+
+        e.Property(x => x.ProviderTransactionId).HasMaxLength(128).IsRequired();
         /*chìa khóa chống thanh toán trùng: 
             callback/webhook gọi lặp với cùng mã giao dịch 
                 → database từ chối insert 

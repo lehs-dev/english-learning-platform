@@ -33,14 +33,26 @@ public sealed class AdminRevenueQueryTests(IntegrationTestFactory factory) : ICl
         var course = new Course { Title = "Revenue receipt reconciliation", OwnerTeacherUserId = teacher.Id };
         Order AddOrder(decimal amount, string currency = "VND", DateTimeOffset? created = null)
         {
-            var order = new Order { Course = course, StudentUserId = student.Id, Amount = amount,
-                Currency = currency, CreatedAtUtc = created ?? midnight.AddHours(1) };
+            var order = new Order
+            {
+                Course = course,
+                StudentUserId = student.Id,
+                Amount = amount,
+                Currency = currency,
+                CreatedAtUtc = created ?? midnight.AddHours(1)
+            };
             db.Orders.Add(order);
             return order;
         }
         void AddPayment(Order order, PaymentStatus status, DateTimeOffset? paid = null, decimal? amount = null)
-            => db.Payments.Add(new Payment { Order = order, Amount = amount ?? order.Amount, Status = status,
-                PaidAtUtc = paid, ProviderTransactionId = $"revenue-{Guid.NewGuid():N}" });
+            => db.Payments.Add(new Payment
+            {
+                Order = order,
+                Amount = amount ?? order.Amount,
+                Status = status,
+                PaidAtUtc = paid,
+                ProviderTransactionId = $"revenue-{Guid.NewGuid():N}"
+            });
 
         var retry = AddOrder(100);
         AddPayment(retry, PaymentStatus.Failed);
@@ -163,50 +175,50 @@ public sealed class AdminRevenueQueryTests(IntegrationTestFactory factory) : ICl
 public sealed class AdminRevenueBoundaryTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
     [Theory]
-    [InlineData("week",2026,10,25,"2026-10-19","2026-10-25")]
-    [InlineData("week",2027,1,1,"2026-12-28","2027-01-03")]
-    [InlineData("month",2024,2,17,"2024-02-01","2024-02-29")]
-    [InlineData("year",2026,10,24,"2026-01-01","2026-12-31")]
-    public void CalendarPresets_UseMondayWeeks_AndFullCalendarMonthsAndYears(string period,int year,int month,int day,string start,string end)
+    [InlineData("week", 2026, 10, 25, "2026-10-19", "2026-10-25")]
+    [InlineData("week", 2027, 1, 1, "2026-12-28", "2027-01-03")]
+    [InlineData("month", 2024, 2, 17, "2024-02-01", "2024-02-29")]
+    [InlineData("year", 2026, 10, 24, "2026-01-01", "2026-12-31")]
+    public void CalendarPresets_UseMondayWeeks_AndFullCalendarMonthsAndYears(string period, int year, int month, int day, string start, string end)
     {
-        var range=AdminRevenueRanges.Resolve(period,new(year,month,day),null,null);
-        Assert.Equal(DateOnly.Parse(start),range.FromDate);
-        Assert.Equal(DateOnly.Parse(end),range.ToDate);
+        var range = AdminRevenueRanges.Resolve(period, new(year, month, day), null, null);
+        Assert.Equal(DateOnly.Parse(start), range.FromDate);
+        Assert.Equal(DateOnly.Parse(end), range.ToDate);
     }
 
     [Fact]
     public async Task RevenuePresets_ResolveVietnamDates_AndChartKeepsZeroRevenueCalendarGaps()
     {
-        var admin=await IdentityTestHelpers.CreateUserAsync(factory,AppRoles.Admin);
-        using var client=IdentityTestHelpers.CreateClient(factory);
-        using var login=await IdentityTestHelpers.LoginAsync(client,admin);
-        var today=DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
-        var defaultHtml=await client.GetStringAsync("/Admin/Revenue");
-        var currentMonth=AdminRevenueRanges.Resolve("month",today,null,null);
-        Assert.Contains("value=\"month\" selected=\"selected\"",defaultHtml);
-        Assert.Contains($"value=\"{currentMonth.FromDate:yyyy-MM-dd}\"",defaultHtml);
-        Assert.Contains($"value=\"{currentMonth.ToDate:yyyy-MM-dd}\"",defaultHtml);
-        var allHtml=await client.GetStringAsync("/Admin/Revenue?period=all");
-        Assert.Contains("value=\"all\" selected=\"selected\"",allHtml);
-        var allFromInput=System.Text.RegularExpressions.Regex.Match(allHtml,"<input[^>]*id=\"fromDate\"[^>]*>").Value;
+        var admin = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Admin);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, admin);
+        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+        var defaultHtml = await client.GetStringAsync("/Admin/Revenue");
+        var currentMonth = AdminRevenueRanges.Resolve("month", today, null, null);
+        Assert.Contains("value=\"month\" selected=\"selected\"", defaultHtml);
+        Assert.Contains($"value=\"{currentMonth.FromDate:yyyy-MM-dd}\"", defaultHtml);
+        Assert.Contains($"value=\"{currentMonth.ToDate:yyyy-MM-dd}\"", defaultHtml);
+        var allHtml = await client.GetStringAsync("/Admin/Revenue?period=all");
+        Assert.Contains("value=\"all\" selected=\"selected\"", allHtml);
+        var allFromInput = System.Text.RegularExpressions.Regex.Match(allHtml, "<input[^>]*id=\"fromDate\"[^>]*>").Value;
         Assert.NotEmpty(allFromInput);
-        Assert.DoesNotMatch("value=\"[^\"]+\"",allFromInput);
-        foreach(var period in new[]{"week","month","year"})
+        Assert.DoesNotMatch("value=\"[^\"]+\"", allFromInput);
+        foreach (var period in new[] { "week", "month", "year" })
         {
-            var expected=AdminRevenueRanges.Resolve(period,today,null,null);
-            var html=await client.GetStringAsync($"/Admin/Revenue?period={period}&groupBy=month");
-            Assert.Contains($"value=\"{expected.FromDate:yyyy-MM-dd}\"",html);
-            Assert.Contains($"value=\"{expected.ToDate:yyyy-MM-dd}\"",html);
-            Assert.DoesNotContain(">Về tổng quan</a>",html);
+            var expected = AdminRevenueRanges.Resolve(period, today, null, null);
+            var html = await client.GetStringAsync($"/Admin/Revenue?period={period}&groupBy=month");
+            Assert.Contains($"value=\"{expected.FromDate:yyyy-MM-dd}\"", html);
+            Assert.Contains($"value=\"{expected.ToDate:yyyy-MM-dd}\"", html);
+            Assert.DoesNotContain(">Về tổng quan</a>", html);
         }
-        using var bad=await client.GetAsync("/Admin/Revenue?period=unknown");
-        Assert.Equal(HttpStatusCode.BadRequest,bad.StatusCode);
-        var report=new AdminRevenueReport(new(new(2026,10,1),new(2026,10,3)),"VND",[],
-            [new(new(2026,10,1),"VND",100,1),new(new(2026,10,3),"VND",200,1)],[]);
-        var model=new EnglishLearningPlatform.Web.Models.Admin.AdminRevenueViewModel(report,"day",1);
-        Assert.Equal(new[]{100m,0m,200m},model.ChartPoints.Select(p=>p.Revenue));
-        Assert.Contains("01/10/2026",model.RangeLabel);
-        Assert.Contains("03/10/2026",model.RangeLabel);
+        using var bad = await client.GetAsync("/Admin/Revenue?period=unknown");
+        Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
+        var report = new AdminRevenueReport(new(new(2026, 10, 1), new(2026, 10, 3)), "VND", [],
+            [new(new(2026, 10, 1), "VND", 100, 1), new(new(2026, 10, 3), "VND", 200, 1)], []);
+        var model = new EnglishLearningPlatform.Web.Models.Admin.AdminRevenueViewModel(report, "day", 1);
+        Assert.Equal(new[] { 100m, 0m, 200m }, model.ChartPoints.Select(p => p.Revenue));
+        Assert.Contains("01/10/2026", model.RangeLabel);
+        Assert.Contains("03/10/2026", model.RangeLabel);
     }
 
     [Fact]
@@ -224,8 +236,14 @@ public sealed class AdminRevenueBoundaryTests(IntegrationTestFactory factory) : 
                      (30m, monthEnd.AddTicks(-1)), (40m, monthEnd.ToUniversalTime()) })
         {
             var order = new Order { Course = course, StudentUserId = admin.Id, Amount = amount, CreatedAtUtc = paid };
-            db.Payments.Add(new Payment { Order = order, Status = PaymentStatus.Succeeded, Amount = amount,
-                PaidAtUtc = paid, ProviderTransactionId = $"boundary-{Guid.NewGuid():N}" });
+            db.Payments.Add(new Payment
+            {
+                Order = order,
+                Status = PaymentStatus.Succeeded,
+                Amount = amount,
+                PaidAtUtc = paid,
+                ProviderTransactionId = $"boundary-{Guid.NewGuid():N}"
+            });
         }
         await db.SaveChangesAsync();
         var october = (await service.GetAsync(admin.Id, new(new(2026, 10, 1), new(2026, 10, 31))))!;

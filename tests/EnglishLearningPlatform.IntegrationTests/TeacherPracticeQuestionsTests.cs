@@ -196,11 +196,14 @@ public sealed class TeacherPracticeQuestionsTests : IClassFixture<IntegrationTes
             var item = published.Questions.First();
             var submission = new PracticeSubmission
             {
-                StudentUserId = student.Id, PracticeId = data.PracticeId, Score = 50
+                StudentUserId = student.Id,
+                PracticeId = data.PracticeId,
+                Score = 50
             };
             var answer = new PracticeAnswer
             {
-                PracticeSubmission = submission, PracticeQuestionId = item.Id,
+                PracticeSubmission = submission,
+                PracticeQuestionId = item.Id,
                 SelectedOptionId = item.Question.Options.First().Id
             };
             answerId = answer.Id;
@@ -576,7 +579,8 @@ public sealed class TeacherPracticeQuestionsTests : IClassFixture<IntegrationTes
         return WriteAsync(service => service.UpdateQuestionsAsync(data.Teacher.Id, data.PracticeId,
             new UpdatePracticeQuestionsRequest
             {
-                ExpectedUpdatedAtUtc = version, QuestionIds = ids.ToList()
+                ExpectedUpdatedAtUtc = version,
+                QuestionIds = ids.ToList()
             }));
     }
 
@@ -631,21 +635,27 @@ public sealed class TeacherPracticeQuestionsTests : IClassFixture<IntegrationTes
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var course = new Course
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Test course", Status = CourseStatus.Published
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Test course",
+            Status = CourseStatus.Published
         };
         var module = new Module { Course = course, Title = "Test module", Visibility = ModuleVisibility.Visible };
         var lesson = new Lesson { Module = module, Title = "Test lesson", Status = LessonStatus.Published };
         var stimulus = new Stimulus
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Test passage",
-            StimulusType = StimulusType.Passage, ContentText = "A short passage for testing."
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Test passage",
+            StimulusType = StimulusType.Passage,
+            ContentText = "A short passage for testing."
         };
         var first = NewQuestion(teacher.Id, "First question");
         first.Stimulus = stimulus;
         var second = NewQuestion(teacher.Id, "Second question");
         var practice = new Practice
         {
-            OwnerTeacherUserId = teacher.Id, Title = "Test draft", UpdatedAtUtc = InitialVersion,
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Test draft",
+            UpdatedAtUtc = InitialVersion,
             Questions = new List<PracticeQuestion>
             {
                 new PracticeQuestion { Question = first, OrderIndex = 0 },
@@ -663,7 +673,9 @@ public sealed class TeacherPracticeQuestionsTests : IClassFixture<IntegrationTes
     {
         return new Question
         {
-            OwnerTeacherUserId = ownerId, Content = content, PrimarySkill = EnglishSkill.Reading,
+            OwnerTeacherUserId = ownerId,
+            Content = content,
+            PrimarySkill = EnglishSkill.Reading,
             Options = new List<QuestionOption>
             {
                 new QuestionOption { Content = "Correct", IsCorrect = true, OrderIndex = 0 },

@@ -25,9 +25,16 @@ public sealed class AdminManagementService(AppDbContext db, UserManager<Applicat
     private Task LockAsync(CancellationToken ct) => db.AcquireAdminManagementLockAsync(ct);
 
     private void Audit(ApplicationUser actor, ApplicationUser target, string action, string? before, string after) =>
-        db.AuditLogs.Add(new AuditLog { ActorUserId = actor.Id, TargetUserId = target.Id,
-            ActorSnapshot = actor.Email ?? actor.Id.ToString(), TargetSnapshot = target.Email ?? target.Id.ToString(),
-            Action = action, BeforeData = before, AfterData = after });
+        db.AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = actor.Id,
+            TargetUserId = target.Id,
+            ActorSnapshot = actor.Email ?? actor.Id.ToString(),
+            TargetSnapshot = target.Email ?? target.Id.ToString(),
+            Action = action,
+            BeforeData = before,
+            AfterData = after
+        });
 
     public Task<AdminChangeResult> CreateTeacherAsync(Guid actorId, string name, string email, string password, CancellationToken ct = default)
         => CreateAccountAsync(actorId, name, email, password, AppRoles.Teacher, "CreateTeacher", ct);

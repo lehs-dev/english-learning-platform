@@ -29,8 +29,12 @@ public sealed class VnpayCheckoutTests(CheckoutTestFactory factory) : IClassFixt
         using var app = factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Vnpay:UseIpn"] = "true", ["Vnpay:Enabled"] = "true", ["Vnpay:TmnCode"] = "TEST0001", ["Vnpay:HashSecret"] = TestKey,
-                ["Vnpay:PublicBaseUrl"] = "https://merchant.example.test", ["Payments:Enabled"] = "false"
+                ["Vnpay:UseIpn"] = "true",
+                ["Vnpay:Enabled"] = "true",
+                ["Vnpay:TmnCode"] = "TEST0001",
+                ["Vnpay:HashSecret"] = TestKey,
+                ["Vnpay:PublicBaseUrl"] = "https://merchant.example.test",
+                ["Payments:Enabled"] = "false"
             })));
         var teacher = await IdentityTestHelpers.CreateUserAsync(app, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(app, AppRoles.Student);
@@ -41,8 +45,14 @@ public sealed class VnpayCheckoutTests(CheckoutTestFactory factory) : IClassFixt
         var orders = scope.ServiceProvider.GetRequiredService<ICheckoutOrderService>();
         Course Course(decimal price)
         {
-            var course = new Course { Title = $"VNPay {Guid.NewGuid():N}", OwnerTeacherUserId = teacher.Id,
-                IsPaid = true, Price = price, Status = CourseStatus.Published };
+            var course = new Course
+            {
+                Title = $"VNPay {Guid.NewGuid():N}",
+                OwnerTeacherUserId = teacher.Id,
+                IsPaid = true,
+                Price = price,
+                Status = CourseStatus.Published
+            };
             db.Courses.Add(course); return course;
         }
         var course = Course(199000m);
@@ -53,7 +63,7 @@ public sealed class VnpayCheckoutTests(CheckoutTestFactory factory) : IClassFixt
         Assert.Contains("VNPay Sandbox", preview);
         var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Checkout?courseId={course.Id}");
         using var create = await client.PostAsync("/Checkout/CreateOrder", new FormUrlEncodedContent(new Dictionary<string, string>
-            { ["CourseId"] = course.Id.ToString(), ["__RequestVerificationToken"] = token }));
+        { ["CourseId"] = course.Id.ToString(), ["__RequestVerificationToken"] = token }));
         Assert.Equal(HttpStatusCode.Redirect, create.StatusCode);
         var order = (await orders.CreateOrderAsync(student.Id, course.Id)).Value!;
         Assert.Equal(VnpayGateway.ProviderName, order.Provider);
@@ -65,7 +75,7 @@ public sealed class VnpayCheckoutTests(CheckoutTestFactory factory) : IClassFixt
         Assert.Contains("VNPay Sandbox", pending);
         Assert.DoesNotContain("name=\"scenario\"", pending);
         using var forgedLocal = await client.PostAsync($"/Checkout/Simulate/{order.Id}", new FormUrlEncodedContent(new Dictionary<string, string>
-            { ["scenario"] = "success", ["__RequestVerificationToken"] = token }));
+        { ["scenario"] = "success", ["__RequestVerificationToken"] = token }));
         Assert.False(await db.Payments.AnyAsync());
 
         var callback = Notification(order.Id, order.Amount, "123456789");
@@ -191,15 +201,24 @@ public sealed class VnpayCheckoutTests(CheckoutTestFactory factory) : IClassFixt
         using var app = factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Vnpay:UseIpn"] = "true", ["Vnpay:Enabled"] = "true", ["Vnpay:TmnCode"] = "TEST0001", ["Vnpay:HashSecret"] = "",
+                ["Vnpay:UseIpn"] = "true",
+                ["Vnpay:Enabled"] = "true",
+                ["Vnpay:TmnCode"] = "TEST0001",
+                ["Vnpay:HashSecret"] = "",
                 ["Vnpay:PublicBaseUrl"] = "https://merchant.example.test"
             })));
         var teacher = await IdentityTestHelpers.CreateUserAsync(app, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(app, AppRoles.Student);
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var course = new Course { Title = "Unconfigured VNPAY", OwnerTeacherUserId = teacher.Id,
-            Status = CourseStatus.Published, IsPaid = true, Price = 199000m };
+        var course = new Course
+        {
+            Title = "Unconfigured VNPAY",
+            OwnerTeacherUserId = teacher.Id,
+            Status = CourseStatus.Published,
+            IsPaid = true,
+            Price = 199000m
+        };
         db.Courses.Add(course); await db.SaveChangesAsync();
         var service = scope.ServiceProvider.GetRequiredService<ICheckoutOrderService>();
         var preview = (await service.PreviewAsync(student.Id, course.Id)).Value!;
@@ -213,9 +232,12 @@ public sealed class VnpayCheckoutTests(CheckoutTestFactory factory) : IClassFixt
     {
         var data = new Dictionary<string, string>
         {
-            ["vnp_TmnCode"] = "TEST0001", ["vnp_TxnRef"] = id.ToString("N"),
-            ["vnp_Amount"] = (amount * 100).ToString("0", CultureInfo.InvariantCulture), ["vnp_TransactionNo"] = transaction,
-            ["vnp_ResponseCode"] = response, ["vnp_TransactionStatus"] = status,
+            ["vnp_TmnCode"] = "TEST0001",
+            ["vnp_TxnRef"] = id.ToString("N"),
+            ["vnp_Amount"] = (amount * 100).ToString("0", CultureInfo.InvariantCulture),
+            ["vnp_TransactionNo"] = transaction,
+            ["vnp_ResponseCode"] = response,
+            ["vnp_TransactionStatus"] = status,
             ["vnp_PayDate"] = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)
         };
         Sign(data); return data;

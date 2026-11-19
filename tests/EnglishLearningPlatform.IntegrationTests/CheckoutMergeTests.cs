@@ -128,9 +128,13 @@ public sealed partial class CheckoutFlowTests
             builder.UseSetting("environment", "Production");
             builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["CheckoutSandbox:Enabled"] = "true", ["Payments:Enabled"] = "true", ["Payments:Provider"] = "ProductionFixture",
-                ["Payments:SigningSecret"] = key, ["Payments:CheckoutUrl"] = "https://gateway.example.test/checkout",
-                ["Payments:PublicBaseUrl"] = "https://learning.example.test", ["LearningDemo:Enabled"] = "false"
+                ["CheckoutSandbox:Enabled"] = "true",
+                ["Payments:Enabled"] = "true",
+                ["Payments:Provider"] = "ProductionFixture",
+                ["Payments:SigningSecret"] = key,
+                ["Payments:CheckoutUrl"] = "https://gateway.example.test/checkout",
+                ["Payments:PublicBaseUrl"] = "https://learning.example.test",
+                ["LearningDemo:Enabled"] = "false"
             }));
         });
         var (student, course) = await Setup(); using var scope = host.Services.CreateScope();

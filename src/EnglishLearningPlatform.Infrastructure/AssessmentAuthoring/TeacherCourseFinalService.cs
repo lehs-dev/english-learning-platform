@@ -69,10 +69,16 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
 
         return new(LearningAccessResult.Allowed, new TeacherCourseFinalEditor
         {
-            CourseId = course.Id, CourseTitle = course.Title, CourseStatus = course.Status,
-            FinalAssessmentId = current?.Id, FinalAssessmentTitle = current?.Title,
-            FinalAssessmentStatus = current?.Status, UpdatedAtUtc = course.UpdatedAtUtc,
-            HasFinalAttempts = used, CanChangeFinal = reason == null, LockReason = reason,
+            CourseId = course.Id,
+            CourseTitle = course.Title,
+            CourseStatus = course.Status,
+            FinalAssessmentId = current?.Id,
+            FinalAssessmentTitle = current?.Title,
+            FinalAssessmentStatus = current?.Status,
+            UpdatedAtUtc = course.UpdatedAtUtc,
+            HasFinalAttempts = used,
+            CanChangeFinal = reason == null,
+            LockReason = reason,
             Assessments = options
         });
     }
@@ -166,7 +172,9 @@ public sealed class TeacherCourseFinalService : ITeacherCourseFinalService
                 // Kiểm tra cả điều kiện Final dự kiến, chưa gán FK vào Course thật.
                 var futureCourse = new Course
                 {
-                    Id = course.Id, OwnerTeacherUserId = actorUserId, Status = course.Status,
+                    Id = course.Id,
+                    OwnerTeacherUserId = actorUserId,
+                    Status = course.Status,
                     FinalAssessmentId = candidate.Id
                 };
                 var errors = _validator.Validate(candidate, questions, course, new[] { futureCourse }, isFirstPublish: false);

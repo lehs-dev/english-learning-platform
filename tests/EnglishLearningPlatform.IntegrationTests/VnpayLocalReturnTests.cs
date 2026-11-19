@@ -29,10 +29,13 @@ public sealed class VnpayLocalReturnTests(CheckoutTestFactory factory) : IClassF
     public async Task LocalSignedReturn_SettlesOnce_WithoutTunnelIpnOrQueryApi(string response, string state, PaymentStatus expected, bool enrolled, string rawPrice, bool legacyFractionalQuote)
     {
         using var app = factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
-            config.AddInMemoryCollection(new Dictionary<string,string?>
+            config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Vnpay:Enabled"] = "true", ["Vnpay:UseIpn"] = "false", ["Vnpay:TmnCode"] = "TEST0001",
-                ["Vnpay:HashSecret"] = TestKey, ["Vnpay:PublicBaseUrl"] = ""
+                ["Vnpay:Enabled"] = "true",
+                ["Vnpay:UseIpn"] = "false",
+                ["Vnpay:TmnCode"] = "TEST0001",
+                ["Vnpay:HashSecret"] = TestKey,
+                ["Vnpay:PublicBaseUrl"] = ""
             })));
         var teacher = await IdentityTestHelpers.CreateUserAsync(app, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(app, AppRoles.Student);
@@ -42,34 +45,43 @@ public sealed class VnpayLocalReturnTests(CheckoutTestFactory factory) : IClassF
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var price = decimal.Parse(rawPrice, CultureInfo.InvariantCulture);
         var quoted = decimal.Truncate(price);
-        var course = new Course { Title = $"Local VNPay {Guid.NewGuid():N}", OwnerTeacherUserId = teacher.Id,
-            Status = CourseStatus.Published, IsPaid = true, Price = price };
+        var course = new Course
+        {
+            Title = $"Local VNPay {Guid.NewGuid():N}",
+            OwnerTeacherUserId = teacher.Id,
+            Status = CourseStatus.Published,
+            IsPaid = true,
+            Price = price
+        };
         db.Courses.Add(course); await db.SaveChangesAsync();
         var preview = await scope.ServiceProvider.GetRequiredService<ICheckoutOrderService>().PreviewAsync(student.Id, course.Id);
         Assert.Equal(quoted, preview.Value!.Amount);
         using var client = IdentityTestHelpers.CreateClient(app);
         using var login = await IdentityTestHelpers.LoginAsync(client, student);
         var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Checkout?courseId={course.Id}");
-        using var created = await client.PostAsync("/Checkout/CreateOrder", new FormUrlEncodedContent(new Dictionary<string,string>
-            { ["CourseId"] = course.Id.ToString(), ["__RequestVerificationToken"] = token }));
+        using var created = await client.PostAsync("/Checkout/CreateOrder", new FormUrlEncodedContent(new Dictionary<string, string>
+        { ["CourseId"] = course.Id.ToString(), ["__RequestVerificationToken"] = token }));
         Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
         var order = await db.Orders.SingleAsync(o => o.CourseId == course.Id);
         Assert.Equal(quoted, order.Amount);
         if (legacyFractionalQuote) { order.Amount = price; await db.SaveChangesAsync(); }
-        var data = new Dictionary<string,string>
+        var data = new Dictionary<string, string>
         {
-            ["vnp_TmnCode"] = "TEST0001", ["vnp_TxnRef"] = order.Id.ToString("N"), ["vnp_Amount"] = (quoted * 100).ToString("0", CultureInfo.InvariantCulture),
-            ["vnp_ResponseCode"] = response, ["vnp_TransactionStatus"] = state,
-            ["vnp_TransactionNo"] = Random.Shared.Next(10000000,99999999).ToString(CultureInfo.InvariantCulture),
+            ["vnp_TmnCode"] = "TEST0001",
+            ["vnp_TxnRef"] = order.Id.ToString("N"),
+            ["vnp_Amount"] = (quoted * 100).ToString("0", CultureInfo.InvariantCulture),
+            ["vnp_ResponseCode"] = response,
+            ["vnp_TransactionStatus"] = state,
+            ["vnp_TransactionNo"] = Random.Shared.Next(10000000, 99999999).ToString(CultureInfo.InvariantCulture),
             ["vnp_PayDate"] = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)
         };
         Sign(data);
-        var tampered = new Dictionary<string,string>(data) { ["vnp_ResponseCode"] = "99" };
+        var tampered = new Dictionary<string, string>(data) { ["vnp_ResponseCode"] = "99" };
         using var bad = await client.GetAsync(QueryHelpers.AddQueryString("/payments/vnpay/return", tampered!));
         Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
         Assert.False(await db.Payments.AnyAsync(p => p.OrderId == order.Id));
         // Even a correctly signed receipt cannot underpay by a whole dong.
-        var underpaid = new Dictionary<string,string>(data);
+        var underpaid = new Dictionary<string, string>(data);
         underpaid.Remove("vnp_SecureHash");
         underpaid["vnp_Amount"] = ((quoted - 1) * 100).ToString("0", CultureInfo.InvariantCulture);
         Sign(underpaid);
@@ -110,10 +122,10 @@ public sealed class VnpayLocalReturnTests(CheckoutTestFactory factory) : IClassF
             Assert.Equal(CheckoutCode.AlreadyEnrolled, (await service.CreateOrderAsync(student.Id, course.Id)).Code);
         }
     }
-    private static void Sign(Dictionary<string,string> data)
+    private static void Sign(Dictionary<string, string> data)
     {
         var canonical = string.Join("&", data.OrderBy(p => p.Key, StringComparer.Ordinal)
             .Select(p => $"{WebUtility.UrlEncode(p.Key)}={WebUtility.UrlEncode(p.Value)}"));
-        data["vnp_SecureHash"] = Convert.ToHexStringLower(HMACSHA512.HashData(Encoding.UTF8.GetBytes(TestKey),Encoding.UTF8.GetBytes(canonical)));
+        data["vnp_SecureHash"] = Convert.ToHexStringLower(HMACSHA512.HashData(Encoding.UTF8.GetBytes(TestKey), Encoding.UTF8.GetBytes(canonical)));
     }
 }

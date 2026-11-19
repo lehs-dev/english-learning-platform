@@ -285,7 +285,8 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
                 expected.Add(title);
                 db.Practices.Add(new Practice
                 {
-                    OwnerTeacherUserId = data.Teacher.Id, Title = title,
+                    OwnerTeacherUserId = data.Teacher.Id,
+                    Title = title,
                     CreatedAtUtc = CreatedAt.AddMinutes(index)
                 });
             }
@@ -650,8 +651,11 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
     private static string FilterPath(string search, PracticeStatus status, Guid courseId, int page, int size) =>
         QueryHelpers.AddQueryString(IndexPath, new Dictionary<string, string?>
         {
-            ["Search"] = search, ["Status"] = status.ToString(), ["CourseId"] = courseId.ToString(),
-            ["PageNumber"] = page.ToString(), ["PageSize"] = size.ToString()
+            ["Search"] = search,
+            ["Status"] = status.ToString(),
+            ["CourseId"] = courseId.ToString(),
+            ["PageNumber"] = page.ToString(),
+            ["PageSize"] = size.ToString()
         });
 
     private static void AssertFilters(string href, string search, PracticeStatus status, Guid courseId, int page, int size)
@@ -739,12 +743,17 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
         var module = new Module { CourseId = course.Id, Title = prefix + "_MODULE", OrderIndex = 0 };
         var lesson = new Lesson
         {
-            ModuleId = module.Id, Title = prefix + "_LESSON", OrderIndex = 0, Status = LessonStatus.Published
+            ModuleId = module.Id,
+            Title = prefix + "_LESSON",
+            OrderIndex = 0,
+            Status = LessonStatus.Published
         };
         lesson.Resources.Add(new LessonResource
         {
-            ResourceType = LessonResourceType.Text, Title = "Text resource",
-            ContentText = "Lesson content", OrderIndex = 0
+            ResourceType = LessonResourceType.Text,
+            Title = "Text resource",
+            ContentText = "Lesson content",
+            OrderIndex = 0
         });
         module.Lessons.Add(lesson);
         course.Modules.Add(module);
@@ -760,20 +769,28 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var practice = new Practice
         {
-            OwnerTeacherUserId = teacherId, Title = title, Status = status,
-            LessonId = lessonId, ModuleId = moduleId, CreatedAtUtc = createdAt ?? CreatedAt
+            OwnerTeacherUserId = teacherId,
+            Title = title,
+            Status = status,
+            LessonId = lessonId,
+            ModuleId = moduleId,
+            CreatedAtUtc = createdAt ?? CreatedAt
         };
         for (int index = 0; index < questionCount; index++)
         {
             var question = new Question
             {
-                OwnerTeacherUserId = teacherId, Content = "QUESTION_PRIVATE_CONTENT " + index,
-                Explanation = "QUESTION_PRIVATE_EXPLANATION", PrimarySkill = EnglishSkill.Grammar,
+                OwnerTeacherUserId = teacherId,
+                Content = "QUESTION_PRIVATE_CONTENT " + index,
+                Explanation = "QUESTION_PRIVATE_EXPLANATION",
+                PrimarySkill = EnglishSkill.Grammar,
                 Status = QuestionStatus.Published
             };
             question.Options.Add(new QuestionOption
             {
-                Content = "QUESTION_PRIVATE_CORRECT_OPTION", IsCorrect = true, OrderIndex = 0
+                Content = "QUESTION_PRIVATE_CORRECT_OPTION",
+                IsCorrect = true,
+                OrderIndex = 0
             });
             question.Options.Add(new QuestionOption { Content = "Incorrect option", IsCorrect = false, OrderIndex = 1 });
             practice.Questions.Add(new PracticeQuestion { Question = question, OrderIndex = index });

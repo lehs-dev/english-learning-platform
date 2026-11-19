@@ -10,7 +10,8 @@ public sealed class PracticeConfiguration : IEntityTypeConfiguration<Practice>
     public void Configure(EntityTypeBuilder<Practice> e)
     {
         e.Property(x => x.Version).HasDefaultValue(1);
-        e.ToTable("Practices", table => {
+        e.ToTable("Practices", table =>
+        {
             table.HasCheckConstraint(
             "CK_Practices_Parent",
             "([LessonId] IS NULL OR [ModuleId] IS NULL) AND " +

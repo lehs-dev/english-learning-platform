@@ -31,7 +31,7 @@ public interface IQuestionUsageValidator
         Guid ownerTeacherUserId,
         Question? question,
         EnglishSkill? targetSkill = null);
-            // Kiểm tra câu hỏi đã được gắn vào Practice/Assessment có sẵn.
+    // Kiểm tra câu hỏi đã được gắn vào Practice/Assessment có sẵn.
     // Vẫn kiểm tra ownership, MCQ, skill và Stimulus.
     // Không từ chối chỉ vì câu hỏi đã chuyển sang Archived.
     //

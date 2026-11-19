@@ -25,7 +25,14 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
             .Where(a => a.Id == assessmentId && a.Status == AssessmentStatus.Published)
             .Select(a => new
             {
-                a.Id, a.CourseId, a.Title, a.Description, a.DurationMinutes, a.MaxAttempts, a.PassingScore, a.Status,
+                a.Id,
+                a.CourseId,
+                a.Title,
+                a.Description,
+                a.DurationMinutes,
+                a.MaxAttempts,
+                a.PassingScore,
+                a.Status,
                 QuestionCount = a.Questions.Count,
                 CourseStatus = a.CourseId.HasValue ? (CourseStatus?)a.Course!.Status : null,
                 OwnerAvailable = db.Users.Any(u => u.Id == a.OwnerTeacherUserId && u.AccountStatus != AccountStatus.Disabled)
@@ -38,8 +45,17 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
         var attempts = await db.Attempts.AsNoTracking()
             .Where(a => a.StudentUserId == studentId && a.AssessmentId == assessmentId)
             .OrderByDescending(a => a.StartedAtUtc).ThenBy(a => a.Id)
-            .Select(a => new { a.Id, a.Status, a.OverallScore, a.DeadlineUtc, a.StartedAtUtc,
-                a.FinalizedAtUtc, a.FinalizationReason, a.Passed })
+            .Select(a => new
+            {
+                a.Id,
+                a.Status,
+                a.OverallScore,
+                a.DeadlineUtc,
+                a.StartedAtUtc,
+                a.FinalizedAtUtc,
+                a.FinalizationReason,
+                a.Passed
+            })
             .ToListAsync(ct);
         var now = timeProvider.GetUtcNow();
         var active = attempts.SingleOrDefault(a => a.Status == AttemptStatus.InProgress && a.DeadlineUtc > now);
@@ -90,9 +106,17 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
             .OrderByDescending(a => a.StartedAtUtc).ThenByDescending(a => a.Id)
             .Select(a => new
             {
-                a.AssessmentId, a.Assessment.Title, AssessmentStatus = a.Assessment.Status,
-                a.Id, a.Status, a.StartedAtUtc, a.DeadlineUtc,
-                a.FinalizedAtUtc, a.FinalizationReason, a.OverallScore, a.Passed
+                a.AssessmentId,
+                a.Assessment.Title,
+                AssessmentStatus = a.Assessment.Status,
+                a.Id,
+                a.Status,
+                a.StartedAtUtc,
+                a.DeadlineUtc,
+                a.FinalizedAtUtc,
+                a.FinalizationReason,
+                a.OverallScore,
+                a.Passed
             }).ToListAsync(ct);
 
         var history = new List<AssessmentHistoryView>();
@@ -198,7 +222,9 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
                 s.QuestionCount >= SkillAnalysisRules.MinimumQuestionCount)
             .Select(s => new
             {
-                s.Skill, s.Score, s.QuestionCount,
+                s.Skill,
+                s.Score,
+                s.QuestionCount,
                 DistinctCount = s.Attempt.Assessment.Questions
                     .Where(q => q.Question.PrimarySkill == s.Skill)
                     .Select(q => q.QuestionId).Distinct().Count(),

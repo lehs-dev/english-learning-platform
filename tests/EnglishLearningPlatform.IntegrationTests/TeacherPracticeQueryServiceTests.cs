@@ -406,8 +406,10 @@ public sealed class TeacherPracticeQueryServiceTests : IClassFixture<Integration
         var result = Allowed(await SearchAsync(data.TeacherId,
             new TeacherPracticeSearchRequest
             {
-                Search = " Grammar ", Status = PracticeStatus.Draft,
-                CourseId = data.Course.CourseId, PageSize = 1
+                Search = " Grammar ",
+                Status = PracticeStatus.Draft,
+                CourseId = data.Course.CourseId,
+                PageSize = 1
             }));
 
         Assert.Equal(1, result.TotalCount);
@@ -424,7 +426,8 @@ public sealed class TeacherPracticeQueryServiceTests : IClassFixture<Integration
         {
             practices.Add(new Practice
             {
-                OwnerTeacherUserId = data.TeacherId, Title = "Draft " + index,
+                OwnerTeacherUserId = data.TeacherId,
+                Title = "Draft " + index,
                 CreatedAtUtc = CreatedAt.AddMinutes(index)
             });
         }
@@ -520,7 +523,8 @@ public sealed class TeacherPracticeQueryServiceTests : IClassFixture<Integration
         var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
             SearchAsync(teacher.Id, new TeacherPracticeSearchRequest
             {
-                PageNumber = pageNumber, PageSize = pageSize
+                PageNumber = pageNumber,
+                PageSize = pageSize
             }));
 
         Assert.Equal(expectedField, exception.ParamName);
@@ -578,7 +582,10 @@ public sealed class TeacherPracticeQueryServiceTests : IClassFixture<Integration
 
         var outcome = await SearchAsync(user.Id, new TeacherPracticeSearchRequest
         {
-            PageNumber = 0, PageSize = 101, Status = (PracticeStatus)999, CourseId = Guid.Empty
+            PageNumber = 0,
+            PageSize = 101,
+            Status = (PracticeStatus)999,
+            CourseId = Guid.Empty
         });
 
         Denied(outcome);
@@ -716,16 +723,22 @@ public sealed class TeacherPracticeQueryServiceTests : IClassFixture<Integration
     {
         var course = new Course
         {
-            OwnerTeacherUserId = ownerId, Title = prefix + " Course", Status = CourseStatus.Published
+            OwnerTeacherUserId = ownerId,
+            Title = prefix + " Course",
+            Status = CourseStatus.Published
         };
         var module = new Module
         {
-            CourseId = course.Id, Title = prefix + " Module", OrderIndex = 0,
+            CourseId = course.Id,
+            Title = prefix + " Module",
+            OrderIndex = 0,
             Visibility = ModuleVisibility.Visible
         };
         var lesson = new Lesson
         {
-            ModuleId = module.Id, Title = prefix + " Lesson", OrderIndex = 0,
+            ModuleId = module.Id,
+            Title = prefix + " Lesson",
+            OrderIndex = 0,
             Status = LessonStatus.Published
         };
         module.Lessons.Add(lesson);
@@ -742,16 +755,22 @@ public sealed class TeacherPracticeQueryServiceTests : IClassFixture<Integration
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var practice = new Practice
         {
-            Id = practiceId ?? Guid.NewGuid(), OwnerTeacherUserId = ownerId,
-            Title = title, ModuleId = moduleId, LessonId = lessonId,
-            Status = status, CreatedAtUtc = createdAt ?? CreatedAt
+            Id = practiceId ?? Guid.NewGuid(),
+            OwnerTeacherUserId = ownerId,
+            Title = title,
+            ModuleId = moduleId,
+            LessonId = lessonId,
+            Status = status,
+            CreatedAtUtc = createdAt ?? CreatedAt
         };
         for (int index = 0; index < questionCount; index++)
         {
             var question = new Question
             {
-                OwnerTeacherUserId = ownerId, Content = "Choose the correct answer " + index,
-                PrimarySkill = EnglishSkill.Grammar, Status = QuestionStatus.Published
+                OwnerTeacherUserId = ownerId,
+                Content = "Choose the correct answer " + index,
+                PrimarySkill = EnglishSkill.Grammar,
+                Status = QuestionStatus.Published
             };
             question.Options.Add(new QuestionOption { Content = "Correct", IsCorrect = true, OrderIndex = 0 });
             question.Options.Add(new QuestionOption { Content = "Incorrect", IsCorrect = false, OrderIndex = 1 });

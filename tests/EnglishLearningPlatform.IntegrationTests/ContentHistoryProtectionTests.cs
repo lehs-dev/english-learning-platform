@@ -79,14 +79,24 @@ public sealed class ContentHistoryProtectionTests(IntegrationTestFactory factory
         string token = await IdentityTestHelpers.GetTokenAsync(client, path);
         var original = new Dictionary<string, string>
         {
-            ["Content"] = "Original", ["PrimarySkill"] = ((int)EnglishSkill.Reading).ToString(),
-            ["StimulusId"] = data.StimulusId.ToString(), ["Explanation"] = "Original explanation",
-            ["Options[0].Content"] = "Correct", ["Options[1].Content"] = "Wrong", ["CorrectOptionIndex"] = "0",
+            ["Content"] = "Original",
+            ["PrimarySkill"] = ((int)EnglishSkill.Reading).ToString(),
+            ["StimulusId"] = data.StimulusId.ToString(),
+            ["Explanation"] = "Original explanation",
+            ["Options[0].Content"] = "Correct",
+            ["Options[1].Content"] = "Wrong",
+            ["CorrectOptionIndex"] = "0",
             ["__RequestVerificationToken"] = token
         };
         foreach (var forged in new Dictionary<string, string>
-        { ["Content"] = "Tampered", ["PrimarySkill"] = ((int)EnglishSkill.Grammar).ToString(),
-            ["StimulusId"] = "", ["Explanation"] = "Tampered explanation", ["Options[0].Content"] = "Tampered option", ["CorrectOptionIndex"] = "1" })
+        {
+            ["Content"] = "Tampered",
+            ["PrimarySkill"] = ((int)EnglishSkill.Grammar).ToString(),
+            ["StimulusId"] = "",
+            ["Explanation"] = "Tampered explanation",
+            ["Options[0].Content"] = "Tampered option",
+            ["CorrectOptionIndex"] = "1"
+        })
         {
             var fields = new Dictionary<string, string>(original) { [forged.Key] = forged.Value };
             using var rejected = await client.PostAsync(path, new FormUrlEncodedContent(fields));
@@ -101,9 +111,19 @@ public sealed class ContentHistoryProtectionTests(IntegrationTestFactory factory
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         return JsonSerializer.Serialize(await db.Questions.AsNoTracking().Where(q => q.OwnerTeacherUserId == teacherId).OrderBy(q => q.Id)
-            .Select(q => new { q.Id, q.Content, q.PrimarySkill, q.Explanation, q.StimulusId, q.ContentLockedAtUtc,
-                Passage = q.Stimulus!.ContentText, Audio = q.Stimulus.ResourceUrl, Lock = q.Stimulus.ContentLockedAtUtc,
-                Options = q.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex }).ToList() }).ToListAsync());
+            .Select(q => new
+            {
+                q.Id,
+                q.Content,
+                q.PrimarySkill,
+                q.Explanation,
+                q.StimulusId,
+                q.ContentLockedAtUtc,
+                Passage = q.Stimulus!.ContentText,
+                Audio = q.Stimulus.ResourceUrl,
+                Lock = q.Stimulus.ContentLockedAtUtc,
+                Options = q.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex }).ToList()
+            }).ToListAsync());
     }
 
     private async Task<Data> SeedAsync()
@@ -111,9 +131,15 @@ public sealed class ContentHistoryProtectionTests(IntegrationTestFactory factory
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var stimulus = new Stimulus { OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Passage, ContentText = "Original passage" };
         stimulus.LockContent(DateTimeOffset.UtcNow.AddDays(-1));
-        Question NewQuestion() => new() { OwnerTeacherUserId = teacher.Id, Content = "Original", PrimarySkill = EnglishSkill.Reading,
-            Explanation = "Original explanation", Stimulus = stimulus,
-            Options = new List<QuestionOption> { new() { Content = "Correct", IsCorrect = true }, new() { Content = "Wrong", OrderIndex = 1 } } };
+        Question NewQuestion() => new()
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Content = "Original",
+            PrimarySkill = EnglishSkill.Reading,
+            Explanation = "Original explanation",
+            Stimulus = stimulus,
+            Options = new List<QuestionOption> { new() { Content = "Correct", IsCorrect = true }, new() { Content = "Wrong", OrderIndex = 1 } }
+        };
         var locked = NewQuestion(); locked.LockContent(DateTimeOffset.UtcNow.AddDays(-1));
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

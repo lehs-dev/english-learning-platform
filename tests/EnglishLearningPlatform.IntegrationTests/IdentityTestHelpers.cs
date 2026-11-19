@@ -42,8 +42,10 @@ internal static class IdentityTestHelpers
         var token = await GetTokenAsync(client, "/Account/Login");
         return await client.PostAsync("/Account/Login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["Email"] = user.Email!, ["Password"] = password,
-            ["RememberMe"] = "false", ["ReturnUrl"] = returnUrl ?? string.Empty,
+            ["Email"] = user.Email!,
+            ["Password"] = password,
+            ["RememberMe"] = "false",
+            ["ReturnUrl"] = returnUrl ?? string.Empty,
             ["__RequestVerificationToken"] = token
         }));
     }

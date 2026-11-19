@@ -5,6 +5,7 @@ using EnglishLearningPlatform.Web.Models.Courses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace EnglishLearningPlatform.Web.Controllers;
+
 public sealed class CoursesController(ICourseCatalogService courses, IStudentLearningCourseService learning) : Controller
 {
     private Guid? UserId => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;

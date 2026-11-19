@@ -30,9 +30,13 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var request = new CreateStimulusRequest { StimulusType = type, Title = "  New resource  ",
+        var request = new CreateStimulusRequest
+        {
+            StimulusType = type,
+            Title = "  New resource  ",
             ContentText = type == StimulusType.Passage ? "  Reading passage  " : null,
-            ResourceUrl = type == StimulusType.Audio ? "  https://example.test/audio.mp3  " : null };
+            ResourceUrl = type == StimulusType.Audio ? "  https://example.test/audio.mp3  " : null
+        };
 
         var result = await scope.ServiceProvider.GetRequiredService<IStimulusCreationService>()
             .CreateAsync(teacher.Id, request);
@@ -122,11 +126,17 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         Assert.Equal(before, await db.Stimuli.CountAsync()); // Hai GET không được tạo dữ liệu.
         string title = "HTTP passage " + Guid.NewGuid().ToString("N");
         Guid forgedId = Guid.NewGuid();
-        var fields = new Dictionary<string, string> {
-            ["StimulusType"] = "1", ["Title"] = title, ["ContentText"] = "A reading passage.",
-            ["OwnerTeacherUserId"] = other.Id.ToString(), ["actorUserId"] = other.Id.ToString(),
-            ["Id"] = forgedId.ToString(), ["ContentLockedAtUtc"] = "2020-01-01T00:00:00Z",
-            ["__RequestVerificationToken"] = token };
+        var fields = new Dictionary<string, string>
+        {
+            ["StimulusType"] = "1",
+            ["Title"] = title,
+            ["ContentText"] = "A reading passage.",
+            ["OwnerTeacherUserId"] = other.Id.ToString(),
+            ["actorUserId"] = other.Id.ToString(),
+            ["Id"] = forgedId.ToString(),
+            ["ContentLockedAtUtc"] = "2020-01-01T00:00:00Z",
+            ["__RequestVerificationToken"] = token
+        };
 
         using var post = await client.PostAsync(CreatePath, new FormUrlEncodedContent(fields));
 
@@ -158,8 +168,13 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         int before = await db.Stimuli.CountAsync();
         const string title = "<script>alert('title')</script>";
         using var response = await client.PostAsync(CreatePath, new FormUrlEncodedContent(
-            new Dictionary<string, string> { ["StimulusType"] = type, ["Title"] = title,
-                ["ResourceUrl"] = url, ["__RequestVerificationToken"] = token }));
+            new Dictionary<string, string>
+            {
+                ["StimulusType"] = type,
+                ["Title"] = title,
+                ["ResourceUrl"] = url,
+                ["__RequestVerificationToken"] = token
+            }));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         string html = await response.Content.ReadAsStringAsync();
@@ -209,11 +224,12 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         // Teacher tạo ngữ liệu qua HTTP; server quyết định owner và Id.
         string token = await IdentityTestHelpers.GetTokenAsync(teacherClient, CreatePath);
         var stimulusFields = new Dictionary<string, string>
-            {
-                ["StimulusType"] = ((int)type).ToString(), ["Title"] = title,
-                ["ContentText"] = type == StimulusType.Passage ? media : "",
-                ["__RequestVerificationToken"] = token
-            };
+        {
+            ["StimulusType"] = ((int)type).ToString(),
+            ["Title"] = title,
+            ["ContentText"] = type == StimulusType.Passage ? media : "",
+            ["__RequestVerificationToken"] = token
+        };
         using var multipart = new MultipartFormDataContent();
         foreach (var field in stimulusFields) multipart.Add(new StringContent(field.Value), field.Key);
         if (type == StimulusType.Audio)
@@ -234,9 +250,13 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
             using var questionPost = await teacherClient.PostAsync("/TeacherQuestionBank/Create",
                 new FormUrlEncodedContent(new Dictionary<string, string>
                 {
-                    ["Content"] = content, ["PrimarySkill"] = ((int)skill).ToString(), ["Level"] = "A1",
-                    ["StimulusId"] = stimulusId.ToString(), ["Options[0].Content"] = "Choice A",
-                    ["Options[1].Content"] = "Choice B", ["CorrectOptionIndex"] = "0",
+                    ["Content"] = content,
+                    ["PrimarySkill"] = ((int)skill).ToString(),
+                    ["Level"] = "A1",
+                    ["StimulusId"] = stimulusId.ToString(),
+                    ["Options[0].Content"] = "Choice A",
+                    ["Options[1].Content"] = "Choice B",
+                    ["CorrectOptionIndex"] = "0",
                     ["__RequestVerificationToken"] = token
                 }));
             Assert.Equal(HttpStatusCode.Redirect, questionPost.StatusCode);
@@ -250,8 +270,10 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         var draft = await scope.ServiceProvider.GetRequiredService<ITeacherAssessmentDraftService>()
             .SaveDraftAsync(teacher.Id, null, new AssessmentDraftRequest
             {
-                Title = title, AssessmentType = AssessmentType.PracticeExam,
-                DurationMinutes = 30, MaxAttempts = 2
+                Title = title,
+                AssessmentType = AssessmentType.PracticeExam,
+                DurationMinutes = 30,
+                MaxAttempts = 2
             });
         Assert.True(draft.Success);
         var questionService = scope.ServiceProvider.GetRequiredService<ITeacherAssessmentQuestionService>();
@@ -354,29 +376,67 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
             new CreateStimulusRequest { StimulusType = StimulusType.Audio, AudioContent = audioBytes });
         Assert.True(created.Success);
         var stimulus = await db.Stimuli.SingleAsync(s => s.Id == created.Id);
-        var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Private audio course", Status = CourseStatus.Published,
-            IsPaid = true, Price = 1000m };
-        var assessment = new Assessment { OwnerTeacherUserId = teacher.Id, Course = course, Title = "Private listening", Status = AssessmentStatus.Published,
-            AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 15, MaxAttempts = 2 };
+        var course = new Course
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = "Private audio course",
+            Status = CourseStatus.Published,
+            IsPaid = true,
+            Price = 1000m
+        };
+        var assessment = new Assessment
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Course = course,
+            Title = "Private listening",
+            Status = AssessmentStatus.Published,
+            AssessmentType = AssessmentType.PracticeExam,
+            DurationMinutes = 15,
+            MaxAttempts = 2
+        };
         foreach (int i in Enumerable.Range(0, 5))
-            assessment.Questions.Add(new AssessmentQuestion { Points = 1m, OrderIndex = i, Question = new Question
-            { OwnerTeacherUserId = teacher.Id, Content = "Listen " + i, PrimarySkill = EnglishSkill.Listening, Stimulus = stimulus,
-                Options = new List<QuestionOption> { new() { Content = "A", IsCorrect = true }, new() { Content = "B", OrderIndex = 1 } } } });
+            assessment.Questions.Add(new AssessmentQuestion
+            {
+                Points = 1m,
+                OrderIndex = i,
+                Question = new Question
+                {
+                    OwnerTeacherUserId = teacher.Id,
+                    Content = "Listen " + i,
+                    PrimarySkill = EnglishSkill.Listening,
+                    Stimulus = stimulus,
+                    Options = new List<QuestionOption> { new() { Content = "A", IsCorrect = true }, new() { Content = "B", OrderIndex = 1 } }
+                }
+            });
         db.Assessments.Add(assessment);
         if (enrollment != "None")
         {
-            var payment = new Payment { Amount = 1000m, Provider = "TestOnly_Audio", ProviderTransactionId = Guid.NewGuid().ToString("N"),
+            var payment = new Payment
+            {
+                Amount = 1000m,
+                Provider = "TestOnly_Audio",
+                ProviderTransactionId = Guid.NewGuid().ToString("N"),
                 Status = Enum.Parse<PaymentStatus>(enrollment),
-                Order = new Order { Course = course, StudentUserId = student.Id, Amount = 1000m, Currency = "VND", Provider = "TestOnly_Audio" } };
+                Order = new Order { Course = course, StudentUserId = student.Id, Amount = 1000m, Currency = "VND", Provider = "TestOnly_Audio" }
+            };
             db.Enrollments.Add(new Enrollment { Course = course, StudentUserId = student.Id, Payment = payment });
         }
         await db.SaveChangesAsync();
         if (practiceHistory)
         {
             // Lịch sử Practice dùng chung audio cũng không được vượt qua Enrollment.
-            var practice = new Practice { OwnerTeacherUserId = teacher.Id, Title = "QA4 audio practice",
-                Status = PracticeStatus.Published, Lesson = new Lesson { Title = "Audio lesson", Status = LessonStatus.Published,
-                    Module = new Module { Title = "Audio module", Course = course } } };
+            var practice = new Practice
+            {
+                OwnerTeacherUserId = teacher.Id,
+                Title = "QA4 audio practice",
+                Status = PracticeStatus.Published,
+                Lesson = new Lesson
+                {
+                    Title = "Audio lesson",
+                    Status = LessonStatus.Published,
+                    Module = new Module { Title = "Audio module", Course = course }
+                }
+            };
             practice.Questions.Add(new PracticeQuestion { Question = assessment.Questions.First().Question });
             db.PracticeSubmissions.Add(new PracticeSubmission { Practice = practice, StudentUserId = student.Id, Score = 0m });
             await db.SaveChangesAsync();
@@ -420,17 +480,49 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var stimulus = new Stimulus { OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Audio,
-            ResourceUrl = "https://external.test/mutable.mp3" };
-        var assessment = new Assessment { OwnerTeacherUserId = teacher.Id, Title = "External audio draft",
-            AssessmentType = AssessmentType.PracticeExam, DurationMinutes = 20, MaxAttempts = 2 };
+        var stimulus = new Stimulus
+        {
+            OwnerTeacherUserId = teacher.Id,
+            StimulusType = StimulusType.Audio,
+            ResourceUrl = "https://external.test/mutable.mp3"
+        };
+        var assessment = new Assessment
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Title = "External audio draft",
+            AssessmentType = AssessmentType.PracticeExam,
+            DurationMinutes = 20,
+            MaxAttempts = 2
+        };
         foreach (int i in Enumerable.Range(0, 5))
-            assessment.Questions.Add(new AssessmentQuestion { Points = 1m, OrderIndex = i, Question = new Question
-            { OwnerTeacherUserId = teacher.Id, Content = "Listen " + i, PrimarySkill = EnglishSkill.Listening, Stimulus = stimulus,
-                Options = new List<QuestionOption> { new() { Content = "A", IsCorrect = true }, new() { Content = "B", OrderIndex = 1 } } } });
-        var lesson = new Lesson { Title = "Audio test lesson", Status = LessonStatus.Published,
-            Module = new Module { Title = "Module", Course = new Course { Title = "Audio test course",
-                OwnerTeacherUserId = teacher.Id, Status = CourseStatus.Published } } };
+            assessment.Questions.Add(new AssessmentQuestion
+            {
+                Points = 1m,
+                OrderIndex = i,
+                Question = new Question
+                {
+                    OwnerTeacherUserId = teacher.Id,
+                    Content = "Listen " + i,
+                    PrimarySkill = EnglishSkill.Listening,
+                    Stimulus = stimulus,
+                    Options = new List<QuestionOption> { new() { Content = "A", IsCorrect = true }, new() { Content = "B", OrderIndex = 1 } }
+                }
+            });
+        var lesson = new Lesson
+        {
+            Title = "Audio test lesson",
+            Status = LessonStatus.Published,
+            Module = new Module
+            {
+                Title = "Module",
+                Course = new Course
+                {
+                    Title = "Audio test course",
+                    OwnerTeacherUserId = teacher.Id,
+                    Status = CourseStatus.Published
+                }
+            }
+        };
         var practice = new Practice { OwnerTeacherUserId = teacher.Id, Title = "External audio practice", Lesson = lesson };
         practice.Questions.Add(new PracticeQuestion { Question = assessment.Questions.First().Question });
         db.Assessments.Add(assessment); db.Practices.Add(practice);
@@ -485,6 +577,10 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
     }
 
     // Mẫu hợp lệ dùng cho các test chỉ tập trung vào kiểm tra quyền.
-    private static CreateStimulusRequest ValidPassage() => new() {
-        StimulusType = StimulusType.Passage, Title = "Passage", ContentText = "Reading passage" };
+    private static CreateStimulusRequest ValidPassage() => new()
+    {
+        StimulusType = StimulusType.Passage,
+        Title = "Passage",
+        ContentText = "Reading passage"
+    };
 }

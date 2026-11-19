@@ -62,19 +62,19 @@ public sealed class SecurityConfigurationTests
     {
         var exceptions = new List<MethodInfo>();
         foreach (var controller in typeof(AccountController).Assembly.GetTypes().Where(t => typeof(ControllerBase).IsAssignableFrom(t)))
-        foreach (var action in controller.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-        {
-            var methods = action.GetCustomAttributes<HttpMethodAttribute>().SelectMany(a => a.HttpMethods);
-            if (!methods.Any(m => m is "POST" or "PUT" or "PATCH" or "DELETE")) continue;
-            if (action.IsDefined(typeof(IgnoreAntiforgeryTokenAttribute)))
+            foreach (var action in controller.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
-                exceptions.Add(action);
-                Assert.Equal(typeof(CheckoutController), controller);
-                Assert.Equal("/payments/webhook", action.GetCustomAttribute<HttpPostAttribute>()!.Template);
-                Assert.Equal(16384L, action.CustomAttributes.Single(a => a.AttributeType == typeof(RequestSizeLimitAttribute)).ConstructorArguments.Single().Value);
+                var methods = action.GetCustomAttributes<HttpMethodAttribute>().SelectMany(a => a.HttpMethods);
+                if (!methods.Any(m => m is "POST" or "PUT" or "PATCH" or "DELETE")) continue;
+                if (action.IsDefined(typeof(IgnoreAntiforgeryTokenAttribute)))
+                {
+                    exceptions.Add(action);
+                    Assert.Equal(typeof(CheckoutController), controller);
+                    Assert.Equal("/payments/webhook", action.GetCustomAttribute<HttpPostAttribute>()!.Template);
+                    Assert.Equal(16384L, action.CustomAttributes.Single(a => a.AttributeType == typeof(RequestSizeLimitAttribute)).ConstructorArguments.Single().Value);
+                }
+                else Assert.True(action.IsDefined(typeof(ValidateAntiForgeryTokenAttribute)), $"{controller.Name}.{action.Name} thiếu antiforgery.");
             }
-            else Assert.True(action.IsDefined(typeof(ValidateAntiForgeryTokenAttribute)), $"{controller.Name}.{action.Name} thiếu antiforgery.");
-        }
         Assert.Single(exceptions);
     }
 

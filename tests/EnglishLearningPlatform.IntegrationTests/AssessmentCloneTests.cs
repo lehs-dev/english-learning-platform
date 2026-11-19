@@ -104,9 +104,14 @@ public sealed class AssessmentCloneTests(IntegrationTestFactory factory) : IClas
 
         var q = first.Question;
         var edit = await scope.ServiceProvider.GetRequiredService<IQuestionAuthoringService>().UpdateAsync(data.Teacher.Id, q.Id,
-            new CreateQuestionRequest { Content = "Changed via clone", PrimarySkill = q.PrimarySkill,
-                Explanation = q.Explanation, StimulusId = q.StimulusId,
-                Options = q.Options.OrderBy(o => o.OrderIndex).Select(o => new QuestionOptionRequest(o.Content, o.IsCorrect)).ToArray() });
+            new CreateQuestionRequest
+            {
+                Content = "Changed via clone",
+                PrimarySkill = q.PrimarySkill,
+                Explanation = q.Explanation,
+                StimulusId = q.StimulusId,
+                Options = q.Options.OrderBy(o => o.OrderIndex).Select(o => new QuestionOptionRequest(o.Content, o.IsCorrect)).ToArray()
+            });
         Assert.False(edit.Succeeded);
         Assert.Contains(edit.Errors, e => e.Code == "locked");
         Assert.Equal(before, await SnapshotAsync(data.Id));
@@ -145,8 +150,12 @@ public sealed class AssessmentCloneTests(IntegrationTestFactory factory) : IClas
         string path = "/TeacherAssessmentClone/Create/" + data.Id;
         using var get = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.MethodNotAllowed, get.StatusCode);
-        var fields = new Dictionary<string, string> { ["expectedUpdatedAtUtc"] = data.Version.Value.ToString("O"),
-            ["OwnerTeacherUserId"] = other.Id.ToString(), ["Status"] = "Published" };
+        var fields = new Dictionary<string, string>
+        {
+            ["expectedUpdatedAtUtc"] = data.Version.Value.ToString("O"),
+            ["OwnerTeacherUserId"] = other.Id.ToString(),
+            ["Status"] = "Published"
+        };
         using var noToken = await client.PostAsync(path, new FormUrlEncodedContent(fields));
         Assert.Equal(HttpStatusCode.BadRequest, noToken.StatusCode);
         fields["__RequestVerificationToken"] = await IdentityTestHelpers.GetTokenAsync(client, "/TeacherAssessments/Edit");
@@ -192,13 +201,38 @@ public sealed class AssessmentCloneTests(IntegrationTestFactory factory) : IClas
         var a = await db.Assessments.AsNoTracking().Include(a => a.Questions).ThenInclude(q => q.Question).ThenInclude(q => q.Options)
             .Include(a => a.Attempts).ThenInclude(a => a.Answers).Include(a => a.Attempts).ThenInclude(a => a.SkillResults)
             .SingleAsync(a => a.Id == id);
-        return JsonSerializer.Serialize(new { a.Id, a.Title, a.Status, a.CourseId, a.DurationMinutes, a.MaxAttempts, a.PassingScore, a.UpdatedAtUtc,
-            Questions = a.Questions.OrderBy(q => q.OrderIndex).Select(q => new { q.Id, q.QuestionId, q.Points, q.OrderIndex,
-                q.Question.Content, q.Question.Explanation, q.Question.ContentLockedAtUtc,
-                Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex }) }),
-            Attempts = a.Attempts.OrderBy(a => a.Id).Select(a => new { a.Id, a.Status, a.OverallScore, a.Passed, a.DeadlineUtc,
+        return JsonSerializer.Serialize(new
+        {
+            a.Id,
+            a.Title,
+            a.Status,
+            a.CourseId,
+            a.DurationMinutes,
+            a.MaxAttempts,
+            a.PassingScore,
+            a.UpdatedAtUtc,
+            Questions = a.Questions.OrderBy(q => q.OrderIndex).Select(q => new
+            {
+                q.Id,
+                q.QuestionId,
+                q.Points,
+                q.OrderIndex,
+                q.Question.Content,
+                q.Question.Explanation,
+                q.Question.ContentLockedAtUtc,
+                Options = q.Question.Options.OrderBy(o => o.OrderIndex).Select(o => new { o.Id, o.Content, o.IsCorrect, o.OrderIndex })
+            }),
+            Attempts = a.Attempts.OrderBy(a => a.Id).Select(a => new
+            {
+                a.Id,
+                a.Status,
+                a.OverallScore,
+                a.Passed,
+                a.DeadlineUtc,
                 Answers = a.Answers.OrderBy(v => v.Id).Select(v => new { v.Id, v.SelectedOptionId }),
-                Results = a.SkillResults.OrderBy(v => v.Skill).Select(v => new { v.Skill, v.Score }) }) });
+                Results = a.SkillResults.OrderBy(v => v.Skill).Select(v => new { v.Skill, v.Score })
+            })
+        });
     }
 
     private async Task<Data> SeedAsync(AssessmentType type, AssessmentStatus status)
@@ -206,15 +240,30 @@ public sealed class AssessmentCloneTests(IntegrationTestFactory factory) : IClas
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Clone course", Status = CourseStatus.Published };
-        var a = new Assessment { OwnerTeacherUserId = teacher.Id, Course = course, Title = new string('a', 200),
-            Description = "Clone config", AssessmentType = type, Status = status, DurationMinutes = 20, MaxAttempts = 3,
+        var a = new Assessment
+        {
+            OwnerTeacherUserId = teacher.Id,
+            Course = course,
+            Title = new string('a', 200),
+            Description = "Clone config",
+            AssessmentType = type,
+            Status = status,
+            DurationMinutes = 20,
+            MaxAttempts = 3,
             TargetSkill = type == AssessmentType.SkillAssessment ? EnglishSkill.Grammar : null,
-            PassingScore = type == AssessmentType.PlacementTest ? null : 70m, UpdatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5) };
+            PassingScore = type == AssessmentType.PlacementTest ? null : 70m,
+            UpdatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5)
+        };
         foreach (int i in Enumerable.Range(0, 5))
         {
-            var q = new Question { OwnerTeacherUserId = teacher.Id, Content = "Clone question " + i,
-                PrimarySkill = EnglishSkill.Grammar, Explanation = "Original explanation",
-                Options = new List<QuestionOption> { new() { Content = "Correct", IsCorrect = true }, new() { Content = "Wrong", OrderIndex = 1 } } };
+            var q = new Question
+            {
+                OwnerTeacherUserId = teacher.Id,
+                Content = "Clone question " + i,
+                PrimarySkill = EnglishSkill.Grammar,
+                Explanation = "Original explanation",
+                Options = new List<QuestionOption> { new() { Content = "Correct", IsCorrect = true }, new() { Content = "Wrong", OrderIndex = 1 } }
+            };
             if (status != AssessmentStatus.Draft) q.LockContent(DateTimeOffset.UtcNow.AddDays(-1));
             a.Questions.Add(new AssessmentQuestion { Question = q, OrderIndex = i, Points = i + 1m });
         }
