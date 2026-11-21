@@ -1,31 +1,60 @@
 @model CourseSummary
 @{
-    var completed = Model.Progress?.CompletedAtUtc is not null;
-    var courseState = completed ? "Đã hoàn thành" : Model.Progress?.CompletedLessons > 0 ? "Đang học" : Model.IsPaid ? "Đã mua" : "Đã tham gia";
+    var inProgress = Model.Progress is { TotalLessons: > 0 } p && p.CompletedLessons < p.TotalLessons && (p.CompletedLessons > 0 || p.CompletedAtUtc is not null);
+    var finalPending = Model.Progress is { TotalLessons: > 0, CompletedAtUtc: null } pending && pending.CompletedLessons >= pending.TotalLessons;
+    var completed = Model.Progress?.CompletedAtUtc is not null && (Model.Progress.TotalLessons == 0 || Model.Progress.CompletedLessons >= Model.Progress.TotalLessons);
+    var notStarted = Model.Progress is null || (Model.Progress.CompletedLessons == 0 && Model.Progress.CompletedAtUtc is null);
+    
+    var courseState = inProgress ? "Đang học" : finalPending ? "Chờ đánh giá cuối khóa" : completed ? "Đã hoàn thành" : Model.IsPaid ? "Đã mua" : "Đã tham gia";
+    var stateBadgeClass = inProgress ? "pill-tag-orange" : finalPending ? "pill-tag-pink" : completed ? "pill-tag-mint" : "pill-tag-purple";
+    
+    var skill = Model.Skills.FirstOrDefault();
+    var coverTheme = skill switch
+    {
+        EnglishSkill.Listening => "listening",
+        EnglishSkill.Reading => "reading",
+        EnglishSkill.Grammar => "grammar",
+        _ => "vocabulary"
+    };
 }
 <article class="course-card enrolled-course-card" data-course-id="@Model.Id">
-    <partial name="_CourseCover" model="Model" />
+    <div class="enrolled-cover-compact cover-@coverTheme" aria-hidden="true">
+        <span class="cover-level-badge"><partial name="_UiText" model="Model.Level" /></span>
+        @if (Model.Skills.Count > 0)
+        {
+            <span class="enrolled-skill-label"><partial name="_UiText" model="skill" /></span>
+        }
+    </div>
     <div class="course-card-body">
         <div class="enrolled-course-state">
-            <span class="pill-tag @(completed ? "pill-tag-mint" : "pill-tag-purple")">@courseState</span>
+            <span class="pill-tag @stateBadgeClass">@courseState</span>
             @if (Model.Status != CourseStatus.Published)
             {
                 <span class="muted"><partial name="_UiText" model="Model.Status" /></span>
             }
         </div>
-        <h3><a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Id">@Model.Title</a></h3>
+        <h3 class="course-card-title"><a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Id">@Model.Title</a></h3>
         <p class="course-enrolled-meta">@Model.Teacher · @Model.LessonCount bài học</p>
         @if (Model.Progress is not null)
         {
             <partial name="_LearningProgress" model="Model.Progress" />
         }
         <div class="actions course-card-action">
-            <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Id">Vào học</a>
-            @if (Model.Progress is { ContinueLessonId: Guid } progress &&
-                 (progress.CompletedLessons > 0 || progress.CompletedAtUtc is not null) &&
-                 (progress.CompletedAtUtc is null || progress.CompletedLessons < progress.TotalLessons))
+            @if (completed)
             {
-                <a class="button" asp-controller="Learning" asp-action="Continue" asp-route-id="@Model.Id">@(Model.Status == CourseStatus.Archived ? "Xem bài học" : "Học tiếp") <span aria-hidden="true">→</span></a>
+                <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Id">Xem lại khóa học</a>
+            }
+            else if (inProgress || finalPending)
+            {
+                <a class="button" asp-controller="Learning" asp-action="Continue" asp-route-id="@Model.Id">@(finalPending ? "Làm bài thi cuối khóa →" : "Tiếp tục học →")</a>
+            }
+            else if (Model.LessonCount > 0)
+            {
+                <a class="button" asp-controller="Learning" asp-action="Continue" asp-route-id="@Model.Id">Bắt đầu học &rarr;</a>
+            }
+            else
+            {
+                <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.Id">Xem khóa học</a>
             }
         </div>
     </div>

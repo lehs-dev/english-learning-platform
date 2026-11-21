@@ -81,7 +81,7 @@ public sealed class RoleLayoutIsolationTests(IntegrationTestFactory factory) : I
 
         // Must contain Student workspace navigation items
         Assert.Contains("/Learning/Dashboard", html);
-        Assert.Contains("<span>Trang chủ</span>", html);
+        Assert.Contains("<span>Hôm nay</span>", html);
         Assert.True(
             html.Contains("/Learning") || html.Contains("Khóa học"),
             "Student workspace must link to Learning courses.");

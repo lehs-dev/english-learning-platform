@@ -176,8 +176,10 @@ async function practicePath(page, title) {
 }
 async function chooseFirstOptions(page) {
   const questions = page.locator('[data-practice-question]');
-  for (let i = 0; i < await questions.count(); i++)
+  for (let i = 0; i < await questions.count(); i++) {
+    await page.locator(`[data-practice-link="${i + 1}"]`).click();
     await questions.nth(i).locator('label.exam-option-card').first().click();
+  }
 }
 async function submitPractice(page) {
   await navigate(page, page.getByRole('button', { name: 'Nộp bài & Xem giải thích', exact: true }));

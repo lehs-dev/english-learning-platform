@@ -20,8 +20,7 @@ public sealed class CoursesController(ICourseCatalogService courses, IStudentLea
             if (enrolled.Access != LearningAccessResult.Allowed) return Forbid();
             var discovery = await courses.CatalogAsync(query, ct, enrolled.Value!.Select(course => course.Id).ToArray());
             ModelState.Clear();
-            return View("~/Views/Learning/Index.cshtml",
-                new StudentCoursesPage(enrolled.Value!, discovery));
+            return View("StudentDiscover", discovery);
         }
         var result = await courses.CatalogAsync(query, ct);
         ModelState.Clear();

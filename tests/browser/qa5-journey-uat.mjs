@@ -249,8 +249,11 @@ try {
       await student.goto(`/Practice/Take/${evidence.practiceId}`);
       assert.equal(await student.locator('[data-practice-question]').count(), 5);
       await playAudio(student);
-      for (let i = 0; i < 5; i++) await student.locator('[data-practice-question]').nth(i).locator('.exam-option-card')
-        .filter({ hasText: i < correctCount ? right[i] : wrong[i] }).first().click();
+      for (let i = 0; i < 5; i++) {
+        await student.locator(`[data-practice-link="${i + 1}"]`).click();
+        await student.locator('[data-practice-question]').nth(i).locator('.exam-option-card')
+          .filter({ hasText: i < correctCount ? right[i] : wrong[i] }).first().click();
+      }
       if (correctCount === 3) await responsive(student, 'practice-taking');
       await navigateSubmit(student, student.getByRole('button', { name: 'Nộp bài & Xem giải thích', exact: true }));
       assert.equal((await student.locator('.assessment-score').innerText()).replace(/\s/g, ''), `${correctCount * 20}/100`);

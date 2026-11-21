@@ -18,7 +18,14 @@
             <div class="account-summary"><strong>@Model.FullName</strong><span>@Model.RoleLabel</span></div>
             @if (User.IsInRole("Student"))
             {
-                <a class="dropdown-item" asp-controller="Learning" asp-action="Dashboard">Tiến độ học tập</a>
+                <a class="dropdown-item" asp-controller="Learning" asp-action="Progress">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+                    Tiến độ &amp; kết quả
+                </a>
+                <a class="dropdown-item" asp-controller="Checkout" asp-action="History">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#history")"></use></svg>
+                    Lịch sử giao dịch
+                </a>
             }
             <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>

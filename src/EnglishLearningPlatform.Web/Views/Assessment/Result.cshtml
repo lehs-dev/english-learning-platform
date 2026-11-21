@@ -4,6 +4,24 @@
     ViewData["Title"] = "Kết quả: " + Model.AssessmentTitle;
     ViewData["ActiveSection"] = "assessment";
 }
+@section Breadcrumbs {
+    <nav class="studio-breadcrumbs" aria-label="Đường dẫn điều hướng">
+        <ol class="breadcrumb-list">
+            @if (Model.CourseId is Guid cid)
+            {
+                <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Index">Khóa học của tôi</a></li>
+                <li class="breadcrumb-separator" aria-hidden="true">/</li>
+                <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Course" asp-route-id="@cid">Về khóa học</a></li>
+            }
+            else
+            {
+                <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Progress">Tiến độ &amp; kết quả</a></li>
+            }
+            <li class="breadcrumb-separator" aria-hidden="true">/</li>
+            <li class="breadcrumb-item" aria-current="page">Kết quả đánh giá</li>
+        </ol>
+    </nav>
+}
 @section Styles {
     <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
 }

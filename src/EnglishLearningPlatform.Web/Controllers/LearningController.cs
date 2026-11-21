@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Flashcards;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.LearningPath;
 using EnglishLearningPlatform.Application.Gamification;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Web.Models.Courses;
@@ -13,7 +15,8 @@ namespace EnglishLearningPlatform.Web.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class LearningController(IStudentLearningCourseService courses, IAssessmentQueryService assessments,
     IStudentLearningService learning, ICourseAuthoringService authoring, ICourseCatalogService catalog,
-    IGamificationService? gamification = null) : Controller
+    IGamificationService? gamification = null, IFlashcardService? flashcards = null,
+    ILearningPathService? learningPath = null) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -24,6 +27,22 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         if (gamification is not null)
             ViewData["Gamification"] = (await gamification.GetSummaryAsync(UserId, ct)).Value;
+        if (flashcards is not null)
+        {
+            var deckOutcome = await flashcards.GetDecksAsync(UserId, ct);
+            if (deckOutcome.Access == LearningAccessResult.Allowed && deckOutcome.Value is { } decks)
+            {
+                ViewData["DueDecks"] = decks.Where(d => d.DueCount > 0).ToList();
+            }
+        }
+        if (learningPath is not null)
+        {
+            var planOutcome = await learningPath.GetActivePlanAsync(UserId, ct);
+            if (planOutcome.Access == LearningAccessResult.Allowed && planOutcome.Value is { } lpPage)
+            {
+                ViewData["LearningPathPage"] = lpPage;
+            }
+        }
         if (result.Value!.Courses.Count == 0)
             ViewData["SuggestedCourses"] = (await catalog.CatalogAsync(new CatalogQuery(), ct)).Courses.Take(3).ToArray();
         return View(result.Value);
@@ -43,22 +62,29 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
             : RedirectToAction(nameof(Course), new { id });
     }
     [HttpGet]
-    public async Task<IActionResult> Index(CatalogQuery query, CancellationToken ct)
+    public async Task<IActionResult> Index(string? status, string? search, CatalogQuery query, CancellationToken ct)
     {
         if (User.IsInRole(AppRoles.Teacher)) return RedirectToAction("Index", "TeacherCourses");
         var result = await courses.MyCoursesAsync(UserId, false, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         if (!ModelState.IsValid) ViewData["QueryNotice"] = "Một số bộ lọc không hợp lệ đã được bỏ qua.";
         var enrolled = result.Value!;
+        var effectiveSearch = !string.IsNullOrWhiteSpace(search) ? search : query.Search;
         var catalogPage = await catalog.CatalogAsync(query, ct, enrolled.Select(course => course.Id).ToArray());
         ModelState.Clear();
-        return View(new StudentCoursesPage(enrolled, catalogPage));
+        return View(new StudentCoursesPage(enrolled, catalogPage, status, effectiveSearch));
     }
     [HttpGet]
-    public async Task<IActionResult> Course(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Course(Guid id, string? tab, CancellationToken ct)
     {
         var result = await courses.OpenCourseAsync(UserId, id, false, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        ViewData["ActiveTab"] = tab?.ToLowerInvariant() switch
+        {
+            "practice" or "ontap" => "practice",
+            "assessment" or "danhgia" => "assessment",
+            _ => "lessons"
+        };
         if (User.IsInRole(AppRoles.Student) && result.Value!.FinalAssessmentId is Guid assessmentId)
             ViewData["FinalAssessment"] = await assessments.GetAssessmentOverviewAsync(UserId, assessmentId, ct);
         if (User.IsInRole(AppRoles.Student))
@@ -66,8 +92,45 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
             var activities = await learning.ActivitiesAsync(UserId, id, ct);
             if (activities.Access != LearningAccessResult.Allowed) return Denied(activities.Access);
             ViewData["Activities"] = activities.Value;
+            if (flashcards is not null)
+            {
+                var deckOutcome = await flashcards.GetDecksAsync(UserId, ct);
+                if (deckOutcome.Access == LearningAccessResult.Allowed && deckOutcome.Value is { } decks)
+                {
+                    ViewData["CourseFlashcardDecks"] = decks.Where(d => d.CourseId == id).ToList();
+                }
+            }
         }
         return View(result.Value);
+    }
+    [HttpGet, Authorize(Policy = AuthorizationPolicies.Student)]
+    public async Task<IActionResult> Progress(string? tab, CancellationToken ct)
+    {
+        var enrolledResult = await courses.MyCoursesAsync(UserId, false, ct);
+        if (enrolledResult.Access != LearningAccessResult.Allowed) return Denied(enrolledResult.Access);
+        var representative = await learning.GetRepresentativeResultsAsync(UserId, ct);
+        var assessmentsResult = await learning.AssessmentsAsync(UserId, ct);
+        var dashboardResult = await learning.DashboardAsync(UserId, ct);
+        GamificationSummary? gamificationSummary = null;
+        if (gamification is not null)
+            gamificationSummary = (await gamification.GetSummaryAsync(UserId, ct)).Value;
+
+        var activeTab = tab?.ToLowerInvariant() switch
+        {
+            "assessments" or "exams" => "assessments",
+            "achievements" or "gamification" => "achievements",
+            _ => "overview"
+        };
+
+        var model = new StudentProgressPage(
+            enrolledResult.Value ?? [],
+            representative.Value ?? [],
+            assessmentsResult.Value ?? [],
+            gamificationSummary,
+            dashboardResult.Value?.Recommendations ?? [],
+            activeTab
+        );
+        return View(model);
     }
     [HttpGet]
     public async Task<IActionResult> Module(Guid id, CancellationToken ct)

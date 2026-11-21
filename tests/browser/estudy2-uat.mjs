@@ -162,7 +162,10 @@ try {
             assert.notEqual(await student.locator('#practice-passages').getAttribute('open'), null);
             await captureMobile(student, 'practice-reading-390');
         }
-        for (const [index, definition] of definitions.entries()) await answer(questions.nth(index), definition);
+        for (const [index, definition] of definitions.entries()) {
+            await student.locator(`[data-practice-link="${index + 1}"]`).click();
+            await answer(questions.nth(index), definition);
+        }
         await submit(student, student.locator('.exam-submit-btn'));
         assert.match(pathname(student), /\/Practice\/Result\//);
         assert.equal((await student.locator('.assessment-score').innerText()).replace(/\s/g, ''), '100/100');

@@ -1,0 +1,412 @@
+@using EnglishLearningPlatform.Application.Learning
+@using EnglishLearningPlatform.Domain.Enums
+@model EnglishLearningPlatform.Web.Models.Courses.StudentProgressPage
+@{
+    ViewData["Title"] = "Tiến độ & kết quả";
+    ViewData["ActiveSection"] = "progress";
+}
+
+@section Breadcrumbs {
+    <nav class="studio-breadcrumbs" aria-label="Đường dẫn điều hướng">
+        <ol class="breadcrumb-list">
+            <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Dashboard">Hôm nay</a></li>
+            <li class="breadcrumb-separator" aria-hidden="true">/</li>
+            <li class="breadcrumb-item" aria-current="page">Tiến độ &amp; kết quả</li>
+        </ol>
+    </nav>
+}
+
+<div class="progress-hub-layout">
+    <header class="progress-page-header">
+        <div class="progress-header-info">
+            <span class="v2-pill-tag">Báo cáo học tập</span>
+            <h1 class="progress-page-title">Tiến độ &amp; kết quả học tập</h1>
+            <p class="progress-page-subtext">Theo dõi quá trình hoàn thành khóa học, năng lực ngôn ngữ và thành tích cá nhân.</p>
+        </div>
+
+        <div class="progress-header-stats">
+            <div class="progress-stat-chip">
+                <span class="stat-number">@Model.EnrolledCourses.Count</span>
+                <span class="stat-label">Khóa đã ghi danh</span>
+            </div>
+            <div class="progress-stat-chip">
+                <span class="stat-number">@(Model.Gamification?.TotalXp ?? 0)</span>
+                <span class="stat-label">Tổng XP</span>
+            </div>
+            <div class="progress-stat-chip">
+                <span class="stat-number">@(Model.Gamification?.CurrentStreak ?? 0) 🔥</span>
+                <span class="stat-label">Chuỗi ngày học</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sub-navigation Tabs -->
+    <nav class="course-subnav-tabs" aria-label="Phân mục tiến độ">
+        <a class="subnav-tab-item @(Model.ActiveTab == "overview" ? "is-active" : "")"
+           asp-action="Progress" asp-route-tab="overview">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+            <span>Tổng quan</span>
+        </a>
+        <a class="subnav-tab-item @(Model.ActiveTab == "assessments" ? "is-active" : "")"
+           asp-action="Progress" asp-route-tab="assessments">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+            <span>Kết quả đánh giá</span>
+        </a>
+        <a class="subnav-tab-item @(Model.ActiveTab == "achievements" ? "is-active" : "")"
+           asp-action="Progress" asp-route-tab="achievements">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#award")"></use></svg>
+            <span>Thành tích &amp; XP</span>
+        </a>
+    </nav>
+
+    <!-- TAB 1: OVERVIEW -->
+    @if (Model.ActiveTab == "overview")
+    {
+        <div class="progress-tab-pane">
+            <!-- Enrolled Courses Progress -->
+            <section class="progress-section card-v2" aria-labelledby="heading-enrolled-progress">
+                <div class="progress-section-header">
+                    <div>
+                        <h2 id="heading-enrolled-progress" class="section-title">Tiến độ khóa học</h2>
+                        <p class="section-subtitle">Tình trạng hoàn thành các khóa học bạn đang theo học.</p>
+                    </div>
+                    <a class="button secondary button-sm" asp-action="Index">Quản lý khóa học &rarr;</a>
+                </div>
+
+                @if (Model.EnrolledCourses.Count == 0)
+                {
+                    <div class="courses-empty-state">
+                        <svg class="empty-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                        <h3>Bạn chưa ghi danh khóa học nào</h3>
+                        <p>Khám phá các khóa học phù hợp với trình độ để bắt đầu lộ trình học tập.</p>
+                        <a class="button button-sm" asp-controller="Courses" asp-action="Index">Khám phá khóa học &rarr;</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="progress-courses-list">
+                        @foreach (var course in Model.EnrolledCourses)
+                        {
+                            var completed = course.Progress?.CompletedAtUtc is not null;
+                            var completedLessons = course.Progress?.CompletedLessons ?? 0;
+                            var totalLessons = course.Progress?.TotalLessons ?? course.LessonCount;
+                            var percentage = course.Progress?.Percentage ?? (totalLessons > 0 ? Math.Round((decimal)completedLessons * 100 / totalLessons, 0) : 0);
+                            <div class="progress-course-item">
+                                <div class="course-meta-info">
+                                    <div class="course-meta-badges">
+                                        <span class="v2-pill-tag"><partial name="_UiText" model="course.Level" /></span>
+                                        @if (course.Skills.Count > 0)
+                                        {
+                                            <span class="v2-pill-tag badge-subtle"><partial name="_UiText" model="course.Skills.First()" /></span>
+                                        }
+                                        @if (completed)
+                                        {
+                                            <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;">Hoàn thành</span>
+                                        }
+                                    </div>
+                                    <h3 class="course-item-title">
+                                        <a asp-action="Course" asp-route-id="@course.Id">@course.Title</a>
+                                    </h3>
+                                    <div class="course-lessons-stat">
+                                        Đã học @completedLessons/@totalLessons bài học
+                                    </div>
+                                </div>
+                                <div class="course-progress-side">
+                                    <div class="progress-bar-wrap">
+                                        <div class="progress-track">
+                                            <div class="progress-fill" style="width: @(percentage)%;"></div>
+                                        </div>
+                                        <span class="progress-label">@(percentage)%</span>
+                                    </div>
+                                    <a class="button secondary button-sm" asp-action="Course" asp-route-id="@course.Id">
+                                        @(completed ? "Xem lại khóa" : "Tiếp tục học")
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+
+            <!-- Language Skills & Recommendations -->
+            <section class="progress-section card-v2" aria-labelledby="heading-skills-analysis">
+                <div class="progress-section-header">
+                    <div>
+                        <h2 id="heading-skills-analysis" class="section-title">Phân tích năng lực ngôn ngữ</h2>
+                        <p class="section-subtitle">Dựa trên kết quả các bài kiểm tra và đánh giá năng lực gần nhất.</p>
+                    </div>
+                    @if (Model.AssessmentResults.Any())
+                    {
+                        <a class="button secondary button-sm" asp-action="Progress" asp-route-tab="assessments">Xem chi tiết bài thi &rarr;</a>
+                    }
+                </div>
+
+                @if (Model.AssessmentResults.Count == 0)
+                {
+                    <div class="skills-empty-notice">
+                        <div class="empty-icon-box">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+                        </div>
+                        <div class="empty-text-box">
+                            <h3>Chưa đủ dữ liệu đánh giá năng lực</h3>
+                            <p>Hãy hoàn thành bài Đánh giá năng lực đầu vào hoặc bài kiểm tra kỹ năng để nhận biểu đồ phân tích và đề xuất học tập phù hợp.</p>
+                            <a class="button button-sm" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá năng lực &rarr;</a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    var rep = Model.AssessmentResults.First();
+                    <div class="skills-breakdown-card">
+                        <div class="skills-rep-header">
+                            <div>
+                                <h3 class="rep-title">@rep.Title</h3>
+                                <p class="rep-date">Đánh giá ngày @rep.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</p>
+                            </div>
+                            <div class="rep-score-badge">
+                                <span class="score-value">@rep.OverallScore.ToString("0.#")</span>
+                                <span class="score-max">/100</span>
+                            </div>
+                        </div>
+
+                        <div class="skills-bars-grid">
+                            @foreach (var skill in rep.Skills)
+                            {
+                                <div class="skill-bar-row">
+                                    <div class="skill-label-wrap">
+                                        <span class="skill-name"><partial name="_UiText" model="skill.Skill" /></span>
+                                        @if (skill.IsWeak)
+                                        {
+                                            <span class="v2-pill-tag badge-warning-subtle">Cần cải thiện</span>
+                                        }
+                                        <span class="skill-pct">@skill.Score.ToString("0.#")%</span>
+                                    </div>
+                                    <div class="skill-track">
+                                        <div class="skill-fill @(skill.IsWeak ? "is-weak" : "")" style="width: @(skill.Score)%;"></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (Model.Recommendations.Any())
+                    {
+                        <div class="recommendations-box">
+                            <h3 class="rec-title">Đề xuất cải thiện kỹ năng</h3>
+                            <div class="rec-items-grid">
+                                @foreach (var rec in Model.Recommendations)
+                                {
+                                    <div class="rec-item-card">
+                                        <span class="v2-pill-tag badge-warning-subtle">Kỹ năng: <partial name="_UiText" model="rec.Skill" /> (@rec.Score.ToString("0.#")%)</span>
+                                        <div class="rec-contents">
+                                            @foreach (var content in rec.Contents)
+                                            {
+                                                <a class="rec-link" href="@(content.Kind == RecommendedContentKind.Practice ? Url.Action("Take", "Practice", new { id = content.Id }) : Url.Action("Course", "Learning", new { id = content.CourseId ?? content.Id }))">
+                                                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#play")"></use></svg>
+                                                    <span>@content.Title</span>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </section>
+        </div>
+    }
+
+    <!-- TAB 2: ASSESSMENTS -->
+    @if (Model.ActiveTab == "assessments")
+    {
+        <div class="progress-tab-pane">
+            <section class="progress-section card-v2" aria-labelledby="heading-past-assessments">
+                <div class="progress-section-header">
+                    <div>
+                        <h2 id="heading-past-assessments" class="section-title">Kết quả đánh giá đã làm</h2>
+                        <p class="section-subtitle">Lịch sử và điểm số các bài đánh giá bạn đã hoàn thành.</p>
+                    </div>
+                    <a class="button secondary button-sm" asp-controller="Assessment" asp-action="Index">Tất cả bài đánh giá &rarr;</a>
+                </div>
+
+                @if (Model.AssessmentResults.Count == 0)
+                {
+                    <div class="courses-empty-state">
+                        <svg class="empty-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+                        <h3>Chưa có kết quả bài kiểm tra</h3>
+                        <p>Bạn chưa hoàn thành bài kiểm tra hoặc đánh giá năng lực nào.</p>
+                        <a class="button button-sm" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá ngay &rarr;</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="assessment-results-table-wrap">
+                        <table class="assessment-results-table">
+                            <thead>
+                                <tr>
+                                    <th>Bài đánh giá</th>
+                                    <th>Điểm tổng</th>
+                                    <th>Kỹ năng đánh giá</th>
+                                    <th>Thời gian hoàn thành</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var result in Model.AssessmentResults)
+                                {
+                                    <tr>
+                                        <td><strong>@result.Title</strong></td>
+                                        <td>
+                                            <span class="result-score-badge">@result.OverallScore.ToString("0.#")/100</span>
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                                @foreach (var skill in result.Skills)
+                                                {
+                                                    <span class="v2-pill-tag badge-subtle">
+                                                        <partial name="_UiText" model="skill.Skill" />: @skill.Score.ToString("0.#")%
+                                                    </span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <time datetime="@result.FinalizedAtUtc.ToString("O")">
+                                                @result.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy")
+                                            </time>
+                                        </td>
+                                        <td>
+                                            <a class="button secondary button-sm" asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">
+                                                Xem bài làm &rarr;
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+
+            <!-- Available Assessments -->
+            @if (Model.AvailableAssessments.Any())
+            {
+                <section class="progress-section card-v2" aria-labelledby="heading-available-assessments">
+                    <div class="progress-section-header">
+                        <div>
+                            <h2 id="heading-available-assessments" class="section-title">Bài đánh giá sẵn sàng</h2>
+                            <p class="section-subtitle">Các bài kiểm tra năng lực bạn có thể thực hiện ngay bây giờ.</p>
+                        </div>
+                    </div>
+
+                    <div class="available-assessments-grid">
+                        @foreach (var assess in Model.AvailableAssessments)
+                        {
+                            <div class="available-assessment-card">
+                                <div class="assess-card-header">
+                                    <span class="v2-pill-tag">@assess.Type</span>
+                                    <span class="assess-duration">@assess.DurationMinutes phút · @assess.QuestionCount câu</span>
+                                </div>
+                                <h3 class="assess-card-title">@assess.Title</h3>
+                                <div class="assess-skills-row">
+                                    @foreach (var skill in assess.Skills)
+                                    {
+                                        <span class="v2-pill-tag badge-subtle"><partial name="_UiText" model="skill" /></span>
+                                    }
+                                </div>
+                                <div class="assess-card-action">
+                                    @if (assess.ActiveAttemptId is not null)
+                                    {
+                                        <a class="button button-sm" asp-controller="Assessment" asp-action="Take" asp-route-id="@assess.Id">
+                                            Tiếp tục làm bài &rarr;
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="button secondary button-sm" asp-controller="Assessment" asp-action="Take" asp-route-id="@assess.Id">
+                                            Bắt đầu làm bài &rarr;
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    }
+
+    <!-- TAB 3: ACHIEVEMENTS -->
+    @if (Model.ActiveTab == "achievements")
+    {
+        <div class="progress-tab-pane">
+            <section class="progress-section card-v2" aria-labelledby="heading-gamification-summary">
+                <div class="progress-section-header">
+                    <div>
+                        <h2 id="heading-gamification-summary" class="section-title">Thành tích &amp; Điểm thưởng</h2>
+                        <p class="section-subtitle">Ghi nhận sự kiên trì và tiến bộ của bạn mỗi ngày.</p>
+                    </div>
+                    <a class="button secondary button-sm" asp-controller="Achievements" asp-action="Index">Chi tiết thành tích &rarr;</a>
+                </div>
+
+                <div class="gamification-stats-grid">
+                    <div class="gamification-card">
+                        <div class="gamification-card-icon xp-icon">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#award")"></use></svg>
+                        </div>
+                        <div class="gamification-card-body">
+                            <span class="gamification-value">@(Model.Gamification?.TotalXp ?? 0)</span>
+                            <span class="gamification-label">Tổng điểm kinh nghiệm (XP)</span>
+                        </div>
+                    </div>
+
+                    <div class="gamification-card">
+                        <div class="gamification-card-icon streak-icon">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#flame")"></use></svg>
+                        </div>
+                        <div class="gamification-card-body">
+                            <span class="gamification-value">@(Model.Gamification?.CurrentStreak ?? 0) ngày</span>
+                            <span class="gamification-label">Chuỗi ngày học liên tục</span>
+                        </div>
+                    </div>
+
+                    <div class="gamification-card">
+                        <div class="gamification-card-icon record-icon">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+                        </div>
+                        <div class="gamification-card-body">
+                            <span class="gamification-value">@(Model.Gamification?.LongestStreak ?? 0) ngày</span>
+                            <span class="gamification-label">Kỷ lục chuỗi học tập dài nhất</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Badges / Medals -->
+                <div class="progress-badges-box" style="margin-top: 28px;">
+                    <h3 class="badges-heading">Huy hiệu đã đạt được</h3>
+                    @if (Model.Gamification?.Badges.Any() == true)
+                    {
+                        <div class="badges-grid">
+                            @foreach (var badge in Model.Gamification.Badges)
+                            {
+                                <div class="badge-item-card">
+                                    <div class="badge-icon-wrap">
+                                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#award")"></use></svg>
+                                    </div>
+                                    <strong class="badge-title">@badge.Title</strong>
+                                    <span class="badge-date">Đạt được @badge.AwardedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="badges-empty-state">
+                            <p>Bạn chưa đạt được huy hiệu nào. Hãy tiếp tục học đều đặn mỗi ngày để nhận các danh hiệu vinh danh!</p>
+                        </div>
+                    }
+                </div>
+            </section>
+        </div>
+    }
+</div>

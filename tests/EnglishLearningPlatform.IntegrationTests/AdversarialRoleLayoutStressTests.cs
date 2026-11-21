@@ -38,9 +38,9 @@ public sealed class AdversarialRoleLayoutStressTests(IntegrationTestFactory fact
         Assert.Contains("Estudy", html);
         Assert.Contains("Học viên", html);
         Assert.Contains("/Learning/Dashboard", html);
-        Assert.Contains("<span>Trang chủ</span>", html);
+        Assert.Contains("<span>Hôm nay</span>", html);
         Assert.Contains("Khóa học của tôi", html);
-        Assert.Contains("Đánh giá", html);
+        Assert.Contains("Tiến độ", html);
         Assert.Contains(student.FullName, html);
 
         // Negative assertions: Strict segregation - No teacher or admin links/chrome

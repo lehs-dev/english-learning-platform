@@ -1,13 +1,24 @@
 @model EnglishLearningPlatform.Application.Practice.PracticeResult
 @{
     ViewData["Title"] = "Kết quả luyện tập · " + Model.Title;
-    ViewData["ActiveSection"] = "practice";
+    ViewData["ActiveSection"] = "courses";
+}
+@section Breadcrumbs {
+    <nav class="studio-breadcrumbs" aria-label="Đường dẫn điều hướng">
+        <ol class="breadcrumb-list">
+            <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Index">Khóa học của tôi</a></li>
+            <li class="breadcrumb-separator" aria-hidden="true">/</li>
+            <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">Về khóa học</a></li>
+            <li class="breadcrumb-separator" aria-hidden="true">/</li>
+            <li class="breadcrumb-item" aria-current="page">Kết quả luyện tập</li>
+        </ol>
+    </nav>
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
 }
 
-<div class="exam-workspace-layout">
+<div class="exam-workspace-layout practice-result-workspace">
     <header class="exam-header-bar">
         <div class="exam-header-left">
             <a class="button secondary exam-back-btn" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">
@@ -15,54 +26,56 @@
                 <span>Về khóa học</span>
             </a>
             <div class="exam-title-group">
-                <span class="v2-pill-tag">Kết quả luyện tập</span>
-                <span class="v2-pill-tag" data-result-version="@Model.Version">Phiên bản @Model.Version đã nộp</span>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span class="v2-pill-tag">Kết quả luyện tập</span>
+                    <span class="v2-pill-tag badge-subtle" data-result-version="@Model.Version">Phiên bản @Model.Version</span>
+                </div>
                 <h1 class="exam-title">@Model.Title</h1>
             </div>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="practice-result-header-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
             @if (ViewData["CanRetry"] is true)
             {
-                <a class="button" style="padding: 10px 20px;" asp-action="Take" asp-route-id="@Model.PracticeId">
+                <a class="button" asp-action="Take" asp-route-id="@Model.PracticeId">
                     Luyện lại bài này &rarr;
                 </a>
             }
-            <a class="button secondary" style="padding:10px 20px;" asp-controller="Learning" asp-action="Continue" asp-route-id="@Model.CourseId">
-                Tiếp tục học &rarr;
+            <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">
+                Quay lại khóa học
             </a>
         </div>
     </header>
 
     <!-- Score Overview Banner -->
-    <div class="result-overview" style="background: #F0FDF4; border: 1.5px solid #BBF7D0;">
+    <div class="result-overview" style="background: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: 16px; padding: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
         <div>
             <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F; margin-bottom: 8px;">Tổng điểm bài luyện</span>
-            <div class="assessment-score" style="margin: 6px 0; color: var(--v2-dark);">
-                @Model.Score.ToString("0.##")<span style="font-size: 24px; font-weight: 600; color: var(--v2-text-muted);">/100</span>
+            <div class="assessment-score" style="margin: 6px 0; font-size: 38px; font-weight: 800; color: var(--v2-dark);">
+                @Model.Score.ToString("0.##")<span style="font-size: 22px; font-weight: 600; color: var(--v2-text-muted);">/100</span>
             </div>
-            <p style="margin: 0; font-size: 14.5px; color: var(--v2-dark); font-weight: 600;">
+            <p style="margin: 0; font-size: 15px; color: var(--v2-dark); font-weight: 600;">
                 Bạn trả lời đúng <strong>@Model.Questions.Count(q => q.IsCorrect)</strong> / @Model.Questions.Count câu hỏi.
             </p>
-            <p class="exam-timer-note" style="margin-top: 6px;">
+            <p class="exam-timer-note" style="margin-top: 6px; font-size: 13px; color: var(--text-muted);">
                 Nộp lúc <time datetime="@Model.SubmittedAtUtc.ToString("O")">@Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy") (UTC+7)</time>
             </p>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             @if (ViewData["CanRetry"] is true)
             {
-                <a class="button secondary" style="justify-content: center; padding: 10px 18px;" asp-action="Take" asp-route-id="@Model.PracticeId">
-                    Làm lại bài luyện tập
+                <a class="button" asp-action="Take" asp-route-id="@Model.PracticeId">
+                    Luyện lại bài này
                 </a>
             }
-            <a class="button secondary" style="justify-content: center; padding: 10px 18px;" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">
-                Quay lại nội dung khóa học
+            <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">
+                Quay lại khóa học
             </a>
         </div>
     </div>
 
     <!-- Questions Detailed Review -->
-    <section class="card-v2" style="padding: 32px; margin-top: 24px;" aria-label="Chi tiết từng câu">
+    <section class="card-v2" style="padding: 28px; margin-top: 24px;" aria-label="Chi tiết từng câu">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span class="v2-pill-tag">Giải thích chi tiết</span>
@@ -95,7 +108,7 @@
                 {
                     <div class="exam-audio-box" style="margin-bottom:14px;">
                         <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu hỏi">Trình duyệt chưa hỗ trợ âm thanh.</audio>
-                        <partial name="_ExternalStimulusAudioNotice" model="question.AudioUrl" />
+                        <partial name="_ExternalStimulusAudioNotice" model="@question.AudioUrl" />
                     </div>
                 }
 

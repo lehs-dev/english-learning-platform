@@ -1,0 +1,34 @@
+@model CatalogPage
+@{
+    Layout = "_LayoutStudent";
+    ViewData["Title"] = "Khám phá khóa học";
+    ViewData["ActiveSection"] = "courses";
+    ViewData["CatalogController"] = "Courses";
+}
+
+<div class="course-library student-discover-page">
+    <div style="margin-bottom: 20px;">
+        <a class="button secondary exam-back-btn" asp-controller="Learning" asp-action="Index">
+            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+            <span>Về Khóa học của tôi</span>
+        </a>
+    </div>
+
+    <div class="page-heading course-library-heading">
+        <div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                <span class="v2-pill-tag">Thư viện khóa học</span>
+            </div>
+            <h1>Khám phá khóa học</h1>
+            <p>Tìm kiếm khóa học phù hợp với mục tiêu nâng cao trình độ tiếng Anh của bạn.</p>
+        </div>
+    </div>
+
+    <section id="discover-courses" aria-label="Danh sách và bộ lọc khóa học">
+        <partial name="_CourseCatalog" model="Model" />
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/catalog.js" asp-append-version="true" defer></script>
+}
