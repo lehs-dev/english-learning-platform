@@ -27,7 +27,7 @@
 }
 @section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
 
-<div class="exam-workspace-layout">
+<div class="exam-workspace-layout assessment-workspace">
     <header class="exam-header-bar">
         <div class="exam-header-left">
             @if (overview?.CourseId is Guid courseId)
@@ -38,7 +38,7 @@
                 </a>
             }
             <div class="exam-title-group">
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="exam-section-heading">
                     <span class="v2-pill-tag">Bài kiểm tra</span>
                     @if (Model.Sheet is not null)
                     {
@@ -228,8 +228,8 @@
     else if (overview is not null)
     {
         <!-- Overview / Not Started View -->
-        <section class="card-v2" aria-labelledby="assessment-overview-title" style="padding: 32px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <section class="card-v2 exam-section" aria-labelledby="assessment-overview-title">
+            <div class="exam-section-heading">
                 <span class="v2-pill-tag">Tổng quan</span>
                 <h2 id="assessment-overview-title" style="margin: 0; font-size: 20px;">Thông tin bài thi</h2>
             </div>
@@ -254,8 +254,8 @@
     <!-- Attempt History Table (Displayed in Overview mode) -->
     @if (overview?.AttemptHistory.Count > 0 && Model.Sheet == null)
     {
-        <section class="card-v2" aria-labelledby="attempt-history-title" style="padding: 32px; margin-top: 24px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+        <section class="card-v2 exam-section" aria-labelledby="attempt-history-title">
+            <div class="exam-section-heading">
                 <h2 id="attempt-history-title" style="margin: 0; font-size: 18px; font-weight: 700;">Lịch sử làm bài (@overview.AttemptHistory.Count lượt)</h2>
             </div>
             <partial name="_AttemptHistory" model="overview.AttemptHistory" />

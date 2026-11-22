@@ -75,19 +75,16 @@
     </div>
 
     <!-- Questions Detailed Review -->
-    <section class="card-v2" style="padding: 28px; margin-top: 24px;" aria-label="Chi tiết từng câu">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="v2-pill-tag">Giải thích chi tiết</span>
-                <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Xem lại câu trả lời &amp; Lời giải</h2>
-            </div>
+    <section class="card-v2 exam-section" aria-labelledby="practice-review-title">
+        <div class="exam-section-heading">
+            <h2 id="practice-review-title" style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Xem lại câu trả lời &amp; Lời giải</h2>
         </div>
 
         @for (var index = 0; index < Model.Questions.Count; index++)
         {
             var question = Model.Questions[index];
             <article class="answer-review" style="padding: 20px 0; border-bottom: 1px solid var(--v2-border-light);">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <div class="exam-question-header">
                     <span class="v2-pill-tag exam-q-badge">Câu @(index + 1)</span>
                     <span class="v2-pill-tag" style="@(question.IsCorrect ? "background: #DEF7EC; color: #03543F;" : "background: #FEE2E2; color: #991B1B;")">
                         @(question.IsCorrect ? "✓ Trả lời đúng" : "✗ Chưa chính xác / Bỏ trống")

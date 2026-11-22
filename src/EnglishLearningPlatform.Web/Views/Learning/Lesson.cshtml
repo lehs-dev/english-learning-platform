@@ -8,10 +8,11 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/lesson-page.css" asp-append-version="true" />
 }
 
 <div class="lesson-study-layout">
-    <div class="workspace-actions" style="margin-bottom: 20px;">
+    <div class="workspace-actions lesson-actions">
         <a class="button secondary exam-back-btn" asp-action="Course" asp-route-id="@Model.CourseId">
             <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
             <span>@Model.CourseTitle</span>
@@ -26,7 +27,7 @@
         <!-- Main Lesson Content Article -->
         <article class="lesson-reading">
             <header class="lesson-heading">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <div class="lesson-context">
                     <span class="v2-pill-tag">Bài học</span>
                     <a asp-action="Module" asp-route-id="@Model.ModuleId" class="v2-pill-tag" style="background: #FAF9FE; color: var(--v2-text-muted); text-decoration: none;">
                         Chương: @Model.ModuleTitle
@@ -112,8 +113,8 @@
 
             @if (Model.Next is null && Model.CanRecordProgress)
             {
-                <section class="card-v2" aria-labelledby="lesson-final-title" style="padding: 26px 28px; margin-top: 24px; background: #FFFDF5; border-color: #FEF3C7;">
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <section class="card-v2 lesson-final" aria-labelledby="lesson-final-title">
+                    <div class="lesson-context">
                         <span class="v2-pill-tag" style="background:#FEF3C7; color:#92400E;">Bài cuối</span>
                         <h2 id="lesson-final-title" style="margin:0; font-size:19px; font-weight:800; color:var(--v2-dark);">Hoàn tất khóa học</h2>
                     </div>

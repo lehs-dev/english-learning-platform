@@ -76,51 +76,41 @@ function buildStudentLayout({ title = 'Học viên', activeSection = 'dashboard'
                     <svg class="icon" aria-hidden="true"><use href="/images/icons.svg#menu"></use></svg>
                 </button>
 
-                ${breadcrumbs ? `<div class="student-topbar-breadcrumb">${breadcrumbs}</div>` : `<span class="studio-topbar-title">Học tập</span>`}
+                ${isFocus ? '' : '<a class="student-mobile-brand" href="/Learning/Dashboard">Estudy</a>'}
 
                 <div class="studio-topbar-actions">
-                    <details class="account-menu" id="account-menu">
-                        <summary class="account-menu-trigger" aria-label="Tài khoản Nguyễn Thị Học Viên">
-                            <span class="user-avatar" aria-hidden="true">HV</span>
-                            <span class="user-meta">
-                                <span class="user-name">Nguyễn Thị Học Viên</span>
-                                <span class="user-role">Học viên</span>
-                            </span>
-                            <svg class="icon icon-chevron" aria-hidden="true"><use href="/images/icons.svg#chevron-down"></use></svg>
+                    <details class="account-menu" id="account-menu" data-account-menu>
+                        <summary class="account-trigger" aria-label="Mở menu tài khoản của Nguyễn Thị Học Viên">
+                            <span class="avatar" aria-hidden="true">HV</span>
+                            <svg class="icon chevron" aria-hidden="true"><use href="/images/icons.svg#chevron-down"></use></svg>
                         </summary>
                         <div class="account-dropdown">
-                            <div class="account-dropdown-header">
-                                <span class="account-name">Nguyễn Thị Học Viên</span>
-                                <span class="account-role-badge">Học viên</span>
-                            </div>
-                            <div class="account-dropdown-divider"></div>
-                            <nav class="account-dropdown-nav" aria-label="Menu tài khoản cá nhân">
-                                <a class="account-dropdown-item" href="/Profile">
-                                    <svg class="icon" aria-hidden="true"><use href="/images/icons.svg#user"></use></svg>
-                                    <span>Hồ sơ cá nhân</span>
-                                </a>
-                                <a class="account-dropdown-item" href="/Learning/Progress">
-                                    <svg class="icon" aria-hidden="true"><use href="/images/icons.svg#target"></use></svg>
-                                    <span>Tiến độ &amp; kết quả</span>
-                                </a>
-                                <a class="account-dropdown-item" href="/Checkout/History">
-                                    <svg class="icon" aria-hidden="true"><use href="/images/icons.svg#history"></use></svg>
-                                    <span>Lịch sử giao dịch</span>
-                                </a>
-                            </nav>
-                            <div class="account-dropdown-divider"></div>
-                            <form method="post" action="/Account/Logout" class="account-logout-form">
-                                <button type="submit" class="account-dropdown-item account-logout-btn">
+                            <div class="account-summary"><strong>Nguyễn Thị Học Viên</strong><span>Học viên</span></div>
+                            <a class="dropdown-item" href="/Learning/Progress">
+                                <svg class="icon" aria-hidden="true"><use href="/images/icons.svg#target"></use></svg>
+                                Tiến độ &amp; kết quả
+                            </a>
+                            <a class="dropdown-item" href="/Checkout/History">
+                                <svg class="icon" aria-hidden="true"><use href="/images/icons.svg#history"></use></svg>
+                                Lịch sử giao dịch
+                            </a>
+                            <a class="dropdown-item" href="/Profile">
+                                <svg class="icon" aria-hidden="true"><use href="/images/icons.svg#user"></use></svg>
+                                Hồ sơ cá nhân
+                            </a>
+                            <form method="post" action="/Account/Logout">
+                                <button type="submit" class="dropdown-item logout-item">
                                     <svg class="icon" aria-hidden="true"><use href="/images/icons.svg#logout"></use></svg>
-                                    <span>Đăng xuất</span>
+                                    Đăng xuất
                                 </button>
                             </form>
                         </div>
                     </details>
                 </div>
             </header>
+            ${breadcrumbs ? `<div class="studio-breadcrumbs-bar">${breadcrumbs}</div>` : ''}
 
-            <main class="studio-main" id="main-content" tabindex="-1">
+            <main class="studio-main student-content page-content" id="main-content" tabindex="-1">
                 ${body}
             </main>
         </div>
@@ -1191,10 +1181,19 @@ async function run() {
 
   // 8. Practice Reading Mobile (390x844)
   await page.setViewportSize({ width: 390, height: 844 });
+  const passageSummary = page.locator('.practice-passages summary');
+  await page.locator('.practice-passages:not([open])').waitFor();
   await checkNoOverflow(page, 'Practice Reading Mobile');
   const practiceReadingMobilePath = join(artifactsDir, 'student-practice-reading-mobile.png');
   await page.screenshot({ path: practiceReadingMobilePath, fullPage: true });
   results.screenshots.push('student-practice-reading-mobile.png');
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.locator('.practice-passages[open]').waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.practice-passages:not([open])').waitFor();
+  await passageSummary.click();
+  await page.locator('.practice-passages[open]').waitFor();
 
   // 9. Practice Non-Reading Desktop (1440x900)
   await page.setViewportSize({ width: 1440, height: 900 });

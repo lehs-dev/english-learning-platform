@@ -42,10 +42,6 @@
     var learningPathPage = ViewData["LearningPathPage"] as EnglishLearningPlatform.Application.LearningPath.LearningPathPage;
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
-}
-
 <div class="today-workspace-container">
     <!-- 1. Header lời chào ngắn & Chỉ báo XP/Streak nhỏ gọn -->
     <header class="today-greeting-header">
@@ -79,7 +75,7 @@
                 <div class="hero-promo-content">
                     @if (continueCourse != null)
                     {
-                        <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <div class="pill-tag pill-tag-dark" style="margin-bottom: 8px;">
                             <span>📖 Khóa học đang diễn ra</span>
                         </div>
                         <h2 class="hero-promo-title">
@@ -95,7 +91,7 @@
                     }
                     else if (finalPendingCourse != null)
                     {
-                        <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <div class="pill-tag pill-tag-dark" style="margin-bottom: 8px;">
                             <span>🎓 Đã hoàn thành bài học</span>
                         </div>
                         <h2 class="hero-promo-title">
@@ -111,7 +107,7 @@
                     }
                     else if (notStartedCourse != null)
                     {
-                        <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <div class="pill-tag pill-tag-dark" style="margin-bottom: 8px;">
                             <span>🚀 Sẵn sàng khởi đầu</span>
                         </div>
                         <h2 class="hero-promo-title">
@@ -127,7 +123,7 @@
                     }
                     else if (Model.CompletedCourses > 0 && Model.Courses.Count > 0)
                     {
-                        <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <div class="pill-tag pill-tag-dark" style="margin-bottom: 8px;">
                             <span>✅ Bạn đã hoàn thành @Model.CompletedCourses khóa học</span>
                         </div>
                         <h2 class="hero-promo-title">
@@ -143,7 +139,7 @@
                     }
                     else
                     {
-                        <div class="pill-tag-dark" style="margin-bottom: 8px;">
+                        <div class="pill-tag pill-tag-dark" style="margin-bottom: 8px;">
                             <span>✨ Chào mừng bạn đến với Estudy</span>
                         </div>
                         <h2 class="hero-promo-title">
@@ -178,7 +174,7 @@
                 <h2 class="clean-section-title">Khóa học của bạn</h2>
                 @if (Model.Courses.Count > 0)
                 {
-                    <a asp-action="Index" class="btn-outline-dark" style="padding: 6px 14px; font-size: 12px;">
+                    <a asp-action="Index" class="btn-outline-dark">
                         Tất cả khóa học (@Model.Courses.Count) &rarr;
                     </a>
                 }
@@ -531,7 +527,7 @@
             <div class="assessment-results-card" id="dashboard-results">
                 <div class="clean-section-header" style="margin-top:0; margin-bottom:14px;">
                     <h2 class="clean-section-title" style="font-size:16px;">Kết quả cao nhất</h2>
-                    <a asp-controller="Learning" asp-action="Progress" asp-route-tab="assessments" class="btn-outline-dark" style="padding:4px 10px; font-size:11px;">
+                    <a asp-controller="Learning" asp-action="Progress" asp-route-tab="assessments" class="btn-outline-dark">
                         Tất cả kết quả &rarr;
                     </a>
                 </div>
@@ -576,12 +572,12 @@
             </div>
 
             <!-- Luyện tập gần đây -->
-            <section id="dashboard-practice-results" aria-labelledby="dashboard-practice-results-title" style="margin-top:24px;">
+            <section id="dashboard-practice-results" aria-labelledby="dashboard-practice-results-title">
                 <div class="clean-section-header" style="margin-top:0; margin-bottom:14px;">
                     <h2 class="clean-section-title" id="dashboard-practice-results-title" style="font-size:16px;">Luyện tập gần đây</h2>
                     @if (Model.PracticeResults.Count > 0)
                     {
-                        <a asp-controller="Practice" asp-action="Index" class="btn-outline-dark" style="padding:4px 10px; font-size:11px;">
+                        <a asp-controller="Practice" asp-action="Index" class="btn-outline-dark">
                             Xem tất cả (@Model.PracticeResults.Count)
                         </a>
                     }
@@ -607,7 +603,7 @@
                                     <time datetime="@practice.SubmittedAtUtc.ToString("O")">@practice.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time>
                                 </p>
                                 <div class="article-clean-meta" style="margin-top:auto;">
-                                    <a asp-controller="Practice" asp-action="Result" asp-route-id="@practice.PracticeId" class="btn-dark-sm" style="font-size:12px; padding:4px 10px;">Xem lại bài giải</a>
+                                    <a asp-controller="Practice" asp-action="Result" asp-route-id="@practice.PracticeId" class="btn-dark-sm">Xem lại bài giải</a>
                                 </div>
                             </article>
                         }

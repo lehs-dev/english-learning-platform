@@ -106,7 +106,7 @@ async function layoutFixture(role) {
   html = stripBalanced(html, /@if\s*\(/, '', true);
   html = stripBalanced(html, /@\(/);
   html = html.replace(/^\s*}\s*$/gm, '')
-    .replace(/@(currentTitle|title|successMsg|errorMsg|successNotice|errorNotice)\b/g, 'Thông báo kiểm thử')
+    .replace(/@(currentTitle|title|topbarContext|successMsg|errorMsg|successNotice|errorNotice)\b/g, 'Thông báo kiểm thử')
     .replace(/@ViewData\["Title"\]/g, 'Kiểm thử giao diện')
     .replace(/\sasp-[\w-]+="[^"]*"/g, '')
     .replace(/~\//g, '/')
@@ -336,6 +336,9 @@ for (const role of Object.keys(layouts)) {
       const toggle = page.locator(role === 'public' ? '[data-nav-toggle]' : '[data-sidebar-toggle]');
       assert.equal(await toggle.isVisible(), mobile, `${role} at ${width}px: toggle matches its breakpoint`);
       assert.equal(await page.locator(layouts[role].navigation).isVisible(), !mobile, `${role} at ${width}px: navigation visibility matches its breakpoint`);
+      if (role === 'student') {
+        assert.equal(await page.locator('.student-mobile-brand').isVisible(), mobile, `student at ${width}px: mobile brand matches the drawer breakpoint`);
+      }
       if (!mobile && role !== 'public') {
         const sidebar = await page.locator(layouts[role].navigation).boundingBox();
         assert.ok(dimensions.main.x >= sidebar.x + sidebar.width - 1, 'Desktop content clears the fixed sidebar');
@@ -350,3 +353,18 @@ for (const role of Object.keys(layouts)) {
     }
   });
 }
+
+test('student focus mode gives the practice workspace the full viewport width', async t => {
+  const page = await fixture(t, 'student');
+  await page.locator('body').evaluate(el => el.classList.add('student-focus-mode'));
+
+  for (const width of [320, 768, 1025, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    const { left, right } = await page.locator('main').evaluate(el => el.getBoundingClientRect().toJSON());
+    assert.ok(Math.abs(left) <= 1 && Math.abs(right - width) <= 1, `Practice main should span ${width}px, got ${right - left}px`);
+    for (const selector of ['#student-sidebar', '[data-sidebar-toggle]', '.student-mobile-brand']) {
+      assert.equal(await page.locator(selector).isVisible(), false);
+    }
+    assert.equal(await page.locator('.account-trigger').isVisible(), true);
+  }
+});

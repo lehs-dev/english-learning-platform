@@ -17,6 +17,7 @@
     };
     var activeSection = ViewData["ActiveSection"] as string ?? routeSection;
     var currentTitle = ViewData["Title"] as string ?? "Học tập";
+    var topbarContext = ViewData["TopbarContext"] as string;
     var isFocusMode = (ViewData["FocusMode"] as bool? == true) || (ViewData["PageClass"]?.ToString()?.Contains("focus-mode") == true);
 }
 <!DOCTYPE html>
@@ -73,12 +74,14 @@
                 <button class="mobile-sidebar-toggle icon-button" type="button" data-sidebar-toggle aria-controls="student-sidebar" aria-expanded="false" aria-label="Mở thanh điều hướng học tập">
                     <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#menu")"></use></svg>
                 </button>
-                <div class="student-topbar-context">
-                    @if (ViewData["TopbarContext"] is string topbarContext)
-                    {
-                        <span class="student-topbar-label">@topbarContext</span>
-                    }
-                </div>
+                @if (!string.IsNullOrWhiteSpace(topbarContext))
+                {
+                    <span class="student-topbar-label">@topbarContext</span>
+                }
+                @if (string.IsNullOrWhiteSpace(topbarContext) && !isFocusMode)
+                {
+                    <a class="student-mobile-brand" asp-controller="Learning" asp-action="Dashboard" aria-label="Estudy - Trang chủ">Estudy</a>
+                }
                 <div class="studio-topbar-actions">
                     @await Component.InvokeAsync("AccountMenu")
                 </div>

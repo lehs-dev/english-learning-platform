@@ -60,17 +60,17 @@
             <a class="tab-link @(activeTab == "active" ? "is-active" : "")"
                asp-action="Index" asp-route-status="active" asp-route-search="@searchQuery"
                aria-current="@(activeTab == "active" ? "page" : null)">
-                Đang học <span class="tab-badge">@totalActive</span>
+                <span>Đang học</span> <span class="tab-badge">@totalActive</span>
             </a>
             <a class="tab-link @(activeTab == "not-started" ? "is-active" : "")"
                asp-action="Index" asp-route-status="not-started" asp-route-search="@searchQuery"
                aria-current="@(activeTab == "not-started" ? "page" : null)">
-                Chưa bắt đầu <span class="tab-badge">@totalNotStarted</span>
+                <span>Chưa bắt đầu</span> <span class="tab-badge">@totalNotStarted</span>
             </a>
             <a class="tab-link @(activeTab == "completed" ? "is-active" : "")"
                asp-action="Index" asp-route-status="completed" asp-route-search="@searchQuery"
                aria-current="@(activeTab == "completed" ? "page" : null)">
-                Hoàn thành <span class="tab-badge">@totalCompleted</span>
+                <span>Hoàn thành</span> <span class="tab-badge">@totalCompleted</span>
             </a>
         </nav>
 
@@ -81,7 +81,7 @@
                 <input type="search" name="search" value="@searchQuery" placeholder="Tìm theo tên khóa học..." maxlength="200" aria-label="Tìm theo tên khóa học" />
                 @if (!string.IsNullOrWhiteSpace(searchQuery))
                 {
-                    <a class="clear-search-link" asp-action="Index" asp-route-status="@activeTab" title="Xóa tìm kiếm">&times;</a>
+                    <a class="clear-search-link" asp-action="Index" asp-route-status="@activeTab" aria-label="Xóa tìm kiếm">&times;</a>
                 }
             </div>
             <button class="button secondary" type="submit">Tìm</button>

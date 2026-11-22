@@ -64,7 +64,10 @@
                 {
                     <div class="exam-stimulus-box preserve">@passage</div>
                 }
-                <a class="practice-skip-to-question" href="#practice-question-1">Đến câu hỏi ↓</a>
+                @if (Model.Questions.Count > 0)
+                {
+                    <a class="practice-skip-to-question" href="#practice-question-1">Đến câu hỏi ↓</a>
+                }
             </details>
         }
 
@@ -73,7 +76,7 @@
             @for (var index = 0; index < Model.Questions.Count; index++)
             {
                 var question = Model.Questions[index];
-                <fieldset class="exam-question-card @(index == 0 ? "is-active-question" : "")" id="practice-question-@(index + 1)" data-practice-question data-question-index="@index">
+                <fieldset class="exam-question-card @(index == 0 ? "is-active-question" : "")" id="practice-question-@(index + 1)" tabindex="-1" aria-label="Câu @(index + 1)" data-practice-question data-question-index="@index">
                     <input type="hidden" name="Answers[@index].PracticeQuestionId" value="@question.Id" />
                     
                     <div class="exam-question-header">
@@ -110,41 +113,30 @@
                     }
                 </fieldset>
             }
+        </div>
 
-            <!-- Bottom Sticky Bar -->
-            <div class="practice-bottom-bar" aria-label="Bảng điều khiển làm bài">
-                <div class="practice-bottom-inner">
-                    <div class="practice-nav-controls">
-                        <button class="button secondary button-sm practice-prev-btn" type="button" data-practice-prev aria-label="Câu trước" disabled>
-                            &lsaquo; Câu trước
-                        </button>
-                        <div class="practice-palette-strip" aria-label="Danh sách câu hỏi">
-                            @for (var index = 0; index < Model.Questions.Count; index++)
-                            {
-                                <button class="practice-palette-btn @(index == 0 ? "is-current" : "")" type="button" data-practice-link="@(index + 1)" aria-label="Đến câu @(index + 1)">
-                                    @(index + 1)
-                                </button>
-                            }
-                        </div>
-                        <button class="button secondary button-sm practice-next-btn" type="button" data-practice-next aria-label="Câu tiếp theo" @(Model.Questions.Count <= 1 ? "disabled" : "")>
-                            Tiếp theo &rsaquo;
-                        </button>
-                    </div>
-                    <div class="practice-submit-wrap">
-                        <button class="button exam-submit-btn" type="submit" data-practice-submit>
-                            Nộp bài &amp; Xem giải thích
-                        </button>
-                    </div>
-                </div>
+        <div class="practice-bottom-bar" role="group" aria-label="Bảng điều khiển làm bài">
+            <div class="practice-palette-strip" role="group" aria-label="Danh sách câu hỏi" hidden>
+                @for (var index = 0; index < Model.Questions.Count; index++)
+                {
+                    <button class="practice-palette-btn @(index == 0 ? "is-current" : "")" type="button" data-practice-link="@(index + 1)" aria-label="Đến câu @(index + 1)">
+                        @(index + 1)
+                    </button>
+                }
             </div>
+            <button class="button secondary practice-nav-btn" type="button" data-practice-prev aria-label="Câu trước" hidden disabled>Câu trước</button>
+            <button class="button secondary practice-nav-btn" type="button" data-practice-next aria-label="Câu tiếp theo" hidden disabled>Tiếp theo</button>
+            <button class="button exam-submit-btn" type="submit" data-practice-submit aria-label="Nộp bài &amp; Xem giải thích">
+                <span>Nộp bài<span class="practice-submit-description"> &amp; Xem giải thích</span></span>
+            </button>
         </div>
     </form>
 </div>
 
 <!-- Confirmation Dialog for Incomplete Submissions -->
-<dialog class="practice-confirm-dialog" id="practice-confirm-dialog" data-practice-confirm-dialog>
+<dialog class="practice-confirm-dialog" id="practice-confirm-dialog" data-practice-confirm-dialog aria-labelledby="practice-confirm-title">
     <div class="practice-dialog-card">
-        <h3 class="practice-dialog-title">Xác nhận nộp bài</h3>
+        <h3 class="practice-dialog-title" id="practice-confirm-title">Xác nhận nộp bài</h3>
         <p class="practice-dialog-message" data-confirm-message>
             Bạn đã trả lời <strong data-answered-count>0</strong>/@Model.Questions.Count câu hỏi, còn <strong data-unanswered-count>@Model.Questions.Count</strong> câu chưa làm. Bạn có chắc chắn muốn nộp bài?
         </p>

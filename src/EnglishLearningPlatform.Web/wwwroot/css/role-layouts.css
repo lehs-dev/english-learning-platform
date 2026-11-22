@@ -848,109 +848,105 @@ body.admin-body {
     }
 }
 
-/* Student uses the same full-viewport shell and mobile drawer as Teacher. */
 body.student-workspace-v2 {
+    --sidebar-width: clamp(208px, 17vw, 240px);
+    --student-gutter: clamp(16px, 3vw, 32px);
     display: block;
     background: #FAF9FE;
     font-family: var(--v2-font-body);
 }
 
-.student-sidebar .student-logout {
-    width: 100%;
-    font: inherit;
-    text-align: left;
+.student-shell :is(.student-topbar, .student-content, .studio-notifications, .studio-breadcrumbs-bar) {
+    padding-inline: var(--student-gutter);
+}
+
+.student-shell .site-footer .container {
+    width: calc(100% - 2 * var(--student-gutter));
+}
+
+.student-sidebar .studio-nav {
+    overscroll-behavior-y: contain;
+}
+
+.student-sidebar .studio-nav-link {
+    font-size: var(--text-small);
 }
 
 .student-topbar {
-    gap: var(--space-4);
+    justify-content: flex-start;
+    gap: var(--space-3);
 }
 
-.student-course-search {
-    position: relative;
-    flex: 1;
-    max-width: 520px;
-    min-width: 0;
-}
-
-.student-course-search input {
-    width: 100%;
-    min-height: 44px;
-    padding: 10px 48px 10px 16px;
-    background: var(--surface-subtle);
-    border-radius: var(--radius-control);
-}
-
-.student-course-search .icon-button {
-    position: absolute;
-    right: 2px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.student-discover-link {
-    font-size: var(--text-small);
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-@media (max-width: 600px) {
-    .student-topbar {
-        flex-wrap: wrap;
-    }
-
-    .student-topbar .studio-topbar-actions {
-        margin-left: auto;
-    }
-
-    .student-course-search {
-        order: 3;
-        flex-basis: 100%;
-        max-width: none;
-    }
-
-    .student-discover-link {
-        font-size: 12px;
-    }
-}
-
-/* Student Focus Mode (Practice & Focused Workspaces) */
-body.student-focus-mode .student-sidebar,
-body.student-focus-mode .sidebar-backdrop {
-    display: none !important;
-}
-
-body.student-focus-mode .studio-main-wrapper {
-    margin-left: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-body.student-focus-mode .mobile-sidebar-toggle {
-    display: none !important;
-}
-
-/* Student Sidebar Account Shortcut */
-.student-sidebar-account-shortcut {
-    margin-top: auto;
-    padding-top: var(--space-4);
-    border-top: 1px solid var(--border-subtle);
-}
-
-.student-sidebar-account-shortcut .studio-nav-link {
-    color: var(--text-muted);
-}
-
-.student-sidebar-account-shortcut .studio-nav-link:hover {
-    color: var(--text-main);
-}
-
-.student-topbar-context {
-    flex: 1;
-    min-width: 0;
+.student-topbar .studio-topbar-actions {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
 }
 
 .student-topbar-label {
-    font-size: 14px;
+    min-width: 0;
+    font-size: var(--text-small);
     font-weight: 600;
     color: var(--text-muted);
+    overflow-wrap: anywhere;
+}
+
+.student-mobile-brand {
+    display: none;
+    align-items: center;
+    min-height: 44px;
+    color: var(--v2-dark);
+    font-size: var(--text-h3);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.student-shell .breadcrumbs-list li {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+:where(.student-content) .card-v2 {
+    min-width: 0;
+    border: 1px solid var(--v2-border-light);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+}
+
+:where(.student-content) .v2-pill-tag {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    min-width: 0;
+    max-width: 100%;
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-subtle);
+    color: var(--text-secondary);
+    font-size: var(--text-small);
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 1024px) {
+    .student-mobile-brand {
+        display: inline-flex;
+    }
+}
+
+@media (max-width: 600px) {
+    .student-shell .footer-links {
+        justify-content: flex-start;
+        gap: 0 var(--space-4);
+    }
+}
+
+.student-focus-mode .student-shell {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.student-focus-mode :is(.student-sidebar, .sidebar-backdrop, .mobile-sidebar-toggle, .student-mobile-brand) {
+    display: none;
 }

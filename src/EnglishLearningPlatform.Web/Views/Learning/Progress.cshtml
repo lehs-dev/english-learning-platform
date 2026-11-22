@@ -43,17 +43,17 @@
     <!-- Sub-navigation Tabs -->
     <nav class="course-subnav-tabs" aria-label="Phân mục tiến độ">
         <a class="subnav-tab-item @(Model.ActiveTab == "overview" ? "is-active" : "")"
-           asp-action="Progress" asp-route-tab="overview">
+           asp-action="Progress" asp-route-tab="overview" aria-current="@(Model.ActiveTab == "overview" ? "page" : null)">
             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
             <span>Tổng quan</span>
         </a>
         <a class="subnav-tab-item @(Model.ActiveTab == "assessments" ? "is-active" : "")"
-           asp-action="Progress" asp-route-tab="assessments">
+           asp-action="Progress" asp-route-tab="assessments" aria-current="@(Model.ActiveTab == "assessments" ? "page" : null)">
             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
             <span>Kết quả đánh giá</span>
         </a>
         <a class="subnav-tab-item @(Model.ActiveTab == "achievements" ? "is-active" : "")"
-           asp-action="Progress" asp-route-tab="achievements">
+           asp-action="Progress" asp-route-tab="achievements" aria-current="@(Model.ActiveTab == "achievements" ? "page" : null)">
             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#award")"></use></svg>
             <span>Thành tích &amp; XP</span>
         </a>
@@ -70,7 +70,7 @@
                         <h2 id="heading-enrolled-progress" class="section-title">Tiến độ khóa học</h2>
                         <p class="section-subtitle">Tình trạng hoàn thành các khóa học bạn đang theo học.</p>
                     </div>
-                    <a class="button secondary button-sm" asp-action="Index">Quản lý khóa học &rarr;</a>
+                    <a class="button secondary button-small" asp-action="Index">Quản lý khóa học &rarr;</a>
                 </div>
 
                 @if (Model.EnrolledCourses.Count == 0)
@@ -79,7 +79,7 @@
                         <svg class="empty-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
                         <h3>Bạn chưa ghi danh khóa học nào</h3>
                         <p>Khám phá các khóa học phù hợp với trình độ để bắt đầu lộ trình học tập.</p>
-                        <a class="button button-sm" asp-controller="Courses" asp-action="Index">Khám phá khóa học &rarr;</a>
+                        <a class="button button-small" asp-controller="Courses" asp-action="Index">Khám phá khóa học &rarr;</a>
                     </div>
                 }
                 else
@@ -114,11 +114,11 @@
                                 <div class="course-progress-side">
                                     <div class="progress-bar-wrap">
                                         <div class="progress-track">
-                                            <div class="progress-fill" style="width: @(percentage)%;"></div>
+                                            <div class="progress-fill" style="width: @percentage.ToString(System.Globalization.CultureInfo.InvariantCulture)%;"></div>
                                         </div>
                                         <span class="progress-label">@(percentage)%</span>
                                     </div>
-                                    <a class="button secondary button-sm" asp-action="Course" asp-route-id="@course.Id">
+                                    <a class="button secondary button-small" asp-action="Course" asp-route-id="@course.Id">
                                         @(completed ? "Xem lại khóa" : "Tiếp tục học")
                                     </a>
                                 </div>
@@ -137,7 +137,7 @@
                     </div>
                     @if (Model.AssessmentResults.Any())
                     {
-                        <a class="button secondary button-sm" asp-action="Progress" asp-route-tab="assessments">Xem chi tiết bài thi &rarr;</a>
+                        <a class="button secondary button-small" asp-action="Progress" asp-route-tab="assessments">Xem chi tiết bài thi &rarr;</a>
                     }
                 </div>
 
@@ -150,7 +150,7 @@
                         <div class="empty-text-box">
                             <h3>Chưa đủ dữ liệu đánh giá năng lực</h3>
                             <p>Hãy hoàn thành bài Đánh giá năng lực đầu vào hoặc bài kiểm tra kỹ năng để nhận biểu đồ phân tích và đề xuất học tập phù hợp.</p>
-                            <a class="button button-sm" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá năng lực &rarr;</a>
+                            <a class="button button-small" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá năng lực &rarr;</a>
                         </div>
                     </div>
                 }
@@ -182,7 +182,7 @@
                                         <span class="skill-pct">@skill.Score.ToString("0.#")%</span>
                                     </div>
                                     <div class="skill-track">
-                                        <div class="skill-fill @(skill.IsWeak ? "is-weak" : "")" style="width: @(skill.Score)%;"></div>
+                                        <div class="skill-fill @(skill.IsWeak ? "is-weak" : "")" style="width: @skill.Score.ToString(System.Globalization.CultureInfo.InvariantCulture)%;"></div>
                                     </div>
                                 </div>
                             }
@@ -227,7 +227,7 @@
                         <h2 id="heading-past-assessments" class="section-title">Kết quả đánh giá đã làm</h2>
                         <p class="section-subtitle">Lịch sử và điểm số các bài đánh giá bạn đã hoàn thành.</p>
                     </div>
-                    <a class="button secondary button-sm" asp-controller="Assessment" asp-action="Index">Tất cả bài đánh giá &rarr;</a>
+                    <a class="button secondary button-small" asp-controller="Assessment" asp-action="Index">Tất cả bài đánh giá &rarr;</a>
                 </div>
 
                 @if (Model.AssessmentResults.Count == 0)
@@ -236,32 +236,35 @@
                         <svg class="empty-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
                         <h3>Chưa có kết quả bài kiểm tra</h3>
                         <p>Bạn chưa hoàn thành bài kiểm tra hoặc đánh giá năng lực nào.</p>
-                        <a class="button button-sm" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá ngay &rarr;</a>
+                        <a class="button button-small" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá ngay &rarr;</a>
                     </div>
                 }
                 else
                 {
                     <div class="assessment-results-table-wrap">
-                        <table class="assessment-results-table">
-                            <thead>
-                                <tr>
-                                    <th>Bài đánh giá</th>
-                                    <th>Điểm tổng</th>
-                                    <th>Kỹ năng đánh giá</th>
-                                    <th>Thời gian hoàn thành</th>
-                                    <th>Thao tác</th>
+                        <table class="assessment-results-table" role="table">
+                            <caption class="visually-hidden">Kết quả đánh giá đã làm</caption>
+                            <thead role="rowgroup">
+                                <tr role="row">
+                                    <th scope="col" role="columnheader">Bài đánh giá</th>
+                                    <th scope="col" role="columnheader">Điểm tổng</th>
+                                    <th scope="col" role="columnheader">Kỹ năng đánh giá</th>
+                                    <th scope="col" role="columnheader">Thời gian hoàn thành</th>
+                                    <th scope="col" role="columnheader">Thao tác</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody role="rowgroup">
                                 @foreach (var result in Model.AssessmentResults)
                                 {
-                                    <tr>
-                                        <td><strong>@result.Title</strong></td>
-                                        <td>
+                                    <tr role="row">
+                                        <th scope="row" role="rowheader">@result.Title</th>
+                                        <td role="cell">
+                                            <span class="assessment-result-cell-label" aria-hidden="true">Điểm tổng</span>
                                             <span class="result-score-badge">@result.OverallScore.ToString("0.#")/100</span>
                                         </td>
-                                        <td>
-                                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                        <td role="cell">
+                                            <span class="assessment-result-cell-label" aria-hidden="true">Kỹ năng đánh giá</span>
+                                            <div class="assess-skills-row">
                                                 @foreach (var skill in result.Skills)
                                                 {
                                                     <span class="v2-pill-tag badge-subtle">
@@ -270,13 +273,14 @@
                                                 }
                                             </div>
                                         </td>
-                                        <td>
+                                        <td role="cell">
+                                            <span class="assessment-result-cell-label" aria-hidden="true">Thời gian hoàn thành</span>
                                             <time datetime="@result.FinalizedAtUtc.ToString("O")">
                                                 @result.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy")
                                             </time>
                                         </td>
-                                        <td>
-                                            <a class="button secondary button-sm" asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">
+                                        <td role="cell">
+                                            <a class="button secondary button-small" asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">
                                                 Xem bài làm &rarr;
                                             </a>
                                         </td>
@@ -317,13 +321,13 @@
                                 <div class="assess-card-action">
                                     @if (assess.ActiveAttemptId is not null)
                                     {
-                                        <a class="button button-sm" asp-controller="Assessment" asp-action="Take" asp-route-id="@assess.Id">
+                                        <a class="button button-small" asp-controller="Assessment" asp-action="Take" asp-route-id="@assess.Id">
                                             Tiếp tục làm bài &rarr;
                                         </a>
                                     }
                                     else
                                     {
-                                        <a class="button secondary button-sm" asp-controller="Assessment" asp-action="Take" asp-route-id="@assess.Id">
+                                        <a class="button secondary button-small" asp-controller="Assessment" asp-action="Take" asp-route-id="@assess.Id">
                                             Bắt đầu làm bài &rarr;
                                         </a>
                                     }
@@ -346,7 +350,7 @@
                         <h2 id="heading-gamification-summary" class="section-title">Thành tích &amp; Điểm thưởng</h2>
                         <p class="section-subtitle">Ghi nhận sự kiên trì và tiến bộ của bạn mỗi ngày.</p>
                     </div>
-                    <a class="button secondary button-sm" asp-controller="Achievements" asp-action="Index">Chi tiết thành tích &rarr;</a>
+                    <a class="button secondary button-small" asp-controller="Achievements" asp-action="Index">Chi tiết thành tích &rarr;</a>
                 </div>
 
                 <div class="gamification-stats-grid">

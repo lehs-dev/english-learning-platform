@@ -1,0 +1,103 @@
+.lesson-actions,
+.lesson-context {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.lesson-context a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.lesson-final {
+    margin-top: 24px;
+    padding: clamp(16px, 4vw, 26px) clamp(16px, 4vw, 28px);
+    background: #fffdf5;
+    border-color: #fef3c7;
+}
+
+.lesson-final .lesson-context {
+    margin-bottom: 10px;
+}
+
+.v2-resource-page {
+    max-width: 860px;
+    margin: 24px auto;
+}
+
+.resource-page-intro {
+    margin-bottom: 20px;
+}
+
+.resource-page-intro h1 {
+    margin: 0 0 8px;
+    color: var(--v2-dark);
+    font-size: 1.75rem;
+    font-weight: 800;
+}
+
+.resource-page-intro p {
+    margin: 0;
+    color: var(--v2-text-muted);
+    font-size: .875rem;
+}
+
+.resource-page-card {
+    padding: 32px;
+    border: 1px solid var(--v2-border, #e4e4ee);
+    border-radius: 24px;
+    background: var(--v2-surface);
+    box-shadow: var(--v2-shadow-card);
+}
+
+.student-workspace-v2 .v2-resource-page {
+    margin-block: 0;
+}
+
+.student-workspace-v2 .v2-resource-page .resource-content {
+    padding-block: 0;
+    border: 0;
+}
+
+.student-workspace-v2 .lesson-study-layout {
+    max-width: 960px;
+    margin-inline: auto;
+}
+
+.student-workspace-v2 :is(.lesson-reading, .resource-page-card) {
+    padding: clamp(14px, 3vw, 32px);
+}
+
+.student-workspace-v2 :is(.lesson-reading, .resource-page-card) .reading-copy {
+    font-size: 1rem;
+}
+
+.student-workspace-v2 .lesson-navigation > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.student-workspace-v2 .lesson-navigation > div:last-child {
+    text-align: end;
+}
+
+@media (max-width: 640px) {
+    .student-workspace-v2 .lesson-navigation {
+        display: grid;
+        gap: 10px;
+    }
+
+    .student-workspace-v2 .lesson-navigation > div:not(:has(.button)) {
+        display: none;
+    }
+
+    .student-workspace-v2 :is(.lesson-actions, .lesson-navigation, .lesson-final) .button {
+        width: 100%;
+    }
+
+    .student-workspace-v2 .lesson-completion-info {
+        flex-basis: 100%;
+    }
+}

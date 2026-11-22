@@ -46,7 +46,7 @@
                             <svg class="icon icon-sm" aria-hidden="true" style="width: 15px; height: 15px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
                         </div>
                     }
-                    <div style="flex: 1;">
+                    <div class="outline-lesson-copy" style="flex: 1;">
                         @if (Model.CanLearn)
                         {
                             <a asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">@lesson.Title</a>
@@ -72,7 +72,7 @@
                     </div>
                     @if (Model.CanLearn)
                     {
-                        <a class="button secondary" style="padding: 6px 14px; font-size: 12px; margin-left: auto;" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">
+                        <a class="button secondary" style="padding: 6px 14px; font-size: 12px;" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">
                             @(lesson.IsCompleted ? "Xem lại" : "Học bài")
                         </a>
                     }

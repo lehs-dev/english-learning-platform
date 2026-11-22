@@ -6,6 +6,8 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
     const bar = document.querySelector('[data-practice-bar]');
     const prevBtn = form.querySelector('[data-practice-prev]');
     const nextBtn = form.querySelector('[data-practice-next]');
+    const palette = form.querySelector('.practice-palette-strip');
+    const skipToQuestion = form.querySelector('.practice-skip-to-question');
     const submitBtn = form.querySelector('[data-practice-submit]');
     const confirmDialog = document.querySelector('[data-practice-confirm-dialog]');
     const answeredCountEl = confirmDialog?.querySelector('[data-answered-count]');
@@ -16,7 +18,26 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
 
     let currentIndex = 0;
 
+    [palette, prevBtn, nextBtn].forEach(control => {
+        if (control && questions.length > 1) control.hidden = false;
+    });
+
     if (passage) {
+        const compactLayout = window.matchMedia('(max-width: 767px)');
+        let compactPassageOpen = false;
+        let widePassageOpen = passage.open;
+
+        if (compactLayout.matches) passage.open = compactPassageOpen;
+        compactLayout.addEventListener('change', ({ matches }) => {
+            if (matches) {
+                widePassageOpen = passage.open;
+                passage.open = compactPassageOpen;
+            } else {
+                compactPassageOpen = passage.open;
+                passage.open = widePassageOpen;
+            }
+        });
+
         form.querySelectorAll('.practice-back-passage').forEach(link => {
             link.addEventListener('click', () => {
                 passage.open = true;
@@ -24,24 +45,31 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
         });
     }
 
-    function setActiveQuestion(index) {
+    function setActiveQuestion(index, focusQuestion = false) {
         if (index < 0 || index >= questions.length) return;
         currentIndex = index;
-        questions.forEach((q, i) => {
-            const isActive = (i === index);
-            q.classList.toggle('is-active-question', isActive);
-            if (isActive) {
-                q.removeAttribute('inert');
-            }
-        });
-        links.forEach((l, i) => {
-            l.classList.toggle('is-current', i === index);
-            if (i === index) {
-                l.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
-            }
+        questions.forEach((question, i) => question.classList.toggle('is-active-question', i === index));
+        links.forEach((link, i) => {
+            link.classList.toggle('is-current', i === index);
+            if (i === index) link.setAttribute('aria-current', 'step');
+            else link.removeAttribute('aria-current');
         });
         if (prevBtn) prevBtn.disabled = (index === 0);
         if (nextBtn) nextBtn.disabled = (index === questions.length - 1);
+
+        const currentQuestion = questions[index];
+        const currentLink = links[index];
+        if (skipToQuestion) skipToQuestion.href = `#${currentQuestion.id}`;
+        if (palette && currentLink) {
+            const { left, right } = currentLink.getBoundingClientRect();
+            const bounds = palette.getBoundingClientRect();
+            palette.scrollBy({ left: Math.min(0, left - bounds.left) + Math.max(0, right - bounds.right) });
+        }
+        if (focusQuestion) {
+            currentQuestion.focus({ preventScroll: true });
+            const top = currentQuestion.getBoundingClientRect().top;
+            if (top < 24 || top > window.innerHeight / 2) currentQuestion.scrollIntoView({ block: 'start' });
+        }
     }
 
     function isQuestionAnswered(question) {
@@ -82,27 +110,28 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
     links.forEach((link, index) => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            setActiveQuestion(index);
+            setActiveQuestion(index, true);
         });
     });
 
     // Next / Prev buttons
     prevBtn?.addEventListener('click', () => {
-        if (currentIndex > 0) setActiveQuestion(currentIndex - 1);
+        if (currentIndex > 0) setActiveQuestion(currentIndex - 1, true);
     });
     nextBtn?.addEventListener('click', () => {
-        if (currentIndex < questions.length - 1) setActiveQuestion(currentIndex + 1);
+        if (currentIndex < questions.length - 1) setActiveQuestion(currentIndex + 1, true);
     });
 
     // Keyboard navigation
     window.addEventListener('keydown', (e) => {
-        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+        const focused = document.activeElement;
+        if (confirmDialog?.open || !form.contains(focused) || focused.matches('input, textarea, select, summary, audio, video')) return;
         if (e.key === 'ArrowLeft' && currentIndex > 0) {
             e.preventDefault();
-            setActiveQuestion(currentIndex - 1);
+            setActiveQuestion(currentIndex - 1, true);
         } else if (e.key === 'ArrowRight' && currentIndex < questions.length - 1) {
             e.preventDefault();
-            setActiveQuestion(currentIndex + 1);
+            setActiveQuestion(currentIndex + 1, true);
         }
     });
 
