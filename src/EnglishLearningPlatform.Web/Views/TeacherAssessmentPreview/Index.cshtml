@@ -112,10 +112,10 @@ else
                     </div>
                 }
 
-                @if (question.QuestionType == QuestionType.FillBlank)
+                @if (question.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
                 {
-                    <label for="preview-text-@i">Câu trả lời của bạn</label>
-                    <input type="text" id="preview-text-@i" maxlength="500" autocomplete="off" class="form-control" />
+                    <label for="preview-text-@i">@(question.QuestionType == QuestionType.Dictation ? "Gõ lại nội dung bạn nghe được" : "Câu trả lời của bạn")</label>
+                    <input type="text" id="preview-text-@i" maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off" class="form-control" />
                 }
                 else if (question.StructuredPrompt is { } prompt)
                 {

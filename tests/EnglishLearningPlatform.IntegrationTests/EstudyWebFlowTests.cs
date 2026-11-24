@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Application.Flashcards;
 using EnglishLearningPlatform.Application.Gamification;
@@ -61,6 +62,41 @@ public sealed class EstudyWebFlowTests(IntegrationTestFactory factory) : IClassF
         Assert.Contains("name=\"To\"", analytics);
         Assert.Contains(data.CourseTitle, analytics);
         Assert.Contains(data.Student.FullName, analytics);
+    }
+
+    [Fact]
+    public async Task TeacherFlashcardCsv_ImportsAllValidRowsOnceAndRejectsInvalidBatch()
+    {
+        var data = await SeedDeckAsync(publish: false);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, data.Teacher);
+        Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, $"/TeacherFlashcards/Edit/{data.DeckId}");
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var deckCards = db.Set<Flashcard>().AsNoTracking().Where(card => card.DeckId == data.DeckId);
+        using var rejected = await ImportAsync("FrontText,BackText\r\nnew word,từ mới\r\ninvalid,\r\n");
+        Assert.Equal(HttpStatusCode.Redirect, rejected.StatusCode);
+        Assert.Equal(5, await deckCards.CountAsync());
+
+        const string valid = "FrontText,BackText,Example\r\nnew word,từ mới,\"First, learn the meaning.\"\r\nhello,xin chào,\r\n";
+        using var imported = await ImportAsync(valid);
+        using var replayed = await ImportAsync(valid);
+        Assert.Equal(HttpStatusCode.Redirect, imported.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, replayed.StatusCode);
+        var cards = await deckCards.OrderBy(card => card.OrderIndex).ToListAsync();
+        Assert.Equal(7, cards.Count);
+        Assert.Equal("First, learn the meaning.", cards[^2].Example);
+        Assert.Equal("xin chào", cards[^1].BackText);
+
+        async Task<HttpResponseMessage> ImportAsync(string csv)
+        {
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent(token), "__RequestVerificationToken");
+            form.Add(new StringContent(csv, Encoding.UTF8, "text/csv"), "csvFile", "words.csv");
+            return await client.PostAsync($"/TeacherFlashcards/ImportCards/{data.DeckId}", form);
+        }
     }
 
     [Fact]

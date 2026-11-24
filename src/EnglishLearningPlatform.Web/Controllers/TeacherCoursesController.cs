@@ -2,7 +2,9 @@ using System.Security.Claims;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Web.Infrastructure;
 using EnglishLearningPlatform.Web.Models.Courses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +13,8 @@ namespace EnglishLearningPlatform.Web.Controllers;
 [Authorize(Policy = AuthorizationPolicies.Teacher)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class TeacherCoursesController(ICourseAuthoringService courses, ITeacherCourseReportService reports,
-    IStudentLearningCourseService learning, ITeacherAssessmentDraftService assessments) : Controller
+    IStudentLearningCourseService learning, ITeacherAssessmentDraftService assessments, LessonMediaStore mediaStore,
+    ILogger<TeacherCoursesController> logger) : Controller
 {
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private IActionResult Denied(LearningAccessResult access) => access == LearningAccessResult.NotFound ? NotFound() : Forbid();
@@ -78,14 +81,23 @@ public sealed class TeacherCoursesController(ICourseAuthoringService courses, IT
     public async Task<IActionResult> Content(Guid courseId, ContentKind kind, Guid parentId, Guid? id, CancellationToken ct)
     {
         var result = await courses.ContentInputAsync(UserId, courseId, kind, parentId, id, ct);
-        return result.Access == LearningAccessResult.Allowed
-            ? await RenderContentEditorAsync(new ContentEditModel(courseId, kind, parentId, id, result.Value!), ct)
-            : Denied(result.Access);
+        if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        var input = result.Value!;
+        var mediaUrl = LessonMediaResource.TryParse(input.ResourceUrl, out _) ? input.ResourceUrl : null;
+        if (mediaUrl is not null) input.ResourceUrl = null;
+        return await RenderContentEditorAsync(new ContentEditModel(courseId, kind, parentId, id, input, mediaUrl), ct);
     }
     [HttpPost, ValidateAntiForgeryToken]
+    [RequestSizeLimit(LessonMediaStore.RequestMaxBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = LessonMediaStore.RequestMaxBytes)]
     public async Task<IActionResult> Content(Guid courseId, ContentKind kind, Guid parentId, Guid? id,
-        [Bind(Prefix = "Input")] ContentInput input, CancellationToken ct)
+        [Bind(Prefix = "Input")] ContentInput input, IFormFile? mediaFile, CancellationToken ct)
     {
+        var check = await courses.ContentInputAsync(UserId, courseId, kind, parentId, id, ct);
+        if (check.Access != LearningAccessResult.Allowed) return Denied(check.Access);
+
+        var existingMedia = LessonMediaResource.TryParse(check.Value?.ResourceUrl, out var media) ? media.Url : null;
+        var editor = new ContentEditModel(courseId, kind, parentId, id, input, existingMedia);
         if (kind == ContentKind.Module)
         {
             if (string.IsNullOrWhiteSpace(input.Title))
@@ -96,19 +108,47 @@ public sealed class TeacherCoursesController(ICourseAuthoringService courses, IT
                 visibility.Errors.Add("Trạng thái hiển thị chương học không hợp lệ.");
             }
         }
-        if (!ModelState.IsValid)
+        if (kind == ContentKind.Resource &&
+            input.ResourceUrl?.Trim().StartsWith(LessonMediaResource.RoutePrefix, StringComparison.OrdinalIgnoreCase) == true)
+            ModelState.AddModelError("Input.ResourceUrl", "Dùng trường tải tệp để thêm học liệu.");
+        if (!ModelState.IsValid) return await RenderContentEditorAsync(editor, ct);
+
+        string? submittedUrl = input.ResourceUrl;
+        LessonMediaResource? newMedia = null;
+        if (mediaFile is not null)
         {
-            var check = await courses.ContentInputAsync(UserId, courseId, kind, parentId, id, ct);
-            return check.Access == LearningAccessResult.Allowed
-                ? await RenderContentEditorAsync(new ContentEditModel(courseId, kind, parentId, id, input), ct)
-                : Denied(check.Access);
+            var (limit, help) = (kind, input.ResourceType) switch
+            {
+                (ContentKind.Resource, LessonResourceType.Image) => (LessonMediaStore.ImageMaxBytes, "Chọn ảnh PNG, JPEG hoặc WebP, tối đa 5 MiB."),
+                (ContentKind.Resource, LessonResourceType.Audio) => (LessonMediaStore.AudioMaxBytes, "Chọn âm thanh MP3, WAV hoặc Ogg, tối đa 10 MiB."),
+                _ => (0, "Chỉ tải tệp lên khi chọn loại Hình ảnh hoặc Âm thanh.")
+            };
+            try
+            {
+                if (mediaFile.Length > 0 && mediaFile.Length <= limit)
+                    newMedia = await mediaStore.SaveAsync(mediaFile, input.ResourceType, id ?? Guid.NewGuid(), ct);
+                if (!newMedia.HasValue) ModelState.AddModelError(nameof(mediaFile), help);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                logger.LogError(exception, "Could not store media for lesson {LessonId}.", parentId);
+                ModelState.AddModelError(nameof(mediaFile), "Không thể lưu tệp lúc này. Vui lòng thử lại.");
+            }
+            if (!ModelState.IsValid) return await RenderContentEditorAsync(editor, ct);
+            input.ResourceUrl = newMedia!.Value.Url;
+        }
+        else if (existingMedia is not null && string.IsNullOrWhiteSpace(input.ResourceUrl) && media.Matches(input.ResourceType))
+        {
+            input.ResourceUrl = existingMedia;
         }
         var result = await courses.SaveContentAsync(UserId, courseId, kind, parentId, id, input, ct);
+        if (!result.Success && newMedia is { } unused) mediaStore.Delete(unused);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         if (!result.Success)
         {
+            input.ResourceUrl = submittedUrl;
             AddErrors(result);
-            return await RenderContentEditorAsync(new ContentEditModel(courseId, kind, parentId, id, input), ct);
+            return await RenderContentEditorAsync(editor, ct);
         }
         TempData["Success"] = "Đã lưu nội dung.";
         return kind switch

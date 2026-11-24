@@ -61,10 +61,10 @@
                 </div>
             }
             @* Không nằm trong form và không có script Submit: lựa chọn chỉ tồn tại trên trang. *@
-            @if (question.QuestionType == QuestionType.FillBlank)
+            @if (question.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
             {
-                <label for="preview-blank-@i">Câu trả lời của bạn</label>
-                <input id="preview-blank-@i" type="text" class="form-control" maxlength="500" autocomplete="off" />
+                <label for="preview-blank-@i">@(question.QuestionType == QuestionType.Dictation ? "Gõ lại nội dung bạn nghe được" : "Câu trả lời của bạn")</label>
+                <input id="preview-blank-@i" type="text" class="form-control" maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off" />
             }
             else if (question.StructuredPrompt is { } prompt)
             {

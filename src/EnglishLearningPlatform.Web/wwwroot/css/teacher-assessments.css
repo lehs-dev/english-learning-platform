@@ -27,7 +27,7 @@
 .ta-count { display: inline-grid; place-items: center; min-width: 28px; min-height: 25px; padding: 2px 8px; border-radius: 7px; background: var(--ta-accent); color: #6d4a93; font-size: 12px; font-weight: 700; }
 .ta-text-link { color: #695087; font-size: 12px; font-weight: 600; text-decoration: none; }
 .ta-text-link:hover { text-decoration: underline; }
-.ta-card-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ta-card-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
 .ta-card-heading { margin-bottom: 18px; }
 .ta-status { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 5px 9px; border-radius: 7px; background: #fff1db; color: #7d5c25; font-size: 11px; font-weight: 600; line-height: 1.5; }
 .ta-status::before { content: ""; width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: currentColor; }

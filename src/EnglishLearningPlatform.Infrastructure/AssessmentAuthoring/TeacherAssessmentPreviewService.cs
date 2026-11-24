@@ -168,7 +168,7 @@ public sealed class TeacherAssessmentPreviewService
                 question.Id,
                 question.Content,
                 item.Points,
-                stimulus?.ContentText,
+                stimulus?.StimulusType == StimulusType.Passage ? stimulus.ContentText : null,
                 null, // Preview không đọc đáp án của Attempt.
                 options)
             {

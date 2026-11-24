@@ -10,7 +10,10 @@ public sealed record FlashcardSheet(Guid Id, string FrontText, string BackText, 
 public sealed record FlashcardStudySheet(Guid DeckId, string Title, int TotalCards, int DueCount,
     FlashcardSheet? Card, Guid ReviewRequestId, DateTimeOffset? NextDueAtUtc);
 public enum FlashcardWriteStatus { Saved, Forbidden, NotFound, Invalid, Unavailable, Conflict }
-public sealed record FlashcardWriteResult(FlashcardWriteStatus Status, Guid? Id = null, string? Error = null);
+public sealed record FlashcardWriteResult(FlashcardWriteStatus Status, Guid? Id = null, string? Error = null)
+{
+    public int AddedCardCount { get; init; }
+}
 public sealed record FlashcardReviewResult(FlashcardWriteStatus Status, DateTimeOffset? NextDueAtUtc = null,
     bool IsReplay = false);
 public sealed record FlashcardCourseOption(Guid Id, string Title, IReadOnlyList<FlashcardLessonOption> Lessons);
@@ -39,6 +42,7 @@ public interface ITeacherFlashcardService
     Task<FlashcardWriteResult> CreateAsync(Guid teacherId, SaveFlashcardDeckRequest request, CancellationToken ct = default);
     Task<FlashcardWriteResult> UpdateAsync(Guid teacherId, Guid deckId, SaveFlashcardDeckRequest request, CancellationToken ct = default);
     Task<FlashcardWriteResult> SaveCardAsync(Guid teacherId, Guid deckId, Guid? cardId, SaveFlashcardRequest request, CancellationToken ct = default);
+    Task<FlashcardWriteResult> ImportCardsAsync(Guid teacherId, Guid deckId, IReadOnlyList<SaveFlashcardRequest> cards, CancellationToken ct = default);
     Task<FlashcardWriteResult> DeleteCardAsync(Guid teacherId, Guid deckId, Guid cardId, CancellationToken ct = default);
     Task<FlashcardWriteResult> PublishAsync(Guid teacherId, Guid deckId, CancellationToken ct = default);
     Task<FlashcardWriteResult> ArchiveAsync(Guid teacherId, Guid deckId, CancellationToken ct = default);

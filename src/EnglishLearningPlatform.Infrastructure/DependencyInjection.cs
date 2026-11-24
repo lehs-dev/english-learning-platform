@@ -1,3 +1,5 @@
+using EnglishLearningPlatform.Application.Homework;
+using EnglishLearningPlatform.Infrastructure.Homework;
 using EnglishLearningPlatform.Infrastructure.Authorization;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
@@ -86,6 +88,7 @@ public static class DependencyInjection
         services.AddScoped<ICourseService>(provider => provider.GetRequiredService<CourseService>());
         services.AddScoped<CourseQueries>();
         services.AddScoped<CourseProgressService>();
+        services.AddScoped<IWritingHomeworkService, WritingHomeworkService>();
         services.AddScoped<ICourseCatalogService, CourseCatalogService>();
         services.AddScoped<IStudentLearningCourseService, StudentLearningCourseService>();
         services.AddScoped<ICourseAuthoringService, CourseAuthoringService>();
@@ -130,6 +133,7 @@ public static class DependencyInjection
         services.AddScoped<IAdminOverviewDetailQueryService, AdminOverviewDetailQueryService>();
         services.AddScoped<IAdminManagementService, AdminManagementService>();
         services.AddScoped<IStudentLearningService, StudentLearningService>();
+        services.AddScoped<ICourseDiscussionService, CourseDiscussionService>();
         services.AddScoped<ITeacherCourseReportService, TeacherCourseReportService>();
         services.AddScoped<IPracticeService, PracticeService>();
         services.AddScoped<ITeacherPracticeService, TeacherPracticeService>();

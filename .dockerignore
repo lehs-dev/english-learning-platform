@@ -17,6 +17,7 @@ docs/acceptance/evidence/
 docs/handover/generated/
 artifacts/
 **/App_Data/avatars/
+**/App_Data/lesson-media/
 **/appsettings.Local.json
 **/appsettings.*.Local.json
 **/*.user

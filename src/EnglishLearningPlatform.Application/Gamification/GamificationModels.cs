@@ -6,7 +6,11 @@ namespace EnglishLearningPlatform.Application.Gamification;
 
 public sealed record AchievementSummary(string Code, string Title, DateTimeOffset AwardedAtUtc);
 public sealed record GamificationSummary(int TotalXp, int CurrentStreak, int LongestStreak,
-    IReadOnlyList<AchievementSummary> Badges);
+    IReadOnlyList<AchievementSummary> Badges)
+{
+    public bool StudiedToday { get; init; }
+    public IReadOnlyList<DateOnly> RecentActivityDates { get; init; } = [];
+}
 
 public interface IGamificationService
 {
@@ -17,8 +21,14 @@ public interface IGamificationService
 public static class GamificationPolicy
 {
     public const string TimezoneId = "Asia/Ho_Chi_Minh";
+    public const string SevenDayStreakBadge = "seven-day-streak";
+    private static readonly TimeZoneInfo VietnamTimezone = TimeZoneInfo.FindSystemTimeZoneById(TimezoneId);
+
     public static DateOnly LocalDate(DateTimeOffset timestamp) =>
-        DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(timestamp, TimezoneId).DateTime);
+        DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(timestamp, VietnamTimezone).DateTime);
+
+    public static DateTimeOffset LocalDayStartUtc(DateOnly day) =>
+        TimeZoneInfo.ConvertTimeToUtc(day.ToDateTime(TimeOnly.MinValue), VietnamTimezone);
 
     public static int XpFor(GamificationEventType type) => type switch
     {
@@ -35,24 +45,33 @@ public static class GamificationPolicy
 
     public static (int Current, int Longest) Streaks(IEnumerable<DateOnly> activityDates, DateOnly today)
     {
-        var dates = activityDates.Where(d => d <= today).Distinct().Order().ToArray();
+        var progress = StreakProgress(activityDates, today);
+        return (progress.Current, progress.Longest);
+    }
+
+    public static (int Current, int Longest, bool StudiedToday, DateOnly? SevenDayMilestone)
+        StreakProgress(IEnumerable<DateOnly> activityDates, DateOnly today)
+    {
         int longest = 0, run = 0;
         DateOnly? previous = null;
-        foreach (var date in dates)
+        DateOnly? sevenDayMilestone = null;
+        foreach (var date in activityDates.Where(d => d <= today).Distinct().Order())
         {
-            run = previous.HasValue && previous.Value.AddDays(1) == date ? run + 1 : 1;
+            run = previous.HasValue && date.DayNumber - previous.Value.DayNumber == 1 ? run + 1 : 1;
             longest = Math.Max(longest, run);
+            if (run == 7)
+                sevenDayMilestone ??= date;
             previous = date;
         }
-        int current = dates.Length > 0 && dates[^1] >= today.AddDays(-1) ? run : 0;
-        return (current, longest);
+        int current = previous.HasValue && today.DayNumber - previous.Value.DayNumber <= 1 ? run : 0;
+        return (current, longest, previous == today, sevenDayMilestone);
     }
 
     public static string BadgeTitle(string code) => code switch
     {
         "first-lesson" => "Bài học đầu tiên",
         "five-practices" => "Hoàn thành 5 bài luyện tập",
-        "seven-day-streak" => "Chuỗi học 7 ngày",
+        SevenDayStreakBadge => "Chuỗi học 7 ngày",
         _ => code
     };
 }

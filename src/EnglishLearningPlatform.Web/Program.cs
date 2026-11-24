@@ -1,6 +1,7 @@
 using EnglishLearningPlatform.Application;
 using EnglishLearningPlatform.Infrastructure;
 using EnglishLearningPlatform.Web.Commerce;
+using EnglishLearningPlatform.Web.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IPaymentWebhookProcessor, PaymentWebhookProcessor>();
+builder.Services.AddSingleton<LessonMediaStore>();
 
 var app = builder.Build();
 

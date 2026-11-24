@@ -1,4 +1,6 @@
 @model StudentDashboard
+@using EnglishLearningPlatform.Application.Gamification
+@inject TimeProvider Clock
 
 @{
     ViewData["Title"] = "Hôm nay — Tiến độ học tập";
@@ -28,12 +30,12 @@
     }
 
     // 2. Calendar tuần hiện tại theo UTC+7
-    var localToday = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)).DateTime);
+    var localToday = GamificationPolicy.LocalDate(Clock.GetUtcNow());
     var weekStart = Model.WeekStartDate == default ? localToday.AddDays(-(((int)localToday.DayOfWeek + 6) % 7)) : Model.WeekStartDate;
     var weekDays = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
     var selectedDay = weekDays.Contains(localToday) ? localToday : weekStart;
-    var activitiesByDay = Model.WeeklyActivities
-        .ToLookup(a => DateOnly.FromDateTime(a.OccurredAtUtc.ToOffset(TimeSpan.FromHours(7)).DateTime));
+    var activitiesByDay = Model.WeeklyActivities.ToLookup(a => GamificationPolicy.LocalDate(a.OccurredAtUtc));
+    var gamification = ViewData["Gamification"] as GamificationSummary;
     string[] dayNamesVi = { "T2", "T3", "T4", "T5", "T6", "T7", "CN" };
 
     string[] pastelCardThemes = { "progress-card-lavender", "progress-card-peach" };
@@ -50,7 +52,7 @@
             <h1 class="today-title">Chào buổi học mới, @(User.Identity?.Name ?? "học viên")!</h1>
             <p class="today-subtitle">Tiếp tục hành trình cải thiện kỹ năng tiếng Anh hôm nay.</p>
         </div>
-        @if (ViewData["Gamification"] is EnglishLearningPlatform.Application.Gamification.GamificationSummary achievement)
+        @if (gamification is { } achievement)
         {
             <div class="today-gamification-pills" aria-label="Thành tích cá nhân">
                 <a asp-controller="Learning" asp-action="Progress" asp-route-tab="achievements" class="today-stat-pill" title="Xem thành tích XP">
@@ -58,8 +60,11 @@
                     <strong>@achievement.TotalXp XP</strong>
                 </a>
                 <a asp-controller="Learning" asp-action="Progress" asp-route-tab="achievements" class="today-stat-pill" title="Xem chuỗi học tập">
-                    <span class="today-stat-icon">🔥</span>
-                    <strong>@achievement.CurrentStreak ngày streak</strong>
+                    <span class="today-stat-icon" aria-hidden="true">🔥</span>
+                    <span>
+                        <strong>Chuỗi @achievement.CurrentStreak ngày</strong>
+                        <small class="today-streak-status">@(achievement.StudiedToday ? "Đã học hôm nay" : "Hôm nay chưa ghi nhận")</small>
+                    </span>
                 </a>
             </div>
         }
@@ -100,7 +105,7 @@
                         <p class="hero-promo-desc">
                             Bạn đã học xong @finalPendingCourse.Progress!.CompletedLessons/@finalPendingCourse.Progress.TotalLessons bài. Làm bài thi cuối khóa để ghi nhận hoàn thành.
                         </p>
-                        <a asp-action="Course" asp-route-id="@finalPendingCourse.Id" class="btn-dark">
+                        <a asp-action="Course" asp-route-id="@finalPendingCourse.Id" asp-route-tab="assessment" class="btn-dark">
                             <span>Làm bài thi cuối khóa</span>
                             <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                         </a>
@@ -116,7 +121,7 @@
                         <p class="hero-promo-desc">
                             Giảng viên: @notStartedCourse.Teacher · Trình độ: <partial name="_UiText" model="notStartedCourse.Level" /> · @notStartedCourse.LessonCount bài học
                         </p>
-                        <a asp-action="Course" asp-route-id="@notStartedCourse.Id" class="btn-dark">
+                        <a asp-action="Continue" asp-route-id="@notStartedCourse.Id" class="btn-dark">
                             <span>Bắt đầu khóa học</span>
                             <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                         </a>
@@ -168,6 +173,17 @@
                     </svg>
                 </div>
             </section>
+
+            <nav class="today-activity-links" aria-label="Hoạt động học tập">
+                <a class="button secondary" asp-controller="Practice" asp-action="Index">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+                    Luyện tập
+                </a>
+                <a class="button secondary" asp-controller="Assessment" asp-action="Index">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+                    Bài kiểm tra
+                </a>
+            </nav>
 
             @* 3. Khóa học nổi bật (Tối đa 2 khóa spotlight) *@
             <div class="clean-section-header" id="your-progress" style="margin-top:28px;">
@@ -230,6 +246,7 @@
                             </div>
 
                             <div class="progress-card-action">
+                                <a class="button secondary button-small" asp-controller="Homework" asp-action="Course" asp-route-id="@c.Id">Bài tập viết</a>
                                 @if (c.Progress is { TotalLessons: > 0, CompletedLessons: > 0 } && c.Progress.CompletedLessons < c.Progress.TotalLessons)
                                 {
                                     <a asp-action="Continue" asp-route-id="@c.Id" class="btn-dark-sm">Học tiếp &rarr;</a>
@@ -461,14 +478,16 @@
                         var isToday = d == localToday;
                         var isSelected = d == selectedDay;
                         var activityCount = activitiesByDay[d].Count();
+                        var studiedDay = gamification?.RecentActivityDates.Contains(d) == true;
+                        var activityLabel = studiedDay ? "đã ghi nhận ngày học" : $"{activityCount} hoạt động";
 
                         <button type="button" class="calendar-day-col @(isSelected ? "active" : "") @(isToday ? "is-today" : "")"
                                 data-calendar-day="@d.ToString("yyyy-MM-dd")" aria-pressed="@(isSelected ? "true" : "false")"
-                                aria-label="@dayNamesVi[i], @d.ToString("dd/MM/yyyy"), @activityCount hoạt động"
+                                aria-label="@dayNamesVi[i], @d.ToString("dd/MM/yyyy"), @activityLabel"
                                 title="@d.ToString("dd/MM/yyyy")">
                             <span class="calendar-day-name">@dayNamesVi[i]</span>
                             <span class="calendar-day-num">@d.Day</span>
-                            @if (activityCount > 0)
+                            @if (activityCount > 0 || studiedDay)
                             {
                                 <span class="calendar-day-dot" aria-hidden="true"></span>
                             }
@@ -483,7 +502,7 @@
                         <h3 class="calendar-day-panel-title">Hoạt động ngày @d.ToString("dd/MM/yyyy")</h3>
                         @if (activities.Count == 0)
                         {
-                            <p class="section-subtitle-clean" style="margin:0;">Chưa có hoạt động học tập trong ngày này.</p>
+                            <p class="section-subtitle-clean" style="margin:0;">@(gamification?.RecentActivityDates.Contains(d) == true ? "Đã ghi nhận ngày học cho chuỗi." : "Chưa có hoạt động học tập trong ngày này.")</p>
                         }
                         else
                         {

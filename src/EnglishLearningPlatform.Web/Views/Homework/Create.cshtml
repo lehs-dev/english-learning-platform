@@ -1,0 +1,44 @@
+@using EnglishLearningPlatform.Application.Homework
+@model EnglishLearningPlatform.Web.Models.WritingAssignmentInput
+@{
+    var course = (WritingHomeworkCourseInfo)ViewData["Course"]!;
+    ViewData["Title"] = "Giao bài viết";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/homework.css" asp-append-version="true" />
+}
+
+<div class="homework-page">
+    <header class="homework-header">
+        <div>
+            <a asp-action="Course" asp-route-id="@course.Id">Bài tập viết · @course.Title</a>
+            <h1>Giao bài viết</h1>
+        </div>
+    </header>
+    <section class="homework-card">
+        <form class="editor-form" method="post" asp-action="Create" asp-route-id="@course.Id">
+            <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
+            <div>
+                <label asp-for="Title">Tiêu đề</label>
+                <input asp-for="Title" required maxlength="@WritingHomeworkLimits.TitleLength" />
+                <span asp-validation-for="Title" class="validation"></span>
+            </div>
+            <div>
+                <label asp-for="Prompt">Đề bài và yêu cầu</label>
+                <textarea asp-for="Prompt" rows="8" required maxlength="@WritingHomeworkLimits.PromptLength" aria-describedby="prompt-help"></textarea>
+                <p class="muted" id="prompt-help">Có thể thêm giới hạn từ, tiêu chí chấm hoặc ví dụ để học viên biết cần viết gì.</p>
+                <span asp-validation-for="Prompt" class="validation"></span>
+            </div>
+            <div>
+                <label asp-for="DueAt">Hạn nộp theo giờ Việt Nam (tùy chọn)</label>
+                <input asp-for="DueAt" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                <span asp-validation-for="DueAt" class="validation"></span>
+            </div>
+            <div class="homework-actions">
+                <button class="button primary" type="submit">Giao cho khóa học</button>
+                <a class="button secondary" asp-action="Course" asp-route-id="@course.Id">Hủy</a>
+            </div>
+        </form>
+    </section>
+</div>

@@ -371,6 +371,10 @@
                         <div class="gamification-card-body">
                             <span class="gamification-value">@(Model.Gamification?.CurrentStreak ?? 0) ngày</span>
                             <span class="gamification-label">Chuỗi ngày học liên tục</span>
+                            @if (Model.Gamification is { } gamification)
+                            {
+                                <span class="gamification-label">@(gamification.StudiedToday ? "Đã học hôm nay" : "Hôm nay chưa ghi nhận")</span>
+                            }
                         </div>
                     </div>
 

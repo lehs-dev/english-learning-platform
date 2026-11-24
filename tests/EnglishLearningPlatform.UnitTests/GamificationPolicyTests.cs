@@ -13,6 +13,7 @@ public sealed class GamificationPolicyTests
         var after = before.AddSeconds(1);
         Assert.Equal("2026-11-19", GamificationPolicy.WindowKey(GamificationEventType.PracticeSubmitted, before));
         Assert.Equal("2026-11-20", GamificationPolicy.WindowKey(GamificationEventType.PracticeSubmitted, after));
+        Assert.Equal(after, GamificationPolicy.LocalDayStartUtc(new DateOnly(2026, 11, 20)));
         Assert.Equal("lifetime", GamificationPolicy.WindowKey(GamificationEventType.LessonCompleted, after));
         Assert.Equal(5, GamificationPolicy.XpFor(GamificationEventType.PracticeSubmitted));
         Assert.Equal(10, GamificationPolicy.XpFor(GamificationEventType.PracticeHighScorer));
@@ -25,8 +26,12 @@ public sealed class GamificationPolicyTests
         var today = new DateOnly(2026, 11, 19);
         var days = Enumerable.Range(1, 7).Select(i => today.AddDays(-i)).Append(today.AddDays(-1));
         Assert.Equal((7, 7), GamificationPolicy.Streaks(days, today));
+        var milestone = GamificationPolicy.StreakProgress(days, today);
+        Assert.False(milestone.StudiedToday);
+        Assert.Equal(today.AddDays(-1), milestone.SevenDayMilestone);
         Assert.Equal((0, 7), GamificationPolicy.Streaks(days, today.AddDays(1)));
         Assert.Equal((8, 8), GamificationPolicy.Streaks(days.Append(today), today));
+        Assert.True(GamificationPolicy.StreakProgress(days.Append(today), today).StudiedToday);
         Assert.Equal((0, 0), GamificationPolicy.Streaks([], today));
     }
 

@@ -46,6 +46,8 @@ public sealed class M2MigrationCompatibilityTests : IAsyncLifetime
         Assert.Equal(legacy.AttemptId, oldAnswer.AttemptId);
         Assert.Equal(100m, oldAnswer.Attempt.OverallScore);
         Assert.Equal(100m, Assert.Single(oldAnswer.Attempt.SkillResults).Score);
+        var migratedActivity = await db.StudentActivityDays.SingleAsync(day => day.StudentUserId == student.Id);
+        Assert.Equal(new DateOnly(2026, 11, 18), migratedActivity.ActivityDate);
 
         var oldPlan = await db.Set<LearningPlan>().AsNoTracking().Include(p => p.Items).SingleAsync(p => p.Id == legacy.PlanId);
         Assert.Equal(7, oldPlan.DurationDays);

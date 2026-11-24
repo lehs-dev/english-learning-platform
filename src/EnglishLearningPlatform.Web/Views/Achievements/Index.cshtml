@@ -5,10 +5,10 @@
     ViewData["ActiveSection"] = "achievements";
 }
 <h1>Thành tích của bạn</h1>
-<p>Mỗi hoạt động là một bước tiến. Chuỗi ngày học được tính theo ngày Việt Nam.</p>
+<p>Chuỗi ngày học được tính từ 0 giờ theo giờ Việt Nam. Bạn có thể hoàn thành bài học, nộp bài luyện tập hoặc bài viết, làm bài thi có đáp án hoặc ôn ít nhất một thẻ để ghi nhận ngày học.</p>
 <div class="estudy-stats">
     <article class="card"><h2>@Model.TotalXp XP</h2><p>Tổng điểm kinh nghiệm</p></article>
-    <article class="card"><h2>@Model.CurrentStreak ngày</h2><p>Chuỗi học hiện tại</p></article>
+    <article class="card"><h2>@Model.CurrentStreak ngày</h2><p>Chuỗi học hiện tại · @(Model.StudiedToday ? "Đã học hôm nay" : "Hôm nay chưa ghi nhận")</p></article>
     <article class="card"><h2>@Model.LongestStreak ngày</h2><p>Chuỗi học dài nhất</p></article>
 </div>
 <h2>Huy hiệu</h2>

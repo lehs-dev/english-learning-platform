@@ -50,10 +50,11 @@ public sealed class PracticeController(IPracticeService practices, IStudentLearn
     }
 
     [HttpGet]
-    public async Task<IActionResult> Result(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Result(Guid id, CancellationToken ct, bool mistakesOnly = false)
     {
         var result = await practices.GetResultAsync(StudentId, id, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
+        ViewData["MistakesOnly"] = mistakesOnly;
         ViewData["CanRetry"] = (await practices.GetSheetAsync(StudentId, id, ct)).Access == LearningAccessResult.Allowed;
         return View(result.Value);
     }

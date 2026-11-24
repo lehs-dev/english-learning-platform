@@ -19,6 +19,10 @@
         @if (isNew && Model.CourseTitle is not null) { <p>Thuộc khóa học @Model.CourseTitle</p> }
         @if (!isNew) { <span class="workspace-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span> }
     </div>
+    @if (Model.Id is { } draftId && Model.Status == AssessmentStatus.Draft)
+    {
+        <a class="button" asp-controller="TeacherAssessmentQuestions" asp-action="Index" asp-route-id="@draftId">Chọn câu hỏi</a>
+    }
 </header>
 @if (Model.Id is { } id)
 {
@@ -52,7 +56,7 @@
         </section>
         @if (Model.Status == AssessmentStatus.Published)
         { <p class="ta-inline-note">Đề đang mở và chưa có lượt làm. Mỗi lần lưu phải giữ đề hợp lệ; khi có lượt làm đầu tiên, cấu hình và câu hỏi sẽ được khóa.</p> }
-        else { <p class="ta-help">Bản nháp có thể chưa có câu hỏi. Học viên chỉ làm được bài sau khi bạn mở bài kiểm tra.</p> }
+        else if (isNew) { <p class="ta-help">Sau khi lưu cấu hình, chọn câu hỏi và phân bổ điểm trước khi mở bài kiểm tra.</p> }
         <p class="ta-save-notice" data-configuration-notice role="status" tabindex="-1"></p>
         <div class="ta-form-actions"><a class="button secondary" href="@backUrl">Hủy</a><button type="submit" class="button">Lưu cấu hình</button></div>
     </form>

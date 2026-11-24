@@ -61,6 +61,56 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
     }
 
     [Fact]
+    public async Task LessonMediaUpload_RendersImageForEnrolledStudentAndDeniesOutsider()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var outsider = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var course = await Seed(teacher.Id);
+        var lesson = course.Modules.First().Lessons.First();
+
+        using var teacherClient = IdentityTestHelpers.CreateClient(factory);
+        using var teacherLogin = await IdentityTestHelpers.LoginAsync(teacherClient, teacher);
+        Assert.Equal(HttpStatusCode.Redirect, teacherLogin.StatusCode);
+        var formPath = $"/TeacherCourses/Content?courseId={course.Id}&kind=Resource&parentId={lesson.Id}";
+        var token = await IdentityTestHelpers.GetTokenAsync(teacherClient, formPath);
+        var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNQ6ngHAAJoAZlf4lN8AAAAAElFTkSuQmCC");
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent(token), "__RequestVerificationToken");
+        form.Add(new StringContent("A blue pixel"), "Input.Title");
+        form.Add(new StringContent(nameof(LessonResourceType.Image)), "Input.ResourceType");
+        form.Add(new ByteArrayContent(png), "mediaFile", "pixel.png");
+        using var upload = await teacherClient.PostAsync(formPath, form);
+        Assert.Equal(HttpStatusCode.Redirect, upload.StatusCode);
+        Assert.Contains($"/TeacherCourses/Manage/{course.Id}", upload.Headers.Location?.ToString());
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var url = await db.LessonResources.Where(r => r.LessonId == lesson.Id && r.ResourceType == LessonResourceType.Image)
+            .Select(r => r.ResourceUrl).SingleAsync();
+        Assert.StartsWith("/LessonMedia/", url);
+        Assert.True((await scope.ServiceProvider.GetRequiredService<ICourseService>().EnrollFreeAsync(student.Id, course.Id)).Success);
+
+        using var studentClient = IdentityTestHelpers.CreateClient(factory);
+        using var studentLogin = await IdentityTestHelpers.LoginAsync(studentClient, student);
+        Assert.Equal(HttpStatusCode.Redirect, studentLogin.StatusCode);
+        using var page = await studentClient.GetAsync($"/Learning/Lesson/{lesson.Id}");
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        Assert.Contains($"src=\"{url}\"", await page.Content.ReadAsStringAsync());
+        using var image = await studentClient.GetAsync(url);
+        Assert.Equal(HttpStatusCode.OK, image.StatusCode);
+        Assert.Equal("image/png", image.Content.Headers.ContentType?.MediaType);
+        Assert.True(image.Headers.CacheControl?.NoStore == true);
+        Assert.Equal(png, await image.Content.ReadAsByteArrayAsync());
+
+        using var outsiderClient = IdentityTestHelpers.CreateClient(factory);
+        using var outsiderLogin = await IdentityTestHelpers.LoginAsync(outsiderClient, outsider);
+        Assert.Equal(HttpStatusCode.Redirect, outsiderLogin.StatusCode);
+        using var denied = await outsiderClient.GetAsync(url);
+        Assert.Equal(HttpStatusCode.NotFound, denied.StatusCode);
+    }
+
+    [Fact]
     public async Task CoursePreview_KeepsTeacherStudioChrome_WhileStudentsKeepLearningChrome()
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);

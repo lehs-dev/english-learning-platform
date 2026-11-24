@@ -11,6 +11,14 @@
     overflow-wrap: anywhere;
 }
 
+.lesson-resource-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-block-end: 12px;
+    border-radius: 12px;
+}
+
 .lesson-final {
     margin-top: 24px;
     padding: clamp(16px, 4vw, 26px) clamp(16px, 4vw, 28px);

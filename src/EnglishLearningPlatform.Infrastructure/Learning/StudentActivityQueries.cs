@@ -27,7 +27,9 @@ internal static class StudentActivityQueries
             p.Questions.Any(q => q.Version == p.Version) && p.Questions.Where(q => q.Version == p.Version).All(q => q.Question.OwnerTeacherUserId == p.OwnerTeacherUserId &&
                 ((q.Question.QuestionType == QuestionType.MultipleChoice && q.Question.Options.Count >= 2 &&
                     q.Question.Options.Count(o => o.IsCorrect) == 1 && !q.Question.AcceptedAnswers.Any() && q.Question.StructuredDefinitionJson == null) ||
-                 (q.Question.QuestionType == QuestionType.FillBlank && !q.Question.Options.Any() && q.Question.AcceptedAnswers.Any() &&
+                 ((q.Question.QuestionType == QuestionType.FillBlank ||
+                   (q.Question.QuestionType == QuestionType.Dictation && q.Question.PrimarySkill == EnglishSkill.Listening)) &&
+                    !q.Question.Options.Any() && q.Question.AcceptedAnswers.Any() &&
                     q.Question.AcceptedAnswers.All(a => a.AnswerText.Trim() != "" && a.AnswerText.Length <= 500) && q.Question.StructuredDefinitionJson == null) ||
                  ((q.Question.QuestionType == QuestionType.Matching || q.Question.QuestionType == QuestionType.Ordering) &&
                     q.Question.StructuredDefinitionJson != null && !q.Question.Options.Any() && !q.Question.AcceptedAnswers.Any())) &&

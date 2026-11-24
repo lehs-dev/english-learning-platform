@@ -21,6 +21,10 @@
         {
             <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.CourseId" asp-route-moduleId="@Model.ModuleId" asp-route-lessonId="@Model.Id">Về trình soạn bài</a>
         }
+        else
+        {
+            <a class="button secondary" asp-controller="CourseDiscussion" asp-action="Index" asp-route-id="@Model.CourseId">Hỏi giảng viên</a>
+        }
     </div>
 
     <div class="lesson-workspace">
@@ -73,7 +77,8 @@
                 {
                     <form method="post" asp-action="Completion" asp-route-id="@Model.Id">
                         <input type="hidden" name="completed" value="@((!Model.IsCompleted).ToString().ToLowerInvariant())" />
-                        <button class="button @(Model.IsCompleted ? "secondary" : "")" type="submit">
+                        <button class="button @(Model.IsCompleted ? "secondary" : "")" type="submit" name="goNext"
+                                value="@(!Model.IsCompleted && Model.Next is not null ? "true" : "false")">
                             @if (Model.IsCompleted)
                             {
                                 <span>Đánh dấu chưa hoàn thành</span>
@@ -81,7 +86,7 @@
                             else
                             {
                                 <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
-                                <span>Hoàn thành bài học</span>
+                                <span>@(Model.Next is not null ? "Hoàn thành và học tiếp" : "Hoàn thành bài học")</span>
                             }
                         </button>
                     </form>
@@ -103,7 +108,7 @@
                 <div>
                     @if (Model.Next is not null)
                     {
-                        <a class="button" asp-action="Lesson" asp-route-id="@Model.Next.Id">
+                        <a class="button @(Model.CanRecordProgress && !Model.IsCompleted ? "secondary" : "")" asp-action="Lesson" asp-route-id="@Model.Next.Id">
                             <span>Bài kế tiếp: @Model.Next.Title</span>
                             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                         </a>

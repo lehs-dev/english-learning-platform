@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Persistence;
@@ -23,15 +24,28 @@ public sealed class ResourceCourseContentHandler(AppDbContext db) : ICourseConte
     {
         if (!CourseRules.ValidResource(input.ResourceType, input.ContentText, input.ResourceUrl))
             errors[input.ResourceType == LessonResourceType.Text ? nameof(input.ContentText) : nameof(input.ResourceUrl)] =
-                ["Text cần nội dung; Link/Audio/Video cần URL http/https hợp lệ và loại resource hợp lệ."];
-        if (!Enum.IsDefined(input.ResourceType)) errors[nameof(input.ResourceType)] = ["Loại resource không hợp lệ."];
+                [input.ResourceType == LessonResourceType.Text ? "Vui lòng nhập nội dung bài đọc." :
+                    "Hãy nhập liên kết HTTP/HTTPS hoặc tải tệp lên với nội dung hình ảnh và âm thanh."];
+        if (!Enum.IsDefined(input.ResourceType)) errors[nameof(input.ResourceType)] = ["Loại nội dung không hợp lệ."];
     }
 
     public async Task<WriteOutcome> StageSaveAsync(Guid courseId, Guid parentId, Guid? id, ContentInput input, CancellationToken ct)
     {
+        var hasUpload = LessonMediaResource.TryParse(input.ResourceUrl, out var media);
+        if (hasUpload && id.HasValue && media.ResourceId != id.Value)
+            return new(LearningAccessResult.Allowed, courseId, new Dictionary<string, string[]>
+            {
+                [nameof(input.ResourceUrl)] = ["Tệp tải lên phải thuộc nội dung này."]
+            });
+
         var resource = id.HasValue
             ? await db.LessonResources.SingleAsync(r => r.Id == id && r.LessonId == parentId, ct)
-            : new LessonResource { LessonId = parentId, OrderIndex = (await db.LessonResources.Where(r => r.LessonId == parentId).MaxAsync(r => (int?)r.OrderIndex, ct) ?? -1) + 1 };
+            : new LessonResource
+            {
+                Id = hasUpload ? media.ResourceId : Guid.NewGuid(),
+                LessonId = parentId,
+                OrderIndex = (await db.LessonResources.Where(r => r.LessonId == parentId).MaxAsync(r => (int?)r.OrderIndex, ct) ?? -1) + 1
+            };
         resource.Title = input.Title;
         resource.ResourceType = input.ResourceType;
         resource.ContentText = input.ResourceType == LessonResourceType.Text ? input.ContentText : null;

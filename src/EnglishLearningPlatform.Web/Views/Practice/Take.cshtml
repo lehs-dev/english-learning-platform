@@ -98,7 +98,7 @@
                         </div>
                     }
 
-                    @if (question.QuestionType == EnglishLearningPlatform.Domain.Enums.QuestionType.FillBlank)
+                    @if (question.QuestionType is EnglishLearningPlatform.Domain.Enums.QuestionType.FillBlank or EnglishLearningPlatform.Domain.Enums.QuestionType.Dictation)
                     {
                         <partial name="_QuestionFillBlank" model="@((question, index))" />
                     }

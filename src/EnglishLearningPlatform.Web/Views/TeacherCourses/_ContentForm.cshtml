@@ -2,6 +2,7 @@
 @{
     var isModule = Model.Kind == ContentKind.Module;
     var isLesson = Model.Kind == ContentKind.Lesson;
+    var formEncoding = Model.Kind == ContentKind.Resource ? "multipart/form-data" : null;
     var item = isModule ? "chương học" : isLesson ? "bài học" : "nội dung";
     var moduleId = isModule ? Model.Id : isLesson ? Model.ParentId : (Guid?)null;
     var lessonId = isLesson ? Model.Id : isModule ? null : (Guid?)Model.ParentId;
@@ -11,7 +12,7 @@
 <div class="curriculum-pane-heading">
     <h2 id="curriculum-item-title">@(Model.Id.HasValue ? "Sửa " : "Thêm ")@item</h2>
 </div>
-<form class="editor-form curriculum-editor" method="post" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@Model.CourseId" asp-route-kind="@Model.Kind" asp-route-parentId="@Model.ParentId" asp-route-id="@Model.Id">
+<form class="editor-form curriculum-editor" method="post" enctype="@formEncoding" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@Model.CourseId" asp-route-kind="@Model.Kind" asp-route-parentId="@Model.ParentId" asp-route-id="@Model.Id">
     <div asp-validation-summary="All" class="validation" role="alert"></div>
     <div>
         <label asp-for="Input.Title">Tên @item @(!isModule && !isLesson ? "(tùy chọn)" : "")</label>
@@ -67,10 +68,20 @@
             <span asp-validation-for="Input.ContentText" class="validation"></span>
         </div>
         <div data-url-fields>
-            <label asp-for="Input.ResourceUrl">URL (HTTP/HTTPS)</label>
+            <label asp-for="Input.ResourceUrl">Liên kết (HTTP/HTTPS)</label>
             <input asp-for="Input.ResourceUrl" type="url" maxlength="2048" aria-describedby="resource-url-help" />
             <span asp-validation-for="Input.ResourceUrl" class="validation"></span>
-            <p class="muted" id="resource-url-help">Với âm thanh và video, nhập đường dẫn trực tiếp đến tệp.</p>
+            <p class="muted" id="resource-url-help">Nhập liên kết trực tiếp đến tệp khi dùng học liệu đa phương tiện.</p>
+        </div>
+        <div data-media-fields>
+            <label for="media-file">Tải tệp lên</label>
+            @if (Model.ExistingMediaUrl is not null)
+            {
+                <p><a href="@Url.Content("~" + Model.ExistingMediaUrl)" target="_blank" rel="noopener noreferrer">Xem tệp đã tải lên</a>. Để trống cả hai trường để giữ tệp này.</p>
+            }
+            <input id="media-file" name="mediaFile" type="file" accept=".png,.jpg,.jpeg,.webp,.mp3,.wav,.ogg,.oga" aria-describedby="media-file-help" />
+            @Html.ValidationMessage("mediaFile", new { @class = "validation" })
+            <p class="muted" id="media-file-help">Ảnh PNG, JPEG, WebP tối đa 5 MiB. Âm thanh MP3, WAV, Ogg tối đa 10 MiB. Tệp tải lên sẽ được dùng thay liên kết.</p>
         </div>
     }
     <div class="workspace-actions curriculum-form-actions">

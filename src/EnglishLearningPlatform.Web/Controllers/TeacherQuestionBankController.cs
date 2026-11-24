@@ -408,7 +408,7 @@ public sealed class TeacherQuestionBankController : Controller
         return new CreateQuestionRequest
         {
             QuestionType = model.QuestionType,
-            AcceptedAnswers = model.QuestionType == QuestionType.FillBlank ? (model.AcceptedAnswers ?? []).ToArray() : [],
+            AcceptedAnswers = model.QuestionType is QuestionType.FillBlank or QuestionType.Dictation ? (model.AcceptedAnswers ?? []).ToArray() : [],
             StructuredItems = StructuredQuestionEvaluator.IsStructured(model.QuestionType)
                 ? (model.StructuredItems ?? []).Select(item => new StructuredQuestionAuthorItem(
                     item?.Text ?? string.Empty, item?.MatchText)).ToArray()

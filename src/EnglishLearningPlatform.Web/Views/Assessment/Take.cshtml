@@ -126,11 +126,11 @@
                                 }
                             </div>
                         }
-                        else if (question.QuestionType == QuestionType.FillBlank)
+                        else if (question.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
                         {
-                            <label for="assessment-text-@i">Câu trả lời của bạn</label>
+                            <label for="assessment-text-@i">@(question.QuestionType == QuestionType.Dictation ? "Gõ lại nội dung bạn nghe được" : "Câu trả lời của bạn")</label>
                             <input type="text" id="assessment-text-@i" name="Answers[@i].TextAnswer"
-                                   value="@question.TextAnswer" maxlength="500" autocomplete="off" class="form-control" data-assessment-text />
+                                   value="@question.TextAnswer" maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off" class="form-control" data-assessment-text />
                         }
                         else if (question.StructuredPrompt is { } prompt)
                         {

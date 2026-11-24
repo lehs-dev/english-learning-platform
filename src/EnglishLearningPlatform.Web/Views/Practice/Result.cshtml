@@ -2,6 +2,9 @@
 @{
     ViewData["Title"] = "Kết quả luyện tập · " + Model.Title;
     ViewData["ActiveSection"] = "courses";
+    bool mistakesOnly = ViewData["MistakesOnly"] is true;
+    int correct = Model.Questions.Count(question => question.IsCorrect);
+    int mistakes = Model.Questions.Count - correct;
 }
 @section Breadcrumbs {
     <nav class="studio-breadcrumbs" aria-label="Đường dẫn điều hướng">
@@ -54,7 +57,7 @@
                 @Model.Score.ToString("0.##")<span style="font-size: 22px; font-weight: 600; color: var(--v2-text-muted);">/100</span>
             </div>
             <p style="margin: 0; font-size: 15px; color: var(--v2-dark); font-weight: 600;">
-                Bạn trả lời đúng <strong>@Model.Questions.Count(q => q.IsCorrect)</strong> / @Model.Questions.Count câu hỏi.
+                Bạn trả lời đúng <strong>@correct</strong> / @Model.Questions.Count câu hỏi.
             </p>
             <p class="exam-timer-note" style="margin-top: 6px; font-size: 13px; color: var(--text-muted);">
                 Nộp lúc <time datetime="@Model.SubmittedAtUtc.ToString("O")">@Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy") (UTC+7)</time>
@@ -78,11 +81,20 @@
     <section class="card-v2 exam-section" aria-labelledby="practice-review-title">
         <div class="exam-section-heading">
             <h2 id="practice-review-title" style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Xem lại câu trả lời &amp; Lời giải</h2>
+            <nav class="practice-result-filters" aria-label="Lọc câu trả lời">
+                <a class="button @(mistakesOnly ? "secondary" : "primary")" asp-action="Result" asp-route-id="@Model.PracticeId" asp-fragment="practice-review-title" aria-current="@(mistakesOnly ? null : "true")">Tất cả (@Model.Questions.Count)</a>
+                <a class="button @(mistakesOnly ? "primary" : "secondary")" asp-action="Result" asp-route-id="@Model.PracticeId" asp-route-mistakesOnly="true" asp-fragment="practice-review-title" aria-current="@(mistakesOnly ? "true" : null)">Sai hoặc bỏ trống (@mistakes)</a>
+            </nav>
         </div>
+        @if (mistakesOnly && mistakes == 0)
+        {
+            <p class="muted">Bạn đã trả lời đúng tất cả câu hỏi.</p>
+        }
 
         @for (var index = 0; index < Model.Questions.Count; index++)
         {
             var question = Model.Questions[index];
+            if (mistakesOnly && question.IsCorrect) continue;
             <article class="answer-review" style="padding: 20px 0; border-bottom: 1px solid var(--v2-border-light);">
                 <div class="exam-question-header">
                     <span class="v2-pill-tag exam-q-badge">Câu @(index + 1)</span>

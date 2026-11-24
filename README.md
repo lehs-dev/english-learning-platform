@@ -10,6 +10,8 @@ Hệ thống cung cấp giải pháp toàn diện cho việc đào tạo, luyệ
 
 ### Các phân hệ & tính năng chính
 
+Học viên có thể học tiếp từ trang Hôm nay, nộp bài viết để nhận phản hồi, hỏi riêng giảng viên và theo dõi streak theo ngày Việt Nam. Giáo viên có thể giao bài viết, tải ảnh và audio vào bài học, nhập flashcard từ CSV và tạo câu nghe chép chính tả cho bài luyện hoặc bài thi. Xem [báo cáo rà soát và lộ trình nâng cấp](docs/platform-upgrade-roadmap.md).
+
 - **Learning (Học tập)**:
   - Khóa học được tổ chức theo cấu trúc phân cấp: `Course → Module → Lesson`.
   - Học viên theo dõi tiến độ học tập (`Progress`), tự đánh dấu hoàn thành bài học (`Completed / Incomplete`).
@@ -172,13 +174,13 @@ Hệ thống cung cấp giải pháp toàn diện cho việc đào tạo, luyệ
 
 Mật khẩu của tất cả các tài khoản demo dưới đây được đặt theo giá trị của biến cấu hình `LearningDemo:Password` (ví dụ: `<your-demo-password>`):
 
-| Vai trò (Role) | Tên đăng nhập (Username) | Email | Mục đích sử dụng |
-| --- | --- | --- | --- |
-| **Admin** | `admin1` | `admin1@example.com` | Quản trị tài khoản người dùng, phân quyền, tra cứu giao dịch |
-| **Teacher** | `teacher1` | `teacher1@example.com` | Quản lý khóa học, bài học, ngân hàng câu hỏi, tạo đề thi |
-| **Teacher** | `teacher2` | `teacher2@example.com` | Tài khoản giáo viên phụ để thử nghiệm kiểm soát quyền sở hữu |
-| **Student** | `student1` | `student1@example.com` | Học viên đã ghi danh khóa học mẫu, đã làm một số bài tập |
-| **Student** | `student2` | `student2@example.com` | Học viên mới để thử nghiệm quy trình đăng ký, mua khóa học mới |
+| Vai trò | Email đăng nhập | Mục đích sử dụng |
+| --- | --- | --- |
+| **Admin** | `admin1@demo.example.test` | Quản trị tài khoản người dùng, phân quyền, tra cứu giao dịch |
+| **Teacher** | `teacher1@demo.example.test` | Quản lý khóa học, bài học, ngân hàng câu hỏi, tạo đề thi |
+| **Teacher** | `teacher2@demo.example.test` | Tài khoản giáo viên phụ để thử nghiệm kiểm soát quyền sở hữu |
+| **Student** | `student1@demo.example.test` | Học viên đã ghi danh khóa học mẫu, đã làm một số bài tập |
+| **Student** | `student2@demo.example.test` | Học viên mới để thử nghiệm quy trình đăng ký, mua khóa học mới |
 
 > **Mẹo**: Ở môi trường `Development`, trang Đăng nhập (`/Account/Login`) hiển thị sẵn các nút bấm chọn nhanh tài khoản (**Student**, **Teacher**, **Admin**) kèm tự động điền mật khẩu demo để kiểm thử thuận tiện.
 
@@ -198,15 +200,12 @@ Mật khẩu của tất cả các tài khoản demo dưới đây được đ�
 
 ## 5. Chạy kiểm thử (Testing)
 
-Dự án có bộ kiểm thử tự động toàn diện bao gồm Unit Tests và Integration Tests:
+Trên máy giới hạn RAM, chọn ca cần chạy và dùng `tests/low-memory.runsettings`. Các kiểm thử tích hợp dùng database tạm riêng trên SQL Server đã chỉ định qua `ELP_TEST_SQLSERVER`.
 
 ```bash
-# Chạy Unit Tests
-dotnet test tests/EnglishLearningPlatform.UnitTests
+dotnet test tests/EnglishLearningPlatform.UnitTests -m:1 \
+  --settings tests/low-memory.runsettings --filter 'FullyQualifiedName~GamificationPolicyTests'
 
-# Chạy Integration Tests
-dotnet test tests/EnglishLearningPlatform.IntegrationTests
-
-# Chạy toàn bộ kiểm thử trong solution
-dotnet test EnglishLearningPlatform.sln
+dotnet test tests/EnglishLearningPlatform.IntegrationTests -m:1 \
+  --settings tests/low-memory.runsettings --filter 'FullyQualifiedName~WritingHomeworkTests'
 ```

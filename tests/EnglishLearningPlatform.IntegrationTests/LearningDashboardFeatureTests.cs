@@ -20,6 +20,81 @@ namespace EnglishLearningPlatform.IntegrationTests;
 public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
     [Fact]
+    public async Task CourseDiscussion_IsPrivateAndReplaysDoNotDuplicateMessages()
+    {
+        var data = await SeedAsync();
+        var classmate = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var foreignTeacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Enrollments.Add(new Enrollment { StudentUserId = classmate.Id, CourseId = data.Course.Id });
+        await db.SaveChangesAsync();
+
+        using var student = await ClientAsync(data.Student);
+        using var teacher = await ClientAsync(data.Teacher);
+        using var peer = await ClientAsync(classmate);
+        using var outsider = await ClientAsync(foreignTeacher);
+        var courseUrl = $"/CourseDiscussion/Index/{data.Course.Id}";
+        var threadId = Guid.NewGuid();
+        var threadUrl = $"/CourseDiscussion/Details/{threadId}";
+        const string subject = "Question about the first lesson";
+        const string response = "Try reading the second <example> aloud.";
+        var question = new Dictionary<string, string>
+        {
+            ["requestId"] = threadId.ToString(), ["subject"] = subject, ["body"] = "Can you explain this phrase?"
+        };
+        using var noToken = await student.PostAsync($"/CourseDiscussion/Ask/{data.Course.Id}", new FormUrlEncodedContent(question));
+        Assert.Equal(HttpStatusCode.BadRequest, noToken.StatusCode);
+        question["__RequestVerificationToken"] = await IdentityTestHelpers.GetTokenAsync(student, courseUrl);
+        using var firstAsk = await student.PostAsync($"/CourseDiscussion/Ask/{data.Course.Id}", new FormUrlEncodedContent(question));
+        using var replay = await student.PostAsync($"/CourseDiscussion/Ask/{data.Course.Id}", new FormUrlEncodedContent(question));
+        Assert.Equal(threadUrl, firstAsk.Headers.Location?.ToString());
+        Assert.Equal(threadUrl, replay.Headers.Location?.ToString());
+        Assert.Contains(subject, await teacher.GetStringAsync(courseUrl));
+        Assert.DoesNotContain(subject, await peer.GetStringAsync(courseUrl));
+        using var peerRead = await peer.GetAsync(threadUrl);
+        using var foreignRead = await outsider.GetAsync(threadUrl);
+        Assert.Equal(HttpStatusCode.NotFound, peerRead.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, foreignRead.StatusCode);
+
+        var reply = new Dictionary<string, string>
+        {
+            ["requestId"] = Guid.NewGuid().ToString(), ["body"] = response,
+            ["__RequestVerificationToken"] = await IdentityTestHelpers.GetTokenAsync(teacher, threadUrl)
+        };
+        using var posted = await teacher.PostAsync($"/CourseDiscussion/Reply/{threadId}", new FormUrlEncodedContent(reply));
+        using var replyReplay = await teacher.PostAsync($"/CourseDiscussion/Reply/{threadId}", new FormUrlEncodedContent(reply));
+        Assert.Equal(HttpStatusCode.Redirect, posted.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, replyReplay.StatusCode);
+        var html = await student.GetStringAsync(threadUrl);
+        Assert.Contains("Try reading the second &lt;example&gt; aloud.", html);
+        Assert.Equal(2, await db.CourseDiscussionMessages.CountAsync(m => m.ThreadId == threadId));
+
+        await db.Courses.Where(c => c.Id == data.Course.Id).ExecuteUpdateAsync(u => u.SetProperty(c => c.Status, CourseStatus.Archived));
+        html = await student.GetStringAsync(threadUrl);
+        Assert.DoesNotContain($"action=\"/CourseDiscussion/Reply/{threadId}\"", html);
+        var discussion = scope.ServiceProvider.GetRequiredService<ICourseDiscussionService>();
+        Assert.Equal(LearningAccessResult.Forbidden, (await discussion.ReplyAsync(data.Teacher.Id, threadId, Guid.NewGuid(), "Late reply")).Access);
+    }
+
+    [Fact]
+    public async Task CompletingLessonWithNextAction_OpensTheNextLessonAndResumeSkipsCompletedLesson()
+    {
+        var data = await SeedAsync();
+        using var student = await ClientAsync(data.Student);
+        var lessonUrl = $"/Learning/Lesson/{data.First.Id}";
+        var nextLessonUrl = $"/Learning/Lesson/{data.Second.Id}";
+        var token = await IdentityTestHelpers.GetTokenAsync(student, lessonUrl);
+        using var completed = await student.PostAsync($"/Learning/Completion/{data.First.Id}", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["completed"] = "true", ["goNext"] = "true", ["__RequestVerificationToken"] = token
+        }));
+        Assert.Equal(nextLessonUrl, completed.Headers.Location?.ToString());
+        using var resumed = await student.GetAsync($"/Learning/Continue/{data.Course.Id}");
+        Assert.Equal(nextLessonUrl, resumed.Headers.Location?.ToString());
+    }
+
+    [Fact]
     public async Task Profile_UsesAssessmentHistoryAndSharedCourseCards()
     {
         var data = await SeedAsync();

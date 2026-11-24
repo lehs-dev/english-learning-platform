@@ -2,8 +2,6 @@
 @{ ViewData["Title"] = Model.Deck.Title; ViewData["ActiveSection"] = "flashcards"; var draft = Model.Deck.Status == FlashcardDeckStatus.Draft; }
 @section Styles { <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" /> }
 <div class="fc-heading"><div><a asp-action="Index">← Bộ thẻ từ vựng</a><h1>@Model.Deck.Title</h1><p>@Model.Deck.Cards.Count thẻ · @(draft ? "Nháp" : Model.Deck.Status == FlashcardDeckStatus.Published ? "Đã xuất bản" : "Đã lưu trữ")</p></div><a class="button secondary" asp-action="Preview" asp-route-id="@Model.Deck.Id">Xem trước</a></div>
-@if (TempData["Error"] is string error) { <p class="fc-notice" role="alert">@error</p> }
-@if (TempData["Success"] is string success) { <p class="fc-notice" role="status">@success</p> }
 @if (draft)
 {
     <form method="post" asp-action="Update" asp-route-id="@Model.Deck.Id" class="fc-panel fc-form">
@@ -12,7 +10,19 @@
         <label for="deck-lesson">Bài học</label><select name="LessonId" id="deck-lesson"><option value="">Toàn khóa học</option>@foreach (var lesson in Model.Courses.Where(c => c.Id == Model.Deck.CourseId).SelectMany(c => c.Lessons)) { <option value="@lesson.Id" selected="@(lesson.Id == Model.Deck.LessonId)">@lesson.Title</option> }</select>
         <label for="deck-description">Mô tả</label><textarea id="deck-description" name="Description" maxlength="4000" rows="3">@Model.Deck.Description</textarea><div><button class="button" type="submit">Lưu thông tin</button></div>
     </form>
-    <section class="fc-panel"><h2>Thêm thẻ</h2><form method="post" asp-action="SaveCard" asp-route-id="@Model.Deck.Id" class="fc-form">
+    <section class="fc-panel" aria-labelledby="flashcard-import-title">
+        <h2 id="flashcard-import-title">Nhập thẻ từ CSV</h2>
+        <form method="post" asp-action="ImportCards" asp-route-id="@Model.Deck.Id" enctype="multipart/form-data" class="fc-form">
+            <label for="flashcards-csv">Tệp CSV UTF-8</label>
+            <input id="flashcards-csv" name="csvFile" type="file" accept=".csv,text/csv" required aria-describedby="flashcard-import-help" />
+            <p id="flashcard-import-help" class="muted">Tối đa 1 MiB và 1.000 thẻ. Mỗi dòng cần có mặt trước và mặt sau. Các thẻ trùng toàn bộ nội dung sẽ được bỏ qua.</p>
+            <div class="actions">
+                <button class="button" type="submit">Nhập thẻ</button>
+                <a class="button secondary" asp-action="CsvExample">Tải mẫu CSV</a>
+            </div>
+        </form>
+    </section>
+    <section class="fc-panel"><h2>Thêm một thẻ</h2><form method="post" asp-action="SaveCard" asp-route-id="@Model.Deck.Id" class="fc-form">
         <label for="new-front">Mặt trước (từ / cụm từ)</label><input id="new-front" name="FrontText" required maxlength="500" />
         <label for="new-back">Mặt sau (nghĩa / định nghĩa)</label><textarea id="new-back" name="BackText" required maxlength="1000" rows="2"></textarea>
         <label for="new-example">Ví dụ</label><textarea id="new-example" name="Example" maxlength="2000" rows="2"></textarea>

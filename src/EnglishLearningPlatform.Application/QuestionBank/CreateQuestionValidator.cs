@@ -53,7 +53,15 @@ public sealed class CreateQuestionValidator : ICreateQuestionValidator
 
         if (request.StructuredItems is { Count: > 0 })
             errors.Add(new(nameof(request.StructuredItems), "mixed_answers", "Loại câu hỏi này không dùng cặp ghép hoặc mục sắp xếp."));
-        if (request.QuestionType == QuestionType.FillBlank)
+        if (request.QuestionType == QuestionType.Dictation)
+        {
+            if (request.PrimarySkill != EnglishSkill.Listening)
+                errors.Add(new(nameof(request.PrimarySkill), "listening_required", "Câu nghe chép chính tả thuộc kỹ năng Nghe."));
+            if (!request.StimulusId.HasValue || request.StimulusId == Guid.Empty)
+                errors.Add(new(nameof(request.StimulusId), "audio_required", "Chọn một ngữ liệu âm thanh cho câu nghe chép chính tả."));
+        }
+
+        if (request.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
         {
             if (request.AcceptedAnswers == null || request.AcceptedAnswers.Count == 0)
                 errors.Add(new(nameof(request.AcceptedAnswers), "required", "Nhập ít nhất một đáp án được chấp nhận."));
@@ -62,7 +70,7 @@ public sealed class CreateQuestionValidator : ICreateQuestionValidator
                     if (string.IsNullOrWhiteSpace(request.AcceptedAnswers[i]) || request.AcceptedAnswers[i].Length > 500)
                         errors.Add(new($"AcceptedAnswers[{i}]", "invalid", "Đáp án phải có từ 1 đến 500 ký tự."));
             if (request.Options?.Count > 0)
-                errors.Add(new(nameof(request.Options), "invalid", "Câu điền từ không có lựa chọn trắc nghiệm."));
+                errors.Add(new(nameof(request.Options), "invalid", "Câu trả lời bằng văn bản không có lựa chọn trắc nghiệm."));
             return errors.AsReadOnly();
         }
         if (request.QuestionType != QuestionType.MultipleChoice)

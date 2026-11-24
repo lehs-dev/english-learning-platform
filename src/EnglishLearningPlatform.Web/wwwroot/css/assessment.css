@@ -1096,3 +1096,10 @@
     }
 }
 
+
+.practice-result-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-block: .75rem;
+}

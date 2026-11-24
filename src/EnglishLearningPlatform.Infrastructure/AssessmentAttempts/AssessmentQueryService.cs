@@ -168,7 +168,8 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
                     {
                         q.Id, q.QuestionId, q.Question.Content, q.Points, q.Question.QuestionType,
                         q.Question.StructuredDefinitionJson,
-                        StimulusContent = q.Question.Stimulus == null ? null : q.Question.Stimulus.ContentText,
+                        StimulusContent = q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Passage
+                            ? q.Question.Stimulus.ContentText : null,
                         Answer = a.Answers.Where(answer => answer.AssessmentQuestionId == q.Id)
                             .Select(answer => new { answer.SelectedOptionId, answer.TextAnswer, answer.StructuredAnswerJson })
                             .SingleOrDefault(),

@@ -117,11 +117,18 @@
                 <a class="button" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Resource" asp-route-parentId="@lesson.Id">+ Thêm nội dung</a>
                 <a class="button secondary" asp-controller="TeacherCourses" asp-action="Content" asp-route-courseId="@courseId" asp-route-kind="Lesson" asp-route-parentId="@module.Id" asp-route-id="@lesson.Id">Sửa bài học</a>
                 <a class="button secondary" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">Xem trước</a>
-                <a class="button secondary" asp-controller="TeacherPractices" asp-action="Create" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id">Tạo bài luyện tập</a>
             </div>
+            @if (Model.Page.Course.Status != CourseStatus.Archived)
+            {
+                <div class="curriculum-toolbar" aria-label="Tạo hoạt động học tập">
+                    <a class="button secondary" asp-controller="TeacherPractices" asp-action="Create" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id">Tạo bài luyện tập</a>
+                    <a class="button secondary" asp-controller="TeacherFlashcards" asp-action="Create" asp-route-courseId="@courseId" asp-route-lessonId="@lesson.Id">Tạo bộ thẻ từ vựng</a>
+                    <a class="button secondary" asp-controller="TeacherAssessments" asp-action="Edit" asp-route-courseId="@courseId">Tạo bài kiểm tra khóa học</a>
+                </div>
+            }
             @if (resourceItems.Count == 0)
             {
-                <p class="curriculum-empty">Thêm nội dung (văn bản, liên kết, âm thanh hoặc video) để có thể xuất bản bài học.</p>
+                <p class="curriculum-empty">Thêm bài đọc, hình ảnh, âm thanh, video hoặc liên kết để xuất bản bài học.</p>
             }
             else
             {

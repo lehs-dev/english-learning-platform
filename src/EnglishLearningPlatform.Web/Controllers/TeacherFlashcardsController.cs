@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using System.Text;
 using EnglishLearningPlatform.Application.Authorization;
 using EnglishLearningPlatform.Application.Flashcards;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Web.Infrastructure;
 using EnglishLearningPlatform.Web.Models.Flashcards;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,11 +22,19 @@ public sealed class TeacherFlashcardsController(ITeacherFlashcardService flashca
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Forbid();
     }
     [HttpGet]
-    public async Task<IActionResult> Create(CancellationToken ct)
+    public async Task<IActionResult> Create(CancellationToken ct, Guid? courseId = null, Guid? lessonId = null)
     {
         var courses = await flashcards.GetCoursesAsync(TeacherId, ct);
-        return courses.Access == LearningAccessResult.Allowed
-            ? View(new FlashcardDeckForm(new(), courses.Value!)) : Forbid();
+        if (courses.Access != LearningAccessResult.Allowed) return Forbid();
+        if (!ModelState.IsValid || (lessonId.HasValue && !courseId.HasValue)) return BadRequest();
+        var available = courses.Value!;
+        if (courseId.HasValue && !available.Any(c => c.Id == courseId &&
+            (!lessonId.HasValue || c.Lessons.Any(l => l.Id == lessonId)))) return NotFound();
+        return View(new FlashcardDeckForm(new FlashcardDeckInput
+        {
+            CourseId = courseId.GetValueOrDefault(),
+            LessonId = lessonId
+        }, available));
     }
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind(Prefix = "Input")] FlashcardDeckInput input, CancellationToken ct)
@@ -65,6 +75,24 @@ public sealed class TeacherFlashcardsController(ITeacherFlashcardService flashca
     {
         if (!ModelState.IsValid) { TempData["Error"] = "Mặt trước và mặt sau là bắt buộc. Kiểm tra độ dài nội dung thẻ."; return RedirectToAction(nameof(Edit), new { id }); }
         return WriteResult(await flashcards.SaveCardAsync(TeacherId, id, cardId, input.ToRequest(), ct), id, "Đã lưu thẻ.");
+    }
+    [HttpGet]
+    public IActionResult CsvExample() =>
+        File(Encoding.UTF8.GetBytes(FlashcardCsv.Example), "text/csv; charset=utf-8", "flashcards.csv");
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [RequestSizeLimit(FlashcardCsv.MaxRequestBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = FlashcardCsv.MaxRequestBytes)]
+    public async Task<IActionResult> ImportCards(Guid id, IFormFile? csvFile, CancellationToken ct)
+    {
+        if (!ModelState.IsValid || id == Guid.Empty) return BadRequest();
+        var (cards, error) = await FlashcardCsv.ReadAsync(csvFile, ct);
+        if (cards is null)
+            return WriteResult(new(FlashcardWriteStatus.Invalid, Error: error), id, string.Empty);
+
+        var result = await flashcards.ImportCardsAsync(TeacherId, id, cards, ct);
+        var success = result.AddedCardCount == 0 ? "Các thẻ trong tệp đã có trong bộ thẻ." : $"Đã nhập {result.AddedCardCount} thẻ.";
+        return WriteResult(result, id, success);
     }
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteCard(Guid id, Guid cardId, CancellationToken ct) =>

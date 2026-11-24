@@ -11,11 +11,11 @@
     var finalAssessment = ViewData["FinalAssessment"] as EnglishLearningPlatform.Application.Assessment.AssessmentOverviewModel;
 
     var practices = activities?.Practices ?? Array.Empty<PracticeLink>();
-    var assessments = activities?.Assessments ?? Array.Empty<AssessmentLink>();
+    var assessments = activities?.Assessments.Where(a => a.Id != Model.FinalAssessmentId).ToArray() ?? [];
     var totalLessons = Model.Modules.Sum(m => m.Lessons.Count);
     var practiceCount = practices.Count;
     var flashcardCount = flashcardDecks.Count;
-    var assessmentCount = assessments.Count + (Model.FinalAssessmentId.HasValue ? 1 : 0);
+    var assessmentCount = assessments.Length + (Model.FinalAssessmentId.HasValue ? 1 : 0);
 }
 
 @section Styles {
@@ -64,10 +64,14 @@
                 {
                     <a class="btn-dark" style="padding: 10px 18px;" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a>
                 }
-                else if (Model.Progress is { ContinueLessonId: Guid continueLessonId } progress &&
-                         progress.TotalLessons > 0 && progress.CompletedLessons < progress.TotalLessons)
+                else
                 {
-                    <a class="button" asp-action="Continue" asp-route-id="@Model.Course.Id">Tiếp tục học &rarr;</a>
+                    <a class="button secondary" asp-controller="CourseDiscussion" asp-action="Index" asp-route-id="@Model.Course.Id">Hỏi giảng viên</a>
+                    <a class="button secondary" asp-controller="Homework" asp-action="Course" asp-route-id="@Model.Course.Id">Bài tập viết</a>
+                    @if (Model.Progress is { ContinueLessonId: not null } progress && progress.CompletedLessons < progress.TotalLessons)
+                    {
+                        <a class="button" asp-action="Continue" asp-route-id="@Model.Course.Id">@(progress.CompletedLessons == 0 ? "Bắt đầu học" : "Tiếp tục học") &rarr;</a>
+                    }
                 }
             </div>
         </div>
@@ -230,7 +234,7 @@
 
         <section id="tab-pane-assessment" class="course-tab-pane @(activeTab == "assessment" ? "is-active" : "")" aria-label="Nội dung đánh giá" style="@(activeTab == "assessment" ? "" : "display:none;")">
                 <!-- Course Linked Assessments -->
-                @if (assessments.Count > 0)
+                @if (assessments.Length > 0)
                 {
                     <div class="card-v2" style="padding: var(--course-room-card-padding, 28px 32px); margin-bottom: 24px;">
                         <div class="course-room-section-heading" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
@@ -288,7 +292,7 @@
                         }
                     </section>
                 }
-                else if (assessments.Count == 0)
+                else if (assessments.Length == 0)
                 {
                     <div class="panel empty" style="border-radius:20px; padding:32px; background:#FFFFFF; text-align:center;">
                         <p style="font-weight:600; color:var(--v2-dark); margin:0 0 6px;">Khóa học này hiện chưa có bài đánh giá.</p>

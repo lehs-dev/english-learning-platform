@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Practice;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.AssessmentAttempts;
@@ -16,6 +17,64 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class M2AssessmentFlowTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
+    private const string DictationTranscript = "The station closes at nine.";
+    private const string DictationExplanation = "PRIVATE_ASSESSMENT_DICTATION_EXPLANATION";
+
+    [Fact]
+    public async Task TimedDictation_HidesTranscriptAndGradesSavedResponseAtDeadline()
+    {
+        var data = await CreatePublishedAssessmentAsync(includeDictation: true);
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, data.Student);
+        Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        var token = await IdentityTestHelpers.GetTokenAsync(client, $"/Assessment/Take/{data.AssessmentId}");
+        using var started = await PostAsync(client, $"/Assessment/Start/{data.AssessmentId}", token, []);
+        Assert.Equal(HttpStatusCode.Redirect, started.StatusCode);
+        var take = started.Headers.Location!.OriginalString;
+
+        using var scope = factory.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var db = services.GetRequiredService<AppDbContext>();
+        var attempt = await db.Attempts.AsNoTracking().SingleAsync(row => row.AssessmentId == data.AssessmentId);
+        var queries = services.GetRequiredService<IAssessmentQueryService>();
+        var sheet = await queries.GetTakingSheetAsync(data.Student.Id, attempt.Id);
+        var dictation = Assert.Single(sheet!.Questions, question => question.QuestionType == QuestionType.Dictation);
+        Assert.Null(dictation.StimulusContent);
+        Assert.NotNull(dictation.AudioUrl);
+        var takingPage = await client.GetStringAsync(take);
+        Assert.Contains(dictation.AudioUrl, takingPage);
+        Assert.Contains("data-deadline=", takingPage);
+        Assert.Contains("Answers[1].TextAnswer", takingPage);
+        Assert.DoesNotContain(DictationTranscript, takingPage);
+        Assert.DoesNotContain(DictationExplanation, takingPage);
+        Assert.Equal(StimulusAudioTestData.Wav(), await client.GetByteArrayAsync(dictation.AudioUrl));
+
+        const string answer = "  THE station   closes at nine.  ";
+        using var autosaved = await PostAsync(client, $"/Assessment/Save/{attempt.Id}", token,
+        [
+            new("Answers[0].AssessmentQuestionId", dictation.AssessmentQuestionId.ToString()),
+            new("Answers[0].TextAnswer", answer)
+        ], jsonResponse: true);
+        Assert.Equal(HttpStatusCode.OK, autosaved.StatusCode);
+        Assert.Contains("\"saved\":true", await autosaved.Content.ReadAsStringAsync());
+
+        var attempts = new AssessmentAttemptService(db, services.GetRequiredService<UserManager<ApplicationUser>>(),
+            services.GetRequiredService<IExamScoringService>(), services.GetRequiredService<IAssessmentDefinitionValidator>(),
+            new TestClock(attempt.DeadlineUtc));
+        Assert.Equal(AttemptSaveStatus.Expired, await attempts.SaveResponsesAsync(data.Student.Id, attempt.Id,
+            [new(dictation.AssessmentQuestionId, null, "A late response.")]));
+        var result = await queries.GetAttemptResultAsync(data.Student.Id, attempt.Id);
+        Assert.NotNull(result);
+        Assert.Equal(AttemptFinalizationReason.DeadlineElapsed, result.FinalizationReason);
+        Assert.Equal(15.79m, result.OverallScore);
+        var feedback = Assert.Single(result.QuestionFeedback, question => question.Number == 2);
+        Assert.Equal(answer, feedback.SubmittedAnswer);
+        Assert.Equal(3m, feedback.EarnedPoints);
+        var resultPage = await client.GetStringAsync($"/Assessment/Result/{attempt.Id}");
+        Assert.DoesNotContain(DictationTranscript, resultPage);
+        Assert.DoesNotContain(DictationExplanation, resultPage);
+    }
+
     [Fact]
     public async Task MixedAssessment_Publishes_Autosaves_RejectsInvalidBatch_AndGradesWeightedAnswers()
     {
@@ -153,7 +212,7 @@ public sealed class M2AssessmentFlowTests(IntegrationTestFactory factory) : ICla
         Assert.True(answer.IsCorrect);
     }
 
-    private async Task<Fixture> CreatePublishedAssessmentAsync()
+    private async Task<Fixture> CreatePublishedAssessmentAsync(bool includeDictation = false)
     {
         var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
         var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
@@ -176,6 +235,20 @@ public sealed class M2AssessmentFlowTests(IntegrationTestFactory factory) : ICla
             Explanation = "PRIVATE_M2_REASON",
             AcceptedAnswers = [new() { AnswerText = "lived" }, new() { AnswerText = "was living", OrderIndex = 1 }]
         };
+        if (includeDictation)
+        {
+            var audioUrl = await services.GetRequiredService<IStimulusAudioStore>().StoreAsync(StimulusAudioTestData.Wav());
+            fill.Content = "Listen and type the sentence.";
+            fill.PrimarySkill = EnglishSkill.Listening;
+            fill.QuestionType = QuestionType.Dictation;
+            fill.Explanation = DictationExplanation;
+            fill.AcceptedAnswers = [new() { AnswerText = DictationTranscript }];
+            fill.Stimulus = new Stimulus
+            {
+                OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Audio, ResourceUrl = audioUrl,
+                ContentText = DictationTranscript
+            };
+        }
         Question Structured(QuestionType type, string content, IReadOnlyList<StructuredQuestionAuthorItem> items) => new()
         {
             OwnerTeacherUserId = teacher.Id, Content = content, PrimarySkill = EnglishSkill.Grammar,

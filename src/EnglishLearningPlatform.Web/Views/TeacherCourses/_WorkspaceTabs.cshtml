@@ -3,10 +3,12 @@
     var tabs = new (string Key, string Label, string Controller, string Action, string? Tab)[]
     {
         ("content", "Nội dung", "TeacherCourses", "Manage", null),
-        ("info", "Thông tin và học phí", "TeacherCourses", "Edit", null),
         ("assessments", "Bài kiểm tra", "TeacherCourses", "Manage", "assessments"),
-        ("publishing", "Xuất bản", "TeacherCourses", "Manage", "publishing"),
-        ("students", "Học viên", "TeacherCourses", "Students", null)
+        ("homework", "Bài tập viết", "Homework", "Course", null),
+        ("discussion", "Hỏi đáp", "CourseDiscussion", "Index", null),
+        ("students", "Học viên", "TeacherCourses", "Students", null),
+        ("info", "Thông tin và học phí", "TeacherCourses", "Edit", null),
+        ("publishing", "Xuất bản", "TeacherCourses", "Manage", "publishing")
     };
 }
 <nav class="workspace-tabs" aria-label="Quản lý khóa học">

@@ -8,6 +8,9 @@
         const structuredList = structured.querySelector('[data-structured-list]');
         const template = structured.querySelector('[data-structured-template]');
         const addStructured = structured.querySelector('[data-add-structured]');
+        const dictationHelp = form.querySelector('[data-dictation-help]');
+        const stimulus = form.querySelector('#StimulusId');
+        const skill = form.querySelector('#PrimarySkill');
         const minItems = Number(structuredList.dataset.minItems);
         const maxItems = Number(structuredList.dataset.maxItems);
 
@@ -47,7 +50,15 @@
 
         const updateType = () => {
             options.hidden = options.disabled = type.value !== '1';
-            blanks.hidden = type.value !== '2';
+            const dictation = type.value === '5';
+            blanks.hidden = type.value !== '2' && !dictation;
+            dictationHelp.hidden = !dictation;
+            stimulus.required = dictation;
+            for (const option of stimulus.options) {
+                option.hidden = option.disabled = dictation && option.dataset.stimulusKind === 'Passage';
+            }
+            if (stimulus.selectedOptions[0]?.disabled) stimulus.value = '';
+            if (dictation) skill.value = skill.dataset.listeningValue;
             structured.hidden = structured.disabled = type.value !== '3' && type.value !== '4';
             structured.querySelector('[data-structured-help]').textContent = type.value === '3'
                 ? 'Nhập hai vế của từng cặp đúng trên cùng một dòng. Học viên sẽ thấy các vế phải đã được trộn.'

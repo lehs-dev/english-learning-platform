@@ -7,6 +7,7 @@ using EnglishLearningPlatform.Application.LearningPath;
 using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Infrastructure.Gamification;
 using EnglishLearningPlatform.Infrastructure.Learning;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -92,7 +93,7 @@ public sealed class PracticeService(
         }
         return new(LearningAccessResult.Allowed, new(practice.Id, practice.CourseId, practice.CourseTitle, practice.Title,
             practice.Description, questions.Select(q => new PracticeQuestionSheet(q.Id, q.Question.Content, q.Question.PrimarySkill,
-                q.Question.Stimulus?.ContentText,
+                q.Question.Stimulus?.StimulusType == StimulusType.Passage ? q.Question.Stimulus.ContentText : null,
                 q.Question.Stimulus?.StimulusType == StimulusType.Audio ? q.Question.Stimulus.ResourceUrl : null,
                 q.Question.Options.OrderBy(o => o.OrderIndex).ThenBy(o => o.Id).Select(o => new PracticeOption(o.Id, o.Content)).ToList())
                 { QuestionType = q.Question.QuestionType, StructuredPrompt = StructuredQuestionEvaluator.GetPrompt(q.Question) }).ToList())
@@ -207,6 +208,7 @@ public sealed class PracticeService(
             });
         }
         await db.SaveChangesAsync(ct);
+        await StudentActivityDays.RecordAsync(db, studentId, submission.SubmittedAtUtc, ct);
         await tx.CommitAsync(ct);
         await tx.DisposeAsync();
         await TrackLearningAsync(studentId, practiceId, ct);
@@ -254,7 +256,7 @@ public sealed class PracticeService(
         }
 
         if (!string.IsNullOrEmpty(response.StructuredAnswerJson)) return null;
-        if (question.QuestionType == QuestionType.FillBlank && !response.SelectedOptionId.HasValue && (response.TextAnswer?.Length ?? 0) <= 500)
+        if (question.QuestionType is (QuestionType.FillBlank or QuestionType.Dictation) && !response.SelectedOptionId.HasValue && (response.TextAnswer?.Length ?? 0) <= 500)
             return new(AnswerNormalizer.Matches(response.TextAnswer, question.AcceptedAnswers.Select(a => a.AnswerText)));
         if (question.QuestionType != QuestionType.MultipleChoice || !string.IsNullOrEmpty(response.TextAnswer)) return null;
         if (response.SelectedOptionId is not Guid optionId) return new(false);
@@ -268,7 +270,7 @@ public sealed class PracticeService(
         string? selected = answer?.SelectedOption?.Content;
         var accepted = question.Options.Where(o => o.IsCorrect).Select(o => o.Content).ToArray();
         bool correct = answer?.SelectedOption?.IsCorrect == true;
-        if (question.QuestionType == QuestionType.FillBlank)
+        if (question.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
         {
             selected = answer?.TextAnswer;
             accepted = question.AcceptedAnswers.OrderBy(a => a.OrderIndex).Select(a => a.AnswerText).ToArray();

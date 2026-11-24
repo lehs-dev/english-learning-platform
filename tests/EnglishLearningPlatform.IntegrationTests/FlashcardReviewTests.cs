@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Application.Flashcards;
+using EnglishLearningPlatform.Application.Gamification;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
@@ -34,6 +35,11 @@ public sealed class FlashcardReviewTests(IntegrationTestFactory factory) : IClas
         var state = await db.Set<FlashcardReviewState>().SingleAsync(s => s.FlashcardId == data.Card && s.StudentUserId == data.Student);
         Assert.Equal(1, state.Repetitions);
         Assert.Equal(state.LastReviewedAtUtc.AddDays(1), state.NextDueAtUtc);
+        var activity = await db.StudentActivityDays.SingleAsync(d => d.StudentUserId == data.Student);
+        Assert.Equal(GamificationPolicy.LocalDate(state.LastReviewedAtUtc), activity.ActivityDate);
+        var summary = (await scope.ServiceProvider.GetRequiredService<IGamificationService>().GetSummaryAsync(data.Student)).Value!;
+        Assert.Equal(1, summary.CurrentStreak);
+        Assert.Equal(0, summary.TotalXp);
         var sheet = await service.GetStudyAsync(data.Student, data.Deck);
         Assert.Equal(0, sheet.Value!.DueCount);
         Assert.Null(sheet.Value.Card);
@@ -57,6 +63,7 @@ public sealed class FlashcardReviewTests(IntegrationTestFactory factory) : IClas
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         Assert.Equal(1, await db.Set<FlashcardReview>().CountAsync(r => r.ReviewRequestId == key));
         Assert.Equal(1, await db.Set<FlashcardReviewState>().CountAsync(s => s.StudentUserId == data.Student && s.FlashcardId == data.Card));
+        Assert.Equal(1, await db.StudentActivityDays.CountAsync(d => d.StudentUserId == data.Student));
     }
 
     [Fact]

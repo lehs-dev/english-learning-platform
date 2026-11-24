@@ -46,9 +46,10 @@
                 <span asp-validation-for="Content" class="validation"></span>
             </section>
 
-            <section class="question-editor-section" data-accepted-answers hidden="@(Model.QuestionType != QuestionType.FillBlank)">
+            <section class="question-editor-section" data-accepted-answers hidden="@(Model.QuestionType is not (QuestionType.FillBlank or QuestionType.Dictation))">
                 <h2>Đáp án được chấp nhận</h2>
-                <p>Nhập rõ từng biến thể, ví dụ lived hoặc was living. Giữ nguyên dấu câu.</p>
+                <p>Nhập từng đáp án hợp lệ trên một dòng. Hệ thống giữ nguyên dấu câu khi so sánh.</p>
+                <p data-dictation-help hidden="@(Model.QuestionType != QuestionType.Dictation)">Nhập bản chép lời cần chấm. Chọn kỹ năng Nghe và đính kèm âm thanh ở phần thiết lập.</p>
                 <span asp-validation-for="AcceptedAnswers" class="validation"></span>
                 <div data-accepted-list>
                     @for (var answerIndex = 0; answerIndex < Model.AcceptedAnswers.Count; answerIndex++)
@@ -169,13 +170,14 @@
                         <option value="2">Điền từ</option>
                         <option value="3">Ghép cặp</option>
                         <option value="4">Sắp xếp</option>
+                        <option value="5">Nghe chép chính tả</option>
                     </select>
                     @if (Model.ScoringContentLocked) { <input type="hidden" asp-for="QuestionType" /> }
                     <span asp-validation-for="QuestionType" class="validation"></span>
                 </div>
                 <div class="form-group">
                     <label asp-for="PrimarySkill">Kỹ năng chính <span class="required">*</span></label>
-                    <select asp-for="PrimarySkill" class="form-control" disabled="@(Model.ScoringContentLocked ? "disabled" : null)" required>
+                    <select asp-for="PrimarySkill" class="form-control" data-listening-value="@((int)EnglishSkill.Listening)" disabled="@(Model.ScoringContentLocked ? "disabled" : null)" required>
                         <option value="">Chọn kỹ năng</option>
                         @foreach (var choice in Enum.GetValues<EnglishSkill>()) { <option value="@((int)choice)"><partial name="_UiText" model="choice" /></option> }
                     </select>
@@ -199,7 +201,7 @@
                         <option value="">Không đính kèm</option>
                         @foreach (var stimulus in Model.Stimuli)
                         {
-                            <option value="@stimulus.Id" selected="@(Model.StimulusId == stimulus.Id ? "selected" : null)">@stimulus.Label</option>
+                            <option value="@stimulus.Id" data-stimulus-kind="@stimulus.Type" selected="@(Model.StimulusId == stimulus.Id ? "selected" : null)">@stimulus.Label</option>
                         }
                     </select>
                     @if (Model.ScoringContentLocked)
@@ -208,6 +210,7 @@
                     }
                     <span asp-validation-for="StimulusId" class="validation"></span>
                     <p id="question-stimulus-help">Đính kèm bài đọc hoặc âm thanh nếu cần.</p>
+                    <a asp-controller="TeacherStimuli" asp-action="Create" target="_blank" rel="noopener">Thêm ngữ liệu trong thẻ mới</a>
                 </div>
             </section>
             <section class="question-editor-card question-writing-tips" aria-labelledby="question-tips-heading">

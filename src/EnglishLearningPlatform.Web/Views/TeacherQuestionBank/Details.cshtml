@@ -77,7 +77,7 @@
                 </ol>
             </section>
         }
-        else if (Model.QuestionType == QuestionType.FillBlank)
+        else if (Model.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
         {
             <section class="panel question-detail-card" aria-labelledby="question-answers-title">
                 <h2 id="question-answers-title">Đáp án được chấp nhận</h2>

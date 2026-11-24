@@ -27,7 +27,10 @@
 <nav class="ta-mobile-shortcuts" aria-label="Điều hướng soạn đề"><a href="#assessment-bank-title">Tìm câu hỏi</a><a href="#assessment-selected-title">Câu hỏi đã chọn ↓</a></nav>
 <div class="ta-editor-grid"><div class="ta-bank-column">
 <section class="ta-card ta-bank-card">
-    <div class="ta-card-heading"><h2 id="assessment-bank-title">Ngân hàng câu hỏi</h2><span class="ta-count">@Model.Result.TotalCount</span></div>
+    <div class="ta-card-heading">
+        <h2 id="assessment-bank-title">Ngân hàng câu hỏi <span class="ta-count">@Model.Result.TotalCount</span></h2>
+        <a class="button secondary small" asp-controller="TeacherQuestionBank" asp-action="Create" target="_blank" rel="noopener noreferrer">Tạo câu hỏi (thẻ mới)</a>
+    </div>
 
     <form method="get" asp-action="Index" data-search-form>
         <input type="hidden" name="id"

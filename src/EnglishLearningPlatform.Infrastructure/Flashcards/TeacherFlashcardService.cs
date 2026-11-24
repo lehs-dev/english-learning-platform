@@ -82,7 +82,7 @@ public sealed class TeacherFlashcardService(AppDbContext db, IActiveUserValidato
     public async Task<FlashcardWriteResult> SaveCardAsync(Guid teacherId, Guid deckId, Guid? cardId, SaveFlashcardRequest request, CancellationToken ct = default)
     {
         if (!await users.IsActiveTeacherAsync(teacherId, ct)) return new(FlashcardWriteStatus.Forbidden);
-        if (!ValidCard(request)) return Invalid("Kiểm tra mặt trước (500), mặt sau (1.000), ví dụ (2.000), phiên âm (200) và đường dẫn âm thanh HTTPS (2.000 ký tự).");
+        if (!ValidCard(request)) return Invalid(CardInputError);
         var courseId = await OwnedDecks(teacherId).Where(d => d.Id == deckId).Select(d => (Guid?)d.CourseId).SingleOrDefaultAsync(ct);
         if (!courseId.HasValue) return new(FlashcardWriteStatus.NotFound);
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
@@ -97,20 +97,56 @@ public sealed class TeacherFlashcardService(AppDbContext db, IActiveUserValidato
         }
         else
         {
-            if (await db.Set<Flashcard>().CountAsync(c => c.DeckId == deckId, ct) >= 1000) return Invalid("Mỗi bộ thẻ có tối đa 1.000 thẻ.");
+            if (await db.Set<Flashcard>().CountAsync(c => c.DeckId == deckId, ct) >= FlashcardDeck.MaxCards) return Invalid(DeckLimitError);
             int next = (await db.Set<Flashcard>().Where(c => c.DeckId == deckId).MaxAsync(c => (int?)c.OrderIndex, ct) ?? -1) + 1;
             card = new Flashcard { DeckId = deckId, OrderIndex = next };
             db.Set<Flashcard>().Add(card);
         }
-        card.FrontText = request.FrontText.Trim();
-        card.BackText = request.BackText.Trim();
-        card.Example = request.Example?.Trim();
-        card.Pronunciation = request.Pronunciation?.Trim();
-        card.AudioResourceUrl = string.IsNullOrWhiteSpace(request.AudioResourceUrl) ? null : request.AudioResourceUrl.Trim();
-        card.UpdatedAtUtc = deck.UpdatedAtUtc = time.GetUtcNow();
+        deck.UpdatedAtUtc = time.GetUtcNow();
+        ApplyCard(card, NormalizeCard(request), deck.UpdatedAtUtc.Value);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return new(FlashcardWriteStatus.Saved, card.Id);
+    }
+
+    public async Task<FlashcardWriteResult> ImportCardsAsync(Guid teacherId, Guid deckId, IReadOnlyList<SaveFlashcardRequest> cards,
+        CancellationToken ct = default)
+    {
+        if (!await users.IsActiveTeacherAsync(teacherId, ct)) return new(FlashcardWriteStatus.Forbidden);
+        if (cards.Count is < 1 or > FlashcardDeck.MaxCards) return Invalid("Tệp CSV cần có từ 1 đến 1.000 thẻ.");
+        for (var index = 0; index < cards.Count; index++)
+            if (!ValidCard(cards[index])) return Invalid($"Dữ liệu thẻ thứ {index + 1} chưa hợp lệ. {CardInputError}");
+
+        var courseId = await OwnedDecks(teacherId).Where(d => d.Id == deckId).Select(d => (Guid?)d.CourseId).SingleOrDefaultAsync(ct);
+        if (!courseId.HasValue) return new(FlashcardWriteStatus.NotFound);
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        var deck = await LockDeckAsync(teacherId, deckId, courseId.Value, ct);
+        if (deck == null) return new(FlashcardWriteStatus.NotFound);
+        if (deck.Status != FlashcardDeckStatus.Draft) return Invalid("Chỉ nhập thẻ vào bộ thẻ nháp.");
+
+        var existing = await db.Set<Flashcard>().AsNoTracking().Where(c => c.DeckId == deckId)
+            .Select(c => new
+            {
+                c.OrderIndex,
+                Card = new SaveFlashcardRequest(c.FrontText, c.BackText, c.Example, c.Pronunciation, c.AudioResourceUrl)
+            }).ToListAsync(ct);
+        var known = existing.Select(c => NormalizeCard(c.Card)).ToHashSet();
+        var added = cards.Select(NormalizeCard).Where(known.Add).ToList();
+        if (existing.Count + added.Count > FlashcardDeck.MaxCards) return Invalid(DeckLimitError);
+        if (added.Count == 0) return new(FlashcardWriteStatus.Saved, deckId);
+
+        var next = existing.Count == 0 ? 0 : existing.Max(c => c.OrderIndex) + 1;
+        var now = time.GetUtcNow();
+        foreach (var request in added)
+        {
+            var card = new Flashcard { DeckId = deckId, OrderIndex = next++, CreatedAtUtc = now };
+            ApplyCard(card, request, now);
+            db.Set<Flashcard>().Add(card);
+        }
+        deck.UpdatedAtUtc = now;
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+        return new(FlashcardWriteStatus.Saved, deckId) { AddedCardCount = added.Count };
     }
 
     public async Task<FlashcardWriteResult> DeleteCardAsync(Guid teacherId, Guid deckId, Guid cardId, CancellationToken ct = default)
@@ -186,5 +222,25 @@ public sealed class TeacherFlashcardService(AppDbContext db, IActiveUserValidato
         !string.IsNullOrWhiteSpace(r.FrontText) && r.FrontText.Length <= 500 && !string.IsNullOrWhiteSpace(r.BackText) && r.BackText.Length <= 1000 &&
         (r.Example?.Length ?? 0) <= 2000 && (r.Pronunciation?.Length ?? 0) <= 200 && (r.AudioResourceUrl?.Length ?? 0) <= 2000 &&
         (string.IsNullOrWhiteSpace(r.AudioResourceUrl) || (Uri.TryCreate(r.AudioResourceUrl.Trim(), UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps));
+
+    private const string CardInputError = "Mặt trước và mặt sau là bắt buộc. Kiểm tra giới hạn ký tự và đường dẫn âm thanh HTTPS.";
+    private const string DeckLimitError = "Mỗi bộ thẻ có tối đa 1.000 thẻ.";
+
+    private static SaveFlashcardRequest NormalizeCard(SaveFlashcardRequest card) =>
+        new(card.FrontText.Trim(), card.BackText.Trim(), OptionalText(card.Example), OptionalText(card.Pronunciation),
+            OptionalText(card.AudioResourceUrl));
+
+    private static string? OptionalText(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static void ApplyCard(Flashcard card, SaveFlashcardRequest request, DateTimeOffset now)
+    {
+        card.FrontText = request.FrontText;
+        card.BackText = request.BackText;
+        card.Example = request.Example;
+        card.Pronunciation = request.Pronunciation;
+        card.AudioResourceUrl = request.AudioResourceUrl;
+        card.UpdatedAtUtc = now;
+    }
+
     private static FlashcardWriteResult Invalid(string error) => new(FlashcardWriteStatus.Invalid, Error: error);
 }

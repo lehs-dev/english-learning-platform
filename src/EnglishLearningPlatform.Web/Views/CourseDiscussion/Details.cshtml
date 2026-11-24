@@ -1,0 +1,69 @@
+@model CourseDiscussionConversationViewModel
+@{
+    var conversation = Model.Conversation;
+    ViewData["Title"] = conversation.Subject;
+    ViewData["ActiveSection"] = "courses";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/course-discussion.css" asp-append-version="true" />
+}
+
+<div class="discussion-workspace">
+    <a class="button secondary" asp-action="Index" asp-route-id="@conversation.Course.CourseId">&larr; Hỏi đáp khóa học</a>
+    <header class="page-heading">
+        <div>
+            <h1>@conversation.Subject</h1>
+            <p>@conversation.Course.CourseTitle · @(conversation.Course.IsTeacher ? "Học viên" : "Giảng viên") @conversation.ParticipantName</p>
+        </div>
+    </header>
+
+    <section class="discussion-panel" aria-label="Nội dung trao đổi">
+        @if (conversation.Pages > 1)
+        {
+            <nav class="discussion-pagination" aria-label="Trang tin nhắn">
+                @if (conversation.Page < conversation.Pages)
+                {
+                    <a class="button secondary" asp-action="Details" asp-route-id="@conversation.ThreadId"
+                       asp-route-page="@(conversation.Page + 1)">Tin cũ hơn</a>
+                }
+                @if (conversation.Page > 1)
+                {
+                    <a class="button secondary" asp-action="Details" asp-route-id="@conversation.ThreadId"
+                       asp-route-page="@(conversation.Page - 1)">Tin mới hơn</a>
+                }
+            </nav>
+        }
+        <ol class="discussion-messages">
+            @foreach (var message in conversation.Messages)
+            {
+                <li class="@(message.IsMine ? "is-mine" : "")">
+                    <div class="discussion-message-meta">
+                        <strong>@(message.IsMine ? "Bạn" : message.WrittenByTeacher ? "Giảng viên" : "Học viên")</strong>
+                        <time datetime="@message.SentAtUtc.ToString("O")">@message.SentAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time>
+                    </div>
+                    <p>@message.Body</p>
+                </li>
+            }
+        </ol>
+    </section>
+
+    @if (conversation.Course.CanWrite)
+    {
+        <section class="discussion-panel" id="discussion-reply" aria-labelledby="discussion-reply-title">
+            <h2 id="discussion-reply-title">Trả lời</h2>
+            <form class="discussion-form" method="post" asp-action="Reply" asp-route-id="@conversation.ThreadId">
+                <div asp-validation-summary="ModelOnly" role="alert"></div>
+                <input type="hidden" name="requestId" value="@Model.RequestId" />
+                <label for="discussion-reply-body">Nội dung trả lời</label>
+                <textarea id="discussion-reply-body" name="body" maxlength="@CourseDiscussionLimits.BodyLength" rows="5" required>@Model.Body</textarea>
+                @Html.ValidationMessage("body")
+                <div><button class="button" type="submit">Gửi phản hồi</button></div>
+            </form>
+        </section>
+    }
+    else
+    {
+        <p class="notice">Khóa học này hiện ở chế độ chỉ xem đối với phần hỏi đáp.</p>
+    }
+</div>

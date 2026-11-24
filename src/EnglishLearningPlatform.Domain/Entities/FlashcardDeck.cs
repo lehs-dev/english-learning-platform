@@ -6,6 +6,7 @@ namespace EnglishLearningPlatform.Domain.Entities;
 
 public sealed class FlashcardDeck : BaseEntity, IOwnedResource
 {
+    public const int MaxCards = 1000;
     public Guid OwnerTeacherUserId { get; set; }
     Guid IOwnedResource.OwnerUserId => OwnerTeacherUserId;
     public Guid CourseId { get; set; }

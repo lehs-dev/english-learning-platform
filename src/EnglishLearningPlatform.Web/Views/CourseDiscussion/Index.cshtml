@@ -1,0 +1,95 @@
+@model CourseDiscussionInboxViewModel
+@{
+    ViewData["Title"] = "Hỏi đáp khóa học";
+    ViewData["ActiveSection"] = "courses";
+    var inbox = Model.Inbox;
+    var course = inbox.Course;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/course-discussion.css" asp-append-version="true" />
+}
+
+<div class="discussion-workspace">
+    <a class="button secondary" asp-controller="@(course.IsTeacher ? "TeacherCourses" : "Learning")"
+       asp-action="@(course.IsTeacher ? "Manage" : "Course")" asp-route-id="@course.CourseId">&larr; @course.CourseTitle</a>
+    <header class="page-heading">
+        <div>
+            <h1>Hỏi đáp khóa học</h1>
+            <p>@(course.IsTeacher ? "Mỗi trao đổi chỉ hiển thị với bạn và học viên đặt câu hỏi." : "Bạn và giảng viên có thể trao đổi riêng tại đây.")</p>
+        </div>
+        @if (!course.IsTeacher && course.CanWrite)
+        {
+            <a class="button" href="#discussion-ask">Đặt câu hỏi</a>
+        }
+    </header>
+
+    <section class="discussion-panel" aria-labelledby="discussion-list-title">
+        <h2 id="discussion-list-title">@(course.IsTeacher ? "Câu hỏi của học viên" : "Câu hỏi đã gửi")</h2>
+        @if (inbox.Threads.Count == 0)
+        {
+            <p class="muted">@(course.IsTeacher ? "Chưa có học viên nào gửi câu hỏi." : "Bạn chưa gửi câu hỏi nào.")</p>
+        }
+        else
+        {
+            <ul class="discussion-threads">
+                @foreach (var thread in inbox.Threads)
+                {
+                    <li>
+                        <a class="discussion-thread-link" asp-action="Details" asp-route-id="@thread.Id">
+                            <strong>@thread.Subject</strong>
+                            <span class="muted">
+                                @if (course.IsTeacher)
+                                {
+                                    <span>@thread.ParticipantName · </span>
+                                }
+                                <time datetime="@thread.LastMessageAtUtc.ToString("O")">@thread.LastMessageAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time>
+                            </span>
+                        </a>
+                        <span class="discussion-status @(thread.IsAwaitingTeacher ? "is-waiting" : "")">
+                            @(thread.IsAwaitingTeacher ? "Chờ giảng viên" : "Đã có phản hồi")
+                        </span>
+                    </li>
+                }
+            </ul>
+        }
+        @if (inbox.Pages > 1)
+        {
+            <nav class="discussion-pagination" aria-label="Trang câu hỏi">
+                @if (inbox.Page > 1)
+                {
+                    <a class="button secondary" asp-action="Index" asp-route-id="@course.CourseId" asp-route-page="@(inbox.Page - 1)">Trang trước</a>
+                }
+                <span>Trang @inbox.Page / @inbox.Pages</span>
+                @if (inbox.Page < inbox.Pages)
+                {
+                    <a class="button secondary" asp-action="Index" asp-route-id="@course.CourseId" asp-route-page="@(inbox.Page + 1)">Trang sau</a>
+                }
+            </nav>
+        }
+    </section>
+
+    @if (!course.IsTeacher && course.CanWrite)
+    {
+        <section class="discussion-panel" id="discussion-ask" aria-labelledby="discussion-ask-title">
+            <h2 id="discussion-ask-title">Gửi câu hỏi đến giảng viên</h2>
+            <form class="discussion-form" method="post" asp-action="Ask" asp-route-id="@course.CourseId">
+                <div asp-validation-summary="ModelOnly" role="alert"></div>
+                <input type="hidden" name="requestId" value="@Model.RequestId" />
+                <label for="discussion-subject">Chủ đề</label>
+                <input id="discussion-subject" name="subject" maxlength="@CourseDiscussionLimits.SubjectLength" value="@Model.Subject" required />
+                @Html.ValidationMessage("subject")
+                <label for="discussion-body">Nội dung câu hỏi</label>
+                <textarea id="discussion-body" name="body" maxlength="@CourseDiscussionLimits.BodyLength" rows="5"
+                          aria-describedby="discussion-body-hint" required>@Model.Body</textarea>
+                <p class="muted" id="discussion-body-hint">Ghi tên bài học hoặc bài tập nếu câu hỏi liên quan đến nội dung cụ thể.</p>
+                @Html.ValidationMessage("body")
+                <div><button class="button" type="submit">Gửi câu hỏi</button></div>
+            </form>
+        </section>
+    }
+    else if (!course.CanWrite)
+    {
+        <p class="notice">Khóa học này hiện ở chế độ chỉ xem đối với phần hỏi đáp.</p>
+    }
+</div>

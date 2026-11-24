@@ -1,6 +1,8 @@
+using System.Net;
 using System.Text.Json;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.Practice;
+using EnglishLearningPlatform.Application.QuestionBank;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -13,6 +15,74 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class M2PracticeSubmissionTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
+    [Fact]
+    public async Task ListeningDictation_ShowsAudioWithoutTranscript_AndGradesTypedAnswer()
+    {
+        const string audioUrl = "https://audio.example.test/dictation.wav";
+        const string transcript = "The library opens at eight.";
+        const string explanation = "PRIVATE_DICTATION_EXPLANATION";
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var audio = new Stimulus
+        {
+            OwnerTeacherUserId = teacher.Id, StimulusType = StimulusType.Audio, ResourceUrl = audioUrl, ContentText = transcript
+        };
+        db.Stimuli.Add(audio);
+        await db.SaveChangesAsync();
+        var questions = scope.ServiceProvider.GetRequiredService<IQuestionCreationService>();
+        var question = await questions.CreateAsync(teacher.Id, new()
+        {
+            Content = "Listen and type the sentence.", QuestionType = QuestionType.Dictation, PrimarySkill = EnglishSkill.Listening,
+            Explanation = explanation, StimulusId = audio.Id, AcceptedAnswers = [transcript]
+        });
+        Assert.True(question.Succeeded);
+
+        var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Listening", Status = CourseStatus.Published };
+        var item = new PracticeQuestion { QuestionId = question.QuestionId!.Value };
+        var practice = new Practice
+        {
+            Module = new Module { Course = course, Title = "Dictation", Visibility = ModuleVisibility.Visible },
+            OwnerTeacherUserId = teacher.Id, Title = "Listen and type", Status = PracticeStatus.Published, Questions = [item]
+        };
+        db.AddRange(practice, new Enrollment { Course = course, StudentUserId = student.Id });
+        await db.SaveChangesAsync();
+
+        using var client = IdentityTestHelpers.CreateClient(factory);
+        using var login = await IdentityTestHelpers.LoginAsync(client, student);
+        Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        var takePath = $"/Practice/Take/{practice.Id}";
+        var token = await IdentityTestHelpers.GetTokenAsync(client, takePath);
+        var takingPage = await client.GetStringAsync(takePath);
+        Assert.Contains(audioUrl, takingPage);
+        Assert.Contains("Answers[0].TextAnswer", takingPage);
+        Assert.DoesNotContain(transcript, takingPage);
+        Assert.DoesNotContain(explanation, takingPage);
+        var sessionId = await db.PracticeSessions.AsNoTracking().Where(row => row.PracticeId == practice.Id)
+            .Select(row => row.Id).SingleAsync();
+        using var form = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = token,
+            ["SessionId"] = sessionId.ToString(),
+            ["Answers[0].PracticeQuestionId"] = item.Id.ToString(),
+            ["Answers[0].TextAnswer"] = "  THE library   opens at eight.  "
+        });
+        using var submitted = await client.PostAsync($"/Practice/Submit/{practice.Id}", form);
+        Assert.Equal(HttpStatusCode.Redirect, submitted.StatusCode);
+        var result = (await scope.ServiceProvider.GetRequiredService<IPracticeService>().GetResultAsync(student.Id, practice.Id)).Value!;
+        Assert.Equal(100m, result.Score);
+        var feedback = Assert.Single(result.Questions);
+        Assert.True(feedback.IsCorrect);
+        Assert.Equal(transcript, Assert.Single(feedback.AcceptedAnswers));
+        var resultPath = submitted.Headers.Location!.OriginalString;
+        Assert.Contains(explanation, await client.GetStringAsync(resultPath));
+        var mistakesPage = WebUtility.HtmlDecode(await client.GetStringAsync(resultPath + "?mistakesOnly=true"));
+        Assert.DoesNotContain(explanation, mistakesPage);
+        Assert.DoesNotContain("Listen and type the sentence.", mistakesPage);
+        Assert.Contains("Bạn đã trả lời đúng tất cả câu hỏi.", mistakesPage);
+    }
+
     [Fact]
     public async Task StructuredPractice_GradesBothTypesAndPreservesTheOriginalRetakeAnswers()
     {

@@ -6,6 +6,7 @@ using EnglishLearningPlatform.Application.Gamification;
 using EnglishLearningPlatform.Application.LearningPath;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Infrastructure.Gamification;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -95,6 +96,7 @@ public sealed class FlashcardService(AppDbContext db, IActiveUserValidator users
             Rating = rating, ReviewedAtUtc = now
         });
         await db.SaveChangesAsync(ct);
+        await StudentActivityDays.RecordAsync(db, studentId, now, ct);
         await tx.CommitAsync(ct);
         await tx.DisposeAsync();
         await TrackLearningAsync(studentId, deckId, ct);

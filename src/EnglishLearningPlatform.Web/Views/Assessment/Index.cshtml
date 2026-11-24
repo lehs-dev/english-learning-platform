@@ -1,7 +1,7 @@
 @model IReadOnlyList<AssessmentLink>
 @{
     ViewData["Title"] = "Đánh giá năng lực";
-    ViewData["ActiveSection"] = "assessment";
+    ViewData["ActiveSection"] = "progress";
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
@@ -48,7 +48,7 @@
     else
     {
         <div class="course-grid">
-            @foreach (var assessment in Model)
+            @foreach (var assessment in Model.OrderByDescending(a => a.ActiveAttemptId.HasValue))
             {
                 <article class="card-v2" style="padding: 24px; display: flex; flex-direction: column; gap: 14px; position: relative;">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">

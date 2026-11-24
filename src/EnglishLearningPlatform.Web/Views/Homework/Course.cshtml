@@ -1,0 +1,61 @@
+@using EnglishLearningPlatform.Application.Homework
+@using EnglishLearningPlatform.Infrastructure.Identity
+@model WritingHomeworkCourse
+@{
+    ViewData["Title"] = "Bài tập viết";
+    bool teacher = User.IsInRole(AppRoles.Teacher);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/homework.css" asp-append-version="true" />
+}
+
+<div class="homework-page">
+    <header class="homework-header">
+        <div>
+            <a asp-controller="@(teacher ? "TeacherCourses" : "Learning")" asp-action="@(teacher ? "Manage" : "Course")" asp-route-id="@Model.CourseId">@Model.CourseTitle</a>
+            <h1>Bài tập viết</h1>
+        </div>
+        @if (Model.CanAssign)
+        {
+            <a class="button primary" asp-action="Create" asp-route-id="@Model.CourseId">Giao bài viết</a>
+        }
+    </header>
+    @if (Model.Assignments.Count == 0)
+    {
+        <p class="homework-card muted">@(Model.Page > 1 ? "Trang này đã hết bài tập." : "Khóa học chưa có bài tập viết.")</p>
+    }
+    else
+    {
+        <ul class="homework-list">
+            @foreach (var assignment in Model.Assignments)
+            {
+                <li class="homework-card homework-row">
+                    <div>
+                        <h2><a asp-action="Details" asp-route-id="@assignment.Id">@assignment.Title</a></h2>
+                        @if (assignment.DueAtUtc is { } due)
+                        {
+                            <p class="muted">Hạn nộp <time datetime="@due.ToString("O")">@due.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></p>
+                        }
+                    </div>
+                    @if (assignment.AwaitingReview is int waiting)
+                    {
+                        <span class="homework-status">@waiting bài chờ phản hồi</span>
+                    }
+                    else
+                    {
+                        <span class="homework-status">@(assignment.Reviewed ? "Có phản hồi" : assignment.Submitted ? "Đã nộp" : assignment.Open ? "Chưa nộp" : "Đã đóng")</span>
+                    }
+                </li>
+            }
+        </ul>
+    }
+    @if (Model.Page > 1 || Model.HasNextPage)
+    {
+        <nav class="homework-pagination" aria-label="Trang bài tập">
+            @if (Model.Page > 1) { <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId" asp-route-page="@(Model.Page - 1)">Trang trước</a> }
+            <span>Trang @Model.Page</span>
+            @if (Model.HasNextPage) { <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId" asp-route-page="@(Model.Page + 1)">Trang sau</a> }
+        </nav>
+    }
+</div>

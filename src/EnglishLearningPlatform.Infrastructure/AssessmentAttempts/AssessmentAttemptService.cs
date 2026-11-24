@@ -4,6 +4,7 @@ using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Infrastructure.Gamification;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Learning;
 using EnglishLearningPlatform.Infrastructure.Persistence;
@@ -460,6 +461,7 @@ public sealed class AssessmentAttemptService(
                     (!response.SelectedOptionId.HasValue || question.Options.Any(o => o.Id == response.SelectedOptionId))
                     ? response : null;
             case QuestionType.FillBlank:
+            case QuestionType.Dictation:
                 if (response.SelectedOptionId.HasValue || response.StructuredAnswerJson is not null ||
                     response.TextAnswer is { Length: > 500 })
                     return null;
@@ -600,6 +602,17 @@ public sealed class AssessmentAttemptService(
         // commit together, including lazy finalization from Start/Save.
         if (assessment.CourseId is Guid courseId)
             await CourseCompletion.ReconcileAsync(db, courseId, ct);
+
+        var lastAnswerAt = grading
+            .Where(item => item.Answer.SelectedOptionId.HasValue || !string.IsNullOrWhiteSpace(item.Answer.TextAnswer) ||
+                !string.IsNullOrWhiteSpace(item.Answer.StructuredAnswerJson))
+            .Max(item => (DateTimeOffset?)item.Answer.SavedAtUtc);
+        if (lastAnswerAt.HasValue)
+        {
+            // A later visit can trigger deadline grading. Credit the day on which the learner last answered.
+            var studiedAt = reason == AttemptFinalizationReason.DeadlineElapsed ? lastAnswerAt.Value : now;
+            await StudentActivityDays.RecordAsync(db, attempt.StudentUserId, studiedAt, ct);
+        }
 
         return new(
             AttemptFinalizeStatus.Graded,

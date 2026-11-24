@@ -57,7 +57,7 @@
                     </div>
                     <partial name="_ReadOnlyBadge" />
                 </div>
-                @if (Model.QuestionType == QuestionType.FillBlank)
+                @if (Model.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
                 { <ul>@foreach (var answer in Model.AcceptedAnswers) { <li>@answer</li> }</ul> }
                 @if (Model.StructuredItems.Count > 0)
                 {

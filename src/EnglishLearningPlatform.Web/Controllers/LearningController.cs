@@ -162,12 +162,17 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
         return result.Access == LearningAccessResult.Allowed ? View(result.Value) : Denied(result.Access);
     }
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = AuthorizationPolicies.Student)]
-    public async Task<IActionResult> Completion(Guid id, bool? completed, CancellationToken ct)
+    public async Task<IActionResult> Completion(Guid id, bool? completed, CancellationToken ct, bool goNext = false)
     {
         if (!ModelState.IsValid || !completed.HasValue) return BadRequest();
         var result = await courses.SetLessonCompletedAsync(UserId, id, completed.Value, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         TempData["Success"] = completed.Value ? "Đã đánh dấu bài học hoàn thành." : "Đã đánh dấu bài học chưa hoàn thành.";
+        if (completed.Value && goNext)
+        {
+            var lesson = await courses.OpenLessonAsync(UserId, id, ct);
+            if (lesson.Value?.Next is { } next) return RedirectToAction(nameof(Lesson), new { id = next.Id });
+        }
         return RedirectToAction(nameof(Lesson), new { id });
     }
     [HttpGet]

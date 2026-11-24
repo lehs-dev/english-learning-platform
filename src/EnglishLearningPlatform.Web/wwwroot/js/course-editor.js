@@ -141,8 +141,21 @@
     function updateResource() {
         if (!resourceType) return;
         const text = resourceType.value === '1';
-        document.querySelector('[data-text-fields]').hidden = !text;
-        document.querySelector('[data-url-fields]').hidden = text;
+        const audio = resourceType.value === '3';
+        const image = resourceType.value === '5';
+        const media = document.querySelector('[data-media-fields]');
+        const file = media.querySelector('input[type="file"]');
+        const textFields = document.querySelector('[data-text-fields]');
+        const urlFields = document.querySelector('[data-url-fields]');
+        textFields.hidden = !text;
+        textFields.querySelector('textarea').disabled = !text;
+        urlFields.hidden = text;
+        urlFields.querySelector('input').disabled = text;
+        media.hidden = !audio && !image;
+        file.disabled = media.hidden;
+        if (resourceType.dataset.previousValue && resourceType.dataset.previousValue !== resourceType.value) file.value = '';
+        file.accept = audio ? '.mp3,.wav,.ogg,.oga' : '.png,.jpg,.jpeg,.webp';
+        resourceType.dataset.previousValue = resourceType.value;
     }
     resourceType?.addEventListener('change', updateResource);
     updateResource();

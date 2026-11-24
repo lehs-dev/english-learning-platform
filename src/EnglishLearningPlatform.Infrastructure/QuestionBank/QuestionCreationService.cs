@@ -52,7 +52,8 @@ public sealed class QuestionCreationService(
                 .AnyAsync(
                     stimulus =>
                         stimulus.Id == stimulusId
-                        && stimulus.OwnerTeacherUserId == actorUserId,
+                        && stimulus.OwnerTeacherUserId == actorUserId
+                        && (request.QuestionType != QuestionType.Dictation || stimulus.StimulusType == StimulusType.Audio),
                     cancellationToken);
 
             if (!canUseStimulus)
@@ -62,7 +63,9 @@ public sealed class QuestionCreationService(
                     new QuestionError(
                         nameof(request.StimulusId),
                         "invalid",
-                        "Ngữ liệu không tồn tại hoặc không thuộc quyền sở hữu của bạn.")
+                        request.QuestionType == QuestionType.Dictation
+                            ? "Chọn một ngữ liệu âm thanh thuộc ngân hàng của bạn."
+                            : "Ngữ liệu không tồn tại hoặc không thuộc quyền sở hữu của bạn.")
                 ]);
             }
         }

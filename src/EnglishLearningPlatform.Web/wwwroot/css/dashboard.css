@@ -521,6 +521,18 @@ button.calendar-day-col {
     padding-bottom: 8px;
 }
 
+.today-activity-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    margin-top: 1rem;
+}
+
+.today-activity-links .icon {
+    width: 1rem;
+    height: 1rem;
+}
+
 .today-date-badge {
     display: inline-block;
     font-size: 12.5px;
@@ -571,6 +583,11 @@ button.calendar-day-col {
     border-color: #CBD5E1;
 }
 
+.today-streak-status {
+    display: block;
+    color: var(--v2-text-secondary);
+}
+
 .spotlight-cards-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
@@ -596,6 +613,9 @@ button.calendar-day-col {
 .progress-card-action {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
     margin-top: auto;
 }
 
