@@ -20,13 +20,15 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#176bff" />
+    <meta name="theme-color" content="#102347" />
     <title>@title - Estudy Quản trị</title>
     <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/role-layouts.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workspace-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-workspace.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="admin-body @ViewData["PageClass"]">
@@ -110,7 +112,6 @@
                     </ol>
                 </nav>
                 <div class="admin-topbar-actions">
-                    <span class="admin-env-badge">Quản trị</span>
                     @await Component.InvokeAsync("AccountMenu")
                 </div>
             </header>

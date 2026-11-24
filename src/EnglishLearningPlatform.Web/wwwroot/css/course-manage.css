@@ -1,21 +1,22 @@
 .curriculum-workspace {
     display: grid;
-    grid-template-columns: minmax(215px, 1fr) minmax(0, 3.25fr);
+    grid-template-columns: minmax(226px, 1fr) minmax(0, 3fr);
     align-items: start;
-    gap: 12px;
+    gap: 17px;
 }
 .curriculum-sidebar, .curriculum-pane, .course-manage-publishing {
     min-width: 0;
     border: 1px solid var(--teacher-border);
-    border-radius: 8px;
+    border-radius: 16px;
     background: #fff;
+    box-shadow: var(--teacher-card-shadow);
 }
 .curriculum-sidebar {
     position: sticky;
-    top: 68px;
+    top: 84px;
     display: flex;
     flex-direction: column;
-    max-height: calc(100dvh - 84px);
+    max-height: calc(100dvh - 103px);
 }
 .curriculum-sidebar-heading {
     display: flex;
@@ -23,11 +24,11 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 6px 8px;
-    padding: 10px 12px;
+    padding: 13px 14px;
     border-bottom: 1px solid var(--teacher-border);
 }
 .curriculum-sidebar-heading h2 { margin: 0; font-size: .9375rem; }
-.curriculum-tree { min-height: 0; overflow-y: auto; padding: 6px; scrollbar-width: thin; }
+.curriculum-tree { min-height: 0; overflow-y: auto; padding: 8px; scrollbar-width: thin; }
 .curriculum-tree ul { margin: 0; padding: 0; list-style: none; }
 .curriculum-tree li { margin: 0; }
 .curriculum-tree li ul { margin: 2px 0 4px 15px; padding-left: 6px; border-left: 1px solid var(--teacher-border); }
@@ -35,10 +36,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 37px;
+    min-height: 39px;
     padding: 6px 7px;
     border: 1px solid transparent;
-    border-radius: 5px;
+    border-radius: 8px;
     color: var(--teacher-ink);
     font-size: .875rem;
     text-decoration: none;
@@ -48,17 +49,19 @@
 .curriculum-link small { color: var(--teacher-muted); font-size: .8125rem; }
 .curriculum-module-link { font-weight: 650; }
 .curriculum-link:hover, .curriculum-link.is-expanded { background: var(--teacher-surface-soft); }
+.curriculum-link[aria-current="page"] > .icon { color: var(--teacher-action); }
 .curriculum-link[aria-current="page"] {
     border-color: var(--teacher-accent-border);
     background: var(--teacher-accent-soft);
     color: var(--teacher-accent-ink);
     font-weight: 650;
 }
-.curriculum-pane-heading { padding: 16px 16px 12px; }
+.curriculum-pane-heading { padding: 20px 20px 17px; }
 .curriculum-pane-heading h2 {
     margin: 0;
     color: var(--teacher-ink);
-    font-size: 1.25rem;
+    font-size: clamp(1.2rem, 2.7vw, 1.55rem);
+    letter-spacing: -.025em;
     line-height: 1.35;
 }
 .curriculum-pane-heading .workspace-meta { margin-bottom: 6px; }
@@ -67,12 +70,12 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 10px 14px;
+    gap: 7px;
+    padding: 10px 15px;
     border-block: 1px solid var(--teacher-border);
     background: var(--teacher-surface-soft);
 }
-.curriculum-toolbar:last-child { border-bottom: 0; border-radius: 0 0 7px 7px; }
+.curriculum-toolbar:last-child { border-bottom: 0; border-radius: 0 0 15px 15px; }
 .curriculum-toolbar .curriculum-order { margin-left: auto; }
 .workspace-table { width: 100%; border-collapse: collapse; text-align: left; }
 .workspace-table :is(th, td) { padding: 10px 12px; border-bottom: 1px solid var(--teacher-border); font-size: .875rem; vertical-align: middle; }
@@ -83,12 +86,12 @@
 .workspace-table th a { color: var(--teacher-accent-ink); }
 .workspace-table .curriculum-order { width: max-content; max-width: 16rem; }
 .curriculum-empty { margin: 0; padding: 14px 16px; color: var(--teacher-muted); }
-.curriculum-editor { gap: 15px; max-width: 53rem; padding: 4px 16px 16px; }
+.curriculum-editor { gap: 17px; max-width: 53rem; padding: 4px 20px 20px; }
 .curriculum-editor .muted { margin: 4px 0 0; }
 .curriculum-editor > [hidden] { display: none; }
-.curriculum-form-actions { padding-top: 10px; border-top: 1px solid var(--teacher-border); }
+.curriculum-form-actions { padding-top: 14px; border-top: 1px solid var(--teacher-border); }
 
-.course-manage-publishing { max-width: 55rem; padding: 18px; }
+.course-manage-publishing { max-width: 55rem; padding: 22px; }
 .course-manage-publishing h2 { margin: 0 0 12px; font-size: 1.125rem; }
 .course-publish-readiness {
     display: flex;
@@ -109,7 +112,8 @@
 .course-manage-publishing > p { margin: 14px 0 0; }
 
 @media (max-width: 760px) {
-    .curriculum-workspace { grid-template-columns: minmax(0, 1fr); }
+    .curriculum-workspace { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .curriculum-pane-heading, .curriculum-editor { padding-inline: 14px; }
     .curriculum-sidebar { position: static; max-height: min(15.5rem, 34dvh); }
     .curriculum-toolbar .curriculum-order { margin-left: 0; }
     .workspace-table .curriculum-order { max-width: 8rem; }

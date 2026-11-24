@@ -12,7 +12,7 @@
 <nav class="workspace-path" aria-label="Đường dẫn điều hướng">
     <partial name="~/Views/TeacherAssessments/_AssessmentBackLink.cshtml" model="Model.Editor.CourseId" /><span aria-hidden="true">/</span><span aria-current="page">Phạm vi</span>
 </nav>
-<header class="workspace-heading"><h1>@Model.Editor.Title</h1></header>
+<header class="teacher-banner teacher-banner--light"><h1>@Model.Editor.Title</h1></header>
 <partial name="~/Views/TeacherAssessments/_AssessmentTabs.cshtml" model='new EnglishLearningPlatform.Web.Models.Assessment.AssessmentWorkspaceNav(Model.Editor.AssessmentId, "scope", canPreview && !Model.Editor.HasAttempt, canPreview)' />
 <div class="ta-config-grid">
     <section class="ta-card ta-scope-card" data-scope-editor data-can-change="@Model.Editor.CanChangeScope.ToString().ToLowerInvariant()" data-has-attempt="@Model.Editor.HasAttempt.ToString().ToLowerInvariant()" data-is-final="@Model.Editor.IsFinal.ToString().ToLowerInvariant()">

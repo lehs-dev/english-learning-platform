@@ -13,10 +13,35 @@
     <link rel="stylesheet" href="~/css/teacher-courses.css" asp-append-version="true" />
 }
 
-<header class="workspace-heading">
-    <h1>Khóa học của tôi</h1>
-    <a class="button" asp-action="Edit">+ Tạo khóa học</a>
-</header>
+<div class="teacher-courses-overview">
+    <header class="teacher-banner teacher-courses-banner">
+        <div>
+            <h1>Khóa học của tôi</h1>
+            <div class="workspace-actions">
+                <a class="button" asp-action="Edit"><span aria-hidden="true">+</span> Tạo khóa học</a>
+                <a class="teacher-banner-link" asp-controller="TeacherAnalytics" asp-action="Index">Thống kê lớp học <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
+            </div>
+        </div>
+    </header>
+    <dl class="teacher-course-stats" id="statistics" aria-label="Thống kê khóa học">
+        <div>
+            <dt><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg>Tổng khóa học</dt>
+            <dd>@Model.AllCount</dd>
+        </div>
+        <div>
+            <dt><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>Đã xuất bản</dt>
+            <dd>@Model.StatusCounts[CourseStatus.Published]</dd>
+        </div>
+        <div>
+            <dt><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>Bản nháp</dt>
+            <dd>@Model.StatusCounts[CourseStatus.Draft]</dd>
+        </div>
+        <div>
+            <dt><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>Tổng bài học</dt>
+            <dd>@Model.LessonCount</dd>
+        </div>
+    </dl>
+</div>
 
 <section class="teacher-courses-filter-card" aria-label="Lọc khóa học">
     <nav class="teacher-course-tabs" aria-label="Trạng thái khóa học">
@@ -25,7 +50,7 @@
             <a class="teacher-course-tab @(Model.Query.Status == tab.Status ? "is-active" : "")"
                asp-action="Index" asp-all-route-data="Model.Route(1, tab.Status)"
                aria-current="@(Model.Query.Status == tab.Status ? "page" : null)">
-                @tab.Label <span>(@(tab.Status.HasValue ? Model.StatusCounts[tab.Status.Value] : Model.AllCount))</span>
+                @tab.Label <span>@(tab.Status.HasValue ? Model.StatusCounts[tab.Status.Value] : Model.AllCount)</span>
             </a>
         }
     </nav>
@@ -57,7 +82,7 @@
                 }
             </select>
         </div>
-        <button type="submit" class="button" aria-label="Áp dụng bộ lọc khóa học">Tìm / lọc</button>
+        <button type="submit" class="button" aria-label="Áp dụng bộ lọc khóa học">Áp dụng</button>
     </form>
 </section>
 
@@ -84,29 +109,44 @@
 }
 else
 {
-    <div class="workspace-list">
-        <div class="workspace-list-heading course-list-row" aria-hidden="true">
-            <span>Khóa học</span><span>Trạng thái</span><span>Nội dung</span><span>Học phí</span><span>Thao tác</span>
-        </div>
+    <div class="teacher-courses-grid">
         @foreach (var course in Model.Courses)
         {
-            <article class="course-card teacher-course-card workspace-list-row course-list-row" aria-labelledby="course-title-@course.Id">
-                <div class="workspace-list-name">
-                    <h2 id="course-title-@course.Id"><a asp-action="Manage" asp-route-id="@course.Id">@course.Title</a></h2>
-                    <p><partial name="_UiText" model="course.Level" /> <span aria-hidden="true">·</span> @(course.Skills.Count == 0 ? "Chưa chọn kỹ năng" : "")
-                        @for (var index = 0; index < course.Skills.Count; index++)
-                        {
-                            <span class="workspace-skill"><partial name="_UiText" model="course.Skills[index]" /></span>@if (index + 1 < course.Skills.Count) { <text>, </text> }
-                        }
-                    </p>
+            var skillIcon = course.Skills.FirstOrDefault() switch
+            {
+                EnglishSkill.Listening => "headphones",
+                EnglishSkill.Grammar => "pencil",
+                EnglishSkill.Vocabulary => "target",
+                _ => "book"
+            };
+            <article class="teacher-course-card teacher-course-tile" aria-labelledby="course-title-@course.Id">
+                <div class="teacher-course-cover cover-@course.Level.ToString().ToLowerInvariant()">
+                    <span class="teacher-course-cover-icon" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#" + skillIcon)"></use></svg></span>
+                    <span class="workspace-status status-@course.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="course.Status" /></span>
                 </div>
-                <div><span class="workspace-status status-@course.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="course.Status" /></span></div>
-                <div class="workspace-list-secondary">@course.ModuleCount chương · @course.LessonCount bài</div>
-                <div>@(course.IsPaid ? course.Price.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " ₫" : "Miễn phí")</div>
-                <nav class="workspace-actions" aria-label="Thao tác với khóa học @course.Title">
-                    <a class="button secondary small" asp-action="Edit" asp-route-id="@course.Id">Thông tin</a>
-                    <a class="button secondary small" asp-action="Students" asp-route-id="@course.Id">Học viên</a>
-                    <a class="button secondary small" asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id">Xem trước</a>
+                <div class="teacher-course-tile-content">
+                    <div class="teacher-course-classification"><partial name="_UiText" model="course.Level" /></div>
+                    <h2 id="course-title-@course.Id"><a asp-action="Manage" asp-route-id="@course.Id">@course.Title</a></h2>
+                    <div class="teacher-course-skills">
+                        @foreach (var skill in course.Skills)
+                        {
+                            <span><partial name="_UiText" model="skill" /></span>
+                        }
+                        @if (course.Skills.Count == 0) { <span>Chưa chọn kỹ năng</span> }
+                    </div>
+                    <dl class="teacher-course-tile-data">
+                        <div><dt class="visually-hidden">Chương học</dt><dd><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg>@course.ModuleCount chương</dd></div>
+                        <div><dt class="visually-hidden">Bài học</dt><dd><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>@course.LessonCount bài</dd></div>
+                        <div><dt class="visually-hidden">Học phí</dt><dd>@(course.IsPaid ? course.Price.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " ₫" : "Miễn phí")</dd></div>
+                    </dl>
+                </div>
+                <nav class="teacher-course-tile-actions" aria-label="Thao tác với khóa học @course.Title">
+                    <a class="teacher-course-manage-link" asp-action="Manage" asp-route-id="@course.Id">Quản lý <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
+                    <div>
+                        <a class="icon-button" asp-action="Edit" asp-route-id="@course.Id" aria-label="Thông tin" title="Thông tin"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#settings")"></use></svg></a>
+                        <a class="icon-button" asp-action="Students" asp-route-id="@course.Id" aria-label="Học viên" title="Học viên"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#users")"></use></svg></a>
+                        <a class="icon-button" asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id" aria-label="Xem trước" title="Xem trước"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg></a>
+                    </div>
                 </nav>
             </article>
         }
@@ -131,18 +171,6 @@ else
         }
         else { <span class="is-disabled" aria-disabled="true" aria-label="Trang sau"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></span> }
     </nav>
-</div>
-
-<div class="teacher-courses-tools">
-    <details id="statistics" class="teacher-courses-statistics">
-        <summary><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chart-bars")"></use></svg>Thống kê khóa học</summary>
-        <dl>
-            <div><dt>Tổng khóa học</dt><dd>@Model.AllCount</dd></div>
-            <div><dt>Bản nháp</dt><dd>@Model.StatusCounts[CourseStatus.Draft]</dd></div>
-            <div><dt>Đã xuất bản</dt><dd>@Model.StatusCounts[CourseStatus.Published]</dd></div>
-            <div><dt>Tổng bài học</dt><dd>@Model.LessonCount</dd></div>
-        </dl>
-    </details>
 </div>
 
 @section Scripts {

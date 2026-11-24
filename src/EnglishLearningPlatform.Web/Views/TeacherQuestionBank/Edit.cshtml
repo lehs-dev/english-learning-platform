@@ -14,19 +14,18 @@
     <span aria-current="page">Chỉnh sửa câu hỏi</span>
 </nav>
 
-<div class="page-heading question-editor-heading">
+<header class="teacher-banner teacher-banner--light question-editor-heading">
     <div>
         <div class="question-edit-title">
             <h1>Chỉnh sửa câu hỏi</h1>
             <span class="question-edit-status"><partial name="_UiText" model="Model.Status" /></span>
         </div>
-        <p>@(Model.ScoringContentLocked ? "Cập nhật thông tin phân loại cho câu hỏi." : "Cập nhật nội dung, lựa chọn và thiết lập câu hỏi.")</p>
     </div>
     <div class="actions">
         <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Details" asp-route-id="@Model.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem chi tiết</a>
         <button class="button question-submit" type="submit" form="question-editor-form"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>Lưu thay đổi</button>
     </div>
-</div>
+</header>
 
 @if (Model.ScoringContentLocked)
 {

@@ -9,98 +9,106 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/homework.css" asp-append-version="true" />
 }
 
-<div class="homework-page">
-    <header class="homework-header">
+<div class="activity-scene homework-page">
+    <header class="activity-hero homework-header">
         <div>
-            <a asp-action="Course" asp-route-id="@Model.CourseId">Bài tập viết · @Model.CourseTitle</a>
+            <a class="activity-course-link" asp-action="Course" asp-route-id="@Model.CourseId">
+                <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                Bài tập viết · @Model.CourseTitle
+            </a>
             <h1>@Model.Title</h1>
         </div>
         @if (Model.DueAtUtc is { } due)
         {
-            <span class="homework-status">Hạn nộp <time datetime="@due.ToString("O")">@due.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></span>
+            <span class="homework-due"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg> Hạn nộp <time datetime="@due.ToString("O")">@due.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></span>
         }
     </header>
-    <section class="homework-card" aria-labelledby="homework-prompt">
-        <h2 id="homework-prompt">Đề bài</h2>
-        <p class="preserve">@Model.Prompt</p>
-    </section>
-
-    @if (Model.CanSubmit)
-    {
-        <section class="homework-card" aria-labelledby="homework-response">
-            <h2 id="homework-response">Bài làm của bạn</h2>
-            <form class="editor-form" method="post" asp-action="Submit" asp-route-id="@Model.Id">
-                <div>
-                    <label for="writing-response">Nhập bài viết</label>
-                    <textarea id="writing-response" name="response" rows="12" required maxlength="@WritingHomeworkLimits.ResponseLength" aria-describedby="writing-help @(submissionError is null ? "" : "writing-error")">@ViewData["AttemptedResponse"]</textarea>
-                    <p id="writing-help" class="muted">Tối đa @WritingHomeworkLimits.ResponseLength ký tự. Bạn có thể đọc lại trước khi nộp bài.</p>
-                    @if (submissionError is not null) { <p id="writing-error" class="validation" role="alert">@submissionError</p> }
-                </div>
-                <div class="homework-actions"><button class="button primary" type="submit">Nộp bài viết</button></div>
-            </form>
+    <div class="homework-detail-layout">
+        <section class="activity-panel homework-card homework-prompt" aria-labelledby="homework-prompt">
+            <h2 id="homework-prompt">Đề bài</h2>
+            <p class="preserve">@Model.Prompt</p>
         </section>
-    }
-    else if (!Model.IsTeacher && Model.Submissions.Count == 0)
-    {
-        <p class="homework-card muted">Bài tập đã đóng.</p>
-    }
 
-    @if (Model.IsTeacher)
-    {
-        <h2>Bài đã nộp</h2>
-        @if (Model.Submissions.Count == 0)
-        {
-            <p class="homework-card muted">@(Model.Page > 1 ? "Trang này đã hết bài nộp." : "Chưa có học viên nộp bài.")</p>
-        }
-    }
-
-    @foreach (var submission in Model.Submissions)
-    {
-        bool rejected = rejectedId == submission.Id;
-        <details class="homework-card homework-submission" open="@(!Model.IsTeacher || rejected)">
-            <summary>
-                <span>@(Model.IsTeacher ? submission.StudentName : "Bài bạn đã nộp")</span>
-                <span class="homework-status">@(submission.ReviewedAtUtc.HasValue ? "Đã phản hồi" : "Chờ phản hồi")</span>
-            </summary>
-            <p class="muted">Nộp lúc <time datetime="@submission.SubmittedAtUtc.ToString("O")">@submission.SubmittedAtUtc.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></p>
-            <p class="preserve">@submission.Response</p>
-            @if (submission.ReviewedAtUtc.HasValue)
+        <div class="homework-detail-main">
+            @if (Model.CanSubmit)
             {
-                <div class="homework-feedback">
-                    <h3>Nhận xét của giảng viên</h3>
-                    @if (submission.Score is int points) { <p><strong>@points / 100 điểm</strong></p> }
-                    <p class="preserve">@submission.Feedback</p>
-                </div>
+                <section class="activity-panel homework-card" aria-labelledby="homework-response">
+                    <h2 id="homework-response">Bài làm của bạn</h2>
+                    <form class="editor-form" method="post" asp-action="Submit" asp-route-id="@Model.Id">
+                        <div>
+                            <label for="writing-response">Nhập bài viết</label>
+                            <textarea id="writing-response" name="response" rows="12" required maxlength="@WritingHomeworkLimits.ResponseLength" aria-describedby="writing-help @(submissionError is null ? "" : "writing-error")">@ViewData["AttemptedResponse"]</textarea>
+                            <p id="writing-help" class="muted">Tối đa @WritingHomeworkLimits.ResponseLength ký tự. Bạn có thể đọc lại trước khi nộp bài.</p>
+                            @if (submissionError is not null) { <p id="writing-error" class="validation" role="alert">@submissionError</p> }
+                        </div>
+                        <div class="homework-actions"><button class="button primary" type="submit">Nộp bài viết</button></div>
+                    </form>
+                </section>
             }
-            else if (Model.IsTeacher)
+            else if (!Model.IsTeacher && Model.Submissions.Count == 0)
             {
-                <form class="editor-form homework-feedback" method="post" asp-action="Review" asp-route-id="@Model.Id" asp-route-submissionId="@submission.Id" asp-route-page="@Model.Page">
-                    @if (rejected)
+                <p class="activity-panel homework-card muted">Bài tập đã đóng.</p>
+            }
+
+            @if (Model.IsTeacher)
+            {
+                <h2>Bài đã nộp</h2>
+                @if (Model.Submissions.Count == 0)
+                {
+                    <p class="activity-panel homework-card muted">@(Model.Page > 1 ? "Trang này đã hết bài nộp." : "Chưa có học viên nộp bài.")</p>
+                }
+            }
+
+            @foreach (var submission in Model.Submissions)
+            {
+                bool rejected = rejectedId == submission.Id;
+                <details class="activity-panel homework-card homework-submission" open="@(!Model.IsTeacher || rejected)">
+                    <summary>
+                        <span>@(Model.IsTeacher ? submission.StudentName : "Bài bạn đã nộp")</span>
+                        <span class="activity-tag @(submission.ReviewedAtUtc.HasValue ? "good" : "attention")">@(submission.ReviewedAtUtc.HasValue ? "Đã phản hồi" : "Chờ phản hồi")</span>
+                    </summary>
+                    <p class="muted">Nộp lúc <time datetime="@submission.SubmittedAtUtc.ToString("O")">@submission.SubmittedAtUtc.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></p>
+                    <p class="homework-submitted-copy preserve">@submission.Response</p>
+                    @if (submission.ReviewedAtUtc.HasValue)
                     {
-                        <p class="validation" role="alert">Nhập nhận xét từ 1 đến @WritingHomeworkLimits.FeedbackLength ký tự và điểm hợp lệ nếu có.</p>
+                        <div class="homework-feedback is-visible">
+                            <h3>Nhận xét của giảng viên</h3>
+                            @if (submission.Score is int points) { <p class="activity-tag good">@points / 100 điểm</p> }
+                            <p class="preserve">@submission.Feedback</p>
+                        </div>
                     }
-                    <div>
-                        <label for="feedback-@submission.Id">Nhận xét</label>
-                        <textarea id="feedback-@submission.Id" name="Feedback" rows="4" required maxlength="@WritingHomeworkLimits.FeedbackLength">@(rejected ? attemptedReview?.Feedback : null)</textarea>
-                    </div>
-                    <div>
-                        <label for="score-@submission.Id">Điểm trên 100 (tùy chọn)</label>
-                        <input id="score-@submission.Id" name="Score" type="number" min="0" max="100" step="1" value="@(rejected ? attemptedReview?.Score : null)" />
-                    </div>
-                    <div class="homework-actions"><button class="button primary" type="submit">Gửi phản hồi</button></div>
-                </form>
+                    else if (Model.IsTeacher)
+                    {
+                        <form class="editor-form homework-feedback" method="post" asp-action="Review" asp-route-id="@Model.Id" asp-route-submissionId="@submission.Id" asp-route-page="@Model.Page">
+                            @if (rejected)
+                            {
+                                <p class="validation" role="alert">Nhập nhận xét từ 1 đến @WritingHomeworkLimits.FeedbackLength ký tự và điểm hợp lệ nếu có.</p>
+                            }
+                            <div>
+                                <label for="feedback-@submission.Id">Nhận xét</label>
+                                <textarea id="feedback-@submission.Id" name="Feedback" rows="4" required maxlength="@WritingHomeworkLimits.FeedbackLength">@(rejected ? attemptedReview?.Feedback : null)</textarea>
+                            </div>
+                            <div>
+                                <label for="score-@submission.Id">Điểm trên 100 (tùy chọn)</label>
+                                <input id="score-@submission.Id" name="Score" type="number" min="0" max="100" step="1" value="@(rejected ? attemptedReview?.Score : null)" />
+                            </div>
+                            <div class="homework-actions"><button class="button primary" type="submit">Gửi phản hồi</button></div>
+                        </form>
+                    }
+                </details>
             }
-        </details>
-    }
-    @if (Model.Page > 1 || Model.HasNextPage)
-    {
-        <nav class="homework-pagination" aria-label="Trang bài nộp">
-            @if (Model.Page > 1) { <a class="button secondary" asp-action="Details" asp-route-id="@Model.Id" asp-route-page="@(Model.Page - 1)">Trang trước</a> }
-            <span>Trang @Model.Page</span>
-            @if (Model.HasNextPage) { <a class="button secondary" asp-action="Details" asp-route-id="@Model.Id" asp-route-page="@(Model.Page + 1)">Trang sau</a> }
-        </nav>
-    }
+            @if (Model.Page > 1 || Model.HasNextPage)
+            {
+                <nav class="homework-pagination" aria-label="Trang bài nộp">
+                    @if (Model.Page > 1) { <a class="button secondary" asp-action="Details" asp-route-id="@Model.Id" asp-route-page="@(Model.Page - 1)">Trang trước</a> }
+                    <span>Trang @Model.Page</span>
+                    @if (Model.HasNextPage) { <a class="button secondary" asp-action="Details" asp-route-id="@Model.Id" asp-route-page="@(Model.Page + 1)">Trang sau</a> }
+                </nav>
+            }
+        </div>
+    </div>
 </div>

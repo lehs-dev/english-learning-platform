@@ -13,7 +13,7 @@
 <nav class="workspace-path" aria-label="Đường dẫn điều hướng">
     <partial name="~/Views/TeacherAssessments/_AssessmentBackLink.cshtml" model="Model.CourseId" /><span aria-hidden="true">/</span><span aria-current="page">Xem trước</span>
 </nav>
-<header class="workspace-heading">
+<header class="teacher-banner teacher-banner--light">
     <h1>@Model.Title</h1>
     @if (Model.Status == AssessmentStatus.Draft && Model.CanEditConfiguration)
     {

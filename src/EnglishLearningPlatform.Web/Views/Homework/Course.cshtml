@@ -7,31 +7,44 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/homework.css" asp-append-version="true" />
 }
 
-<div class="homework-page">
-    <header class="homework-header">
+<div class="activity-scene homework-page">
+    <header class="activity-hero homework-header">
         <div>
-            <a asp-controller="@(teacher ? "TeacherCourses" : "Learning")" asp-action="@(teacher ? "Manage" : "Course")" asp-route-id="@Model.CourseId">@Model.CourseTitle</a>
+            <a class="activity-course-link" asp-controller="@(teacher ? "TeacherCourses" : "Learning")" asp-action="@(teacher ? "Manage" : "Course")" asp-route-id="@Model.CourseId">
+                <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                @Model.CourseTitle
+            </a>
             <h1>Bài tập viết</h1>
         </div>
         @if (Model.CanAssign)
         {
-            <a class="button primary" asp-action="Create" asp-route-id="@Model.CourseId">Giao bài viết</a>
+            <a class="button" asp-action="Create" asp-route-id="@Model.CourseId">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>
+                Giao bài viết
+            </a>
         }
     </header>
     @if (Model.Assignments.Count == 0)
     {
-        <p class="homework-card muted">@(Model.Page > 1 ? "Trang này đã hết bài tập." : "Khóa học chưa có bài tập viết.")</p>
+        <div class="activity-panel activity-empty">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>
+            <p>@(Model.Page > 1 ? "Trang này đã hết bài tập." : "Khóa học chưa có bài tập viết.")</p>
+        </div>
     }
     else
     {
         <ul class="homework-list">
             @foreach (var assignment in Model.Assignments)
             {
-                <li class="homework-card homework-row">
-                    <div>
+                <li class="activity-panel homework-row">
+                    <span class="homework-row-icon" aria-hidden="true">
+                        <svg class="icon"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>
+                    </span>
+                    <div class="homework-row-title">
                         <h2><a asp-action="Details" asp-route-id="@assignment.Id">@assignment.Title</a></h2>
                         @if (assignment.DueAtUtc is { } due)
                         {
@@ -40,11 +53,11 @@
                     </div>
                     @if (assignment.AwaitingReview is int waiting)
                     {
-                        <span class="homework-status">@waiting bài chờ phản hồi</span>
+                        <span class="activity-tag @(waiting > 0 ? "attention" : "neutral")">@waiting bài chờ phản hồi</span>
                     }
                     else
                     {
-                        <span class="homework-status">@(assignment.Reviewed ? "Có phản hồi" : assignment.Submitted ? "Đã nộp" : assignment.Open ? "Chưa nộp" : "Đã đóng")</span>
+                        <span class="activity-tag @(assignment.Reviewed ? "good" : assignment.Open && !assignment.Submitted ? "attention" : "neutral")">@(assignment.Reviewed ? "Có phản hồi" : assignment.Submitted ? "Đã nộp" : assignment.Open ? "Chưa nộp" : "Đã đóng")</span>
                     }
                 </li>
             }

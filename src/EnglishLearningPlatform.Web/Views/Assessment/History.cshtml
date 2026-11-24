@@ -6,15 +6,16 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
 }
 
-<div class="exam-workspace-layout">
-    <header class="page-heading">
+<div class="activity-scene exam-workspace-layout">
+    <header class="activity-hero">
         <div>
             <h1>Lịch sử làm bài</h1>
-            <p class="muted">Các lượt làm được lưu riêng. Đề ngừng công bố hoặc lưu trữ vẫn giữ kết quả cũ; trang này không tạo lượt làm mới.</p>
+            <p class="muted">Xem điểm và trạng thái các lượt đã làm, kể cả với đề đã ngừng công bố.</p>
         </div>
-        <div class="actions">
+        <div class="activity-actions">
             <a class="button secondary" asp-action="Index">Danh sách bài đánh giá</a>
             @if (ViewData["FilteredHistory"] is true)
             {
@@ -25,13 +26,13 @@
 
     @if (Model.Count == 0)
     {
-        <section class="card-v2" style="padding: 24px;">
+        <section class="activity-panel activity-empty">
             <p>Bạn chưa có lượt làm bài nào.</p>
         </section>
     }
     @foreach (var assessment in Model)
     {
-        <section class="card-v2" style="padding: 24px; margin-top: 24px;" aria-labelledby="history-@assessment.AssessmentId">
+        <section class="activity-panel" aria-labelledby="history-@assessment.AssessmentId">
             <h2 id="history-@assessment.AssessmentId">@assessment.AssessmentTitle</h2>
             <p class="muted">Trạng thái đề: <partial name="_UiText" model="assessment.Status" /> · @assessment.Attempts.Count lượt</p>
             <partial name="_AttemptHistory" model="assessment.Attempts" />

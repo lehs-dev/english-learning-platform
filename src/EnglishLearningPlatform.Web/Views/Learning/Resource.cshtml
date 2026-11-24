@@ -2,14 +2,14 @@
 @{ ViewData["Title"] = Model.Title ?? "Nội dung"; }
 @section Styles {
     <link rel="stylesheet" href="~/css/lesson-page.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
 }
 
-<div class="v2-resource-page">
+<div class="v2-resource-page learning-screens">
     <header class="resource-page-intro">
-        <h1>Nội dung bài học</h1>
-        <p>Tài liệu và học liệu bổ trợ phục vụ quá trình học tập.</p>
+        <h1 class="learning-title">Nội dung bài học</h1>
     </header>
-    <div class="v2-card resource-page-card">
+    <div class="learning-surface resource-page-card lesson-reader">
         <partial name="_ResourceContent" model="Model" />
     </div>
 </div>

@@ -1,4 +1,11 @@
 @model CoursePage
+@{
+    var continueId = Model.Progress?.ContinueLessonId;
+    var expanded = ViewData["ExpandedOutline"] is true
+        ? Model.Modules.FirstOrDefault(module => module.Lessons.Any(lesson => lesson.Id == continueId))
+            ?? Model.Modules.FirstOrDefault(module => module.Lessons.Count > 0)
+        : null;
+}
 @if (!Model.Modules.Any(m => m.Lessons.Count > 0))
 {
     <div class="empty">Chưa có nội dung bài học khả dụng trong khóa này.</div>
@@ -7,13 +14,17 @@
 @for (var mi = 0; mi < Model.Modules.Count; mi++)
 {
     var module = Model.Modules[mi];
-    <details class="outline-module">
+    <details class="outline-module" open="@(expanded?.Id == module.Id)">
         <summary class="outline-heading">
             <span class="module-number">@((mi + 1).ToString("00"))</span>
             <span class="outline-heading-text">
                 <span class="outline-module-title">@module.Title</span>
                 <span class="outline-module-meta">
                     @module.Lessons.Count bài học
+                    @if (ViewData["ExpandedOutline"] is true && module.Lessons.Any(lesson => lesson.IsCompleted))
+                    {
+                        <span>· @module.Lessons.Count(lesson => lesson.IsCompleted) hoàn thành</span>
+                    }
                     @if (Model.IsOwner)
                     {
                         <span>· <partial name="_UiText" model="module.Visibility" /></span>
@@ -72,7 +83,7 @@
                     </div>
                     @if (Model.CanLearn)
                     {
-                        <a class="button secondary" style="padding: 6px 14px; font-size: 12px;" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">
+                        <a class="button secondary outline-lesson-action" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">
                             @(lesson.IsCompleted ? "Xem lại" : "Học bài")
                         </a>
                     }

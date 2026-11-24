@@ -3,6 +3,7 @@
     Layout = "_LayoutStudent";
     ViewData["Title"] = "Khóa học của tôi";
     ViewData["ActiveSection"] = "courses";
+    ViewData["LibraryCards"] = true;
 
     var statusParam = Model.ActiveStatus ?? Context.Request.Query["status"].ToString();
     var hasSpecificStatus = !string.IsNullOrWhiteSpace(statusParam) && statusParam is "active" or "not-started" or "completed";
@@ -36,26 +37,30 @@
     var displayList = filtered.ToList();
 }
 
-<div class="my-courses-workspace">
-    <!-- Top Header & Secondary CTA to Discover -->
-    <div class="my-courses-header">
+@section Styles {
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
+}
+
+<div class="my-courses-workspace learning-screens">
+    <header class="my-courses-header">
         <div>
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <span class="v2-pill-tag">Học tập</span>
-            </div>
-            <h1 class="my-courses-title">Khóa học của tôi</h1>
-            <p class="my-courses-subtitle">Quản lý và tiếp tục các khóa học bạn đã ghi danh.</p>
+            <h1 class="learning-title my-courses-title">Khóa học của tôi</h1>
+            @if (allCourses.Count > 0)
+            {
+                <p class="my-courses-subtitle">@allCourses.Count khóa đã ghi danh <span aria-hidden="true">·</span> @totalCompleted đã hoàn thành</p>
+            }
         </div>
         <div class="my-courses-header-actions">
             <a class="button secondary" asp-controller="Courses" asp-action="Index">
-                <span>Khám phá khóa học</span>
-                <span aria-hidden="true">&rarr;</span>
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                Khám phá khóa học
+                <svg class="icon library-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
             </a>
         </div>
-    </div>
+    </header>
 
     <!-- Status Tabs & In-enrolled Search Bar -->
-    <div class="my-courses-filter-bar">
+    <div class="my-courses-filter-bar learning-surface">
         <nav class="my-courses-tabs" aria-label="Lọc theo trạng thái khóa học">
             <a class="tab-link @(activeTab == "active" ? "is-active" : "")"
                asp-action="Index" asp-route-status="active" asp-route-search="@searchQuery"
@@ -92,6 +97,7 @@
     <section class="enrolled-courses-section" data-enrolled-courses aria-label="Danh sách khóa học đã ghi danh">
         @if (displayList.Count > 0)
         {
+            <h2 class="library-count">@displayList.Count khóa học</h2>
             <div class="enrolled-courses-grid">
                 @foreach (var course in displayList)
                 {
@@ -101,17 +107,24 @@
         }
         else
         {
-            <div class="my-courses-empty-panel">
+            <div class="my-courses-empty-panel learning-surface">
                 @if (!string.IsNullOrWhiteSpace(searchQuery))
                 {
-                    <div class="empty-icon">🔍</div>
+                    <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg></div>
                     <h3>Không tìm thấy khóa học nào</h3>
                     <p>Không có khóa học nào trong danh sách đã ghi danh khớp với từ khóa "<strong>@searchQuery</strong>".</p>
                     <a class="button secondary" asp-action="Index" asp-route-status="@activeTab">Xem tất cả khóa học @(activeTab switch { "completed" => "đã hoàn thành", "not-started" => "chưa bắt đầu", _ => "đang học" })</a>
                 }
+                else if (allCourses.Count == 0)
+                {
+                    <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></div>
+                    <h3>Bạn chưa ghi danh khóa học nào</h3>
+                    <p>Chọn một khóa học phù hợp để bắt đầu.</p>
+                    <a class="button" asp-controller="Courses" asp-action="Index">Khám phá khóa học ngay</a>
+                }
                 else if (activeTab == "completed")
                 {
-                    <div class="empty-icon">🎓</div>
+                    <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg></div>
                     <h3>Bạn chưa hoàn thành khóa học nào</h3>
                     <p>Hãy hoàn tất các bài học và bài thi kết thúc khóa để ghi nhận thành tích.</p>
                     @if (totalActive > 0)
@@ -125,17 +138,17 @@
                 }
                 else if (activeTab == "not-started")
                 {
-                    <div class="empty-icon">📚</div>
+                    <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></div>
                     <h3>Không có khóa học nào chưa bắt đầu</h3>
                     <p>Bạn đã bắt đầu học tất cả các khóa đã ghi danh.</p>
                     <a class="button" asp-controller="Courses" asp-action="Index">Khám phá thêm khóa học</a>
                 }
                 else
                 {
-                    <div class="empty-icon">📖</div>
+                    <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></div>
                     <h3>Không có khóa học nào đang diễn ra</h3>
                     <p>Hãy bắt đầu một khóa học đã ghi danh hoặc khám phá khóa học mới trong thư viện.</p>
-                    <div class="empty-actions" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:16px;">
+                    <div class="empty-actions" >
                         @if (totalNotStarted > 0)
                         {
                             <a class="button" asp-action="Index" asp-route-status="not-started">Xem khóa chưa bắt đầu (@totalNotStarted)</a>

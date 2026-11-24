@@ -1,0 +1,92 @@
+body.canvas-body {
+    background: #f8fafc;
+    color: var(--workspace-ink);
+}
+
+.canvas-body .homepage-canvas-frame { background: #f8fafc; }
+
+.canvas-body .homepage-canvas-frame .container {
+    width: min(1280px, calc(100% - 64px));
+    max-width: none;
+}
+
+.canvas-body .site-header {
+    border-color: var(--workspace-line);
+    background: #fff;
+}
+
+.canvas-body .header-inner { min-height: 68px; }
+
+.canvas-body .brand-v2 {
+    flex: 0 0 auto;
+    color: var(--workspace-navy);
+    font-size: 1.32rem;
+    letter-spacing: -.055em;
+}
+
+.canvas-body .brand-v2-icon-box {
+    width: 37px;
+    height: 37px;
+    border-radius: 10px;
+    background: var(--workspace-navy);
+    color: #fff;
+    box-shadow: 0 4px 9px rgb(16 35 71 / 14%);
+}
+
+.canvas-body .brand-v2-icon-box .icon { width: 21px; height: 21px; }
+
+.canvas-body .nav-link { font-weight: 700; }
+
+.canvas-body .header-search {
+    border-color: var(--workspace-line);
+    background: #f5f7fb;
+}
+
+.canvas-body .header-search:focus-within { border-color: var(--workspace-blue); }
+.canvas-body .header-search input { font-size: .86rem; }
+.canvas-body .guest-actions { gap: 10px; }
+
+.canvas-body .course-library-heading {
+    margin: 0 0 20px;
+    padding: clamp(18px, 4vw, 32px);
+    border: 1px solid var(--workspace-line);
+    border-radius: 18px;
+    background: linear-gradient(118deg, #fff 38%, #eef2ff 100%);
+}
+
+.canvas-body .course-library-heading h1 {
+    margin-block: 0 5px;
+    color: var(--workspace-navy);
+    font-size: clamp(1.8rem, 3.6vw, 2.75rem);
+    font-weight: 800;
+    letter-spacing: -.045em;
+}
+
+.canvas-body .course-library-heading p { margin: 0; color: var(--workspace-muted); }
+
+.canvas-body .auth-shell {
+    border-color: var(--workspace-line);
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgb(21 32 58 / 9%);
+}
+
+.canvas-body .auth-aside {
+    background: linear-gradient(145deg, #102347 35%, #223f70 100%);
+}
+
+.canvas-body .auth-aside::before,
+.canvas-body .auth-aside::after { opacity: .35; }
+
+.canvas-body .auth-heading h1 { color: var(--workspace-navy); }
+.canvas-body .auth-modal { border: 1px solid var(--workspace-line); }
+
+@media (max-width: 768px) {
+    .canvas-body .homepage-canvas-frame .container { width: calc(100% - 28px); }
+    .canvas-body .header-inner { min-height: 62px; }
+}
+
+@media (max-width: 410px) {
+    .canvas-body .header-inner, .canvas-body .header-actions { column-gap: 6px; }
+    .canvas-body .guest-actions { gap: 5px; font-size: .76rem; }
+    .canvas-body .guest-actions .button { padding-inline: 8px; font-size: .76rem; }
+}

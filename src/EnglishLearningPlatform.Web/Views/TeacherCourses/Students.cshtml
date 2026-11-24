@@ -1,8 +1,8 @@
 @model TeacherCourseReport
-@{ ViewData["Title"] = "Học viên · " + Model.Title; }
+@{ ViewData["Title"] = "Học viên · " + Model.Title; ViewData["PageClass"] = "teacher-report-course"; }
 @section Styles { <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" /> }
 <nav class="workspace-path" aria-label="Đường dẫn điều hướng"><a asp-action="Index">Khóa học</a><span aria-hidden="true">/</span><span aria-current="page">Học viên</span></nav>
-<header class="workspace-heading"><h1>@Model.Title</h1></header>
+<header class="teacher-banner teacher-banner--light"><h1>@Model.Title</h1></header>
 <partial name="_WorkspaceTabs" model='new CourseWorkspaceNav(Model.CourseId, "students")' />
 <div class="stat-grid" aria-label="Thống kê khóa học">
     <div class="panel"><strong class="stat-value">@Model.Commerce.Enrollments</strong><span>Lượt tham gia hợp lệ</span><p class="muted">@Model.Commerce.FreeEnrollments không qua thanh toán · @Model.Commerce.PaidEnrollments qua thanh toán</p></div>

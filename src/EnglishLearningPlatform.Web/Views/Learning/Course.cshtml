@@ -1,304 +1,268 @@
-@using EnglishLearningPlatform.Domain.Enums
+@using EnglishLearningPlatform.Application.Assessment
+@using EnglishLearningPlatform.Application.Flashcards
 @model CoursePage
 @{
     ViewData["Title"] = Model.Course.Title;
     ViewData["ActiveSection"] = "courses";
-    var activeTab = (ViewData["ActiveTab"] as string ?? Context.Request.Query["tab"].ToString() ?? "lessons").ToLowerInvariant();
-    if (activeTab is not ("lessons" or "practice" or "assessment")) activeTab = "lessons";
-
+    var activeTab = ViewData["ActiveTab"] as string ?? "lessons";
     var activities = ViewData["Activities"] as CourseActivities;
-    var flashcardDecks = ViewData["CourseFlashcardDecks"] as IReadOnlyList<EnglishLearningPlatform.Application.Flashcards.FlashcardDeckSummary> ?? Array.Empty<EnglishLearningPlatform.Application.Flashcards.FlashcardDeckSummary>();
-    var finalAssessment = ViewData["FinalAssessment"] as EnglishLearningPlatform.Application.Assessment.AssessmentOverviewModel;
-
-    var practices = activities?.Practices ?? Array.Empty<PracticeLink>();
-    var assessments = activities?.Assessments.Where(a => a.Id != Model.FinalAssessmentId).ToArray() ?? [];
-    var totalLessons = Model.Modules.Sum(m => m.Lessons.Count);
-    var practiceCount = practices.Count;
-    var flashcardCount = flashcardDecks.Count;
+    var decks = ViewData["CourseFlashcardDecks"] as IReadOnlyList<FlashcardDeckSummary> ?? [];
+    var finalAssessment = ViewData["FinalAssessment"] as AssessmentOverviewModel;
+    var practices = activities?.Practices ?? [];
+    var assessments = activities?.Assessments.Where(item => item.Id != Model.FinalAssessmentId).ToArray() ?? [];
+    var totalLessons = Model.Modules.Sum(module => module.Lessons.Count);
     var assessmentCount = assessments.Length + (Model.FinalAssessmentId.HasValue ? 1 : 0);
+    var finalPending = Model.Progress is { CompletedAtUtc: null, TotalLessons: > 0 } pending
+        && pending.CompletedLessons >= pending.TotalLessons && Model.FinalAssessmentId.HasValue;
+    var upcoming = Model.Modules.SelectMany(module => module.Lessons).FirstOrDefault(lesson => lesson.Id == Model.Progress?.ContinueLessonId && !lesson.IsCompleted);
+    ViewData["ExpandedOutline"] = !Model.IsOwner;
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
 }
 
 @section Breadcrumbs {
     <ol class="breadcrumbs-list">
-        <li><a asp-controller="Learning" asp-action="Index">Khóa học của tôi</a></li>
+        <li><a asp-controller="@(Model.IsOwner ? "TeacherCourses" : "Learning")" asp-action="Index">Khóa học của tôi</a></li>
         <li aria-current="page">@Model.Course.Title</li>
     </ol>
 }
 
-<div class="course-study-room">
-    <!-- Back to My Courses -->
-    <div style="margin-bottom: 20px;">
-        <a class="button secondary exam-back-btn" asp-action="Index">
-            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-            <span>Khóa học của tôi</span>
-        </a>
-    </div>
-
-    <!-- Course Room Hero Card -->
-    <div class="card-v2" style="padding: var(--course-room-card-padding, 28px 32px); margin-bottom: 24px; position: relative; overflow: hidden; background: linear-gradient(135deg, #FAF9FE 0%, #FFFFFF 100%);">
-        <div class="course-room-hero-heading" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
-            <div style="max-width: 760px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
-                    <span class="v2-pill-tag">Phòng học</span>
-                    <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;"><partial name="_UiText" model="Model.Course.Status" /></span>
-                    <span class="v2-pill-tag"><partial name="_UiText" model="Model.Course.Level" /></span>
-                    @if (Model.Progress?.CompletedAtUtc is DateTimeOffset completedAt)
-                    {
-                        <span class="v2-pill-tag" style="background: var(--v2-pastel-periwinkle); color: var(--v2-dark); font-weight: 700;">
-                            Đã hoàn thành khóa học
-                        </span>
-                    }
-                </div>
-                <h1 style="font-size: var(--course-room-title-size, 26px); font-weight: 800; color: var(--v2-dark); margin: 0 0 8px; letter-spacing: -0.4px;">@Model.Course.Title</h1>
-                <p style="color: var(--v2-text-secondary); margin: 0; font-size: 14px; line-height: 1.6;">
-                    @(Model.Course.Teacher is not null ? $"Giảng viên: {Model.Course.Teacher}" : "")
-                </p>
-            </div>
-            <div class="course-room-hero-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                @if (Model.IsOwner)
+<div class="course-study-room learning-screens">
+    <header class="course-study-hero card-v2">
+        <div class="course-hero-content">
+            <div class="learning-context">
+                <span><partial name="_UiText" model="Model.Course.Level" /></span>
+                <span>@Model.Modules.Count chương</span>
+                <span>@totalLessons bài học</span>
+                @if (Model.IsOwner || Model.Course.Status != CourseStatus.Published)
                 {
-                    <a class="btn-dark" style="padding: 10px 18px;" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung</a>
+                    <span><partial name="_UiText" model="Model.Course.Status" /></span>
+                }
+            </div>
+            <h1 class="learning-title">@Model.Course.Title</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.Course.Teacher))
+            {
+                <p class="course-hero-teacher">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
+                    @Model.Course.Teacher
+                </p>
+            }
+            @if (Model.IsOwner)
+            {
+                <a class="button course-hero-action" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.Course.Id">Quản lý nội dung <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
+            }
+            else if (upcoming is not null)
+            {
+                <a class="button course-hero-action" asp-action="Continue" asp-route-id="@Model.Course.Id">
+                    @(Model.Course.Status == CourseStatus.Archived ? "Xem bài học" : Model.Progress?.CompletedLessons == 0 ? "Bắt đầu học" : "Tiếp tục học")
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                </a>
+            }
+            else if (finalPending)
+            {
+                <p class="course-hero-teacher">Hãy làm bài thi cuối khóa để hoàn tất khóa học.</p>
+                <a class="button course-hero-action" asp-action="Course" asp-route-id="@Model.Course.Id" asp-route-tab="assessment">Xem bài thi cuối khóa <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
+            }
+        </div>
+        @if (Model.Progress is { } progress)
+        {
+            <div class="course-hero-progress" aria-label="Tiến độ khóa học">
+                @if (progress.CompletedAtUtc.HasValue)
+                {
+                    <div class="course-hero-progress-label"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg> Đã hoàn thành khóa học</div>
                 }
                 else
                 {
-                    <a class="button secondary" asp-controller="CourseDiscussion" asp-action="Index" asp-route-id="@Model.Course.Id">Hỏi giảng viên</a>
-                    <a class="button secondary" asp-controller="Homework" asp-action="Course" asp-route-id="@Model.Course.Id">Bài tập viết</a>
-                    @if (Model.Progress is { ContinueLessonId: not null } progress && progress.CompletedLessons < progress.TotalLessons)
-                    {
-                        <a class="button" asp-action="Continue" asp-route-id="@Model.Course.Id">@(progress.CompletedLessons == 0 ? "Bắt đầu học" : "Tiếp tục học") &rarr;</a>
-                    }
+                    <div class="course-hero-progress-label"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chart-bars")"></use></svg> Tiến độ của bạn</div>
                 }
-            </div>
-        </div>
-
-        @if (Model.Course.Status == CourseStatus.Archived)
-        {
-            <div class="notice" style="margin-top: 20px;">Khóa học đã lưu trữ. Bạn vẫn được đọc nội dung; không ghi tiến độ mới.</div>
-        }
-        @if (Model.Course.Status == CourseStatus.Unpublished)
-        {
-            <div class="notice" style="margin-top: 20px;">Khóa học đã ngừng nhận học viên mới. Bạn vẫn có thể tiếp tục học.</div>
-        }
-
-        @if (Model.Progress is not null)
-        {
-            <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--v2-border-light);">
-                <partial name="_LearningProgress" model="Model.Progress" />
-                @if (Model.Progress.TotalLessons > 0 &&
-                     Model.Progress.CompletedLessons >= Model.Progress.TotalLessons &&
-                     Model.Progress.CompletedAtUtc is null)
+                @if (progress.Percentage is decimal percentage)
                 {
-                    <div class="notice" style="margin-top: 14px;" role="status">
-                        Bạn đã hoàn thành tất cả bài học.
-                        @if (Model.FinalAssessmentId.HasValue)
-                        {
-                            <text>Hãy làm bài thi cuối khóa để hoàn tất khóa học.</text>
-                        }
-                        else
-                        {
-                            <text>Khóa học này không có bài thi cuối khóa.</text>
-                        }
-                    </div>
+                    <div class="course-hero-score">@percentage.ToString("0.#")<span>%</span></div>
                 }
+                <partial name="_LearningProgress" model="progress" />
             </div>
         }
-    </div>
+    </header>
+
+    @if (Model.Course.Status == CourseStatus.Archived)
+    {
+        <div class="notice course-study-notice"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#archive")"></use></svg> Khóa học đã lưu trữ. Nội dung và tiến độ chỉ được xem.</div>
+    }
+    @if (Model.Course.Status == CourseStatus.Unpublished)
+    {
+        <div class="notice course-study-notice"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#info")"></use></svg> Khóa học đã ngừng nhận học viên mới. Bạn vẫn có thể tiếp tục học.</div>
+    }
 
     @if (Model.IsOwner)
     {
-        <!-- Teacher Owner View: All sections accessible for management -->
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="v2-pill-tag">Giáo trình</span>
-                <h2 style="font-size: 20px; font-weight: 800; margin: 0; color: var(--v2-dark);">Nội dung các bài học</h2>
-            </div>
-        </div>
-        <partial name="_CourseOutline" model="Model" />
-        @if (activities is not null)
-        {
-            <partial name="_CourseActivities" model="activities" />
-        }
+        <section class="course-room-section" aria-labelledby="owner-outline-title">
+            <h2 id="owner-outline-title">Nội dung các bài học</h2>
+            <partial name="_CourseOutline" model="Model" />
+            @if (activities is not null)
+            {
+                <partial name="_CourseActivities" model="activities" />
+            }
+        </section>
     }
     else
     {
-        <!-- Student View: 3 Sub-Navigation Tabs (Bài học · Ôn tập · Đánh giá) -->
-        <nav class="course-sub-nav" aria-label="Điều hướng khóa học">
-            <a class="sub-nav-item @(activeTab == "lessons" ? "is-active" : "")"
-               asp-action="Course" asp-route-id="@Model.Course.Id" asp-route-tab="lessons"
-               aria-current="@(activeTab == "lessons" ? "page" : null)">
-                <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                <span>Bài học (@totalLessons)</span>
-            </a>
-            <a class="sub-nav-item @(activeTab == "practice" ? "is-active" : "")"
-               asp-action="Course" asp-route-id="@Model.Course.Id" asp-route-tab="practice"
-               aria-current="@(activeTab == "practice" ? "page" : null)">
-                <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
-                <span>Ôn tập (@(practiceCount + flashcardCount))</span>
-            </a>
-            <a class="sub-nav-item @(activeTab == "assessment" ? "is-active" : "")"
-               asp-action="Course" asp-route-id="@Model.Course.Id" asp-route-tab="assessment"
-               aria-current="@(activeTab == "assessment" ? "page" : null)">
-                <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
-                <span>Đánh giá (@assessmentCount)</span>
-            </a>
-        </nav>
-
-        <section id="tab-pane-lessons" class="course-tab-pane @(activeTab == "lessons" ? "is-active" : "")" aria-label="Nội dung bài học" style="@(activeTab == "lessons" ? "" : "display:none;")">
-                <div class="course-room-section-heading" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="v2-pill-tag">Giáo trình</span>
-                        <h2 style="font-size: 19px; font-weight: 800; margin: 0; color: var(--v2-dark);">Danh sách bài học</h2>
-                    </div>
-                    <p class="muted" style="margin: 0; font-size: 13px;">Chọn bài học để bắt đầu học</p>
+        <div class="course-room-grid">
+            <aside class="learning-surface course-room-aside" aria-labelledby="course-space-title">
+                <h2 id="course-space-title">Trong khóa học</h2>
+                <div class="course-space-links">
+                    <a asp-controller="Homework" asp-action="Course" asp-route-id="@Model.Course.Id">
+                        <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg></span>
+                        <span>Bài tập viết</span><svg class="icon space-link-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    </a>
+                    <a asp-controller="CourseDiscussion" asp-action="Index" asp-route-id="@Model.Course.Id">
+                        <span class="learning-emblem is-teal"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#send")"></use></svg></span>
+                        <span>Hỏi giảng viên</span><svg class="icon space-link-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                    </a>
                 </div>
-                <partial name="_CourseOutline" model="Model" />
-            </section>
-
-        <section id="tab-pane-practice" class="course-tab-pane @(activeTab == "practice" ? "is-active" : "")" aria-label="Nội dung ôn tập" style="@(activeTab == "practice" ? "" : "display:none;")">
-                <div class="card-v2" style="padding: var(--course-room-card-padding, 28px 32px);">
-                    <div class="course-room-section-heading" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="v2-pill-tag">Ôn tập</span>
-                            <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Luyện tập &amp; Bộ thẻ từ vựng</h2>
-                        </div>
-                    </div>
-
-                    @if (practices.Count == 0 && flashcardDecks.Count == 0)
-                    {
-                        <div class="panel empty" style="padding: 24px; text-align: center;">
-                            <p style="margin: 0 0 6px; font-weight: 600;">Chưa có nội dung ôn tập cho khóa học này.</p>
-                            <p class="muted" style="margin: 0; font-size: 13.5px;">Các bài luyện tập và bộ thẻ sẽ xuất hiện tại đây khi giảng viên thêm vào khóa học.</p>
-                        </div>
-                    }
-                    else
-                    {
-                        @if (practices.Count > 0)
-                        {
-                            <h3 style="font-size: 15px; font-weight: 700; color: var(--v2-dark); margin: 0 0 12px;">Bài luyện tập</h3>
-                            <ul class="lesson-list" style="margin: 0 0 24px;">
-                                @foreach (var practice in practices)
-                                {
-                                    <li>
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--v2-pastel-mint); color: var(--v2-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
-                                            </div>
-                                            <div>
-                                                <a asp-controller="Practice" asp-action="Take" asp-route-id="@practice.Id">@practice.Title</a>
-                                                <span class="v2-pill-tag" style="font-size: 11px; margin-left: 8px;">@practice.QuestionCount câu</span>
-                                            </div>
-                                        </div>
-                                        <a class="button secondary" style="padding: 6px 14px; font-size: 12px;" asp-controller="Practice" asp-action="Take" asp-route-id="@practice.Id">
-                                            Luyện ngay &rarr;
-                                        </a>
-                                    </li>
-                                }
-                            </ul>
-                        }
-
-                        @if (flashcardDecks.Count > 0)
-                        {
-                            <h3 style="font-size: 15px; font-weight: 700; color: var(--v2-dark); margin: 0 0 12px;">Bộ thẻ từ vựng thuộc khóa</h3>
-                            <ul class="lesson-list" style="margin: 0;">
-                                @foreach (var deck in flashcardDecks)
-                                {
-                                    <li>
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--v2-pastel-peach); color: var(--v2-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                                            </div>
-                                            <div>
-                                                <a asp-controller="Flashcards" asp-action="Study" asp-route-id="@deck.Id">@deck.Title</a>
-                                                <span class="v2-pill-tag" style="font-size: 11px; margin-left: 8px;">@deck.CardCount thẻ</span>
-                                                @if (deck.DueCount > 0)
-                                                {
-                                                    <span class="pill-tag pill-tag-orange" style="font-size: 11px; margin-left: 4px;">@deck.DueCount cần ôn</span>
-                                                }
-                                            </div>
-                                        </div>
-                                        <a class="button" style="padding: 6px 14px; font-size: 12px;" asp-controller="Flashcards" asp-action="Study" asp-route-id="@deck.Id">
-                                            Học từ &rarr;
-                                        </a>
-                                    </li>
-                                }
-                            </ul>
-                        }
-                    }
-                </div>
-            </section>
-
-        <section id="tab-pane-assessment" class="course-tab-pane @(activeTab == "assessment" ? "is-active" : "")" aria-label="Nội dung đánh giá" style="@(activeTab == "assessment" ? "" : "display:none;")">
-                <!-- Course Linked Assessments -->
-                @if (assessments.Length > 0)
+                @if (activeTab != "assessment" && finalAssessment is not null)
                 {
-                    <div class="card-v2" style="padding: var(--course-room-card-padding, 28px 32px); margin-bottom: 24px;">
-                        <div class="course-room-section-heading" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                            <span class="v2-pill-tag">Đánh giá</span>
-                            <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Bài đánh giá định kỳ</h2>
-                        </div>
-                        <ul class="lesson-list" style="margin: 0;">
-                            @foreach (var assessment in assessments)
-                            {
-                                <li>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--v2-pastel-periwinkle); color: var(--v2-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                            <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
-                                        </div>
-                                        <div>
-                                            <a asp-controller="Assessment" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">@assessment.Title</a>
-                                            <span class="v2-pill-tag" style="font-size: 11px; margin-left: 8px;">@assessment.QuestionCount câu · @assessment.DurationMinutes phút</span>
-                                            @if (assessment.ActiveAttemptId.HasValue)
-                                            {
-                                                <span class="v2-pill-tag" style="font-size: 11px; background: #FEF3C7; color: #92400E; margin-left: 4px;">Có lượt đang làm</span>
-                                            }
-                                        </div>
-                                    </div>
-                                    <a class="button" style="padding: 6px 14px; font-size: 12px;" asp-controller="Assessment" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">
-                                        @(assessment.ActiveAttemptId.HasValue ? "Tiếp tục" : "Làm bài") &rarr;
-                                    </a>
-                                </li>
-                            }
-                        </ul>
+                    <div class="course-final-summary">
+                        <h3><a asp-action="Course" asp-route-id="@Model.Course.Id" asp-route-tab="assessment">Bài thi cuối khóa</a></h3>
+                        <dl class="assessment-details">
+                            <div><dt>Thời lượng</dt><dd>@finalAssessment.DurationMinutes phút</dd></div>
+                            <div><dt>Điểm cao nhất</dt><dd>@(finalAssessment.HighestScore is decimal score ? score.ToString("0.##") + "/100" : "Chưa có")</dd></div>
+                        </dl>
                     </div>
                 }
+            </aside>
+            <div class="course-room-main">
+                <nav class="course-sub-nav learning-tabbar" aria-label="Điều hướng khóa học">
+                    <a class="sub-nav-item @(activeTab == "lessons" ? "is-active" : "")"
+                       asp-action="Course" asp-route-id="@Model.Course.Id" asp-route-tab="lessons"
+                       aria-current="@(activeTab == "lessons" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                        <span>Bài học</span><span class="learning-tab-count">@totalLessons</span>
+                    </a>
+                    <a class="sub-nav-item @(activeTab == "practice" ? "is-active" : "")"
+                       asp-action="Course" asp-route-id="@Model.Course.Id" asp-route-tab="practice"
+                       aria-current="@(activeTab == "practice" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+                        <span>Ôn tập</span><span class="learning-tab-count">@(practices.Count + decks.Count)</span>
+                    </a>
+                    <a class="sub-nav-item @(activeTab == "assessment" ? "is-active" : "")"
+                       asp-action="Course" asp-route-id="@Model.Course.Id" asp-route-tab="assessment"
+                       aria-current="@(activeTab == "assessment" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+                        <span>Đánh giá</span><span class="learning-tab-count">@assessmentCount</span>
+                    </a>
+                </nav>
 
-                <!-- Final Assessment Section -->
-                @if (Model.FinalAssessmentId.HasValue)
+                @if (activeTab == "lessons")
                 {
-                    <section class="card-v2" aria-labelledby="final-assessment-title" style="padding: var(--course-room-card-padding, 32px); background: #FFFDF5; border-color: #FEF3C7;">
-                        <div class="course-room-section-heading" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                            <span class="v2-pill-tag" style="background: #FEF3C7; color: #92400E;">Đánh giá cuối khóa</span>
-                            <h2 id="final-assessment-title" style="margin: 0; font-size: 20px; font-weight: 800; color: var(--v2-dark);">Bài thi kết thúc khóa học</h2>
-                        </div>
-                        @if (finalAssessment is not null)
+                    <section id="tab-pane-lessons" class="course-tab-pane is-active course-room-section" aria-labelledby="course-lessons-title">
+                        <h2 id="course-lessons-title">Nội dung khóa học</h2>
+                        <partial name="_CourseOutline" model="Model" />
+                    </section>
+                }
+                else if (activeTab == "practice")
+                {
+                    <section id="tab-pane-practice" class="course-tab-pane is-active course-room-section" aria-labelledby="course-practice-title">
+                        <h2 id="course-practice-title">Luyện tập và thẻ từ vựng</h2>
+                        @if (practices.Count == 0 && decks.Count == 0)
                         {
-                            <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 14px; color: var(--v2-dark);">@finalAssessment.Title</h3>
-                            <partial name="_AssessmentDetails" model="finalAssessment" />
-                            <p style="color: var(--v2-text-secondary); font-size: 13.5px; margin: 16px 0 20px; line-height: 1.6;">
-                                Hoàn thành tất cả bài học và đạt bài thi kết thúc khóa để nhận trạng thái hoàn thành. Ngày hoàn thành và điểm đã đạt được lưu vĩnh viễn trong hồ sơ của bạn.
-                            </p>
-                            <a class="button" style="padding: 12px 28px; font-size: 14px;" asp-controller="Assessment" asp-action="Take" asp-route-id="@finalAssessment.AssessmentId">
-                                @(finalAssessment.ActiveAttemptId.HasValue ? "Tiếp tục làm bài thi" : "Xem thông tin & Bắt đầu làm bài") &rarr;
-                            </a>
+                            <p class="learning-surface course-room-empty">Chưa có nội dung ôn tập cho khóa học này.</p>
                         }
-                        else
+                        @if (practices.Count > 0)
                         {
-                            <div class="notice">Bài thi hiện chưa khả dụng. Kết quả và ngày hoàn thành đã ghi nhận vẫn được lưu.</div>
+                            <div class="learning-surface course-room-group">
+                                <h3>Bài luyện tập</h3>
+                                <ul class="learning-activity-list">
+                                    @foreach (var practice in practices)
+                                    {
+                                        <li>
+                                            <a class="learning-activity" asp-controller="Practice" asp-action="Take" asp-route-id="@practice.Id">
+                                                <span class="learning-emblem is-teal"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg></span>
+                                                <span class="learning-activity-copy"><strong>@practice.Title</strong><small>@practice.QuestionCount câu hỏi</small></span>
+                                                <span class="learning-activity-cta">Luyện ngay <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></span>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        @if (decks.Count > 0)
+                        {
+                            <div class="learning-surface course-room-group">
+                                <h3>Bộ thẻ từ vựng</h3>
+                                <ul class="learning-activity-list">
+                                    @foreach (var deck in decks)
+                                    {
+                                        <li>
+                                            <a class="learning-activity" asp-controller="Flashcards" asp-action="Study" asp-route-id="@deck.Id">
+                                                <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+                                                <span class="learning-activity-copy">
+                                                    <strong>@deck.Title</strong>
+                                                    <small>@deck.CardCount thẻ @if (deck.DueCount > 0) { <span>· @deck.DueCount cần ôn</span> }</small>
+                                                </span>
+                                                <span class="learning-activity-cta">Học từ <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></span>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
                         }
                     </section>
                 }
-                else if (assessments.Length == 0)
+                else
                 {
-                    <div class="panel empty" style="border-radius:20px; padding:32px; background:#FFFFFF; text-align:center;">
-                        <p style="font-weight:600; color:var(--v2-dark); margin:0 0 6px;">Khóa học này hiện chưa có bài đánh giá.</p>
-                        <p class="muted" style="margin:0; font-size:13.5px;">Các bài kiểm tra sẽ được hiển thị khi giảng viên thiết lập cho khóa học.</p>
-                    </div>
+                    <section id="tab-pane-assessment" class="course-tab-pane is-active course-room-section" aria-labelledby="course-assessment-title">
+                        <h2 id="course-assessment-title">Bài đánh giá</h2>
+                        @if (Model.FinalAssessmentId.HasValue)
+                        {
+                            <section class="learning-surface course-room-group course-final-panel" aria-labelledby="final-assessment-title">
+                                <h3 id="final-assessment-title">Bài thi kết thúc khóa học</h3>
+                                @if (finalAssessment is not null)
+                                {
+                                    <p class="course-final-name">@finalAssessment.Title</p>
+                                    <partial name="_AssessmentDetails" model="finalAssessment" />
+                                    <p>Hoàn thành tất cả bài học và đạt bài thi cuối khóa để hoàn tất khóa học.</p>
+                                    <a class="button" asp-controller="Assessment" asp-action="Take" asp-route-id="@finalAssessment.AssessmentId" asp-route-attemptId="@finalAssessment.ActiveAttemptId">
+                                        @(finalAssessment.ActiveAttemptId.HasValue ? "Tiếp tục làm bài thi" : "Xem thông tin bài thi") <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <p class="notice">Bài thi hiện chưa khả dụng.</p>
+                                }
+                            </section>
+                        }
+                        @if (assessments.Length > 0)
+                        {
+                            <div class="learning-surface course-room-group">
+                                <h3>Bài đánh giá định kỳ</h3>
+                                <ul class="learning-activity-list">
+                                    @foreach (var assessment in assessments)
+                                    {
+                                        <li>
+                                            <a class="learning-activity" asp-controller="Assessment" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">
+                                                <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
+                                                <span class="learning-activity-copy">
+                                                    <strong>@assessment.Title</strong>
+                                                    <small>@assessment.QuestionCount câu <span aria-hidden="true">·</span> @assessment.DurationMinutes phút</small>
+                                                </span>
+                                                <span class="learning-activity-cta">@(assessment.ActiveAttemptId.HasValue ? "Tiếp tục" : "Làm bài") <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></span>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        @if (assessmentCount == 0)
+                        {
+                            <p class="learning-surface course-room-empty">Khóa học này hiện chưa có bài đánh giá.</p>
+                        }
+                    </section>
                 }
-            </section>
+            </div>
+        </div>
     }
 </div>

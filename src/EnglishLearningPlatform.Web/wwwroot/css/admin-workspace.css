@@ -1,0 +1,80 @@
+.admin-body {
+    background: var(--workspace-canvas);
+    font-family: var(--v2-font-body);
+}
+
+.admin-body .admin-main { background: var(--workspace-canvas); }
+
+.admin-body .admin-sidebar {
+    padding-top: 22px;
+    border-color: #233859;
+    background: var(--workspace-navy);
+    color: #fff;
+}
+
+.admin-body .admin-sidebar-header { padding-inline: 7px; }
+.admin-body .admin-brand, .admin-body .admin-brand:hover { color: #fff; font-weight: 800; }
+.admin-body .admin-brand .brand-icon {
+    width: 36px;
+    height: 36px;
+    padding: 7px;
+    border-radius: 9px;
+    background: #e6f6f2;
+    color: #144b52;
+}
+
+.admin-body .admin-nav-heading { color: #b7c6dd; }
+
+.admin-body .admin-sidebar .admin-nav-link {
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #dce6f5;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.admin-body .admin-sidebar .admin-nav-link:hover { background: #20375e; color: #fff; }
+
+.admin-body .admin-sidebar .admin-nav-link.is-active {
+    border-color: #506b99;
+    background: #29416b;
+    color: #fff;
+    box-shadow: none;
+}
+
+.admin-body .admin-sidebar .sidebar-close { color: #fff; }
+.admin-body .admin-sidebar .sidebar-close:hover { background: #29416b; }
+
+.admin-body .admin-topbar { border-color: var(--workspace-line); }
+.admin-body .admin-env-badge { border-radius: 7px; font-weight: 700; }
+
+.admin-body .admin-dashboard > .admin-heading {
+    padding: clamp(16px, 3.5vw, 27px);
+    border: 1px solid #253c63;
+    border-radius: 16px;
+    background: linear-gradient(114deg, #102347 30%, #223f70 88%);
+}
+
+.admin-body .admin-dashboard > .admin-heading h1 {
+    margin-top: 0;
+    color: #fff;
+    font-weight: 800;
+    letter-spacing: -.035em;
+}
+
+.admin-body .admin-dashboard > .admin-heading p { color: #dce8fa; }
+.admin-body .admin-summary { gap: clamp(9px, 1.7vw, 16px); }
+
+.admin-body .admin-surface, .admin-body .admin-stat {
+    border-color: var(--workspace-line);
+    border-radius: 14px;
+    box-shadow: var(--workspace-shadow);
+}
+
+.admin-body .admin-stat { transition: border-color 150ms ease; }
+.admin-body .admin-stat:hover { border-color: #c7d2f2; transform: none; }
+.admin-body .admin-stat-icon:not(.amber, .rose, .green) { background: var(--workspace-blue-soft); color: var(--workspace-blue-deep); }
+.admin-body .admin-stat-icon.green { background: var(--workspace-teal-soft); color: var(--workspace-teal); }
+.admin-body :is(.admin-stat a, .admin-metric-action a) { color: var(--workspace-blue-deep); }
+.admin-body .admin-table th { background: #f1f4fa; color: #41536d; }
+.admin-body .admin-table tbody tr:hover { background: #f6f8ff; }

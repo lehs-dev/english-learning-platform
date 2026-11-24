@@ -22,12 +22,13 @@
 <nav class="workspace-path" aria-label="Đường dẫn điều hướng">
     <a asp-controller="TeacherCourses" asp-action="Index">Khóa học</a><span aria-hidden="true">/</span><span aria-current="page">@title</span>
 </nav>
-<header class="workspace-heading">
+<header class="teacher-banner teacher-banner--light">
     <div>
         <h1>@course.Title</h1>
         <div class="workspace-meta">
             <span class="workspace-status status-@course.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="course.Status" /></span>
-            <span>@course.ModuleCount chương · @course.LessonCount bài học</span>
+            <span><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg>@course.ModuleCount chương</span>
+            <span><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>@course.LessonCount bài học</span>
         </div>
     </div>
     <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@course.Id"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem trước khóa học</a>

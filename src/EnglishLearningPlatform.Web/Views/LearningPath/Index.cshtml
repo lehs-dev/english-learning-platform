@@ -6,12 +6,16 @@
     var plan = Model.Plan;
     var title = plan is null ? "Lộ trình học" : $"Lộ trình học {plan.DurationDays} ngày";
     ViewData["Title"] = title;
-    ViewData["ActiveSection"] = "learningpath";
+    ViewData["ActiveSection"] = "dashboard";
 }
-<div class="learning-path-page">
+@section Styles {
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
+}
+
+<div class="learning-path-page learning-screens">
     <div class="course-section-heading">
         <div>
-            <h1>@title</h1>
+            <h1 class="learning-title">@title</h1>
             <p class="muted">15–30 phút mỗi ngày để củng cố những kỹ năng bạn cần luyện thêm.</p>
         </div>
         @if (Model.CanGenerate && Model.AvailableDurations.Count > 0)
@@ -41,7 +45,7 @@
 
     @if (plan is null)
     {
-        <section class="card-v2" style="padding:28px;">
+        <section class="learning-surface learning-path-summary">
             @switch (Model.Readiness)
             {
                 case LearningPathReadiness.NeedsAssessment:
@@ -71,11 +75,11 @@
         var completed = plan.Items.Count(i => i.Status == LearningPlanItemStatus.Completed);
         var expired = Model.Today > plan.EndDate;
         var canSkip = plan.Status == LearningPlanStatus.Active && !expired;
-        <section class="card-v2" style="padding:22px;margin-bottom:20px;">
+        <section class="learning-surface learning-path-summary">
             <p><strong>@plan.StartDate.ToString("dd/MM/yyyy") – @plan.EndDate.ToString("dd/MM/yyyy")</strong> · Giờ Việt Nam</p>
             <p>@completed / @plan.Items.Count hoạt động hoàn thành</p>
-            <progress value="@completed" max="@plan.Items.Count" style="width:100%;" aria-label="Tiến độ lộ trình"></progress>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+            <progress value="@completed" max="@plan.Items.Count" aria-label="Tiến độ lộ trình"></progress>
+            <div class="learning-path-skills">
                 @foreach (var skill in Model.WeakSkills)
                 {
                     <span class="pill-tag pill-tag-purple"><partial name="_UiText" model="skill" /></span>
@@ -100,7 +104,7 @@
                 var date = plan.StartDate.AddDays(day - 1);
                 var today = date == Model.Today;
                 var items = plan.Items.Where(i => i.DayIndex == day).OrderBy(i => i.Position).ToArray();
-                <section class="card-v2 learning-path-day @(today ? "learning-path-today" : "")" aria-labelledby="path-day-@day">
+                <section class="learning-surface learning-path-day @(today ? "learning-path-today" : "")" aria-labelledby="path-day-@day">
                     <div class="course-section-heading">
                         <h2 id="path-day-@day">Ngày @day · @date.ToString("dd/MM")</h2>
                         <span class="muted">@items.Sum(i => i.EstimatedMinutes) phút @(today ? "· Hôm nay" : "")</span>
@@ -153,25 +157,6 @@
                 </section>
             }
         </div>
-        <p class="muted" style="margin-top:20px;">Hoạt động được ghi nhận khi bạn hoàn thành bài học, nộp bài luyện tập hoặc ôn đủ tối đa 5 thẻ khác nhau trong ngày được lên lịch.</p>
+        <p class="muted learning-path-footnote">Hoạt động được ghi nhận khi bạn hoàn thành bài học, nộp bài luyện tập hoặc ôn đủ tối đa 5 thẻ khác nhau trong ngày được lên lịch.</p>
     }
 </div>
-<style>
-    .learning-path-page { max-width:1100px; margin:auto; }
-    .learning-path-duration { display:flex; align-items:end; flex-wrap:wrap; gap:8px; margin:0; }
-    .learning-path-duration label { display:block; margin-bottom:4px; }
-    .learning-path-days { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-    .learning-path-day { padding:22px; min-width:0; }
-    .learning-path-day h2 { font-size:19px; }
-    .learning-path-today { outline:2px solid var(--v2-primary,#7054d1); }
-    .learning-path-activities { padding-left:20px; margin-bottom:0; }
-    .learning-path-activities li { padding:12px 0; overflow-wrap:anywhere; }
-    .learning-path-activities li + li { border-top:1px solid #eee; }
-    .learning-path-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-    .learning-path-actions form { margin:0; }
-    @@media(max-width:700px) {
-        .learning-path-days { grid-template-columns:minmax(0,1fr); }
-        .learning-path-day { padding:18px; }
-        .learning-path-page > .course-section-heading { align-items:flex-start; flex-direction:column; gap:12px; }
-    }
-</style>

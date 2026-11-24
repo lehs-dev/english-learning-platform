@@ -1,7 +1,8 @@
 @model EnglishLearningPlatform.Web.Models.Flashcards.TeacherFlashcardEditModel
 @{ ViewData["Title"] = Model.Deck.Title; ViewData["ActiveSection"] = "flashcards"; var draft = Model.Deck.Status == FlashcardDeckStatus.Draft; }
 @section Styles { <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" /> }
-<div class="fc-heading"><div><a asp-action="Index">← Bộ thẻ từ vựng</a><h1>@Model.Deck.Title</h1><p>@Model.Deck.Cards.Count thẻ · @(draft ? "Nháp" : Model.Deck.Status == FlashcardDeckStatus.Published ? "Đã xuất bản" : "Đã lưu trữ")</p></div><a class="button secondary" asp-action="Preview" asp-route-id="@Model.Deck.Id">Xem trước</a></div>
+<nav class="workspace-path" aria-label="Đường dẫn điều hướng"><a asp-action="Index">Bộ thẻ từ vựng</a><span aria-hidden="true">/</span><span aria-current="page">Quản lý</span></nav>
+<header class="teacher-banner teacher-banner--light"><div><h1>@Model.Deck.Title</h1><p>@Model.Deck.Cards.Count thẻ · @(draft ? "Nháp" : Model.Deck.Status == FlashcardDeckStatus.Published ? "Đã xuất bản" : "Đã lưu trữ")</p></div><a class="button secondary" asp-action="Preview" asp-route-id="@Model.Deck.Id">Xem trước</a></header>
 @if (draft)
 {
     <form method="post" asp-action="Update" asp-route-id="@Model.Deck.Id" class="fc-panel fc-form">

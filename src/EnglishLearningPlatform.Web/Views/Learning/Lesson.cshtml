@@ -1,155 +1,189 @@
 @using EnglishLearningPlatform.Application.Assessment
-@using EnglishLearningPlatform.Domain.Enums
 @using EnglishLearningPlatform.Infrastructure.Identity
 @model LessonPage
 @{
     ViewData["Title"] = Model.Title;
     ViewData["ActiveSection"] = "courses";
+    var activities = ViewData["Activities"] as CourseActivities;
+    bool showPractice = activities is { Practices.Count: > 0 };
+    bool showCourseFinal = Model.Next is null && Model.CanRecordProgress;
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/lesson-page.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
+}
+@section Breadcrumbs {
+    <ol class="breadcrumbs-list">
+        <li><a asp-action="Course" asp-route-id="@Model.CourseId">@Model.CourseTitle</a></li>
+        <li><a asp-action="Module" asp-route-id="@Model.ModuleId">@Model.ModuleTitle</a></li>
+        <li aria-current="page">@Model.Title</li>
+    </ol>
 }
 
-<div class="lesson-study-layout">
-    <div class="workspace-actions lesson-actions">
-        <a class="button secondary exam-back-btn" asp-action="Course" asp-route-id="@Model.CourseId">
-            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-            <span>@Model.CourseTitle</span>
-        </a>
+<div class="lesson-study-layout learning-screens lesson-study-redesign">
+    <header class="lesson-hero">
+        <div class="lesson-hero-content">
+            <a class="lesson-chapter" asp-action="Module" asp-route-id="@Model.ModuleId">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg>
+                @Model.ModuleTitle
+            </a>
+            <h1 class="learning-title">@Model.Title</h1>
+            @if (Model.IsCompleted)
+            {
+                <span class="lesson-state">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+                    Đã hoàn thành
+                </span>
+            }
+        </div>
         @if (User.IsInRole(AppRoles.Teacher))
         {
-            <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.CourseId" asp-route-moduleId="@Model.ModuleId" asp-route-lessonId="@Model.Id">Về trình soạn bài</a>
+            <a class="button secondary lesson-hero-action" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.CourseId" asp-route-moduleId="@Model.ModuleId" asp-route-lessonId="@Model.Id">Về trình soạn bài</a>
         }
         else
         {
-            <a class="button secondary" asp-controller="CourseDiscussion" asp-action="Index" asp-route-id="@Model.CourseId">Hỏi giảng viên</a>
+            <a class="button secondary lesson-hero-action" asp-controller="CourseDiscussion" asp-action="Index" asp-route-id="@Model.CourseId">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#send")"></use></svg>
+                Hỏi giảng viên
+            </a>
         }
-    </div>
+    </header>
 
-    <div class="lesson-workspace">
-        <!-- Main Lesson Content Article -->
-        <article class="lesson-reading">
-            <header class="lesson-heading">
-                <div class="lesson-context">
-                    <span class="v2-pill-tag">Bài học</span>
-                    <a asp-action="Module" asp-route-id="@Model.ModuleId" class="v2-pill-tag" style="background: #FAF9FE; color: var(--v2-text-muted); text-decoration: none;">
-                        Chương: @Model.ModuleTitle
-                    </a>
-                </div>
-                <h1>@Model.Title</h1>
-            </header>
+    <partial name="_CourseNotice" />
+    @if (Model.CourseStatus == CourseStatus.Archived)
+    {
+        <div class="notice course-study-notice">Khóa học đã lưu trữ. Tiến độ hiện ở chế độ chỉ xem.</div>
+    }
 
-            <partial name="_CourseNotice" />
-
-            @if (Model.CourseStatus == CourseStatus.Archived)
-            {
-                <div class="notice">Khóa học đã lưu trữ. Bạn không thể thay đổi tiến độ.</div>
-            }
-
-            @if (Model.Resources.Count == 0)
-            {
-                <div class="empty">Nội dung bài học đang được chuẩn bị.</div>
-            }
-
-            @foreach (var resource in Model.Resources)
-            {
-                <partial name="_ResourceContent" model="resource" />
-            }
-
-            @if (ViewData["Activities"] is CourseActivities activities)
-            {
-                <partial name="_CourseActivities" model="activities" />
-            }
-
-            @if (Model.Progress is not null || Model.CanRecordProgress)
-            {
-            <section class="lesson-completion" aria-labelledby="lesson-completion-title">
-                <div class="lesson-completion-info">
-                    <h2 id="lesson-completion-title">Tiến độ bài học</h2>
-                    <p>@(Model.IsCompleted ? "Bạn đã hoàn thành bài học này." : Model.CanRecordProgress ? "Đánh dấu hoàn thành khi bạn học xong bài này." : "Bài học này chưa hoàn thành.")</p>
-                    @if (Model.Progress is not null)
-                    {
-                        <partial name="_LearningProgress" model="Model.Progress" />
-                    }
-                </div>
-                @if (Model.CanRecordProgress)
+    <div class="lesson-study-grid">
+        <article class="lesson-study-content">
+            <div class="learning-surface lesson-reader">
+                @if (Model.Resources.Count == 0)
                 {
-                    <form method="post" asp-action="Completion" asp-route-id="@Model.Id">
-                        <input type="hidden" name="completed" value="@((!Model.IsCompleted).ToString().ToLowerInvariant())" />
-                        <button class="button @(Model.IsCompleted ? "secondary" : "")" type="submit" name="goNext"
-                                value="@(!Model.IsCompleted && Model.Next is not null ? "true" : "false")">
-                            @if (Model.IsCompleted)
+                    <div class="lesson-empty">
+                        <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+                        <p>Nội dung bài học đang được chuẩn bị.</p>
+                    </div>
+                }
+                else
+                {
+                    for (var index = 0; index < Model.Resources.Count; index++)
+                    {
+                        <div class="lesson-resource" id="lesson-resource-@index">
+                            <partial name="_ResourceContent" model="Model.Resources[index]" />
+                        </div>
+                    }
+                }
+            </div>
+        </article>
+
+        @if (Model.Progress is not null || Model.CanRecordProgress || Model.Resources.Count > 1)
+        {
+            <aside class="lesson-study-aside" aria-label="Tiến độ và học liệu">
+                @if (Model.Progress is not null || Model.CanRecordProgress)
+                {
+                    <section class="learning-surface lesson-study-progress" aria-labelledby="lesson-completion-title">
+                        <h2 id="lesson-completion-title">Tiến độ học tập</h2>
+                        @if (Model.Progress is not null)
+                        {
+                            <partial name="_LearningProgress" model="Model.Progress" />
+                        }
+                        @if (Model.CanRecordProgress)
+                        {
+                            <form method="post" asp-action="Completion" asp-route-id="@Model.Id">
+                                <input type="hidden" name="completed" value="@((!Model.IsCompleted).ToString().ToLowerInvariant())" />
+                                <button class="button @(Model.IsCompleted ? "secondary" : "")" type="submit" name="goNext"
+                                        value="@(!Model.IsCompleted && Model.Next is not null ? "true" : "false")">
+                                    @if (Model.IsCompleted)
+                                    {
+                                        <span>Đánh dấu chưa hoàn thành</span>
+                                    }
+                                    else
+                                    {
+                                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+                                        <span>@(Model.Next is not null ? "Hoàn thành và học tiếp" : "Hoàn thành bài học")</span>
+                                    }
+                                </button>
+                            </form>
+                        }
+                    </section>
+                }
+                @if (Model.Resources.Count > 1)
+                {
+                    <nav class="learning-surface lesson-resource-nav" aria-label="Mục lục bài học">
+                        <h2>Mục lục</h2>
+                        <ol>
+                            @for (var index = 0; index < Model.Resources.Count; index++)
                             {
-                                <span>Đánh dấu chưa hoàn thành</span>
+                                var resource = Model.Resources[index];
+                                <li><a href="#lesson-resource-@index">@(string.IsNullOrWhiteSpace(resource.Title) ? $"Học liệu {index + 1}" : resource.Title)</a></li>
+                            }
+                        </ol>
+                    </nav>
+                }
+            </aside>
+        }
+        @if (showPractice || showCourseFinal)
+        {
+            <div class="lesson-study-extras">
+                @if (showPractice)
+                {
+                    <div class="lesson-activities">
+                        <partial name="_CourseActivities" model="activities" />
+                    </div>
+                }
+
+                @if (showCourseFinal)
+                {
+                    <section class="learning-surface lesson-final-panel" aria-labelledby="lesson-final-title">
+                        <div class="lesson-final-heading">
+                            <span class="learning-emblem is-teal"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
+                            <h2 id="lesson-final-title">Hoàn tất khóa học</h2>
+                        </div>
+                        @if (Model.FinalAssessmentId is Guid)
+                        {
+                            if (ViewData["FinalAssessment"] is AssessmentOverviewModel final)
+                            {
+                                <p>Hoàn thành các bài học và bài thi cuối khóa để ghi nhận kết quả.</p>
+                                <a class="button" asp-controller="Assessment" asp-action="Take" asp-route-id="@final.AssessmentId" asp-route-attemptId="@final.ActiveAttemptId">
+                                    @(final.ActiveAttemptId.HasValue ? "Tiếp tục bài thi cuối khóa" : "Làm bài thi cuối khóa") <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                                </a>
                             }
                             else
                             {
-                                <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
-                                <span>@(Model.Next is not null ? "Hoàn thành và học tiếp" : "Hoàn thành bài học")</span>
+                                <p>Bài thi cuối khóa hiện chưa khả dụng.</p>
+                                <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId">Xem tổng quan khóa học</a>
                             }
-                        </button>
-                    </form>
-                }
-            </section>
-            }
-
-            <!-- Bottom Lesson Navigation -->
-            <nav class="lesson-navigation" aria-label="Điều hướng bài học">
-                <div>
-                    @if (Model.Previous is not null)
-                    {
-                        <a class="button secondary" asp-action="Lesson" asp-route-id="@Model.Previous.Id">
-                            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                            <span>Bài trước: @Model.Previous.Title</span>
-                        </a>
-                    }
-                </div>
-                <div>
-                    @if (Model.Next is not null)
-                    {
-                        <a class="button @(Model.CanRecordProgress && !Model.IsCompleted ? "secondary" : "")" asp-action="Lesson" asp-route-id="@Model.Next.Id">
-                            <span>Bài kế tiếp: @Model.Next.Title</span>
-                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                        </a>
-                    }
-                </div>
-            </nav>
-
-            @if (Model.Next is null && Model.CanRecordProgress)
-            {
-                <section class="card-v2 lesson-final" aria-labelledby="lesson-final-title">
-                    <div class="lesson-context">
-                        <span class="v2-pill-tag" style="background:#FEF3C7; color:#92400E;">Bài cuối</span>
-                        <h2 id="lesson-final-title" style="margin:0; font-size:19px; font-weight:800; color:var(--v2-dark);">Hoàn tất khóa học</h2>
-                    </div>
-                    @if (Model.FinalAssessmentId is Guid)
-                    {
-                        if (ViewData["FinalAssessment"] is AssessmentOverviewModel final)
-                        {
-                            <p style="margin:0 0 14px; color:var(--v2-text-secondary); line-height:1.6;">
-                                Bạn đã đến bài học cuối. Làm bài thi cuối khóa để hoàn thành khóa học và ghi nhận kết quả.
-                            </p>
-                            <a class="button" asp-controller="Assessment" asp-action="Take" asp-route-id="@final.AssessmentId">
-                                @(final.ActiveAttemptId.HasValue ? "Tiếp tục bài thi cuối khóa" : "Làm bài thi cuối khóa") &rarr;
-                            </a>
                         }
                         else
                         {
-                            <div class="notice" style="margin-bottom:14px;">Bài thi cuối khóa hiện chưa khả dụng. Bạn vẫn có thể xem lại tiến độ trong trang khóa học.</div>
+                            <p>Bạn đã đến bài học cuối của khóa.</p>
                             <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId">Xem tổng quan khóa học</a>
                         }
-                    }
-                    else
-                    {
-                        <p style="margin:0 0 14px; color:var(--v2-text-secondary); line-height:1.6;">
-                            Bạn đã đến bài học cuối của khóa. Xem lại tiến độ và các hoạt động trong trang khóa học.
-                        </p>
-                        <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId">Xem tổng quan khóa học</a>
-                    }
-                </section>
-            }
-        </article>
-
+                    </section>
+                }
+            </div>
+        }
     </div>
+
+    @if (Model.Previous is not null || Model.Next is not null)
+    {
+        <nav class="lesson-study-navigation" aria-label="Điều hướng bài học">
+            @if (Model.Previous is { } previous)
+            {
+                <a class="learning-surface lesson-step is-previous" asp-action="Lesson" asp-route-id="@previous.Id">
+                    <span class="learning-emblem"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></span>
+                    <span><small>Bài trước</small><strong>@previous.Title</strong></span>
+                </a>
+            }
+            @if (Model.Next is { } next)
+            {
+                <a class="learning-surface lesson-step is-next" asp-action="Lesson" asp-route-id="@next.Id">
+                    <span><small>Bài kế tiếp</small><strong>@next.Title</strong></span>
+                    <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></span>
+                </a>
+            }
+        </nav>
+    }
 </div>

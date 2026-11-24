@@ -10,13 +10,13 @@
 }
 @section Styles { <link rel="stylesheet" href="~/css/teacher-practices.css" asp-append-version="true" /> }
 <nav class="practice-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-controller="TeacherPractices" asp-action="Index" data-editor-navigation>Bài luyện tập</a><span aria-hidden="true">/</span><span aria-current="page">Soạn câu hỏi</span></nav>
-<div class="practice-heading">
+<header class="teacher-banner teacher-banner--light practice-heading">
     <div><h1>@Model.Editor.Title</h1><p>Chọn câu hỏi từ ngân hàng và sắp xếp thành một bài luyện tập.</p></div>
     @if (Model.Editor.Status == PracticeStatus.Draft || Model.Editor.Status == PracticeStatus.Published)
     {
         <a class="button secondary" asp-controller="TeacherPracticePreview" asp-action="Index" asp-route-id="@Model.Editor.PracticeId" data-editor-navigation><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>Xem trước bản đã lưu</a>
     }
-</div>
+</header>
 <div class="practice-editor-summary">
     <span class="practice-status status-@Model.Editor.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Editor.Status" /></span>
     <span>@Model.Editor.Questions.Count câu hỏi đã lưu</span><span>@parentTitle</span>

@@ -1,20 +1,20 @@
 @model CourseWorkspaceNav
 @{
-    var tabs = new (string Key, string Label, string Controller, string Action, string? Tab)[]
+    var tabs = new (string Key, string Label, string Controller, string Action, string? Tab, string Icon)[]
     {
-        ("content", "Nội dung", "TeacherCourses", "Manage", null),
-        ("assessments", "Bài kiểm tra", "TeacherCourses", "Manage", "assessments"),
-        ("homework", "Bài tập viết", "Homework", "Course", null),
-        ("discussion", "Hỏi đáp", "CourseDiscussion", "Index", null),
-        ("students", "Học viên", "TeacherCourses", "Students", null),
-        ("info", "Thông tin và học phí", "TeacherCourses", "Edit", null),
-        ("publishing", "Xuất bản", "TeacherCourses", "Manage", "publishing")
+        ("content", "Nội dung", "TeacherCourses", "Manage", null, "book"),
+        ("assessments", "Bài kiểm tra", "TeacherCourses", "Manage", "assessments", "clipboard-check"),
+        ("homework", "Bài tập viết", "Homework", "Course", null, "pencil"),
+        ("discussion", "Hỏi đáp", "CourseDiscussion", "Index", null, "send"),
+        ("students", "Học viên", "TeacherCourses", "Students", null, "users"),
+        ("info", "Thông tin và học phí", "TeacherCourses", "Edit", null, "settings"),
+        ("publishing", "Xuất bản", "TeacherCourses", "Manage", "publishing", "check-circle")
     };
 }
 <nav class="workspace-tabs" aria-label="Quản lý khóa học">
     @foreach (var tab in tabs)
     {
         <a asp-controller="@tab.Controller" asp-action="@tab.Action" asp-route-id="@Model.CourseId"
-           asp-route-tab="@tab.Tab" aria-current="@(tab.Key == Model.Tab ? "page" : null)">@tab.Label</a>
+           asp-route-tab="@tab.Tab" aria-current="@(tab.Key == Model.Tab ? "page" : null)"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#" + tab.Icon)"></use></svg>@tab.Label</a>
     }
 </nav>

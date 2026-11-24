@@ -13,11 +13,11 @@
 <nav class="workspace-path" aria-label="Đường dẫn điều hướng">
     <partial name="~/Views/TeacherAssessments/_AssessmentBackLink.cshtml" model="Model.CourseId" /><span aria-hidden="true">/</span><span aria-current="page">@(isNew ? "Tạo bài kiểm tra" : "Cấu hình")</span>
 </nav>
-<header class="workspace-heading">
+<header class="teacher-banner teacher-banner--light">
     <div>
         <h1>@(isNew ? "Tạo bài kiểm tra" : Model.Input.Title)</h1>
         @if (isNew && Model.CourseTitle is not null) { <p>Thuộc khóa học @Model.CourseTitle</p> }
-        @if (!isNew) { <span class="workspace-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span> }
+        @if (!isNew) { <div class="workspace-meta"><span class="workspace-status status-@Model.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Status" /></span></div> }
     </div>
     @if (Model.Id is { } draftId && Model.Status == AssessmentStatus.Draft)
     {

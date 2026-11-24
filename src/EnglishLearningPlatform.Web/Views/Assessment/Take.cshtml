@@ -4,7 +4,8 @@
 @model AssessmentTakePage
 @{
     ViewData["Title"] = Model.Sheet?.Title ?? Model.Overview!.Title;
-    ViewData["ActiveSection"] = "assessment";
+    ViewData["ActiveSection"] = "progress";
+    ViewData["FocusMode"] = Model.Sheet is not null;
     var overview = Model.Overview;
 }
 @section Breadcrumbs {
@@ -25,32 +26,51 @@
         </ol>
     </nav>
 }
-@section Styles { <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" /> }
+@section Styles {
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
+}
 
-<div class="exam-workspace-layout assessment-workspace">
+<div class="activity-scene exam-workspace-layout assessment-workspace @(Model.Sheet is not null ? "assessment-taking" : null)">
     <header class="exam-header-bar">
         <div class="exam-header-left">
-            @if (overview?.CourseId is Guid courseId)
+            @if (overview?.CourseId is not null || Model.Sheet is not null)
             {
-                <a class="button secondary exam-back-btn" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                    <span>Về khóa học</span>
-                </a>
+                <div class="exam-context-links">
+                    @if (overview?.CourseId is Guid courseId)
+                    {
+                        <a class="activity-course-link" asp-controller="Learning" asp-action="Course" asp-route-id="@courseId">
+                            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                            Về khóa học
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="activity-course-link" asp-action="Index">
+                            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                            Danh sách bài kiểm tra
+                        </a>
+                    }
+                    @if (Model.Sheet is { } activeSheet)
+                    {
+                        <a class="activity-course-link" asp-action="History" asp-route-id="@activeSheet.AssessmentId">Lịch sử làm bài</a>
+                    }
+                </div>
             }
             <div class="exam-title-group">
-                <div class="exam-section-heading">
-                    <span class="v2-pill-tag">Bài kiểm tra</span>
+                <div class="activity-context">
+                    <span>Bài kiểm tra</span>
                     @if (Model.Sheet is not null)
                     {
-                        <span class="v2-pill-tag" style="background: #E0F2FE; color: #0369A1;">Đang làm bài</span>
+                        <span class="activity-context--live">Đang làm bài</span>
                     }
                 </div>
                 <h1 class="exam-title">@ViewData["Title"]</h1>
             </div>
         </div>
-        @if (Model.Sheet is not null || overview?.UsedAttempts > 0)
+        @if (Model.Sheet is null && overview?.UsedAttempts > 0)
         {
-            <a class="button secondary" asp-action="History" asp-route-id="@(Model.Sheet?.AssessmentId ?? overview?.AssessmentId)">Lịch sử làm bài</a>
+            <a class="button secondary" asp-action="History" asp-route-id="@overview?.AssessmentId">Lịch sử làm bài</a>
         }
     </header>
 
@@ -84,7 +104,7 @@
                         <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
                         
                         <div class="exam-question-header">
-                            <span class="v2-pill-tag exam-q-badge">Câu @(i + 1)</span>
+                            <span class="activity-tag exam-q-badge">Câu @(i + 1)</span>
                             <span class="exam-q-points">@question.Points.ToString("0.##") điểm</span>
                         </div>
 
@@ -106,7 +126,7 @@
                             <div class="exam-audio-box">
                                 <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
                                 <partial name="_ExternalStimulusAudioNotice" model="question.AudioUrl" />
-                                <p class="exam-timer-note" style="margin-top: 6px;">Nếu audio không phát, kiểm tra kết nối và dùng nút phát để thử lại.</p>
+                                <p class="exam-timer-note">Nếu audio không phát, kiểm tra kết nối và dùng nút phát để thử lại.</p>
                             </div>
                         }
 
@@ -176,7 +196,7 @@
                         </div>
                         <div class="exam-timer-display" data-time-remaining aria-live="off">Đang tính…</div>
                         <p class="exam-timer-note">Hết giờ, bài sẽ tự động nộp với các đáp án đã lưu.</p>
-                        <noscript><p class="exam-timer-note" style="margin-top: 6px; color: #DC2626;">JS đang tắt. Hạn nộp: <time datetime="@sheet.DeadlineUtc.ToString("O")">@sheet.DeadlineUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm:ss dd/MM/yyyy")</time></p></noscript>
+                        <noscript><p class="exam-timer-note">JS đang tắt. Hạn nộp: <time datetime="@sheet.DeadlineUtc.ToString("O")">@sheet.DeadlineUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm:ss dd/MM/yyyy")</time></p></noscript>
                     </div>
 
                     <!-- Question Palette Card -->
@@ -214,7 +234,7 @@
             </aside>
 
             <!-- Submission Confirmation Dialog -->
-            <dialog class="exam-confirm-dialog" data-submit-dialog aria-labelledby="submit-dialog-title">
+            <dialog class="exam-confirm-dialog activity-confirm-dialog" data-submit-dialog aria-labelledby="submit-dialog-title">
                 <h2 id="submit-dialog-title">Xác nhận nộp bài</h2>
                 <p data-submit-summary></p>
                 <p>Sau khi nộp, bạn không thể thay đổi đáp án của lượt thi này.</p>
@@ -230,12 +250,11 @@
         <!-- Overview / Not Started View -->
         <section class="card-v2 exam-section" aria-labelledby="assessment-overview-title">
             <div class="exam-section-heading">
-                <span class="v2-pill-tag">Tổng quan</span>
-                <h2 id="assessment-overview-title" style="margin: 0; font-size: 20px;">Thông tin bài thi</h2>
+                <h2 id="assessment-overview-title">Thông tin bài thi</h2>
             </div>
             @if (!string.IsNullOrWhiteSpace(overview.Description)) { <p class="preserve" style="color: var(--v2-text-secondary); margin-bottom: 20px;">@overview.Description</p> }
             <partial name="_AssessmentDetails" model="overview" />
-            <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--v2-border-light);">
+            <div class="activity-overview-footer">
                 @if (overview.AttemptHistory.Any(a => a.Status == AttemptStatus.InProgress))
                 {
                     <div class="notice" style="margin-bottom: 16px;">Lượt làm trước đã hết giờ. Hoàn tất chấm điểm để xem kết quả trước khi bắt đầu lượt mới.</div>
@@ -244,7 +263,7 @@
                 else if (overview.UsedAttempts < overview.MaxAttempts)
                 {
                     <p class="muted" style="margin-bottom: 16px;">Thời gian được tính ngay khi bấm bắt đầu. Bạn có thể quay lại tiếp tục trong thời gian còn lại.</p>
-                    <form asp-action="Start" asp-route-id="@overview.AssessmentId" method="post"><button class="button" type="submit" style="padding: 12px 28px; font-size: 15px;">Bắt đầu làm bài</button></form>
+                    <form asp-action="Start" asp-route-id="@overview.AssessmentId" method="post"><button class="button" type="submit">Bắt đầu làm bài</button></form>
                 }
                 else { <div class="notice">Bạn đã sử dụng hết lượt làm bài.</div> }
             </div>

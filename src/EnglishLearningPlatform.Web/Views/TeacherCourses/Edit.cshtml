@@ -14,7 +14,7 @@
 <nav class="course-editor-breadcrumb" aria-label="Đường dẫn điều hướng">
     <a asp-action="Index">Khóa học</a><span aria-hidden="true">/</span><span aria-current="page">@title</span>
 </nav>
-<div class="course-editor-heading">
+<header class="teacher-banner teacher-banner--light course-editor-heading">
     <div>
         <div class="course-editor-title">
             <h1>@(isNew ? title : Model.Input.Title)</h1>
@@ -25,7 +25,7 @@
         <a class="button secondary" href="@cancelUrl">Hủy</a>
         <button class="button" type="submit" form="course-editor-form"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>@(isNew ? "Lưu và tiếp tục" : "Lưu thay đổi")</button>
     </div>
-</div>
+</header>
 @if (Model.Id is { } id)
 {
     <partial name="_WorkspaceTabs" model='new CourseWorkspaceNav(id, "info")' />
@@ -38,7 +38,7 @@
             <section class="course-editor-card" aria-labelledby="course-basics-heading">
                 <div class="course-card-heading">
                     <span class="course-section-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg></span>
-                    <div><h2 id="course-basics-heading">Thông tin cơ bản</h2><p>Giúp học viên hiểu rõ khóa học của bạn.</p></div>
+                    <div><h2 id="course-basics-heading">Thông tin cơ bản</h2></div>
                 </div>
                 <div class="course-field">
                     <div class="course-label-row"><label asp-for="Input.Title">Tên khóa học <span class="course-required" aria-hidden="true">*</span></label><span class="course-field-count" data-course-title-count>@(Model.Input.Title?.Length ?? 0)/200</span></div>

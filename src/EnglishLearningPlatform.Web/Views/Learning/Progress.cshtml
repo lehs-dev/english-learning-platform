@@ -6,6 +6,10 @@
     ViewData["ActiveSection"] = "progress";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
+}
+
 @section Breadcrumbs {
     <nav class="studio-breadcrumbs" aria-label="Đường dẫn điều hướng">
         <ol class="breadcrumb-list">
@@ -16,32 +20,30 @@
     </nav>
 }
 
-<div class="progress-hub-layout">
+<div class="progress-hub-layout learning-screens progress-redesign">
     <header class="progress-page-header">
         <div class="progress-header-info">
-            <span class="v2-pill-tag">Báo cáo học tập</span>
-            <h1 class="progress-page-title">Tiến độ &amp; kết quả học tập</h1>
-            <p class="progress-page-subtext">Theo dõi quá trình hoàn thành khóa học, năng lực ngôn ngữ và thành tích cá nhân.</p>
-        </div>
-
-        <div class="progress-header-stats">
-            <div class="progress-stat-chip">
-                <span class="stat-number">@Model.EnrolledCourses.Count</span>
-                <span class="stat-label">Khóa đã ghi danh</span>
-            </div>
-            <div class="progress-stat-chip">
-                <span class="stat-number">@(Model.Gamification?.TotalXp ?? 0)</span>
-                <span class="stat-label">Tổng XP</span>
-            </div>
-            <div class="progress-stat-chip">
-                <span class="stat-number">@(Model.Gamification?.CurrentStreak ?? 0) 🔥</span>
-                <span class="stat-label">Chuỗi ngày học</span>
-            </div>
+            <h1 class="learning-title progress-page-title">Tiến độ &amp; kết quả</h1>
         </div>
     </header>
 
+    <div class="progress-header-stats" aria-label="Tóm tắt học tập">
+        <div class="progress-stat-chip learning-surface">
+            <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+            <div><strong class="stat-number">@Model.EnrolledCourses.Count</strong><span class="stat-label">Khóa đã ghi danh</span></div>
+        </div>
+        <div class="progress-stat-chip learning-surface">
+            <span class="learning-emblem is-teal"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#award")"></use></svg></span>
+            <div><strong class="stat-number">@(Model.Gamification?.TotalXp ?? 0)</strong><span class="stat-label">Tổng XP</span></div>
+        </div>
+        <div class="progress-stat-chip learning-surface">
+            <span class="learning-emblem progress-streak-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#flame")"></use></svg></span>
+            <div><strong class="stat-number">@(Model.Gamification?.CurrentStreak ?? 0)</strong><span class="stat-label">Ngày học liên tiếp</span></div>
+        </div>
+    </div>
+
     <!-- Sub-navigation Tabs -->
-    <nav class="course-subnav-tabs" aria-label="Phân mục tiến độ">
+    <nav class="course-subnav-tabs learning-tabbar" aria-label="Phân mục tiến độ">
         <a class="subnav-tab-item @(Model.ActiveTab == "overview" ? "is-active" : "")"
            asp-action="Progress" asp-route-tab="overview" aria-current="@(Model.ActiveTab == "overview" ? "page" : null)">
             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
@@ -64,13 +66,12 @@
     {
         <div class="progress-tab-pane">
             <!-- Enrolled Courses Progress -->
-            <section class="progress-section card-v2" aria-labelledby="heading-enrolled-progress">
+            <section class="progress-section card-v2 learning-surface" aria-labelledby="heading-enrolled-progress">
                 <div class="progress-section-header">
                     <div>
                         <h2 id="heading-enrolled-progress" class="section-title">Tiến độ khóa học</h2>
-                        <p class="section-subtitle">Tình trạng hoàn thành các khóa học bạn đang theo học.</p>
                     </div>
-                    <a class="button secondary button-small" asp-action="Index">Quản lý khóa học &rarr;</a>
+                    <a class="button secondary button-small" asp-action="Index">Quản lý khóa học <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
                 </div>
 
                 @if (Model.EnrolledCourses.Count == 0)
@@ -79,7 +80,7 @@
                         <svg class="empty-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
                         <h3>Bạn chưa ghi danh khóa học nào</h3>
                         <p>Khám phá các khóa học phù hợp với trình độ để bắt đầu lộ trình học tập.</p>
-                        <a class="button button-small" asp-controller="Courses" asp-action="Index">Khám phá khóa học &rarr;</a>
+                        <a class="button button-small" asp-controller="Courses" asp-action="Index">Khám phá khóa học <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
                     </div>
                 }
                 else
@@ -101,7 +102,7 @@
                                         }
                                         @if (completed)
                                         {
-                                            <span class="v2-pill-tag" style="background: #DEF7EC; color: #03543F;">Hoàn thành</span>
+                                            <span class="v2-pill-tag progress-completed-tag">Hoàn thành</span>
                                         }
                                     </div>
                                     <h3 class="course-item-title">
@@ -129,7 +130,7 @@
             </section>
 
             <!-- Language Skills & Recommendations -->
-            <section class="progress-section card-v2" aria-labelledby="heading-skills-analysis">
+            <section class="progress-section card-v2 learning-surface" aria-labelledby="heading-skills-analysis">
                 <div class="progress-section-header">
                     <div>
                         <h2 id="heading-skills-analysis" class="section-title">Phân tích năng lực ngôn ngữ</h2>
@@ -137,7 +138,7 @@
                     </div>
                     @if (Model.AssessmentResults.Any())
                     {
-                        <a class="button secondary button-small" asp-action="Progress" asp-route-tab="assessments">Xem chi tiết bài thi &rarr;</a>
+                        <a class="button secondary button-small" asp-action="Progress" asp-route-tab="assessments">Xem chi tiết bài thi <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
                     }
                 </div>
 
@@ -150,7 +151,7 @@
                         <div class="empty-text-box">
                             <h3>Chưa đủ dữ liệu đánh giá năng lực</h3>
                             <p>Hãy hoàn thành bài Đánh giá năng lực đầu vào hoặc bài kiểm tra kỹ năng để nhận biểu đồ phân tích và đề xuất học tập phù hợp.</p>
-                            <a class="button button-small" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá năng lực &rarr;</a>
+                            <a class="button button-small" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá năng lực <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
                         </div>
                     </div>
                 }
@@ -221,13 +222,13 @@
     @if (Model.ActiveTab == "assessments")
     {
         <div class="progress-tab-pane">
-            <section class="progress-section card-v2" aria-labelledby="heading-past-assessments">
+            <section class="progress-section card-v2 learning-surface" aria-labelledby="heading-past-assessments">
                 <div class="progress-section-header">
                     <div>
                         <h2 id="heading-past-assessments" class="section-title">Kết quả đánh giá đã làm</h2>
                         <p class="section-subtitle">Lịch sử và điểm số các bài đánh giá bạn đã hoàn thành.</p>
                     </div>
-                    <a class="button secondary button-small" asp-controller="Assessment" asp-action="Index">Tất cả bài đánh giá &rarr;</a>
+                    <a class="button secondary button-small" asp-controller="Assessment" asp-action="Index">Tất cả bài đánh giá <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
                 </div>
 
                 @if (Model.AssessmentResults.Count == 0)
@@ -236,7 +237,7 @@
                         <svg class="empty-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
                         <h3>Chưa có kết quả bài kiểm tra</h3>
                         <p>Bạn chưa hoàn thành bài kiểm tra hoặc đánh giá năng lực nào.</p>
-                        <a class="button button-small" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá ngay &rarr;</a>
+                        <a class="button button-small" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá ngay <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
                     </div>
                 }
                 else
@@ -281,7 +282,7 @@
                                         </td>
                                         <td role="cell">
                                             <a class="button secondary button-small" asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">
-                                                Xem bài làm &rarr;
+                                                Xem bài làm <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                                             </a>
                                         </td>
                                     </tr>
@@ -295,7 +296,7 @@
             <!-- Available Assessments -->
             @if (Model.AvailableAssessments.Any())
             {
-                <section class="progress-section card-v2" aria-labelledby="heading-available-assessments">
+                <section class="progress-section card-v2 learning-surface" aria-labelledby="heading-available-assessments">
                     <div class="progress-section-header">
                         <div>
                             <h2 id="heading-available-assessments" class="section-title">Bài đánh giá sẵn sàng</h2>
@@ -322,13 +323,13 @@
                                     @if (assess.ActiveAttemptId is not null)
                                     {
                                         <a class="button button-small" asp-controller="Assessment" asp-action="Take" asp-route-id="@assess.Id">
-                                            Tiếp tục làm bài &rarr;
+                                            Tiếp tục làm bài <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                                         </a>
                                     }
                                     else
                                     {
                                         <a class="button secondary button-small" asp-controller="Assessment" asp-action="Take" asp-route-id="@assess.Id">
-                                            Bắt đầu làm bài &rarr;
+                                            Bắt đầu làm bài <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                                         </a>
                                     }
                                 </div>
@@ -344,13 +345,12 @@
     @if (Model.ActiveTab == "achievements")
     {
         <div class="progress-tab-pane">
-            <section class="progress-section card-v2" aria-labelledby="heading-gamification-summary">
+            <section class="progress-section card-v2 learning-surface" aria-labelledby="heading-gamification-summary">
                 <div class="progress-section-header">
                     <div>
                         <h2 id="heading-gamification-summary" class="section-title">Thành tích &amp; Điểm thưởng</h2>
-                        <p class="section-subtitle">Ghi nhận sự kiên trì và tiến bộ của bạn mỗi ngày.</p>
                     </div>
-                    <a class="button secondary button-small" asp-controller="Achievements" asp-action="Index">Chi tiết thành tích &rarr;</a>
+                    <a class="button secondary button-small" asp-controller="Achievements" asp-action="Index">Chi tiết thành tích <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
                 </div>
 
                 <div class="gamification-stats-grid">

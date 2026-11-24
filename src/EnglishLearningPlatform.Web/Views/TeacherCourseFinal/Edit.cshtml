@@ -14,7 +14,7 @@
     <a asp-controller="TeacherCourses" asp-action="Index">Khóa học của tôi</a><span aria-hidden="true">/</span>
     <a asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@editor.CourseId" asp-route-tab="assessments">Bài kiểm tra</a><span aria-hidden="true">/</span><span aria-current="page">Bài kiểm tra cuối khóa</span>
 </nav>
-<header class="course-final-heading">
+<header class="teacher-banner teacher-banner--light course-final-heading">
     <div><h1>Bài kiểm tra cuối khóa</h1><p>Chọn bài kiểm tra để đánh giá kết quả học tập và ghi nhận hoàn thành khóa học.</p></div>
     <div class="course-final-heading-actions">
         @if (editor.CanChangeFinal)

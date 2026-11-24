@@ -11,10 +11,10 @@
 }
 
 <nav class="practice-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-controller="TeacherPractices" asp-action="Index">Bài luyện tập</a><span aria-hidden="true">/</span><span aria-current="page">Xem trước</span></nav>
-<div class="practice-heading">
+<header class="teacher-banner teacher-banner--light practice-heading">
     <div><h1>@Model.Title</h1><p>Xem nội dung bài luyện tập dưới góc nhìn của học viên.</p></div>
     <a class="button secondary" asp-controller="TeacherPracticeQuestions" asp-action="Index" asp-route-id="@Model.PracticeId">Về trang soạn câu hỏi</a>
-</div>
+</header>
 
 @section Scripts {
     <script src="~/js/structured-answer.js" asp-append-version="true" defer></script>

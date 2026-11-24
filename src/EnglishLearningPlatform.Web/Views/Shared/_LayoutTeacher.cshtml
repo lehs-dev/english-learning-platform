@@ -3,6 +3,7 @@
     var activeSection = routeController switch
     {
         "courses" => "catalog",
+        "teacherassessments" or "teacherassessmentquestions" or "teacherassessmentpreview" or "teacherassessmentscope" => "assessments",
         "teacherquestionbank" or "teacherstimuli" => "questionbank",
         "teacherpractices" or "teacherpracticequestions" or "teacherpracticepreview" => "practices",
         "teacherflashcards" => "flashcards",
@@ -27,7 +28,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#176bff" />
+    <meta name="theme-color" content="#102347" />
     <title>@currentTitle - Estudy Giảng viên</title>
     <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -35,6 +36,7 @@
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/role-layouts.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workspace-theme.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
     <link rel="stylesheet" href="~/css/teacher-authoring.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/teacher-workspace.css" asp-append-version="true" />
@@ -46,8 +48,8 @@
         <aside class="studio-sidebar teacher-sidebar" id="studio-sidebar" aria-label="Điều hướng giảng viên">
             <div class="studio-sidebar-header">
                 <a class="brand studio-brand" asp-controller="TeacherCourses" asp-action="Index" aria-label="Estudy - Không gian giảng dạy">
-                    <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
-                    <span>Estudy</span>
+                    <span class="teacher-brand-mark"><svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg></span>
+                    <span class="teacher-brand-name"><strong>Estudy</strong><small>Không gian giảng dạy</small></span>
                 </a>
                 <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng thanh điều hướng giảng viên"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
             </div>
@@ -72,7 +74,7 @@
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg><span>Bài kiểm tra</span>
                     </a>
                     <a class="studio-nav-link @(activeSection == "practices" ? "is-active" : "")" asp-controller="TeacherPractices" asp-action="Index" aria-current="@(activeSection == "practices" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><span>Bài luyện tập</span>
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg><span>Bài luyện tập</span>
                     </a>
                     <a class="studio-nav-link @(activeSection == "analytics" ? "is-active" : "")" asp-controller="TeacherAnalytics" asp-action="Index" aria-current="@(activeSection == "analytics" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chart-bars")"></use></svg><span>Thống kê lớp học</span>
@@ -81,7 +83,7 @@
                 <div class="studio-nav-group">
                     <span class="studio-nav-label">Thư viện</span>
                     <a class="studio-nav-link @(activeSection is "questionbank" or "questions" ? "is-active" : "")" asp-controller="TeacherQuestionBank" asp-action="Index" aria-current="@(activeSection is "questionbank" or "questions" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg><span>Ngân hàng câu hỏi</span>
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#dashboard")"></use></svg><span>Ngân hàng câu hỏi</span>
                     </a>
                     <a class="studio-nav-link @(activeSection == "flashcards" ? "is-active" : "")" asp-controller="TeacherFlashcards" asp-action="Index" aria-current="@(activeSection == "flashcards" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg><span>Thẻ từ vựng</span>
@@ -98,6 +100,7 @@
                     <button class="mobile-sidebar-toggle icon-button" type="button" data-sidebar-toggle aria-controls="studio-sidebar" aria-expanded="false" aria-label="Mở thanh điều hướng giảng viên">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#menu")"></use></svg>
                     </button>
+                    <span class="teacher-topbar-icon" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#dashboard")"></use></svg></span>
                     <span class="studio-topbar-title">@sectionTitle</span>
                 </div>
 

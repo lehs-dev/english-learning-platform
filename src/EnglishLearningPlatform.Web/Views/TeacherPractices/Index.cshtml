@@ -7,16 +7,10 @@
 }
 @section Styles { <link rel="stylesheet" href="~/css/teacher-practices.css" asp-append-version="true" /> }
 
-<nav class="practice-breadcrumb" aria-label="Đường dẫn điều hướng"><span>Giảng dạy</span><span aria-hidden="true">/</span><span aria-current="page">Bài luyện tập</span></nav>
-<div class="practice-heading">
-    <div><h1>Bài luyện tập của tôi</h1><p>Soạn bài, sắp xếp câu hỏi và chuẩn bị nội dung cho học viên.</p></div>
+<header class="teacher-banner">
+    <h1>Bài luyện tập của tôi</h1>
     <a class="button" asp-action="Create"><span aria-hidden="true">+</span> Tạo bài luyện tập</a>
-</div>
-<section class="practice-intro" aria-labelledby="practice-intro-title">
-    <span class="practice-emblem" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
-    <div><h2 id="practice-intro-title">Từ ý tưởng đến một bài luyện tập hoàn chỉnh</h2><p>Tạo bản nháp → chọn câu hỏi → xem trước và mở bài.</p></div>
-    <a href="#practice-list-title" class="practice-text-link">Xem danh sách <span aria-hidden="true">↓</span></a>
-</section>
+</header>
 <section class="practice-card practice-filter-card" aria-label="Tìm và lọc bài luyện tập">
     <form method="get" asp-controller="TeacherPractices" asp-action="Index" class="practice-list-filters" id="practice-filters">
         <input type="hidden" name="PageNumber" value="1" />

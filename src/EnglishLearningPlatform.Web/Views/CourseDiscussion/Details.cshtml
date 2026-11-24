@@ -6,19 +6,23 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/course-discussion.css" asp-append-version="true" />
 }
 
-<div class="discussion-workspace">
-    <a class="button secondary" asp-action="Index" asp-route-id="@conversation.Course.CourseId">&larr; Hỏi đáp khóa học</a>
-    <header class="page-heading">
+<div class="activity-scene discussion-workspace">
+    <header class="activity-hero discussion-heading">
         <div>
+            <a class="activity-course-link" asp-action="Index" asp-route-id="@conversation.Course.CourseId">
+                <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                Hỏi đáp khóa học
+            </a>
             <h1>@conversation.Subject</h1>
             <p>@conversation.Course.CourseTitle · @(conversation.Course.IsTeacher ? "Học viên" : "Giảng viên") @conversation.ParticipantName</p>
         </div>
     </header>
 
-    <section class="discussion-panel" aria-label="Nội dung trao đổi">
+    <section class="activity-panel discussion-panel discussion-conversation" aria-label="Nội dung trao đổi">
         @if (conversation.Pages > 1)
         {
             <nav class="discussion-pagination" aria-label="Trang tin nhắn">
@@ -39,6 +43,9 @@
             {
                 <li class="@(message.IsMine ? "is-mine" : "")">
                     <div class="discussion-message-meta">
+                        <span class="discussion-message-icon" aria-hidden="true">
+                            <svg class="icon"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
+                        </span>
                         <strong>@(message.IsMine ? "Bạn" : message.WrittenByTeacher ? "Giảng viên" : "Học viên")</strong>
                         <time datetime="@message.SentAtUtc.ToString("O")">@message.SentAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time>
                     </div>
@@ -50,8 +57,10 @@
 
     @if (conversation.Course.CanWrite)
     {
-        <section class="discussion-panel" id="discussion-reply" aria-labelledby="discussion-reply-title">
-            <h2 id="discussion-reply-title">Trả lời</h2>
+        <section class="activity-panel discussion-panel discussion-compose" id="discussion-reply" aria-labelledby="discussion-reply-title">
+            <div class="activity-section-title">
+                <h2 id="discussion-reply-title">Trả lời</h2>
+            </div>
             <form class="discussion-form" method="post" asp-action="Reply" asp-route-id="@conversation.ThreadId">
                 <div asp-validation-summary="ModelOnly" role="alert"></div>
                 <input type="hidden" name="requestId" value="@Model.RequestId" />

@@ -6,17 +6,21 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/homework.css" asp-append-version="true" />
 }
 
-<div class="homework-page">
-    <header class="homework-header">
+<div class="activity-scene homework-page">
+    <header class="activity-hero homework-header">
         <div>
-            <a asp-action="Course" asp-route-id="@course.Id">Bài tập viết · @course.Title</a>
+            <a class="activity-course-link" asp-action="Course" asp-route-id="@course.Id">
+                <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                Bài tập viết · @course.Title
+            </a>
             <h1>Giao bài viết</h1>
         </div>
     </header>
-    <section class="homework-card">
+    <section class="activity-panel homework-card">
         <form class="editor-form" method="post" asp-action="Create" asp-route-id="@course.Id">
             <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
             <div>

@@ -1,7 +1,11 @@
 @model EnglishLearningPlatform.Application.Flashcards.FlashcardStudySheet
-@{ ViewData["Title"] = Model.Title; ViewData["ActiveSection"] = "flashcards"; }
-@section Styles { <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" /> }
-<div class="fc-heading"><div><a asp-action="Index">← Các bộ thẻ</a><h1>@Model.Title</h1><p aria-live="polite"><strong>@Model.DueCount</strong> thẻ đến hạn / @Model.TotalCards thẻ</p></div></div>
+@{ ViewData["Title"] = Model.Title; ViewData["ActiveSection"] = "courses"; }
+@section Styles {
+    <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
+}
+<div class="learning-screens flashcard-study-page">
+<div class="fc-heading"><div><a asp-action="Index">← Các bộ thẻ</a><h1 class="learning-title">@Model.Title</h1><p aria-live="polite"><strong>@Model.DueCount</strong> thẻ đến hạn / @Model.TotalCards thẻ</p></div></div>
 @if (TempData["Success"] is string success) { <p class="fc-notice" role="status">@success</p> }
 @if (Model.Card is {} card)
 {
@@ -24,8 +28,9 @@
 }
 else
 {
-    <section class="fc-panel"><h2>Bạn đã ôn hết các thẻ đến hạn</h2><p>Hãy quay lại vào lần ôn tiếp theo.</p>
+    <section class="fc-panel learning-surface"><h2>Bạn đã ôn hết các thẻ đến hạn</h2><p>Hãy quay lại vào lần ôn tiếp theo.</p>
         @if (Model.NextDueAtUtc is {} next) { <p>Lần ôn tiếp theo: <strong>@TimeZoneInfo.ConvertTime(next, TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh")).ToString("HH:mm dd/MM/yyyy")</strong> (giờ Việt Nam).</p> }
         <a class="button" asp-action="Index">Chọn bộ thẻ khác</a></section>
 }
+</div>
 @section Scripts { <script src="~/js/flashcards.js" asp-append-version="true"></script> }
