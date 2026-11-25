@@ -64,9 +64,18 @@ public sealed class WritingHomeworkService(AppDbContext db, IActiveUserRoleReade
                 row.Response, row.CreatedAtUtc, row.Feedback, row.Score, row.ReviewedAtUtc)).ToListAsync(ct);
         var canSubmit = !course.IsTeacher && course.IsOpen && rows.Count == 0 &&
             (!assignment.DueAtUtc.HasValue || assignment.DueAtUtc > time.GetUtcNow());
-        return new(LearningAccessResult.Allowed, new(assignmentId, assignment.CourseId, course.Title, assignment.Title,
+        var draft = !course.IsTeacher && rows.Count == 0
+            ? await db.WritingSubmissionDrafts.AsNoTracking()
+                .Where(row => row.AssignmentId == assignmentId && row.StudentUserId == actorId)
+                .Select(row => new WritingDraft(row.Response, row.SavedAtUtc, row.Version)).SingleOrDefaultAsync(ct)
+            : null;
+        return new(LearningAccessResult.Allowed, new WritingHomeworkDetail(assignmentId, assignment.CourseId, course.Title, assignment.Title,
             assignment.Prompt, assignment.DueAtUtc, course.IsTeacher, canSubmit,
-            rows.Take(WritingHomeworkLimits.PageSize).ToArray(), page, rows.Count > WritingHomeworkLimits.PageSize));
+            rows.Take(WritingHomeworkLimits.PageSize).ToArray(), page, rows.Count > WritingHomeworkLimits.PageSize)
+        {
+            Draft = draft,
+            CanReview = course.IsTeacher && course.IsOpen
+        });
     }
 
     public async Task<WritingHomeworkWriteResult> AssignAsync(Guid teacherId, Guid courseId, string? title, string? prompt,
@@ -95,28 +104,55 @@ public sealed class WritingHomeworkService(AppDbContext db, IActiveUserRoleReade
         return new(WritingHomeworkWriteStatus.Saved, assignment.Id);
     }
 
+    public async Task<WritingHomeworkWriteResult> SaveDraftAsync(Guid studentId, Guid assignmentId, string? response,
+        Guid? expectedVersion, CancellationToken ct)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
+        if (await SubmissionBlockedAsync(studentId, assignmentId, ct) is { } blocked)
+            return new(blocked);
+        if (string.IsNullOrWhiteSpace(response) || response.Length > WritingHomeworkLimits.ResponseLength)
+            return new(WritingHomeworkWriteStatus.Invalid);
+
+        var draft = await db.WritingDraftsForUpdate(assignmentId, studentId).SingleOrDefaultAsync(ct);
+        if (await db.WritingSubmissions.AnyAsync(row => row.AssignmentId == assignmentId && row.StudentUserId == studentId, ct))
+            return new(WritingHomeworkWriteStatus.AlreadySubmitted, assignmentId);
+        if (draft?.Response == response)
+            return new(WritingHomeworkWriteStatus.Saved, assignmentId);
+        if (draft?.Version != expectedVersion)
+            return new(WritingHomeworkWriteStatus.DraftChanged, assignmentId);
+
+        if (draft is null)
+        {
+            draft = new WritingSubmissionDraft { AssignmentId = assignmentId, StudentUserId = studentId };
+            db.WritingSubmissionDrafts.Add(draft);
+        }
+
+        draft.Response = response;
+        draft.Version = Guid.NewGuid();
+        draft.SavedAtUtc = time.GetUtcNow();
+        await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        return new(WritingHomeworkWriteStatus.Saved, assignmentId);
+    }
+
     public async Task<WritingHomeworkWriteResult> SubmitAsync(Guid studentId, Guid assignmentId, string? response, CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
-        var assignment = await db.WritingAssignments.AsNoTracking().Where(row => row.Id == assignmentId)
-            .Select(row => new { row.CourseId, row.DueAtUtc }).SingleOrDefaultAsync(ct);
-        if (assignment is null) return new(WritingHomeworkWriteStatus.NotFound);
-
-        var access = await GetAccessAsync(studentId, assignment.CourseId, ct);
-        if (access.Value is not { } course) return Denied(access.Access);
-        if (course.IsTeacher) return new(WritingHomeworkWriteStatus.Forbidden);
-
+        if (await SubmissionBlockedAsync(studentId, assignmentId, ct) is { } blocked)
+            return new(blocked);
         var now = time.GetUtcNow();
-        if (!course.IsOpen || assignment.DueAtUtc <= now) return new(WritingHomeworkWriteStatus.Closed);
         response = response?.Trim();
         if (response is not { Length: > 0 and <= WritingHomeworkLimits.ResponseLength })
             return new(WritingHomeworkWriteStatus.Invalid);
 
+        // Saving a draft and submitting lock the same key, including when the draft is absent.
+        var draft = await db.WritingDraftsForUpdate(assignmentId, studentId).SingleOrDefaultAsync(ct);
         var submission = new WritingSubmission
         {
             AssignmentId = assignmentId, StudentUserId = studentId, Response = response, CreatedAtUtc = now
         };
         db.WritingSubmissions.Add(submission);
+        if (draft is not null) db.WritingSubmissionDrafts.Remove(draft);
         try
         {
             await db.SaveChangesAsync(ct);
@@ -124,6 +160,7 @@ public sealed class WritingHomeworkService(AppDbContext db, IActiveUserRoleReade
         catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
         {
             db.Entry(submission).State = EntityState.Detached;
+            if (draft is not null) db.Entry(draft).State = EntityState.Unchanged;
             return new(WritingHomeworkWriteStatus.AlreadySubmitted, assignmentId);
         }
 
@@ -135,11 +172,13 @@ public sealed class WritingHomeworkService(AppDbContext db, IActiveUserRoleReade
     public async Task<WritingHomeworkWriteResult> ReviewAsync(Guid teacherId, Guid assignmentId, Guid submissionId,
         string? feedback, int? score, CancellationToken ct)
     {
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
         var assignment = await db.WritingAssignments.AsNoTracking().Where(row => row.Id == assignmentId)
             .Select(row => new { row.CourseId }).SingleOrDefaultAsync(ct);
         if (assignment is null) return new(WritingHomeworkWriteStatus.NotFound);
         var access = await GetAuthoringCourseAsync(teacherId, assignment.CourseId, ct);
-        if (access.Value is null) return Denied(access.Access);
+        if (access.Value is not { } course) return Denied(access.Access);
+        if (!course.CanAssign) return new(WritingHomeworkWriteStatus.Closed);
 
         feedback = feedback?.Trim();
         if (feedback is not { Length: > 0 and <= WritingHomeworkLimits.FeedbackLength } || score is < 0 or > 100)
@@ -152,8 +191,24 @@ public sealed class WritingHomeworkService(AppDbContext db, IActiveUserRoleReade
             .ExecuteUpdateAsync(set => set.SetProperty(row => row.Feedback, feedback)
                 .SetProperty(row => row.Score, score).SetProperty(row => row.ReviewedAtUtc, now)
                 .SetProperty(row => row.UpdatedAtUtc, now), ct);
-        if (updated > 0) return new(WritingHomeworkWriteStatus.Saved, assignmentId);
+        if (updated > 0)
+        {
+            await transaction.CommitAsync(ct);
+            return new(WritingHomeworkWriteStatus.Saved, assignmentId);
+        }
         return new(await target.AnyAsync(ct) ? WritingHomeworkWriteStatus.AlreadyReviewed : WritingHomeworkWriteStatus.NotFound, assignmentId);
+    }
+
+    private async Task<WritingHomeworkWriteStatus?> SubmissionBlockedAsync(Guid studentId, Guid assignmentId, CancellationToken ct)
+    {
+        var assignment = await db.WritingAssignments.AsNoTracking().Where(row => row.Id == assignmentId)
+            .Select(row => new { row.CourseId, row.DueAtUtc }).SingleOrDefaultAsync(ct);
+        if (assignment is null) return WritingHomeworkWriteStatus.NotFound;
+        var access = await GetAccessAsync(studentId, assignment.CourseId, ct);
+        if (access.Value is not { } course) return Denied(access.Access).Status;
+        if (course.IsTeacher) return WritingHomeworkWriteStatus.Forbidden;
+        return !course.IsOpen || assignment.DueAtUtc <= time.GetUtcNow()
+            ? WritingHomeworkWriteStatus.Closed : null;
     }
 
     private async Task<LearningOutcome<CourseAccess>> GetAccessAsync(Guid actorId, Guid courseId, CancellationToken ct)

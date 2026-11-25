@@ -1,8 +1,12 @@
 @using EnglishLearningPlatform.Application.Homework
+@using EnglishLearningPlatform.Web.Models
 @model EnglishLearningPlatform.Web.Models.WritingAssignmentInput
 @{
     var course = (WritingHomeworkCourseInfo)ViewData["Course"]!;
-    ViewData["Title"] = "Giao bài viết";
+    var editAssignmentId = ViewData["EditAssignmentId"] as Guid?;
+    var formAction = editAssignmentId.HasValue ? "Edit" : "Create";
+    var pageTitle = editAssignmentId.HasValue ? "Sửa bài viết" : "Giao bài viết";
+    ViewData["Title"] = pageTitle;
 }
 
 @section Styles {
@@ -17,11 +21,11 @@
                 <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                 Bài tập viết · @course.Title
             </a>
-            <h1>Giao bài viết</h1>
+            <h1>@pageTitle</h1>
         </div>
     </header>
     <section class="activity-panel homework-card">
-        <form class="editor-form" method="post" asp-action="Create" asp-route-id="@course.Id">
+        <form class="editor-form" method="post" asp-action="@formAction" asp-route-id="@(editAssignmentId ?? course.Id)">
             <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
             <div>
                 <label asp-for="Title">Tiêu đề</label>
@@ -31,17 +35,38 @@
             <div>
                 <label asp-for="Prompt">Đề bài và yêu cầu</label>
                 <textarea asp-for="Prompt" rows="8" required maxlength="@WritingHomeworkLimits.PromptLength" aria-describedby="prompt-help"></textarea>
-                <p class="muted" id="prompt-help">Có thể thêm giới hạn từ, tiêu chí chấm hoặc ví dụ để học viên biết cần viết gì.</p>
+                <p class="muted" id="prompt-help">Có thể thêm độ dài, tiêu chí chấm hoặc ví dụ.</p>
                 <span asp-validation-for="Prompt" class="validation"></span>
             </div>
-            <div>
-                <label asp-for="DueAt">Hạn nộp theo giờ Việt Nam (tùy chọn)</label>
-                <input asp-for="DueAt" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
-                <span asp-validation-for="DueAt" class="validation"></span>
-            </div>
+            <fieldset class="homework-publish-fields" aria-describedby="writing-time-help">
+                <legend>Giao bài</legend>
+                <div>
+                    <label asp-for="PublishMode">Thời điểm giao</label>
+                    <select asp-for="PublishMode">
+                        <option value="@WritingAssignmentPublishMode.Now">Giao ngay</option>
+                        <option value="@WritingAssignmentPublishMode.Draft">Lưu bản nháp</option>
+                        <option value="@WritingAssignmentPublishMode.Scheduled">Hẹn giờ giao</option>
+                    </select>
+                    <span asp-validation-for="PublishMode" class="validation"></span>
+                </div>
+                <div class="homework-schedule-fields">
+                    <div>
+                        <label asp-for="PublishAt">Ngày giờ giao</label>
+                        <input asp-for="PublishAt" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" aria-describedby="writing-publish-help" />
+                        <p class="muted" id="writing-publish-help">Điền khi chọn hẹn giờ giao.</p>
+                        <span asp-validation-for="PublishAt" class="validation"></span>
+                    </div>
+                    <div>
+                        <label asp-for="DueAt">Hạn nộp (tùy chọn)</label>
+                        <input asp-for="DueAt" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                        <span asp-validation-for="DueAt" class="validation"></span>
+                    </div>
+                </div>
+                <p class="muted" id="writing-time-help">Thời gian tính theo giờ Việt Nam (UTC+7).</p>
+            </fieldset>
             <div class="homework-actions">
-                <button class="button primary" type="submit">Giao cho khóa học</button>
-                <a class="button secondary" asp-action="Course" asp-route-id="@course.Id">Hủy</a>
+                <button class="button primary" type="submit">@(editAssignmentId.HasValue ? "Lưu thay đổi" : "Lưu bài viết")</button>
+                <a class="button secondary" asp-action="@(editAssignmentId.HasValue ? "Details" : "Course")" asp-route-id="@(editAssignmentId ?? course.Id)">Hủy</a>
             </div>
         </form>
     </section>

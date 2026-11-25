@@ -663,7 +663,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
         {
             string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
-            Assert.Contains(path == "/Profile" ? "Đang làm" : "Chưa có kết quả bài kiểm tra năng lực.", html);
+            Assert.Contains(path == "/Profile" ? "Đang làm" : "Bạn chưa có kết quả đánh giá.", html);
             Assert.DoesNotContain("data-representative-attempt=", html);
             Assert.DoesNotContain($"/Assessment/Result/{activeAttempt.Id}", html);
         }
@@ -838,8 +838,11 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Contains($"/Assessment/Take/{data.Assessment.Id}", lessonHtml);
 
         string courseHtml = WebUtility.HtmlDecode(await client.GetStringAsync($"/Learning/Course/{data.Course.Id}"));
-        Assert.Contains("Bạn đã hoàn thành tất cả bài học.", courseHtml);
+        Assert.Contains("2 / 2 bài học hoàn thành", courseHtml);
         Assert.Contains("Hãy làm bài thi cuối khóa để hoàn tất khóa học.", courseHtml);
+        Assert.Contains($"href=\"/Learning/Course/{data.Course.Id}?tab=assessment\"", courseHtml);
+        var assessmentTab = WebUtility.HtmlDecode(await client.GetStringAsync($"/Learning/Course/{data.Course.Id}?tab=assessment"));
+        Assert.Contains($"href=\"/Assessment/Take/{data.Assessment.Id}\"", assessmentTab);
 
         // Continue không được fallback về bài đầu khi mọi lesson đã hoàn thành.
         using var continuation = await client.GetAsync($"/Learning/Continue/{data.Course.Id}");
@@ -849,6 +852,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         string dashboardHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
         Assert.Contains("Hoàn tất khóa", dashboardHtml);
         Assert.Contains($"href=\"/Learning/Course/{data.Course.Id}\"", dashboardHtml);
+        Assert.Contains($"href=\"/Learning/Course/{data.Course.Id}?tab=assessment\"", dashboardHtml);
         Assert.DoesNotContain($"href=\"/Learning/Continue/{data.Course.Id}\"", dashboardHtml);
         string libraryHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning"));
         Assert.Contains($"href=\"/Learning/Continue/{data.Course.Id}\"", libraryHtml);
@@ -1371,10 +1375,20 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Equal(HttpStatusCode.OK, dashboard.StatusCode);
         Assert.Contains("no-store", dashboard.Headers.CacheControl!.ToString());
         Assert.Contains(data.Course.Title, await dashboard.Content.ReadAsStringAsync());
-        using var course = await student.GetAsync($"/Learning/Course/{data.Course.Id}");
+        var coursePath = $"/Learning/Course/{data.Course.Id}";
+        var practiceTabPath = coursePath + "?tab=practice";
+        var assessmentTabPath = coursePath + "?tab=assessment";
+        using var course = await student.GetAsync(coursePath);
+        Assert.Equal(HttpStatusCode.OK, course.StatusCode);
         var html = await course.Content.ReadAsStringAsync();
-        Assert.Contains($"/Practice/Take/{data.Practice.Id}", html);
-        Assert.Contains($"/Assessment/Take/{data.Assessment.Id}", html);
+        Assert.Contains($"href=\"{practiceTabPath}\"", html);
+        Assert.Contains($"href=\"{assessmentTabPath}\"", html);
+        using var practiceTab = await student.GetAsync(practiceTabPath);
+        Assert.Equal(HttpStatusCode.OK, practiceTab.StatusCode);
+        Assert.Contains($"/Practice/Take/{data.Practice.Id}", await practiceTab.Content.ReadAsStringAsync());
+        using var assessmentTab = await student.GetAsync(assessmentTabPath);
+        Assert.Equal(HttpStatusCode.OK, assessmentTab.StatusCode);
+        Assert.Contains($"/Assessment/Take/{data.Assessment.Id}", await assessmentTab.Content.ReadAsStringAsync());
         var token = await IdentityTestHelpers.GetTokenAsync(student, $"/Practice/Take/{data.Practice.Id}");
         using var missingCsrf = await student.PostAsync($"/Practice/Submit/{data.Practice.Id}", new FormUrlEncodedContent([]));
         Assert.Equal(HttpStatusCode.BadRequest, missingCsrf.StatusCode);

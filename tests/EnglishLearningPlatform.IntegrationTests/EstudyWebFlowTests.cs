@@ -23,13 +23,12 @@ public sealed class EstudyWebFlowTests(IntegrationTestFactory factory) : IClassF
         using var client = IdentityTestHelpers.CreateClient(factory);
         using var login = await IdentityTestHelpers.LoginAsync(client, student);
         Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
-        foreach (var path in new[] { "/LearningPath", "/Flashcards", "/Achievements", "/Learning/Dashboard" })
-        {
-            var html = await GetPrivatePageAsync(client, path);
-            Assert.Contains("/LearningPath", html);
-            Assert.Contains("/Flashcards", html);
-            Assert.Contains("/Achievements", html);
-        }
+        var dashboard = await GetPrivatePageAsync(client, "/Learning/Dashboard");
+        Assert.Contains("href=\"/LearningPath\"", dashboard);
+        Assert.Contains("href=\"/Flashcards\"", dashboard);
+        Assert.Contains("href=\"/Learning/Progress?tab=achievements\"", dashboard);
+        var progress = await GetPrivatePageAsync(client, "/Learning/Progress?tab=achievements");
+        Assert.Contains("href=\"/Achievements\"", progress);
         Assert.Contains("Hãy đánh giá năng lực trước", await GetPrivatePageAsync(client, "/LearningPath"));
         Assert.Contains("Chưa có bộ thẻ khả dụng", await GetPrivatePageAsync(client, "/Flashcards"));
         Assert.Contains("0 XP", await GetPrivatePageAsync(client, "/Achievements"));

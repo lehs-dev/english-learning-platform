@@ -134,6 +134,7 @@ public static class DependencyInjection
         services.AddScoped<IAdminManagementService, AdminManagementService>();
         services.AddScoped<IStudentLearningService, StudentLearningService>();
         services.AddScoped<ICourseDiscussionService, CourseDiscussionService>();
+        services.AddScoped<ITeacherInboxService, TeacherInboxService>();
         services.AddScoped<ITeacherCourseReportService, TeacherCourseReportService>();
         services.AddScoped<IPracticeService, PracticeService>();
         services.AddScoped<ITeacherPracticeService, TeacherPracticeService>();

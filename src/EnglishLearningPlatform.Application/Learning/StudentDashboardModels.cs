@@ -10,8 +10,19 @@ public sealed record StudentDashboard(
     public int CompletedCourses => Courses.Count(c => c.Progress?.CompletedAtUtc.HasValue == true);
     public IReadOnlyList<DashboardPracticeResult> PracticeResults { get; init; } = [];
     public IReadOnlyList<DashboardActivity> WeeklyActivities { get; init; } = [];
+    public DashboardCoursework Coursework { get; init; } = new([], []);
     public DateOnly WeekStartDate { get; init; }
 }
+
+public sealed record DashboardCoursework(
+    IReadOnlyList<DashboardWritingTask> PendingWriting,
+    IReadOnlyList<DashboardCourseFeedback> RecentFeedback);
+
+public sealed record DashboardWritingTask(Guid AssignmentId, string Title, string CourseTitle, DateTimeOffset? DueAtUtc);
+public enum DashboardCourseFeedbackKind { WritingReview, DiscussionReply }
+public sealed record DashboardCourseFeedback(DashboardCourseFeedbackKind Kind, Guid TargetId,
+    string Title, string CourseTitle, DateTimeOffset OccurredAtUtc);
+
 public sealed record DashboardPracticeResult(Guid PracticeId, string Title, decimal Score, DateTimeOffset SubmittedAtUtc);
 public enum DashboardActivityKind { LessonCompleted, PracticeSubmitted, AssessmentFinalized }
 public sealed record DashboardActivity(DashboardActivityKind Kind, Guid TargetId, Guid? CourseId,
@@ -43,6 +54,7 @@ public sealed record CourseActivities(IReadOnlyList<PracticeLink> Practices, IRe
 
 public interface IStudentLearningService
 {
+    Task<LearningOutcome<StudentDashboard>> TodayAsync(Guid studentId, CancellationToken ct = default);
     Task<LearningOutcome<StudentDashboard>> DashboardAsync(Guid studentId, CancellationToken ct = default);
     Task<LearningOutcome<PracticeHubPage>> PracticeHubAsync(Guid studentId, CancellationToken ct = default);
     // Dashboard và Profile dùng chung kết quả đại diện, không tự chọn highest ở từng trang.

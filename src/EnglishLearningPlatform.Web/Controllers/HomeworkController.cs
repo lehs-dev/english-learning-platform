@@ -77,6 +77,35 @@ public sealed class HomeworkController(IWritingHomeworkService homework, TimePro
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = AuthorizationPolicies.Student)]
+    public async Task<IActionResult> SaveDraft(Guid id, string? response, Guid? draftVersion, CancellationToken ct)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+        var result = await homework.SaveDraftAsync(UserId, id, response, draftVersion, ct);
+        switch (result.Status)
+        {
+            case WritingHomeworkWriteStatus.Saved:
+                TempData["Success"] = "Đã lưu bản nháp.";
+                break;
+            case WritingHomeworkWriteStatus.AlreadySubmitted:
+                TempData["Success"] = "Bài viết đã được nộp.";
+                break;
+            case WritingHomeworkWriteStatus.Closed:
+                TempData["Error"] = "Bài tập đã đóng.";
+                break;
+            case WritingHomeworkWriteStatus.Invalid:
+                return await ResponseError(id, response, $"Nhập bài viết từ 1 đến {WritingHomeworkLimits.ResponseLength} ký tự.", ct);
+            case WritingHomeworkWriteStatus.DraftChanged:
+                return await ResponseError(id, response,
+                    "Bản nháp đã được cập nhật ở nơi khác. Xem bản đã lưu trước khi lưu lại.", ct, draftChanged: true);
+            case WritingHomeworkWriteStatus.NotFound:
+                return NotFound();
+            default:
+                return Forbid();
+        }
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = AuthorizationPolicies.Student)]
     public async Task<IActionResult> Submit(Guid id, string? response, CancellationToken ct)
     {
         var result = await homework.SubmitAsync(UserId, id, response, ct);
@@ -87,14 +116,10 @@ public sealed class HomeworkController(IWritingHomeworkService homework, TimePro
                 TempData["Success"] = "Bài viết đã được nộp.";
                 break;
             case WritingHomeworkWriteStatus.Closed:
-                TempData["Error"] = "Bài viết đã hết hạn nộp.";
+                TempData["Error"] = "Bài tập đã đóng.";
                 break;
             case WritingHomeworkWriteStatus.Invalid:
-                var detail = await homework.GetAssignmentAsync(UserId, id, 1, ct);
-                if (detail.Value is null) return Denied(detail.Access);
-                ViewData["SubmissionError"] = $"Nhập bài viết từ 1 đến {WritingHomeworkLimits.ResponseLength} ký tự.";
-                ViewData["AttemptedResponse"] = response;
-                return View(nameof(Details), detail.Value);
+                return await ResponseError(id, response, $"Nhập bài viết từ 1 đến {WritingHomeworkLimits.ResponseLength} ký tự.", ct);
             case WritingHomeworkWriteStatus.NotFound:
                 return NotFound();
             default:
@@ -114,6 +139,9 @@ public sealed class HomeworkController(IWritingHomeworkService homework, TimePro
                 case WritingHomeworkWriteStatus.Saved:
                 case WritingHomeworkWriteStatus.AlreadyReviewed:
                     TempData["Success"] = "Bài viết đã có phản hồi.";
+                    return RedirectToAction(nameof(Details), new { id, page });
+                case WritingHomeworkWriteStatus.Closed:
+                    TempData["Error"] = "Khóa học đã lưu trữ và chỉ có thể xem bài nộp.";
                     return RedirectToAction(nameof(Details), new { id, page });
                 case WritingHomeworkWriteStatus.Forbidden:
                     return Forbid();
@@ -135,6 +163,18 @@ public sealed class HomeworkController(IWritingHomeworkService homework, TimePro
     {
         ViewData["Course"] = course;
         return View(nameof(Create), input);
+    }
+
+    private async Task<IActionResult> ResponseError(Guid id, string? response, string error, CancellationToken ct,
+        bool draftChanged = false)
+    {
+        var detail = await homework.GetAssignmentAsync(UserId, id, 1, ct);
+        if (detail.Value is null) return Denied(detail.Access);
+        ViewData["SubmissionError"] = error;
+        ViewData["AttemptedResponse"] = response ?? "";
+        ViewData["DraftChanged"] = draftChanged;
+        if (draftChanged) Response.StatusCode = StatusCodes.Status409Conflict;
+        return View(nameof(Details), detail.Value);
     }
 
     private IActionResult RedirectClosed(Guid id)

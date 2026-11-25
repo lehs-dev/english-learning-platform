@@ -72,6 +72,86 @@ public sealed class WritingHomeworkTests(IntegrationTestFactory factory) : IClas
         Assert.DoesNotContain(feedback, classmatePage);
     }
 
+    [Fact]
+    public async Task DraftSurvivesRefresh_RejectsStaleSave_AndBecomesPrivateFinalSubmission()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var classmate = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Draft course", Status = CourseStatus.Published };
+        var assignment = new WritingAssignment { Course = course, Title = "Writing draft", Prompt = "Write a short dialogue." };
+        var closing = new WritingAssignment { Course = course, Title = "Closing task", Prompt = "Write a short reply." };
+        db.WritingAssignments.AddRange(assignment, closing);
+        db.Enrollments.AddRange(
+            new Enrollment { Course = course, StudentUserId = student.Id },
+            new Enrollment { Course = course, StudentUserId = classmate.Id });
+        await db.SaveChangesAsync();
+
+        using var studentClient = await LoginAsync(student);
+        using var teacherClient = await LoginAsync(teacher);
+        using var classmateClient = await LoginAsync(classmate);
+        var details = $"/Homework/Details/{assignment.Id}";
+        var save = $"/Homework/SaveDraft/{assignment.Id}";
+        var token = await IdentityTestHelpers.GetTokenAsync(studentClient, details);
+        Assert.Contains($"formaction=\"{save}\"", await studentClient.GetStringAsync(details));
+        using var missingToken = await studentClient.PostAsync(save, new FormUrlEncodedContent([new("response", "Draft")]));
+        Assert.Equal(HttpStatusCode.BadRequest, missingToken.StatusCode);
+
+        const string first = "An unfinished first version.";
+        using var initial = await PostAsync(studentClient, save, token, [new("response", first)]);
+        Assert.Equal(HttpStatusCode.Redirect, initial.StatusCode);
+        using var retry = await PostAsync(studentClient, save, token, [new("response", first)]);
+        Assert.Equal(HttpStatusCode.Redirect, retry.StatusCode);
+        Assert.Contains(first, await studentClient.GetStringAsync(details));
+        Assert.DoesNotContain(first, await teacherClient.GetStringAsync(details));
+        Assert.DoesNotContain(first, await classmateClient.GetStringAsync(details));
+        Assert.False(await db.WritingSubmissions.AnyAsync(row => row.AssignmentId == assignment.Id));
+        Assert.False(await db.StudentActivityDays.AnyAsync(day => day.StudentUserId == student.Id));
+
+        var version = await db.WritingSubmissionDrafts.Where(row => row.AssignmentId == assignment.Id)
+            .Select(row => row.Version).SingleAsync();
+        const string firstEdit = "My revisions in one tab.";
+        const string secondEdit = "My revisions in a second tab.";
+        var saves = await Task.WhenAll(
+            PostAsync(studentClient, save, token, [new("response", firstEdit), new("draftVersion", version.ToString())]),
+            PostAsync(studentClient, save, token, [new("response", secondEdit), new("draftVersion", version.ToString())]));
+        using var winner = Assert.Single(saves, item => item.StatusCode == HttpStatusCode.Redirect);
+        using var conflict = Assert.Single(saves, item => item.StatusCode == HttpStatusCode.Conflict);
+        var conflictPage = await conflict.Content.ReadAsStringAsync();
+        Assert.Contains(firstEdit, conflictPage);
+        Assert.Contains(secondEdit, conflictPage);
+
+        const string final = "The student completed the dialogue.";
+        using var submitted = await PostAsync(studentClient, $"/Homework/Submit/{assignment.Id}", token, [new("response", final)]);
+        Assert.Equal(HttpStatusCode.Redirect, submitted.StatusCode);
+        using var tooLate = await PostAsync(studentClient, save, token, [new("response", "A draft after submitting.")]);
+        Assert.Equal(HttpStatusCode.Redirect, tooLate.StatusCode);
+        Assert.False(await db.WritingSubmissionDrafts.AnyAsync(row => row.AssignmentId == assignment.Id));
+        var submission = await db.WritingSubmissions.AsNoTracking().SingleAsync(row => row.AssignmentId == assignment.Id);
+        Assert.Equal(final, submission.Response);
+        Assert.Single(await db.StudentActivityDays.Where(day => day.StudentUserId == student.Id).ToListAsync());
+
+        var closingSave = $"/Homework/SaveDraft/{closing.Id}";
+        const string held = "This draft remains readable when closed.";
+        using var closingSaved = await PostAsync(studentClient, closingSave, token, [new("response", held)]);
+        Assert.Equal(HttpStatusCode.Redirect, closingSaved.StatusCode);
+        await db.Courses.Where(row => row.Id == course.Id).ExecuteUpdateAsync(set => set.SetProperty(row => row.Status, CourseStatus.Archived));
+        var closedPage = await studentClient.GetStringAsync($"/Homework/Details/{closing.Id}");
+        Assert.Contains(held, closedPage);
+        Assert.DoesNotContain("writing-response", closedPage);
+        using var closedDraft = await PostAsync(studentClient, closingSave, token, [new("response", "Should not replace archival copy.")]);
+        Assert.Equal(HttpStatusCode.Redirect, closedDraft.StatusCode);
+        Assert.Equal(held, await db.WritingSubmissionDrafts.Where(row => row.AssignmentId == closing.Id).Select(row => row.Response).SingleAsync());
+
+        var archivedReview = $"/Homework/Review/{assignment.Id}?submissionId={submission.Id}";
+        var teacherToken = await IdentityTestHelpers.GetTokenAsync(teacherClient, details);
+        using var closedReview = await PostAsync(teacherClient, archivedReview, teacherToken, [new("Feedback", "Should remain read-only.")]);
+        Assert.Equal(HttpStatusCode.Redirect, closedReview.StatusCode);
+        Assert.Null(await db.WritingSubmissions.Where(row => row.Id == submission.Id).Select(row => row.Feedback).SingleAsync());
+    }
+
     private async Task<HttpClient> LoginAsync(ApplicationUser user)
     {
         var client = IdentityTestHelpers.CreateClient(factory);

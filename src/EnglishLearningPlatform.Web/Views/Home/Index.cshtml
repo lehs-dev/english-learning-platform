@@ -1,166 +1,44 @@
 @model CatalogPage
 @{
     ViewData["Title"] = "Học tiếng Anh mỗi ngày";
+    ViewData["Description"] = "Luyện tiếng Anh qua tình huống và tìm khóa học theo kỹ năng trên Estudy.";
+    ViewData["PageClass"] = "landing-marketing";
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/landing-practice.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/landing-content.css" asp-append-version="true" />
 }
 
 <div class="landing-page">
-    <section class="homepage-hero-card" aria-labelledby="hero-title">
-        <img class="homepage-hero-art" src="~/images/study-desk-cover.webp" asp-append-version="true"
-             width="1200" height="800" fetchpriority="high" alt="" />
-        <div class="homepage-hero-content">
-            <h1 class="homepage-hero-title" id="hero-title">Học tiếng Anh <span>theo nhịp của bạn</span></h1>
-            <p class="homepage-hero-desc">
-                Học với giảng viên, luyện từng kỹ năng và theo dõi tiến độ hằng ngày trên Estudy.
-            </p>
-            <div class="homepage-hero-cta-group">
-                <a href="#courses" class="button landing-primary">
-                    Khám phá khóa học
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                </a>
-                <a asp-controller="Assessment" asp-action="Index" class="button secondary landing-light-link">Đánh giá năng lực</a>
-            </div>
-        </div>
-    </section>
-
-    <section class="homepage-section" id="courses" aria-labelledby="courses-heading">
-        <div class="homepage-section-header">
-            <div>
-                <h2 id="courses-heading">Khám phá khóa học</h2>
-                <p>Chọn khóa học theo kỹ năng bạn muốn cải thiện.</p>
-            </div>
-            @if (Model.Courses.Count > 0)
-            {
-                <a class="landing-plain-link" asp-controller="Courses" asp-action="Index">
-                    Xem tất cả khóa học
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                </a>
-            }
-        </div>
-
-        @if (Model.Courses.Count > 0)
-        {
-            <div class="filter-pills-row" role="group" aria-label="Lọc khóa học theo kỹ năng" data-landing-filter hidden>
-                <button class="filter-pill-item active" type="button" data-filter="all" aria-pressed="true">Tất cả</button>
-                <button class="filter-pill-item" type="button" data-filter="Grammar" aria-pressed="false">Ngữ pháp</button>
-                <button class="filter-pill-item" type="button" data-filter="Vocabulary" aria-pressed="false">Từ vựng</button>
-                <button class="filter-pill-item" type="button" data-filter="Reading" aria-pressed="false">Đọc hiểu</button>
-                <button class="filter-pill-item" type="button" data-filter="Listening" aria-pressed="false">Nghe hiểu</button>
-            </div>
-
-            <div class="homepage-courses-grid">
-                @foreach (var course in Model.Courses.Take(6))
-                {
-                    var skill = course.Skills.FirstOrDefault();
-                    var skillIcon = skill switch
-                    {
-                        EnglishSkill.Listening => "headphones",
-                        EnglishSkill.Reading => "book",
-                        EnglishSkill.Grammar => "pencil",
-                        _ => "folder"
-                    };
-
-                    <article class="course-item-card" data-skill="@(string.Join(" ", course.Skills))">
-                        <div class="landing-course-top">
-                            <span class="landing-course-icon" aria-hidden="true">
-                                <svg class="icon"><use href="@Url.Content($"~/images/icons.svg#{skillIcon}")"></use></svg>
-                            </span>
-                            <span class="landing-course-price @(course.IsPaid ? "" : "is-free")">
-                                @(course.IsPaid ? course.Price.ToString("#,##0.##", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) + " ₫" : "Miễn phí")
-                            </span>
-                        </div>
-                        <div class="landing-course-heading">
-                            <div class="landing-course-tags">
-                                <span class="landing-course-tag"><partial name="_UiText" model="course.Level" /></span>
-                                @foreach (var item in course.Skills)
-                                {
-                                    <span class="landing-course-tag"><partial name="_UiText" model="item" /></span>
-                                }
-                            </div>
-                            <h3><a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">@course.Title</a></h3>
-                            @if (!string.IsNullOrWhiteSpace(course.Description))
-                            {
-                                <p>@course.Description</p>
-                            }
-                        </div>
-                        <footer class="landing-course-footer">
-                            <div class="landing-course-meta">
-                                <span>
-                                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
-                                    @course.Teacher
-                                </span>
-                                <span>
-                                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                                    @course.LessonCount bài học
-                                </span>
-                            </div>
-                            <a class="landing-plain-link landing-course-link" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id" aria-label="Xem khóa học @course.Title">
-                                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                            </a>
-                        </footer>
-                    </article>
-                }
-            </div>
-            <p class="landing-empty" data-landing-filter-empty role="status" hidden>Chưa có khóa học hiển thị cho kỹ năng này.</p>
-        }
-        else
-        {
-            <div class="landing-empty">
-                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                <div>
-                    <h3>Khóa học đang được chuẩn bị</h3>
-                    <p>Danh mục sẽ cập nhật khi giảng viên xuất bản khóa học.</p>
-                </div>
-            </div>
-        }
-    </section>
-
-    <section class="homepage-section" id="journey" aria-labelledby="journey-heading">
-        <div class="homepage-section-header">
-            <div>
-                <h2 id="journey-heading">Lộ trình học tập trên Estudy</h2>
-            </div>
-        </div>
-        <div class="landing-highlights">
-            <article>
-                <span class="landing-highlight-icon">
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
-                </span>
-                <h3>Biết mình đang ở đâu</h3>
-                <p>Làm bài đánh giá để xem điểm và nhận gợi ý ôn tập theo kỹ năng.</p>
-            </article>
-            <article>
-                <span class="landing-highlight-icon">
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#headphones")"></use></svg>
-                </span>
-                <h3>Luyện theo nhiều cách</h3>
-                <p>Ôn flashcard, luyện nghe chép chính tả và xem lại lời giải sau khi làm bài.</p>
-            </article>
-            <article>
-                <span class="landing-highlight-icon">
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#users")"></use></svg>
-                </span>
-                <h3>Nhận phản hồi từ giảng viên</h3>
-                <p>Hỏi đáp riêng trong khóa học và nhận nhận xét cho bài viết đã nộp.</p>
-            </article>
-        </div>
-    </section>
+    <partial name="_LandingHero" />
+    <partial name="_LandingPractice" />
+    <partial name="_LandingCatalog" model="Model" />
+    <partial name="_LandingJourney" />
 
     <section class="homepage-cta-card" aria-labelledby="cta-heading">
-        <div>
-            <h2 id="cta-heading">Bắt đầu học với Estudy</h2>
-            <p>Tạo tài khoản để tham gia khóa học và lưu tiến độ qua từng buổi học.</p>
-        </div>
-        <a asp-controller="Account" asp-action="Register" class="button landing-primary">
-            Tạo tài khoản
+        <h2 id="cta-heading">Bắt đầu học</h2>
+        <a asp-controller="Account" asp-action="Register" class="button landing-primary"
+           aria-haspopup="dialog" aria-controls="auth-modal">
+            Đăng ký
             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
         </a>
     </section>
+
+    <nav class="landing-dock" aria-label="Đi nhanh trên trang" data-landing-dock hidden>
+        <a href="#courses">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+            Khóa học
+        </a>
+        <a class="landing-dock-practice" href="#practice">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+            Luyện thử
+        </a>
+    </nav>
 </div>
 
 @section Scripts {
     <script src="~/js/landing.js" asp-append-version="true" defer></script>
+    <script src="~/js/landing-practice.js" asp-append-version="true" defer></script>
 }

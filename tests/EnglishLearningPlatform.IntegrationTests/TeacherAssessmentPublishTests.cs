@@ -146,7 +146,7 @@ public sealed class TeacherAssessmentPublishTests : IClassFixture<IntegrationTes
         using var page = await client.GetAsync("/Assessment/Result/" + attempt.Id);
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
         string html = WebUtility.HtmlDecode(await page.Content.ReadAsStringAsync());
-        Assert.Contains("không áp dụng ngưỡng đạt / trượt", html);
+        Assert.Contains("Không xét đạt / trượt", html);
         Assert.DoesNotContain("assessment-passed", html);
         Assert.DoesNotContain("assessment-failed", html);
     }

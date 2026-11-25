@@ -26,7 +26,7 @@ public static class LearningDemoSeeder
 
         await User("admin1", AppRoles.Admin);
         var teacher = await User("teacher1", AppRoles.Teacher);
-        await User("teacher2", AppRoles.Teacher);
+        var workshopTeacher = await User("teacher2", AppRoles.Teacher);
         var student = await User("student1", AppRoles.Student);
         await User("student2", AppRoles.Student);
 
@@ -72,7 +72,10 @@ public static class LearningDemoSeeder
         await transaction.CommitAsync();
 
         if (audioStore is not null)
+        {
             await LearningDemoContentSeeder.SeedAsync(db, teacher.Id, student.Id, audioStore);
+            await LearningDemoWorkshopSeeder.SeedAsync(db, workshopTeacher.Id, student.Id, audioStore);
+        }
 
         async Task<ApplicationUser> User(string name, string role)
         {

@@ -7,14 +7,14 @@ namespace EnglishLearningPlatform.Web.Models.Account;
 public sealed class RegisterViewModel
 {
     [Required(ErrorMessage = "Hãy nhập họ và tên.")]
-    [StringLength(200)]
+    [StringLength(200, ErrorMessage = "Họ và tên dài tối đa 200 ký tự.")]
     [Display(Name = "Họ và Tên")]
     public string FullName { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng nhập email.")]
-    [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
-    [StringLength(256)]
-    [Display(Name = "Email")]
+    [Required(ErrorMessage = "Vui lòng nhập địa chỉ thư điện tử.")]
+    [EmailAddress(ErrorMessage = "Địa chỉ thư điện tử không hợp lệ.")]
+    [StringLength(256, ErrorMessage = "Địa chỉ thư điện tử dài tối đa 256 ký tự.")]
+    [Display(Name = "Thư điện tử")]
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]

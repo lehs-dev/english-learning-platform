@@ -11,37 +11,36 @@
     <partial name="_AuthAside" />
     <div class="auth-form-panel">
         <div class="auth-heading">
-
             <h1 id="auth-title">Đăng nhập</h1>
-            <p>Tiếp tục hành trình học tiếng Anh của bạn.</p>
         </div>
         @if (TempData["SuccessMessage"] is string successMessage)
         {
             <div class="notice notice-success" role="status">@successMessage</div>
         }
-        <div class="demo-account-shortcuts" data-demo-password="@Model.DemoPassword" aria-label="Chọn tài khoản demo">
-            <span class="demo-account-label">Chuyển nhanh tài khoản demo</span>
+        <div class="demo-account-shortcuts" data-demo-password="@Model.DemoPassword" role="group" aria-labelledby="demo-account-label">
+            <span class="demo-account-label" id="demo-account-label">Tài khoản dùng thử</span>
             <div class="demo-account-buttons">
                 <button type="button" class="demo-account-button" data-demo-email="student1@demo.example.test" aria-pressed="false">Học viên</button>
                 <button type="button" class="demo-account-button" data-demo-email="teacher1@demo.example.test" aria-pressed="false">Giảng viên</button>
                 <button type="button" class="demo-account-button" data-demo-email="admin1@demo.example.test" aria-pressed="false">Quản trị</button>
             </div>
-            <span class="field-hint">@(string.IsNullOrWhiteSpace(Model.DemoPassword)
-                ? "Chọn vai trò để điền email, sau đó nhập mật khẩu demo."
-                : "Chọn vai trò để tự động điền email và mật khẩu demo.")</span>
+            @if (string.IsNullOrWhiteSpace(Model.DemoPassword))
+            {
+                <span class="field-hint">Chọn vai trò rồi nhập mật khẩu dùng thử.</span>
+            }
         </div>
         <form class="account-form" asp-controller="Account" asp-action="Login" method="post">
             <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
             <div class="validation-summary" asp-validation-summary="ModelOnly" role="alert"></div>
             <div class="form-field">
-                <label asp-for="Email">Email</label>
-                <input asp-for="Email" type="email" autocomplete="username" placeholder="Nhập email của bạn" aria-describedby="email-error" required />
+                <label asp-for="Email">Thư điện tử</label>
+                <input asp-for="Email" type="email" autocomplete="username" aria-describedby="email-error" required />
                 <span asp-validation-for="Email" id="email-error" class="field-error"></span>
             </div>
             <div class="form-field">
                 <label asp-for="Password">Mật khẩu</label>
                 <div class="password-field">
-                    <input asp-for="Password" autocomplete="current-password" placeholder="Nhập mật khẩu" aria-describedby="password-error" required />
+                    <input asp-for="Password" autocomplete="current-password" aria-describedby="password-error" required />
                     <button type="button" class="password-toggle" data-password-toggle="Password" aria-label="Hiện mật khẩu" aria-pressed="false">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#eye")"></use></svg>
                     </button>
@@ -51,8 +50,8 @@
             <label class="checkbox-label"><input asp-for="RememberMe" /> <span>Ghi nhớ đăng nhập</span></label>
             <button class="button button-primary button-full" type="submit">Đăng nhập <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></button>
         </form>
-        <p class="auth-switch">Bạn chưa có tài khoản? <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Đăng ký ngay</a></p>
+        <p class="auth-switch">Chưa có tài khoản? <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Đăng ký</a></p>
         <a class="back-home" asp-controller="Home" asp-action="Index"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Về trang chủ</a>
     </div>
 </section>
-<p class="auth-copyright">© 2026 Estudy. Cùng bạn chinh phục tiếng Anh.</p>
+<p class="auth-copyright">&copy; @DateTime.UtcNow.Year Estudy</p>

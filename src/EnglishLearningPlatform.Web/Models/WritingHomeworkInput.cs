@@ -3,6 +3,8 @@ using EnglishLearningPlatform.Application.Homework;
 
 namespace EnglishLearningPlatform.Web.Models;
 
+public enum WritingAssignmentPublishMode { Now, Draft, Scheduled }
+
 public sealed class WritingAssignmentInput
 {
     [Required(ErrorMessage = "Nhập tên bài viết.")]
@@ -14,6 +16,11 @@ public sealed class WritingAssignmentInput
     public string? Prompt { get; set; }
 
     public DateTime? DueAt { get; set; }
+
+    [EnumDataType(typeof(WritingAssignmentPublishMode), ErrorMessage = "Chọn cách giao bài.")]
+    public WritingAssignmentPublishMode PublishMode { get; set; }
+
+    public DateTime? PublishAt { get; set; }
 }
 
 public sealed class WritingReviewInput

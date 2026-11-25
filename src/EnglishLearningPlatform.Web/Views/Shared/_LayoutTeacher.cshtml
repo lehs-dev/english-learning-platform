@@ -8,6 +8,7 @@
         "teacherpractices" or "teacherpracticequestions" or "teacherpracticepreview" => "practices",
         "teacherflashcards" => "flashcards",
         "teacheranalytics" => "analytics",
+        "teacherinbox" => "inbox",
         "teachercourses" or "teachercoursefinal" or "learning" => ViewData["ActiveSection"] as string ?? "courses",
         _ => ViewData["ActiveSection"] as string ?? ""
     };
@@ -19,6 +20,7 @@
         "questionbank" => "Ngân hàng câu hỏi",
         "flashcards" => "Thẻ từ vựng",
         "analytics" => "Thống kê lớp học",
+        "inbox" => "Việc cần xử lý",
         _ => "Không gian giảng dạy"
     };
     var currentTitle = ViewData["Title"] as string ?? "Không gian giảng dạy";
@@ -69,6 +71,9 @@
                     <span class="studio-nav-label">Giảng dạy</span>
                     <a class="studio-nav-link @(activeSection == "courses" ? "is-active" : "")" asp-controller="TeacherCourses" asp-action="Index" aria-current="@(activeSection == "courses" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg><span>Khóa học</span>
+                    </a>
+                    <a class="studio-nav-link @(activeSection == "inbox" ? "is-active" : "")" asp-controller="TeacherInbox" asp-action="Index" aria-current="@(activeSection == "inbox" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#bell")"></use></svg><span>Việc cần xử lý</span>
                     </a>
                     <a class="studio-nav-link @(activeSection == "assessments" ? "is-active" : "")" asp-controller="TeacherAssessments" asp-action="Index" aria-current="@(activeSection == "assessments" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg><span>Bài kiểm tra</span>

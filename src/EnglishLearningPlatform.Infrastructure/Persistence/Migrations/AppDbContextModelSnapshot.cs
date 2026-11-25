@@ -1800,6 +1800,32 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingSubmissionDraft", b =>
+                {
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Response")
+                        .IsRequired()
+                        .HasMaxLength(6000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("SavedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("Version")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AssignmentId", "StudentUserId");
+
+                    b.HasIndex("StudentUserId");
+
+                    b.ToTable("WritingSubmissionDrafts", (string)null);
+                });
+
             modelBuilder.Entity("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2629,6 +2655,21 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Assignment");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingSubmissionDraft", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.WritingAssignment", null)
+                        .WithMany()
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

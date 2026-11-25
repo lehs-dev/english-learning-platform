@@ -1,4 +1,6 @@
 using System.Data;
+using System.Security.Cryptography;
+using System.Text;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
@@ -70,18 +72,7 @@ public sealed class PracticeService(
         int? version, Guid? sessionId, CancellationToken ct)
     {
         if (!await IsActiveStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
-        var practice = await db.AvailablePractices(studentId).Where(p => p.Id == practiceId)
-            .Select(p => new
-            {   // Owner lấy từ database, không lấy từ form của Student.
-                p.OwnerTeacherUserId,
-                p.Id,
-                p.Title,
-                p.Description,
-                p.Version,
-                HasResult = p.Submissions.Any(s => s.StudentUserId == studentId),
-                CourseId = p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
-                CourseTitle = p.LessonId.HasValue ? p.Lesson!.Module.Course.Title : p.Module!.Course.Title
-            }).SingleOrDefaultAsync(ct);
+        var practice = await ReadAvailablePracticeAsync(studentId, practiceId, ct);
         if (practice is null) return new(LearningAccessResult.NotFound);
         int sheetVersion = version ?? practice.Version;
         var questions = await QuestionsAsync(practiceId, sheetVersion, ct);
@@ -91,13 +82,92 @@ public sealed class PracticeService(
             return new LearningOutcome<PracticeSheet>(
                 LearningAccessResult.NotFound);
         }
-        return new(LearningAccessResult.Allowed, new(practice.Id, practice.CourseId, practice.CourseTitle, practice.Title,
+        var sheet = BuildSheet(practice, questions) with { Version = sheetVersion, SessionId = sessionId };
+        return new(LearningAccessResult.Allowed, sheet);
+    }
+
+    private sealed record AvailablePractice(Guid Id, Guid OwnerTeacherUserId, Guid CourseId, string CourseTitle,
+        string Title, string? Description, int Version, bool HasResult);
+
+    private Task<AvailablePractice?> ReadAvailablePracticeAsync(Guid studentId, Guid practiceId, CancellationToken ct) =>
+        db.AvailablePractices(studentId).Where(p => p.Id == practiceId)
+            .Select(p => new AvailablePractice(p.Id, p.OwnerTeacherUserId,
+                p.LessonId.HasValue ? p.Lesson!.Module.CourseId : p.Module!.CourseId,
+                p.LessonId.HasValue ? p.Lesson!.Module.Course.Title : p.Module!.Course.Title,
+                p.Title, p.Description, p.Version, p.Submissions.Any(s => s.StudentUserId == studentId)))
+            .SingleOrDefaultAsync(ct);
+
+    private static PracticeSheet BuildSheet(AvailablePractice practice, IReadOnlyList<PracticeQuestion> questions) =>
+        new(practice.Id, practice.CourseId, practice.CourseTitle, practice.Title,
             practice.Description, questions.Select(q => new PracticeQuestionSheet(q.Id, q.Question.Content, q.Question.PrimarySkill,
                 q.Question.Stimulus?.StimulusType == StimulusType.Passage ? q.Question.Stimulus.ContentText : null,
                 q.Question.Stimulus?.StimulusType == StimulusType.Audio ? q.Question.Stimulus.ResourceUrl : null,
                 q.Question.Options.OrderBy(o => o.OrderIndex).ThenBy(o => o.Id).Select(o => new PracticeOption(o.Id, o.Content)).ToList())
                 { QuestionType = q.Question.QuestionType, StructuredPrompt = StructuredQuestionEvaluator.GetPrompt(q.Question) }).ToList())
-        { HasResult = practice.HasResult, Version = sheetVersion, SessionId = sessionId });
+        { HasResult = practice.HasResult, Version = practice.Version };
+
+    public async Task<LearningOutcome<PracticeSheet>> GetMistakeSheetAsync(Guid studentId, Guid practiceId, CancellationToken ct = default)
+    {
+        var review = await ReadReviewAsync(studentId, practiceId, ct);
+        return review.Value is { } source
+            ? new(LearningAccessResult.Allowed, BuildSheet(source.Practice, source.Questions) with { ReviewStamp = source.Stamp })
+            : new(review.Access);
+    }
+
+    public async Task<PracticeReviewResult> CheckMistakesAsync(Guid studentId, Guid practiceId, string reviewStamp,
+        IReadOnlyList<PracticeResponse> responses, CancellationToken ct = default)
+    {
+        var review = await ReadReviewAsync(studentId, practiceId, ct);
+        if (review.Access == LearningAccessResult.Forbidden) return new(PracticeReviewStatus.Forbidden);
+        if (review.Value is not { } source || !string.Equals(reviewStamp, source.Stamp, StringComparison.Ordinal))
+            return new(PracticeReviewStatus.Stale);
+        var grades = GradeResponses(source.Questions, responses);
+        if (grades is null) return new(PracticeReviewStatus.InvalidAnswers);
+
+        var responseById = responses.ToDictionary(response => response.PracticeQuestionId);
+        var feedback = source.Questions.Select(question =>
+        {
+            var response = responseById[question.Id];
+            var grade = grades[question.Id];
+            return Feedback(question, new PracticeAnswer
+            {
+                SelectedOption = question.Question.Options.FirstOrDefault(option => option.Id == response.SelectedOptionId),
+                TextAnswer = response.TextAnswer,
+                StructuredAnswerJson = grade.StructuredJson,
+                IsCorrect = grade.IsCorrect
+            });
+        }).ToList();
+
+        var result = new PracticeResult(practiceId, source.Practice.CourseId, source.Practice.Title,
+            Score(source.Questions, grades, responses), time.GetUtcNow(), feedback) { Version = source.Practice.Version };
+        return new(PracticeReviewStatus.Graded, result);
+    }
+
+    private sealed record ReviewSource(AvailablePractice Practice, IReadOnlyList<PracticeQuestion> Questions, string Stamp);
+
+    private async Task<LearningOutcome<ReviewSource>> ReadReviewAsync(Guid studentId, Guid practiceId, CancellationToken ct)
+    {
+        if (!await IsActiveStudentAsync(studentId, ct)) return new(LearningAccessResult.Forbidden);
+        var practice = await ReadAvailablePracticeAsync(studentId, practiceId, ct);
+        if (practice is not { HasResult: true }) return new(LearningAccessResult.NotFound);
+
+        var submission = await db.PracticeSubmissions.AsNoTracking()
+            .Include(s => s.Answers).ThenInclude(a => a.SelectedOption)
+            .SingleOrDefaultAsync(s => s.StudentUserId == studentId && s.PracticeId == practiceId &&
+                s.Version == practice.Version && s.Version == s.Practice.Version, ct);
+        if (submission is null) return new(LearningAccessResult.NotFound);
+
+        var questions = await QuestionsAsync(practiceId, submission.Version, ct);
+        if (!ValidQuestions(practice.OwnerTeacherUserId, questions)) return new(LearningAccessResult.NotFound);
+        var answers = submission.Answers.ToDictionary(answer => answer.PracticeQuestionId);
+        var mistakes = questions.Where(question => !Feedback(question, answers.GetValueOrDefault(question.Id)).IsCorrect).ToList();
+        if (mistakes.Count == 0) return new(LearningAccessResult.NotFound);
+
+        // The latest result row is reused on resubmission. Bind to its revision and saved answer rows.
+        var answerIds = string.Join(",", submission.Answers.Select(answer => answer.Id).Order());
+        var revision = FormattableString.Invariant($"{submission.Id}:{submission.Version}:{submission.SubmittedAtUtc.UtcTicks}:{answerIds}");
+        var stamp = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(revision)));
+        return new(LearningAccessResult.Allowed, new(practice, mistakes, stamp));
     }
 
     public Task<PracticeSubmitResult> SubmitAsync(Guid studentId, Guid practiceId,
@@ -155,27 +225,8 @@ public sealed class PracticeService(
             return new PracticeSubmitResult(
                 PracticeSubmitStatus.Unavailable);
         }
-        if (responses is null || responses.Count != questions.Count)
-            return new(PracticeSubmitStatus.InvalidAnswers);
-
-        var questionById = questions.ToDictionary(q => q.Id, q => q.Question);
-        var grades = new Dictionary<Guid, AnswerGrade>();
-        foreach (var response in responses)
-        {
-            if (!questionById.TryGetValue(response.PracticeQuestionId, out var question) ||
-                EvaluateResponse(question, response) is not { } grade || !grades.TryAdd(response.PracticeQuestionId, grade))
-                return new(PracticeSubmitStatus.InvalidAnswers);
-        }
-
-        // Keep option IDs for MCQ. Other types provide a correctness marker after server evaluation.
-        var responseMap = responses.ToDictionary(r => r.PracticeQuestionId, r =>
-            questionById[r.PracticeQuestionId].QuestionType == QuestionType.MultipleChoice ? r.SelectedOptionId
-                : grades[r.PracticeQuestionId].IsCorrect ? (Guid?)r.PracticeQuestionId : null);
-        var scoringItems = questions.Select(q => new QuestionScoringItem(q.Id, 1m,
-            q.Question.QuestionType == QuestionType.MultipleChoice
-                ? q.Question.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToArray()
-                : [q.Id])).ToList();
-        var scoringResult = scoringStrategy.CalculateScore(scoringItems, responseMap);
+        var grades = GradeResponses(questions, responses);
+        if (grades is null) return new(PracticeSubmitStatus.InvalidAnswers);
         var submission = await db.PracticeSubmissions.SingleOrDefaultAsync(s => s.StudentUserId == studentId && s.PracticeId == practiceId, ct);
         if (submission is null)
         {
@@ -187,7 +238,7 @@ public sealed class PracticeService(
             await ArchiveLatestAsync(submission, ct);
             await db.PracticeAnswers.Where(a => a.PracticeSubmissionId == submission.Id).ExecuteDeleteAsync(ct);
         }
-        submission.Score = scoringResult.Percentage;
+        submission.Score = Score(questions, grades, responses);
         submission.Version = version;
         submission.SubmittedAtUtc = time.GetUtcNow();
         if (session != null) session.SubmittedAtUtc = submission.SubmittedAtUtc;
@@ -245,6 +296,35 @@ public sealed class PracticeService(
     }
 
     private sealed record AnswerGrade(bool IsCorrect, string? StructuredJson = null);
+
+    private static Dictionary<Guid, AnswerGrade>? GradeResponses(
+        IReadOnlyList<PracticeQuestion> questions, IReadOnlyList<PracticeResponse>? responses)
+    {
+        if (responses is null || responses.Count != questions.Count) return null;
+        var questionById = questions.ToDictionary(q => q.Id, q => q.Question);
+        var grades = new Dictionary<Guid, AnswerGrade>();
+        foreach (var response in responses)
+        {
+            if (!questionById.TryGetValue(response.PracticeQuestionId, out var question) ||
+                EvaluateResponse(question, response) is not { } grade || !grades.TryAdd(response.PracticeQuestionId, grade))
+                return null;
+        }
+        return grades;
+    }
+
+    private decimal Score(IReadOnlyList<PracticeQuestion> questions, Dictionary<Guid, AnswerGrade> grades,
+        IReadOnlyList<PracticeResponse> responses)
+    {
+        var responseById = responses.ToDictionary(response => response.PracticeQuestionId);
+        var responseMap = questions.ToDictionary(question => question.Id, question =>
+            question.Question.QuestionType == QuestionType.MultipleChoice ? responseById[question.Id].SelectedOptionId
+                : grades[question.Id].IsCorrect ? (Guid?)question.Id : null);
+        var scoringItems = questions.Select(q => new QuestionScoringItem(q.Id, 1m,
+            q.Question.QuestionType == QuestionType.MultipleChoice
+                ? q.Question.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToArray()
+                : [q.Id])).ToList();
+        return scoringStrategy.CalculateScore(scoringItems, responseMap).Percentage;
+    }
 
     private static AnswerGrade? EvaluateResponse(Question question, PracticeResponse response)
     {

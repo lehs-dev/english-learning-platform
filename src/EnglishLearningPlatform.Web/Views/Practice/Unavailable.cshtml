@@ -1,4 +1,7 @@
-@{ ViewData["Title"] = "Bài luyện chưa khả dụng"; }
+@{
+    var staleReviewPracticeId = ViewData["StaleReviewPracticeId"] as Guid?;
+    ViewData["Title"] = staleReviewPracticeId.HasValue ? "Lượt ôn đã thay đổi" : "Bài luyện chưa khả dụng";
+}
 @section Styles {
     <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
 }
@@ -6,8 +9,16 @@
 <div class="activity-scene">
     <section class="activity-panel activity-empty" aria-labelledby="unavailable-practice-title">
         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg>
-        <h1 id="unavailable-practice-title">Bài luyện chưa khả dụng</h1>
-        <p>Bài luyện hoặc nội dung trong khóa đã thay đổi trạng thái. Bạn vẫn có thể xem kết quả đã nộp.</p>
-        <a class="button" asp-controller="Learning" asp-action="Dashboard">Về bàn học của tôi</a>
+        <h1 id="unavailable-practice-title">@ViewData["Title"]</h1>
+        @if (staleReviewPracticeId is Guid practiceId)
+        {
+            <p>Mở kết quả gần nhất để kiểm tra câu cần ôn.</p>
+            <a class="button" asp-action="Result" asp-route-id="@practiceId">Xem kết quả gần nhất</a>
+        }
+        else
+        {
+            <p>Bài luyện hoặc nội dung trong khóa đã thay đổi trạng thái. Bạn vẫn có thể xem kết quả đã nộp.</p>
+            <a class="button" asp-controller="Learning" asp-action="Dashboard">Về bàn học của tôi</a>
+        }
     </section>
 </div>

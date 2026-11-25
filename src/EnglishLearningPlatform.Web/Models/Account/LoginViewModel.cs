@@ -5,8 +5,8 @@ namespace EnglishLearningPlatform.Web.Models.Account;
 
 public sealed class LoginViewModel
 {
-    [Required(ErrorMessage = "Vui lòng nhập email.")]
-    [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+    [Required(ErrorMessage = "Vui lòng nhập địa chỉ thư điện tử.")]
+    [EmailAddress(ErrorMessage = "Địa chỉ thư điện tử không hợp lệ.")]
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]

@@ -74,6 +74,8 @@ body.canvas-body {
     background: linear-gradient(145deg, #102347 35%, #223f70 100%);
 }
 
+.canvas-body .auth-aside-brand { color: #f3f5ff; }
+
 .canvas-body .auth-aside::before,
 .canvas-body .auth-aside::after { opacity: .35; }
 

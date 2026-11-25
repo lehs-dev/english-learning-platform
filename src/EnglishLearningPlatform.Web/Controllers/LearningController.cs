@@ -23,7 +23,7 @@ public sealed class LearningController(IStudentLearningCourseService courses, IA
     [HttpGet, Authorize(Policy = AuthorizationPolicies.Student)]
     public async Task<IActionResult> Dashboard(CancellationToken ct)
     {
-        var result = await learning.DashboardAsync(UserId, ct);
+        var result = await learning.TodayAsync(UserId, ct);
         if (result.Access != LearningAccessResult.Allowed) return Denied(result.Access);
         if (gamification is not null)
             ViewData["Gamification"] = (await gamification.GetSummaryAsync(UserId, ct)).Value;

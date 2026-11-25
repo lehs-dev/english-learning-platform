@@ -50,15 +50,40 @@
                         {
                             <p class="muted">Hạn nộp <time datetime="@due.ToString("O")">@due.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></p>
                         }
+                        @if (teacher && assignment.Scheduled && assignment.PublishAtUtc is { } publishAt)
+                        {
+                            <p class="muted">Giao lúc <time datetime="@publishAt.ToString("O")">@publishAt.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></p>
+                        }
                     </div>
-                    @if (assignment.AwaitingReview is int waiting)
-                    {
-                        <span class="activity-tag @(waiting > 0 ? "attention" : "neutral")">@waiting bài chờ phản hồi</span>
-                    }
-                    else
-                    {
-                        <span class="activity-tag @(assignment.Reviewed ? "good" : assignment.Open && !assignment.Submitted ? "attention" : "neutral")">@(assignment.Reviewed ? "Có phản hồi" : assignment.Submitted ? "Đã nộp" : assignment.Open ? "Chưa nộp" : "Đã đóng")</span>
-                    }
+                    <div class="homework-row-status">
+                        @if (teacher)
+                        {
+                            if (assignment.IsDraft)
+                            {
+                                <span class="activity-tag neutral">Bản nháp</span>
+                            }
+                            else if (assignment.Scheduled)
+                            {
+                                <span class="activity-tag attention">Đã hẹn giờ</span>
+                            }
+                            else if (assignment.AwaitingReview is > 0 and int waiting)
+                            {
+                                <span class="activity-tag attention">@waiting bài chờ chấm</span>
+                            }
+                            else
+                            {
+                                <span class="activity-tag good">Đã giao</span>
+                            }
+                            @if (assignment.CanEdit)
+                            {
+                                <a class="homework-row-edit" asp-action="Edit" asp-route-id="@assignment.Id" aria-label="Sửa @assignment.Title">Sửa</a>
+                            }
+                        }
+                        else
+                        {
+                            <span class="activity-tag @(assignment.Reviewed ? "good" : assignment.Open && !assignment.Submitted ? "attention" : "neutral")">@(assignment.Reviewed ? "Có phản hồi" : assignment.Submitted ? "Đã nộp" : assignment.Open ? "Chưa nộp" : "Đã đóng")</span>
+                        }
+                    </div>
                 </li>
             }
         </ul>

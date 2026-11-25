@@ -52,6 +52,24 @@
     pointer-events: none;
 }
 
+.auth-aside-brand {
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -.045em;
+}
+
+.auth-aside-brand > span { position: relative; }
+
+.auth-aside-brand .auth-mark {
+    width: 64px;
+    height: 64px;
+    margin: 0;
+    color: currentColor;
+}
+
 .auth-mark {
     width: 52px;
     height: 52px;
@@ -78,45 +96,6 @@
     margin: 0;
     position: relative;
     z-index: 1;
-}
-
-.auth-steps {
-    list-style: none;
-    padding: 0;
-    margin: 28px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    position: relative;
-    z-index: 1;
-}
-
-.auth-steps li {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: 14px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--v2-dark);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-}
-
-.auth-steps li::before {
-    content: "✓";
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--v2-dark);
-    color: #FFFFFF;
-    font-size: 11px;
-    font-weight: 800;
-    flex-shrink: 0;
 }
 
 .auth-aside-note {
@@ -175,8 +154,9 @@
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 8px;
 }
+
+.demo-account-shortcuts .field-hint { display: block; margin-top: 8px; }
 
 .demo-account-button {
     flex: 1;
@@ -638,6 +618,16 @@ body.auth-modal-open {
     }
     .auth-aside {
         padding: 32px;
+    }
+    .auth-aside-brand {
+        flex-direction: row;
+        gap: 8px;
+        padding: 14px;
+        font-size: 1.3rem;
+    }
+    .auth-aside-brand .auth-mark {
+        width: 26px;
+        height: 26px;
     }
     .auth-form-panel {
         padding: 32px;

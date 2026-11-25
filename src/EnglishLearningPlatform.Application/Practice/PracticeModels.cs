@@ -16,6 +16,7 @@ public sealed record PracticeSheet(Guid Id, Guid CourseId, string CourseTitle, s
     public bool HasResult { get; init; }
     public int Version { get; init; } = 1;
     public Guid? SessionId { get; init; }
+    public string? ReviewStamp { get; init; }
 }
 public sealed record PracticeResponse(Guid PracticeQuestionId, Guid? SelectedOptionId, string? TextAnswer = null,
     string? StructuredAnswerJson = null);
@@ -64,6 +65,8 @@ public sealed record PracticeResult(Guid PracticeId, Guid CourseId, string Title
 }
 public enum PracticeSubmitStatus { Saved, Forbidden, NotFound, Unavailable, InvalidAnswers }
 public sealed record PracticeSubmitResult(PracticeSubmitStatus Status);
+public enum PracticeReviewStatus { Graded, Forbidden, Stale, InvalidAnswers }
+public sealed record PracticeReviewResult(PracticeReviewStatus Status, PracticeResult? Feedback = null);
 
 public interface IPracticeService
 {
@@ -75,4 +78,7 @@ public interface IPracticeService
     Task<PracticeSubmitResult> SubmitAsync(Guid studentId, Guid practiceId,
         IReadOnlyList<PracticeResponse> responses, CancellationToken ct = default);
     Task<LearningOutcome<PracticeResult>> GetResultAsync(Guid studentId, Guid practiceId, CancellationToken ct = default);
+    Task<LearningOutcome<PracticeSheet>> GetMistakeSheetAsync(Guid studentId, Guid practiceId, CancellationToken ct = default);
+    Task<PracticeReviewResult> CheckMistakesAsync(Guid studentId, Guid practiceId, string reviewStamp,
+        IReadOnlyList<PracticeResponse> responses, CancellationToken ct = default);
 }

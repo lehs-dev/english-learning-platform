@@ -1,6 +1,8 @@
 @model EnglishLearningPlatform.Application.Practice.PracticeResult
 @{
-    ViewData["Title"] = "Kết quả luyện tập · " + Model.Title;
+    bool isMistakeReview = ViewData["MistakeReview"] is true;
+    string resultLabel = isMistakeReview ? "Kết quả lượt ôn" : "Kết quả luyện tập";
+    ViewData["Title"] = resultLabel + " · " + Model.Title;
     ViewData["ActiveSection"] = "courses";
     bool mistakesOnly = ViewData["MistakesOnly"] is true;
     int correct = Model.Questions.Count(question => question.IsCorrect);
@@ -13,7 +15,7 @@
             <li class="breadcrumb-separator" aria-hidden="true">/</li>
             <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">Về khóa học</a></li>
             <li class="breadcrumb-separator" aria-hidden="true">/</li>
-            <li class="breadcrumb-item" aria-current="page">Kết quả luyện tập</li>
+            <li class="breadcrumb-item" aria-current="page">@resultLabel</li>
         </ol>
     </nav>
 }
@@ -26,23 +28,42 @@
     <header class="activity-hero activity-result-header">
         <div class="activity-result-summary">
             <div class="activity-tags">
-                <span>Kết quả luyện tập</span>
+                <span>@resultLabel</span>
                 <span data-result-version="@Model.Version">Phiên bản @Model.Version</span>
             </div>
             <h1>@Model.Title</h1>
-            <div class="activity-context">
-                <time datetime="@Model.SubmittedAtUtc.ToString("O")">Nộp lúc @Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy") (UTC+7)</time>
-            </div>
+            @if (!isMistakeReview)
+            {
+                <div class="activity-context">
+                    <time datetime="@Model.SubmittedAtUtc.ToString("O")">Nộp lúc @Model.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("HH:mm dd/MM/yyyy") (UTC+7)</time>
+                </div>
+            }
             <div class="activity-actions">
-                @if (ViewData["CanRetry"] is true)
+                @if (isMistakeReview)
                 {
-                    <a class="button" asp-action="Take" asp-route-id="@Model.PracticeId">Luyện lại bài này</a>
+                    <a class="button" asp-action="Result" asp-route-id="@Model.PracticeId">Về kết quả bài luyện</a>
+                    <a class="button secondary" asp-action="Review" asp-route-id="@Model.PracticeId">Ôn lại</a>
+                }
+                else
+                {
+                    bool canReview = ViewData["CanReviewMistakes"] is true;
+                    @if (canReview)
+                    {
+                        <a class="button" asp-action="Review" asp-route-id="@Model.PracticeId">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#rotate-ccw")"></use></svg>
+                            Ôn câu sai (@mistakes)
+                        </a>
+                    }
+                    @if (ViewData["CanRetry"] is true)
+                    {
+                        <a class="button @(canReview ? "secondary" : "")" asp-action="Take" asp-route-id="@Model.PracticeId">Luyện lại bài này</a>
+                    }
                 }
                 <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@Model.CourseId">Quay lại khóa học</a>
             </div>
         </div>
         <div class="activity-result-score">
-            <span>Tổng điểm bài luyện</span>
+            <span>@(isMistakeReview ? "Điểm lượt ôn" : "Tổng điểm bài luyện")</span>
             <strong class="assessment-score">@Model.Score.ToString("0.##")<span class="activity-score-scale"> / 100</span></strong>
             <span>Bạn trả lời đúng @correct / @Model.Questions.Count câu hỏi.</span>
         </div>
@@ -51,10 +72,13 @@
     <section class="activity-panel" aria-labelledby="practice-review-title">
         <div class="activity-section-title activity-review-heading">
             <h2 id="practice-review-title">Xem lại câu trả lời &amp; lời giải</h2>
-            <nav class="practice-result-filters" aria-label="Lọc câu trả lời">
-                <a class="button @(mistakesOnly ? "secondary" : "primary")" asp-action="Result" asp-route-id="@Model.PracticeId" asp-fragment="practice-review-title" aria-current="@(mistakesOnly ? null : "true")">Tất cả (@Model.Questions.Count)</a>
-                <a class="button @(mistakesOnly ? "primary" : "secondary")" asp-action="Result" asp-route-id="@Model.PracticeId" asp-route-mistakesOnly="true" asp-fragment="practice-review-title" aria-current="@(mistakesOnly ? "true" : null)">Sai hoặc bỏ trống (@mistakes)</a>
-            </nav>
+            @if (!isMistakeReview)
+            {
+                <nav class="practice-result-filters" aria-label="Lọc câu trả lời">
+                    <a class="button @(mistakesOnly ? "secondary" : "primary")" asp-action="Result" asp-route-id="@Model.PracticeId" asp-fragment="practice-review-title" aria-current="@(mistakesOnly ? null : "true")">Tất cả (@Model.Questions.Count)</a>
+                    <a class="button @(mistakesOnly ? "primary" : "secondary")" asp-action="Result" asp-route-id="@Model.PracticeId" asp-route-mistakesOnly="true" asp-fragment="practice-review-title" aria-current="@(mistakesOnly ? "true" : null)">Sai hoặc bỏ trống (@mistakes)</a>
+                </nav>
+            }
         </div>
         @if (mistakesOnly && mistakes == 0)
         {

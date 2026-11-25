@@ -22,6 +22,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<LessonResource> LessonResources => Set<LessonResource>();
     public DbSet<WritingAssignment> WritingAssignments => Set<WritingAssignment>();
     public DbSet<WritingSubmission> WritingSubmissions => Set<WritingSubmission>();
+    public DbSet<WritingSubmissionDraft> WritingSubmissionDrafts => Set<WritingSubmissionDraft>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<CourseDiscussionThread> CourseDiscussionThreads => Set<CourseDiscussionThread>();
     public DbSet<CourseDiscussionMessage> CourseDiscussionMessages => Set<CourseDiscussionMessage>();

@@ -1,12 +1,17 @@
 @{
     var activeSection = ViewData["ActiveSection"] as string;
+    bool isLanding = (ViewData["PageClass"] as string) == "landing-marketing";
 }
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#102347" />
+    <meta name="theme-color" content="@(isLanding ? "#0b1020" : "#102347")" />
+    @if (ViewData["Description"] is string description)
+    {
+        <meta name="description" content="@description" />
+    }
     <title>@ViewData["Title"] - Estudy</title>
     <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -40,26 +45,49 @@
         </a>
     }
     @if (User.IsInRole("Admin")) { <a class="nav-link" asp-controller="Admin" asp-action="Index">Quản trị</a> }
-                    <a class="nav-link @(activeSection == "courses" ? "is-active" : "")" asp-controller="Courses" asp-action="Index" aria-current="@(activeSection == "courses" ? "page" : null)">Khóa học</a>
+                    @if (isLanding)
+                    {
+                        <a class="nav-link" href="#courses">Khóa học</a>
+                        <a class="nav-link" href="#practice">Luyện thử</a>
+                        <a class="nav-link" href="#journey">Cách học</a>
+                    }
+                    else
+                    {
+                        <a class="nav-link @(activeSection == "courses" ? "is-active" : "")" asp-controller="Courses" asp-action="Index" aria-current="@(activeSection == "courses" ? "page" : null)">Khóa học</a>
+                    }
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <a class="nav-link @(activeSection == "exams" ? "is-active" : "")" asp-controller="Assessment" asp-action="Index" aria-current="@(activeSection == "exams" ? "page" : null)">Đề thi</a>
                     }
                 </nav>
                 <div class="header-actions">
-                    <form class="header-search v2-search" asp-controller="Courses" asp-action="Index" method="get" role="search">
-                        <label class="visually-hidden" for="header-course-search">Tìm khóa học</label>
-                        <input id="header-course-search" type="search" name="Search" value="@(Context.Request.Query["Search"].ToString())" maxlength="200" placeholder="Tìm khóa học..." />
-                        <button class="icon-button" type="submit" aria-label="Tìm khóa học">
-                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
-                        </button>
-                    </form>
+                    @if (!isLanding)
+                    {
+                        <form class="header-search v2-search" asp-controller="Courses" asp-action="Index" method="get" role="search">
+                            <label class="visually-hidden" for="header-course-search">Tìm khóa học</label>
+                            <input id="header-course-search" type="search" name="Search" value="@(Context.Request.Query["Search"].ToString())" maxlength="200" placeholder="Tìm khóa học..." />
+                            <button class="icon-button" type="submit" aria-label="Tìm khóa học">
+                                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                            </button>
+                        </form>
+                    }
                     @await Component.InvokeAsync("AccountMenu")
                 </div>
             </div>
         </header>
         <main class="container page-content" id="main-content" tabindex="-1">@RenderBody()</main>
-        <partial name="_SiteFooter" />
+        @if (isLanding)
+        {
+            <footer class="site-footer landing-footer">
+                <div class="container footer-inner">
+                    <p>&copy; @DateTime.UtcNow.Year Estudy</p>
+                </div>
+            </footer>
+        }
+        else
+        {
+            <partial name="_SiteFooter" />
+        }
     </div>
     <partial name="_AuthModal" />
     <script src="~/js/site.js" asp-append-version="true" defer></script>

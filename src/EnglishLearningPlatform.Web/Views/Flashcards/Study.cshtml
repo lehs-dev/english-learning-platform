@@ -19,7 +19,9 @@
             <p>Bạn nhớ thẻ này đến mức nào?</p>
             <form asp-action="Review" asp-route-id="@Model.DeckId" method="post" class="fc-ratings">
                 <input type="hidden" name="flashcardId" value="@card.Id" /><input type="hidden" name="reviewRequestId" value="@Model.ReviewRequestId" />
-                <button class="button secondary" type="submit" name="rating" value="Again">Again · Chưa nhớ</button><button class="button secondary" type="submit" name="rating" value="Hard">Hard · Còn khó</button><button class="button" type="submit" name="rating" value="Good">Good · Đã nhớ</button>
+                <button class="button secondary" type="submit" name="rating" value="Again">Chưa nhớ</button>
+                <button class="button secondary" type="submit" name="rating" value="Hard">Còn khó</button>
+                <button class="button" type="submit" name="rating" value="Good">Đã nhớ</button>
             </form>
             <p class="muted">Chưa nhớ: ôn lại sau 10 phút. Còn khó: ngày mai. Đã nhớ: giãn dần theo số lần ôn.</p>
         </div>

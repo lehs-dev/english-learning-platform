@@ -176,13 +176,13 @@ Mật khẩu của tất cả các tài khoản demo dưới đây được đ�
 
 | Vai trò | Email đăng nhập | Mục đích sử dụng |
 | --- | --- | --- |
-| **Admin** | `admin1@demo.example.test` | Quản trị tài khoản người dùng, phân quyền, tra cứu giao dịch |
-| **Teacher** | `teacher1@demo.example.test` | Quản lý khóa học, bài học, ngân hàng câu hỏi, tạo đề thi |
-| **Teacher** | `teacher2@demo.example.test` | Tài khoản giáo viên phụ để thử nghiệm kiểm soát quyền sở hữu |
-| **Student** | `student1@demo.example.test` | Học viên đã ghi danh khóa học mẫu, đã làm một số bài tập |
-| **Student** | `student2@demo.example.test` | Học viên mới để thử nghiệm quy trình đăng ký, mua khóa học mới |
+| Quản trị viên | `admin1@demo.example.test` | Quản lý tài khoản, phân quyền, tra cứu giao dịch |
+| Giảng viên | `teacher1@demo.example.test` | Quản lý danh mục mẫu, ngân hàng câu hỏi và đề thi |
+| Giảng viên | `teacher2@demo.example.test` | Quản lý khóa **Tiếng Anh tại quán cà phê**, chấm bài và trả lời học viên |
+| Học viên | `student1@demo.example.test` | Học tiếp khóa đã ghi danh, ôn thẻ từ và xem nhận xét |
+| Học viên | `student2@demo.example.test` | Thử ghi danh khóa miễn phí hoặc mua khóa học |
 
-> **Mẹo**: Ở môi trường `Development`, trang Đăng nhập (`/Account/Login`) hiển thị sẵn các nút bấm chọn nhanh tài khoản (**Student**, **Teacher**, **Admin**) kèm tự động điền mật khẩu demo để kiểm thử thuận tiện.
+Trang đăng nhập có nút chọn nhanh **Học viên**, **Giảng viên** và **Quản trị** cho các tài khoản số 1. Để vào tài khoản số 2, nhập địa chỉ trong bảng và dùng cùng mật khẩu đã cấu hình khi tạo tài khoản.
 
 ---
 
@@ -195,6 +195,15 @@ Mật khẩu của tất cả các tài khoản demo dưới đây được đ�
 - **Ngân hàng câu hỏi & Học liệu**:
   - Đầy đủ 4 kỹ năng: **Reading** (kèm bài đọc), **Listening** (kèm file audio mẫu), **Vocabulary**, **Grammar**.
   - Các bài thi Placement Test, Skill Assessment và Practice Test mẫu với đầy đủ cấu hình thời gian và trọng số điểm.
+
+### Thử một lượt học và phản hồi
+
+1. Đăng nhập bằng `student1@demo.example.test` và mở **Tiếng Anh tại quán cà phê**. Khóa có sáu bài, ba bài đầu đã hoàn thành. Dữ liệu mới khởi tạo có hoạt động vào năm ngày liên tiếp tính đến hôm qua.
+2. Mở **Uống tại quán hay mang đi?** để ôn bộ **Từ vựng gọi món** và làm **Luyện gọi món theo 5 dạng câu hỏi**. Bài luyện có chọn đáp án, điền từ, ghép cặp, sắp xếp và nghe chép chính tả với tệp âm thanh lưu trong ứng dụng.
+3. Trên **Hôm nay**, mở **Việc học** để xem hạn nộp bài **Viết lời nhắn đặt món** và phản hồi cho bài **Viết đoạn gọi món**. Bài **Lịch sự nhờ sửa món** đang chờ chấm. Phần hỏi đáp có một câu đã được trả lời và một câu đang chờ giảng viên.
+4. Đăng nhập bằng `teacher2@demo.example.test` để chấm bài còn lại hoặc trả lời học viên. Có thể quay lại tài khoản học viên để xem kết quả.
+
+Chạy lại lệnh seed giữ nguyên tiến độ, bài nộp và nội dung đã sửa. Tài khoản mẫu bắt đầu với các khóa miễn phí. Để thử khóa trả phí, dùng luồng thanh toán thử nghiệm.
 
 ---
 

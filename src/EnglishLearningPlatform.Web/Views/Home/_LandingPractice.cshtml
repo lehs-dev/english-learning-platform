@@ -1,0 +1,136 @@
+@{
+    var questions = new[]
+    {
+        new
+        {
+            Speaker = "Khách",
+            Dialogue = "Could I get a coffee to go, please?",
+            Prompt = "Người khách muốn gì?",
+            Options = new[] { "Uống cà phê tại quán", "Mang cà phê đi", "Gọi thêm một ly cà phê" },
+            OptionLanguage = "vi",
+            CorrectIndex = 1,
+            Explanation = "“To go” là mang đi, “for here” là dùng tại chỗ."
+        },
+        new
+        {
+            Speaker = "Nhân viên",
+            Dialogue = "For here or to go?",
+            Prompt = "Muốn uống tại quán, bạn nói gì?",
+            Options = new[] { "To go, thanks.", "Could I get the bill?", "For here, please." },
+            OptionLanguage = "en",
+            CorrectIndex = 2,
+            Explanation = "Câu này là cách nói lịch sự khi muốn uống tại quán."
+        }
+    };
+}
+
+<section class="landing-practice" id="practice" aria-labelledby="practice-heading" data-landing-practice>
+    <div class="landing-practice-intro">
+        <h2 id="practice-heading">Luyện thử <span>hội thoại</span></h2>
+        <p class="landing-practice-description">Xem giải thích sau mỗi câu.</p>
+    </div>
+
+    <div class="landing-practice-card" data-practice-interactive hidden>
+        <div class="landing-practice-header">
+            <span class="landing-practice-topic">
+                <span class="landing-practice-topic-icon">
+                    <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><use href="@Url.Content("~/images/landing-illustrations.svg#scene")"></use></svg>
+                </span>
+                Gọi cà phê
+            </span>
+            <span class="landing-practice-counter" data-practice-counter>Câu 1/@questions.Length</span>
+        </div>
+        <progress class="landing-practice-progress" value="1" max="@questions.Length" aria-label="Câu hiện tại" data-practice-progress></progress>
+
+        <form data-practice-form>
+            @for (var index = 0; index < questions.Length; index++)
+            {
+                var question = questions[index];
+                <div class="landing-practice-question" data-practice-question data-correct-index="@question.CorrectIndex"
+                     data-explanation="@question.Explanation" hidden="@(index != 0)">
+                    <figure class="landing-practice-dialogue">
+                        <figcaption>
+                            <span>@question.Speaker</span>
+                            <button class="landing-practice-audio" type="button" data-practice-audio aria-label="Nghe câu mẫu" aria-pressed="false" hidden>
+                                <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><use href="@Url.Content("~/images/landing-illustrations.svg#listen")"></use></svg>
+                            </button>
+                        </figcaption>
+                        <blockquote lang="en">@question.Dialogue</blockquote>
+                    </figure>
+                    <fieldset aria-describedby="landing-practice-keys" disabled="@(index != 0)">
+                        <legend tabindex="-1">@question.Prompt</legend>
+                        <div class="landing-practice-options">
+                            @for (var optionIndex = 0; optionIndex < question.Options.Length; optionIndex++)
+                            {
+                                <label class="landing-practice-option">
+                                    <input type="radio" name="landing-practice-@index" value="@optionIndex" required />
+                                    <span class="landing-practice-answer" lang="@question.OptionLanguage">@question.Options[optionIndex]</span>
+                                    <span class="landing-practice-answer-status" hidden>Đáp án đúng</span>
+                                </label>
+                            }
+                        </div>
+                    </fieldset>
+                </div>
+            }
+
+            <div class="landing-practice-feedback" data-practice-feedback role="status" aria-atomic="true">
+                <div data-practice-feedback-content hidden>
+                    <svg class="landing-practice-feedback-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" opacity=".5" />
+                        <path class="feedback-check" d="m7.5 12 3 3.1 6-6.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        <path class="feedback-cross" d="m9 9 6 6m0-6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    <div>
+                        <strong data-practice-feedback-label></strong>
+                        <p data-practice-feedback-explanation></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="landing-practice-actions">
+                <p class="landing-practice-keys" id="landing-practice-keys">Phím <kbd>1–3</kbd> để chọn</p>
+                <button class="landing-practice-button" type="submit" data-practice-check>
+                    Kiểm tra
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+                </button>
+                <button class="landing-practice-button" type="button" data-practice-next hidden>
+                    <span data-practice-next-label>Câu tiếp theo</span>
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                </button>
+            </div>
+        </form>
+
+        <div class="landing-practice-result" data-practice-result hidden>
+            <svg class="icon landing-practice-result-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+            <p class="landing-practice-result-score" data-practice-result-score tabindex="-1"></p>
+            <div class="landing-practice-result-actions">
+                <button class="landing-practice-button" type="button" data-practice-reset>Làm lại</button>
+                <a href="#courses">Xem khóa học</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="landing-practice-card landing-practice-fallback" data-practice-fallback>
+        <p class="landing-practice-topic">Gọi cà phê</p>
+        @foreach (var question in questions)
+        {
+            <figure class="landing-practice-dialogue">
+                <figcaption>@question.Speaker</figcaption>
+                <blockquote lang="en">@question.Dialogue</blockquote>
+            </figure>
+            <p class="landing-practice-fallback-prompt">@question.Prompt</p>
+        }
+        <details>
+            <summary>Xem đáp án</summary>
+            <ol>
+                @foreach (var question in questions)
+                {
+                    <li>
+                        <strong lang="@question.OptionLanguage">@question.Options[question.CorrectIndex]</strong>
+                        <p>@question.Explanation</p>
+                    </li>
+                }
+            </ol>
+        </details>
+    </div>
+</section>

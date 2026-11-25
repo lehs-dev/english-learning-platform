@@ -5,6 +5,7 @@
     ViewData["FocusMode"] = true;
     ViewData["PageClass"] = "practice-taking-page";
     var hasPassage = Model.Questions.Any(q => !string.IsNullOrWhiteSpace(q.Passage));
+    var isMistakeReview = Model.ReviewStamp is not null;
 }
 @section Breadcrumbs {
     <nav class="studio-breadcrumbs" aria-label="Đường dẫn điều hướng">
@@ -31,7 +32,7 @@
             </a>
             <div class="exam-title-group">
                 <div class="activity-context">
-                    <span>Bài luyện tập</span>
+                    <span>@(isMistakeReview ? "Ôn câu sai và bỏ trống" : "Bài luyện tập")</span>
                     <span>Không giới hạn thời gian</span>
                     <span data-practice-version="@Model.Version">Bản @Model.Version</span>
                     @if (Model.HasResult)
@@ -54,8 +55,15 @@
         </div>
     </header>
 
-    <form method="post" asp-action="Submit" asp-route-id="@Model.Id" class="exam-form-grid @(hasPassage ? "practice-reading-grid" : "practice-single-grid")" data-practice-form>
-        <input type="hidden" name="SessionId" value="@Model.SessionId" />
+    <form method="post" asp-action="@(isMistakeReview ? "CheckReview" : "Submit")" asp-route-id="@Model.Id" class="exam-form-grid @(hasPassage ? "practice-reading-grid" : "practice-single-grid")" data-practice-form>
+        @if (isMistakeReview)
+        {
+            <input type="hidden" name="ReviewStamp" value="@Model.ReviewStamp" />
+        }
+        else
+        {
+            <input type="hidden" name="SessionId" value="@Model.SessionId" />
+        }
 
         @if (hasPassage)
         {
@@ -130,8 +138,15 @@
             </div>
             <button class="button secondary practice-nav-btn" type="button" data-practice-prev aria-label="Câu trước" hidden disabled>Câu trước</button>
             <button class="button secondary practice-nav-btn" type="button" data-practice-next aria-label="Câu tiếp theo" hidden disabled>Tiếp theo</button>
-            <button class="button exam-submit-btn" type="submit" data-practice-submit aria-label="Nộp bài &amp; Xem giải thích">
-                <span>Nộp bài<span class="practice-submit-description"> &amp; Xem giải thích</span></span>
+            <button class="button exam-submit-btn" type="submit" data-practice-submit aria-label="@(isMistakeReview ? "Chấm lượt ôn" : "Nộp bài & Xem giải thích")">
+                @if (isMistakeReview)
+                {
+                    <span>Chấm lượt ôn</span>
+                }
+                else
+                {
+                    <span>Nộp bài<span class="practice-submit-description"> &amp; Xem giải thích</span></span>
+                }
             </button>
         </div>
     </form>
@@ -140,13 +155,13 @@
 <!-- Confirmation Dialog for Incomplete Submissions -->
 <dialog class="practice-confirm-dialog activity-confirm-dialog" id="practice-confirm-dialog" data-practice-confirm-dialog aria-labelledby="practice-confirm-title">
     <div class="practice-dialog-card">
-        <h3 class="practice-dialog-title" id="practice-confirm-title">Xác nhận nộp bài</h3>
+        <h3 class="practice-dialog-title" id="practice-confirm-title">@(isMistakeReview ? "Xác nhận chấm lượt ôn" : "Xác nhận nộp bài")</h3>
         <p class="practice-dialog-message" data-confirm-message>
-            Bạn đã trả lời <strong data-answered-count>0</strong>/@Model.Questions.Count câu hỏi, còn <strong data-unanswered-count>@Model.Questions.Count</strong> câu chưa làm. Bạn có chắc chắn muốn nộp bài?
+            Bạn đã trả lời <strong data-answered-count>0</strong>/@Model.Questions.Count câu hỏi, còn <strong data-unanswered-count>@Model.Questions.Count</strong> câu chưa làm.
         </p>
         <div class="practice-dialog-actions">
             <button type="button" class="button secondary" data-cancel-submit>Quay lại làm bài</button>
-            <button type="button" class="button danger-btn" data-confirm-submit>Vẫn nộp bài</button>
+            <button type="button" class="button danger-btn" data-confirm-submit>@(isMistakeReview ? "Vẫn chấm lượt ôn" : "Vẫn nộp bài")</button>
         </div>
     </div>
 </dialog>
