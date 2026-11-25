@@ -1731,10 +1731,16 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("DueAtUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool>("IsDraft")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Prompt")
                         .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTimeOffset?>("PublishAtUtc")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1749,7 +1755,10 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("CourseId", "CreatedAtUtc", "Id")
                         .IsDescending(false, true, false);
 
-                    b.ToTable("WritingAssignments", (string)null);
+                    b.ToTable("WritingAssignments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WritingAssignments_Publication", "([IsDraft] = 0 OR [PublishAtUtc] IS NULL) AND ([PublishAtUtc] IS NULL OR [DueAtUtc] IS NULL OR [DueAtUtc] > [PublishAtUtc])");
+                        });
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingSubmission", b =>

@@ -70,6 +70,30 @@
 .homework-card h3 { font-size: 1rem; }
 .homework-card .muted { font-size: .85rem; }
 .homework-actions .button .icon { width: 16px; height: 16px; }
+.homework-preview {
+    box-shadow: inset 0 3px var(--activity-primary), var(--activity-shadow);
+}
+.homework-preview-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .5rem 1rem;
+    margin-block-end: 1rem;
+}
+.homework-preview-heading h2 { margin-block-start: .4rem; font-size: 1.3rem; }
+.homework-preview-heading p { margin: 0; }
+.homework-preview-due {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .3rem;
+    color: var(--activity-muted);
+    font-size: .85rem;
+}
+.homework-preview-due .icon { width: 16px; height: 16px; }
+.homework-preview-due time { font-weight: 700; }
+.homework-preview > p { margin-block-start: .35rem; line-height: 1.65; }
 .homework-draft-copy {
     margin-top: .75rem;
     padding: .55rem .8rem;

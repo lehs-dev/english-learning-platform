@@ -41,6 +41,13 @@ public sealed class WritingAssignmentPublicationTests(IntegrationTestFactory fac
         const string originalTitle = "Bài viết đang soạn";
         const string scheduledTitle = "Bài viết mở theo lịch";
         const string prompt = "Describe your plans for tomorrow.";
+        using var preview = await PostAsync(teacher, create, createToken,
+            ("Title", originalTitle), ("Prompt", prompt), ("PublishMode", "Now"), ("intent", "preview"));
+        Assert.Equal(HttpStatusCode.OK, preview.StatusCode);
+        var previewHtml = await preview.Content.ReadAsStringAsync();
+        Assert.Contains("homework-preview", previewHtml);
+        Assert.Contains(prompt, previewHtml);
+        Assert.False(await db.WritingAssignments.AnyAsync(row => row.CourseId == course.Id));
         using var created = await PostAsync(teacher, create, createToken,
             ("Title", originalTitle), ("Prompt", prompt), ("PublishMode", "Draft"));
         Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
@@ -67,6 +74,13 @@ public sealed class WritingAssignmentPublicationTests(IntegrationTestFactory fac
         Assert.False(await db.WritingSubmissionDrafts.AnyAsync(row => row.AssignmentId == draft.Id));
 
         var editToken = await IdentityTestHelpers.GetTokenAsync(teacher, edit);
+        using var previewEdit = await PostAsync(teacher, edit, editToken,
+            ("Title", "Preview only"), ("Prompt", "Practice form before saving."), ("PublishMode", "Now"), ("intent", "preview"));
+        Assert.Equal(HttpStatusCode.OK, previewEdit.StatusCode);
+        Assert.Contains("homework-preview", await previewEdit.Content.ReadAsStringAsync());
+        Assert.Equal(originalTitle, await db.WritingAssignments.Where(row => row.Id == draft.Id).Select(row => row.Title).SingleAsync());
+        await AssertHiddenAsync(originalTitle);
+
         const string releaseLocal = "2026-11-24T19:00";
         const string dueLocal = "2026-11-24T20:00";
         using var invalid = await PostAsync(teacher, edit, editToken, ("Title", scheduledTitle), ("Prompt", prompt),

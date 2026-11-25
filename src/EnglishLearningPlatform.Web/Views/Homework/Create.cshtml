@@ -6,6 +6,7 @@
     var editAssignmentId = ViewData["EditAssignmentId"] as Guid?;
     var formAction = editAssignmentId.HasValue ? "Edit" : "Create";
     var pageTitle = editAssignmentId.HasValue ? "Sửa bài viết" : "Giao bài viết";
+    var preview = ViewData["PreviewPlan"] as WritingAssignmentPlan;
     ViewData["Title"] = pageTitle;
 }
 
@@ -24,6 +25,26 @@
             <h1>@pageTitle</h1>
         </div>
     </header>
+    @if (preview is not null)
+    {
+        <section class="activity-panel homework-card homework-preview" aria-labelledby="homework-preview-title" data-writing-preview>
+            <header class="homework-preview-heading">
+                <div>
+                    <p class="activity-tag neutral">Xem trước cho học viên</p>
+                    <h2 id="homework-preview-title">@preview.Title</h2>
+                </div>
+                @if (preview.DueAtUtc is { } previewDue)
+                {
+                    <p class="homework-preview-due">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg>
+                        Hạn nộp <time datetime="@previewDue.ToString("O")">@previewDue.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time>
+                    </p>
+                }
+            </header>
+            <h3>Đề bài</h3>
+            <p class="preserve">@preview.Prompt</p>
+        </section>
+    }
     <section class="activity-panel homework-card">
         <form class="editor-form" method="post" asp-action="@formAction" asp-route-id="@(editAssignmentId ?? course.Id)">
             <div asp-validation-summary="ModelOnly" class="validation" role="alert"></div>
@@ -66,6 +87,7 @@
             </fieldset>
             <div class="homework-actions">
                 <button class="button primary" type="submit">@(editAssignmentId.HasValue ? "Lưu thay đổi" : "Lưu bài viết")</button>
+                <button class="button secondary" type="submit" name="intent" value="preview">Xem trước</button>
                 <a class="button secondary" asp-action="@(editAssignmentId.HasValue ? "Details" : "Course")" asp-route-id="@(editAssignmentId ?? course.Id)">Hủy</a>
             </div>
         </form>

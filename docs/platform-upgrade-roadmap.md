@@ -22,6 +22,12 @@
 - Câu nghe chép chính tả dùng đáp án văn bản được khai báo trước. Hệ thống chuẩn hóa khoảng trắng và chữ hoa, chữ thường. Dấu câu vẫn được so khớp. Teacher có thể khai báo nhiều biến thể được chấp nhận.
 - Ảnh và audio bài học lưu trong `App_Data/lesson-media`. Docker Compose có volume riêng cho thư mục này. Có thể đặt đường dẫn bằng `LessonMedia__StoragePath`. Endpoint học liệu dùng quyền truy cập của tài nguyên bài học. Tệp đã thay thế hoặc gỡ khỏi bài học cần được dọn khỏi kho lưu trữ trong đợt vận hành tiếp theo.
 
+### Bổ sung cho lớp học và ôn tập
+
+- Mục **Việc học** trên trang **Hôm nay** đưa bài viết chưa nộp, nhận xét và phản hồi hỏi đáp về cùng một nơi. Học viên có thể lưu bản nháp riêng. Khi hai tab cùng sửa, Estudy giữ bản đã lưu và cho học viên xem lại cả hai nội dung.
+- Mục **Việc cần xử lý** gom bài chờ chấm và câu hỏi chờ trả lời theo khóa học của giảng viên. Giảng viên có thể xem trước đề như học viên thấy, rồi giao ngay, lưu nháp hoặc chọn giờ giao theo giờ Việt Nam.
+- **Ôn câu sai** mở lại các câu sai và bỏ trống của lượt luyện gần nhất khi đề còn cùng phiên bản. Điểm lượt ôn hiển thị riêng và học viên vẫn xem lại được điểm của lượt làm đầy đủ.
+
 ## Cơ chế tham chiếu
 
 - Duolingo tách streak khỏi mục tiêu dài hơn và cho phép một hoạt động học hoàn tất duy trì chuỗi ngày. Estudy áp dụng nguyên tắc này cho các hoạt động học đã được xác nhận phía máy chủ. [Duolingo về streak](https://blog.duolingo.com/improving-the-streak/)
@@ -33,14 +39,14 @@
 | Ưu tiên | Database và backend | UI/UX và chức năng | Điều kiện nghiệm thu |
 | --- | --- | --- | --- |
 | P0 · Đưa bản nâng cấp vào môi trường sử dụng | Diễn tập sao lưu và phục hồi SQL Server cùng thư mục học liệu. Áp dụng migration trên bản sao dữ liệu, kiểm tra số dòng backfill và giám sát thời gian, dung lượng log. | Duyệt các luồng Teacher và Student bằng hai tài khoản ở màn hình desktop và di động. Kiểm tra ảnh, audio, CSV, bài luyện và thi ở mạng chậm. | Đề cũ và lượt thi đang làm mở đúng. Dòng ngày học không trùng. Quyền khóa học áp dụng đúng cho học liệu, bài nộp và hỏi đáp. |
-| P1 · Củng cố lớp học | Bổ sung trạng thái bản nháp và lịch xuất bản cho bài viết, phiên bản đề và lần nộp, rubric và thay đổi điểm có lịch sử. Xây dựng thông báo trong ứng dụng theo sự kiện đã lưu. | Hộp việc cần làm, hạn nộp và phản hồi mới tại trang Hôm nay. Hàng chờ chấm bài và hỏi đáp ở Teacher. Luồng tạo theo bước với xem trước trước khi giao hoặc xuất bản. | Giáo viên thao tác từ một nơi. Học viên tìm được việc cần làm, lưu nháp và thấy phản hồi. Thông báo không gửi trùng. |
-| P1 · Mở rộng luyện tập | Lưu mục ôn tập theo câu sai và phiên bản đề. Gắn transcript theo đoạn và quy định thời điểm được xem. Dùng lại ngân hàng câu hỏi và cơ chế ôn flashcard. | Làm lại câu sai, luyện theo kỹ năng, luyện nghe theo đoạn, điền nhiều chỗ trống và bài sửa lỗi. Thêm hướng dẫn bàn phím, trạng thái lưu và bố cục ngữ liệu cố định khi làm đề dài. | Đáp án và transcript chỉ xuất hiện đúng thời điểm. Ôn lại bám theo lịch sử của học viên. Các dạng bài dùng được trên bàn phím và thiết bị cảm ứng. |
+| P1 · Củng cố lớp học | Lưu phiên bản đề và lần nộp, tiêu chí chấm và lịch sử thay đổi điểm. Ghi sự kiện để gửi thông báo trong ứng dụng. | Chấm theo tiêu chí và mở lại bài viết để học viên sửa theo góp ý. | Bài làm đi cùng đúng phiên bản đề. Học viên xem được nhận xét theo từng tiêu chí. Mỗi sự kiện tạo tối đa một thông báo. |
+| P1 · Mở rộng luyện tập | Lưu danh sách ôn tập dài hạn theo câu sai và phiên bản đề. Gắn bản chép lời theo đoạn và quy định thời điểm mở. Dùng lại ngân hàng câu hỏi và cơ chế ôn thẻ từ. | Luyện theo kỹ năng, nghe theo đoạn, điền nhiều chỗ trống và sửa lỗi. Thêm hướng dẫn bàn phím, trạng thái lưu và bố cục ngữ liệu cố định khi làm đề dài. | Đáp án và bản chép lời xuất hiện đúng thời điểm. Ôn lại bám theo lịch sử của học viên. Các dạng bài dùng được trên bàn phím và thiết bị cảm ứng. |
 | P2 · Luyện nói và học liệu quy mô lớn | Lưu bản ghi âm riêng tư với quyền truy cập, thời hạn lưu và lịch sử nhận xét. Chuyển học liệu sang kho đối tượng nếu chạy nhiều máy chủ. Bổ sung giới hạn dung lượng, xử lý tệp và đo lượng sử dụng. | Ghi âm hoặc nộp audio để Teacher góp ý về phát âm, độ trôi chảy và hoàn thành yêu cầu. Thư viện học liệu có tái sử dụng và xem trước. Admin quản lý báo cáo và quota. | Chỉ đúng người mở được bản ghi. Sự cố lưu tệp có hướng phục hồi. Âm thanh phát được từ các máy chủ web đã triển khai. |
 | P2 · Vận hành và phân tích | Theo dõi truy vấn chậm, kiểm tra chỉ mục từ workload thực tế, đồng bộ đo lường app và SQL. Hoàn thiện quy trình đối soát, hoàn tiền và phục hồi theo môi trường thanh toán. | Báo cáo Student và Teacher theo kỹ năng, lớp, nhóm câu sai và mốc tiến độ; thiết lập nhắc học khi học viên đồng ý. | Báo cáo khớp dữ liệu nguồn. Hệ thống có ngưỡng cảnh báo và bản sao lưu đã thử phục hồi. |
 
 ## Áp dụng và kiểm tra
 
-Migration `AddCourseCollaborationAndActivity` là phần đi cùng bản app. Chạy bước migrate theo quy trình đã có trong README hoặc Docker Compose. Migration từ chối hạ phiên bản khi có dữ liệu cần schema mới. Khi cần phục hồi một môi trường có dữ liệu mới, dùng bản sao lưu SQL Server và thư mục học liệu tương ứng.
+Chạy các migration gồm `AddCourseCollaborationAndActivity`, `AddWritingSubmissionDrafts` và `ScheduleWritingAssignments` theo quy trình trong README hoặc Docker Compose. Việc hạ phiên bản được chặn nếu có dữ liệu cần schema mới, gồm bản nháp bài làm và đề đã đặt lịch. Khi cần phục hồi, dùng bản sao lưu SQL Server và thư mục học liệu tương ứng.
 
 Dùng `tests/low-memory.runsettings`, một tiến trình build và bộ lọc theo lớp hoặc ca kiểm thử. Kiểm tra ưu tiên gồm nâng cấp từ schema cũ, streak qua ngày, chấm và bảo vệ đáp án nghe chép, quyền hỏi đáp, nộp và nhận xét bài viết, cùng tải học liệu và nhập CSV.
 

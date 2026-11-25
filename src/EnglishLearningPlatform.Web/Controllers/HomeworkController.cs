@@ -31,27 +31,17 @@ public sealed class HomeworkController(IWritingHomeworkService homework, TimePro
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = AuthorizationPolicies.Teacher)]
-    public async Task<IActionResult> Create(Guid id, WritingAssignmentInput input, CancellationToken ct)
+    public async Task<IActionResult> Create(Guid id, WritingAssignmentInput input, [FromForm] string? intent, CancellationToken ct)
     {
-        DateTimeOffset? deadline = null;
-        if (input.DueAt is { } local)
+        var plan = ReadPlan(input);
+        var preview = intent == "preview";
+        if (ModelState.IsValid && !preview)
         {
-            if (local.Year is < 2000 or > 9998)
-                ModelState.AddModelError(nameof(input.DueAt), "Hạn nộp không hợp lệ.");
-            else
-                deadline = new DateTimeOffset(DateTime.SpecifyKind(local, DateTimeKind.Unspecified), WritingHomeworkLimits.DisplayOffset);
-            if (deadline <= time.GetUtcNow())
-                ModelState.AddModelError(nameof(input.DueAt), "Hạn nộp phải ở trong tương lai.");
-        }
-
-        if (ModelState.IsValid)
-        {
-            var result = await homework.AssignAsync(UserId, id, input.Title, input.Prompt, deadline, ct);
+            var result = await homework.AssignAsync(UserId, id, plan, ct);
             switch (result.Status)
             {
                 case WritingHomeworkWriteStatus.Saved:
-                    TempData["Success"] = "Đã giao bài viết.";
-                    return RedirectToAction(nameof(Details), new { id = result.AssignmentId });
+                    return PlanSaved(result.AssignmentId, input.PublishMode);
                 case WritingHomeworkWriteStatus.Closed:
                     return RedirectClosed(id);
                 case WritingHomeworkWriteStatus.Forbidden:
@@ -59,14 +49,63 @@ public sealed class HomeworkController(IWritingHomeworkService homework, TimePro
                 case WritingHomeworkWriteStatus.NotFound:
                     return NotFound();
                 default:
-                    ModelState.AddModelError(string.Empty, "Kiểm tra lại tiêu đề, đề bài và hạn nộp.");
+                    ModelState.AddModelError(string.Empty, "Kiểm tra nội dung và thời gian giao bài.");
                     break;
             }
         }
 
         var access = await homework.GetAuthoringCourseAsync(UserId, id, ct);
         if (access.Value is not { } course) return Denied(access.Access);
-        return course.CanAssign ? AuthoringView(course, input) : RedirectClosed(id);
+        if (!course.CanAssign) return RedirectClosed(id);
+        return AuthoringView(course, input, preview && ModelState.IsValid ? plan : null);
+    }
+
+    [HttpGet, Authorize(Policy = AuthorizationPolicies.Teacher)]
+    public async Task<IActionResult> Edit(Guid id, CancellationToken ct)
+    {
+        var detail = await homework.GetAssignmentAsync(UserId, id, 1, ct);
+        if (detail.Value is not { } assignment) return Denied(detail.Access);
+        if (!assignment.CanEdit) return ReadOnlyAssignment(id);
+
+        return EditView(assignment, new WritingAssignmentInput
+        {
+            Title = assignment.Title,
+            Prompt = assignment.Prompt,
+            DueAt = assignment.DueAtUtc?.ToOffset(WritingHomeworkLimits.DisplayOffset).DateTime,
+            PublishMode = assignment.IsDraft ? WritingAssignmentPublishMode.Draft : WritingAssignmentPublishMode.Scheduled,
+            PublishAt = assignment.PublishAtUtc?.ToOffset(WritingHomeworkLimits.DisplayOffset).DateTime
+        });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = AuthorizationPolicies.Teacher)]
+    public async Task<IActionResult> Edit(Guid id, WritingAssignmentInput input, [FromForm] string? intent, CancellationToken ct)
+    {
+        var plan = ReadPlan(input);
+        var preview = intent == "preview";
+        if (ModelState.IsValid && !preview)
+        {
+            var result = await homework.UpdateAssignmentAsync(UserId, id, plan, ct);
+            switch (result.Status)
+            {
+                case WritingHomeworkWriteStatus.Saved:
+                    return PlanSaved(id, input.PublishMode);
+                case WritingHomeworkWriteStatus.Closed:
+                case WritingHomeworkWriteStatus.AlreadyPublished:
+                    return ReadOnlyAssignment(id);
+                case WritingHomeworkWriteStatus.Forbidden:
+                    return Forbid();
+                case WritingHomeworkWriteStatus.NotFound:
+                    return NotFound();
+                default:
+                    ModelState.AddModelError(string.Empty, "Kiểm tra nội dung và thời gian giao bài.");
+                    break;
+            }
+        }
+
+        var detail = await homework.GetAssignmentAsync(UserId, id, 1, ct);
+        if (detail.Value is not { } assignment) return Denied(detail.Access);
+        if (!assignment.CanEdit) return ReadOnlyAssignment(id);
+        return EditView(assignment, input, preview && ModelState.IsValid ? plan : null);
     }
 
     [HttpGet]
@@ -159,10 +198,65 @@ public sealed class HomeworkController(IWritingHomeworkService homework, TimePro
         return View(nameof(Details), detail.Value);
     }
 
-    private IActionResult AuthoringView(WritingHomeworkCourseInfo course, WritingAssignmentInput input)
+    private IActionResult AuthoringView(WritingHomeworkCourseInfo course, WritingAssignmentInput input, WritingAssignmentPlan? preview = null)
     {
         ViewData["Course"] = course;
+        ViewData["PreviewPlan"] = preview;
         return View(nameof(Create), input);
+    }
+
+    private IActionResult EditView(WritingHomeworkDetail assignment, WritingAssignmentInput input, WritingAssignmentPlan? preview = null)
+    {
+        ViewData["EditAssignmentId"] = assignment.Id;
+        return AuthoringView(new WritingHomeworkCourseInfo(assignment.CourseId, assignment.CourseTitle, true), input, preview);
+    }
+
+    private WritingAssignmentPlan ReadPlan(WritingAssignmentInput input)
+    {
+        var now = time.GetUtcNow();
+        var due = ReadLocalDate(input.DueAt, nameof(input.DueAt), "Hạn nộp");
+        if (due <= now)
+            ModelState.AddModelError(nameof(input.DueAt), "Hạn nộp phải ở trong tương lai.");
+
+        DateTimeOffset? publish = null;
+        if (input.PublishMode == WritingAssignmentPublishMode.Scheduled)
+        {
+            publish = ReadLocalDate(input.PublishAt, nameof(input.PublishAt), "Thời điểm giao");
+            if (input.PublishAt is null)
+                ModelState.AddModelError(nameof(input.PublishAt), "Chọn thời điểm giao bài.");
+            else if (publish <= now)
+                ModelState.AddModelError(nameof(input.PublishAt), "Thời điểm giao phải ở trong tương lai.");
+            if (due <= publish && due > now)
+                ModelState.AddModelError(nameof(input.DueAt), "Hạn nộp phải sau thời điểm giao bài.");
+        }
+
+        return new(input.Title, input.Prompt, due, input.PublishMode == WritingAssignmentPublishMode.Draft, publish);
+    }
+
+    private DateTimeOffset? ReadLocalDate(DateTime? date, string field, string label)
+    {
+        if (date is not { } value) return null;
+        if (value.Year is >= 2000 and <= 9998)
+            return new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Unspecified), WritingHomeworkLimits.DisplayOffset);
+        ModelState.AddModelError(field, $"{label} không hợp lệ.");
+        return null;
+    }
+
+    private IActionResult PlanSaved(Guid? id, WritingAssignmentPublishMode mode)
+    {
+        TempData["Success"] = mode switch
+        {
+            WritingAssignmentPublishMode.Draft => "Đã lưu bản nháp đề bài.",
+            WritingAssignmentPublishMode.Scheduled => "Đã hẹn giờ giao bài.",
+            _ => "Đã giao bài viết."
+        };
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private IActionResult ReadOnlyAssignment(Guid id)
+    {
+        TempData["Error"] = "Đề bài hiện chỉ có thể xem.";
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     private async Task<IActionResult> ResponseError(Guid id, string? response, string error, CancellationToken ct,

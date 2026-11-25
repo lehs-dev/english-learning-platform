@@ -301,6 +301,36 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
         Assert.True(await manager.CheckPasswordAsync(existing, IdentityTestHelpers.Password));
     }
 
+    [Fact]
+    public async Task MissingDemoAccountWithoutPassword_LeavesExistingAccountsAndDataUntouched()
+    {
+        using (var scope = factory.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            await CreateDemoUser(users, "admin1", AppRoles.Admin);
+            await CreateDemoUser(users, "teacher1", AppRoles.Teacher);
+            await CreateDemoUser(users, "teacher2", AppRoles.Teacher);
+            await CreateDemoUser(users, "student1", AppRoles.Student);
+        }
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => LearningDemoSeeder.SeedAsync(
+                services.GetRequiredService<AppDbContext>(),
+                services.GetRequiredService<UserManager<ApplicationUser>>(),
+                null, services.GetRequiredService<IStimulusAudioStore>()));
+        }
+
+        using var verification = factory.Services.CreateScope();
+        var db = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(4, await db.Users.CountAsync());
+        Assert.False(await db.Users.AnyAsync(user => user.Email == "student2@demo.example.test"));
+        Assert.False(await db.Courses.AnyAsync());
+        Assert.False(await db.WritingAssignments.AnyAsync());
+        Assert.False(await db.FlashcardDecks.AnyAsync());
+    }
+
     private async Task Seed(string password = IdentityTestHelpers.Password)
     {
         using var scope = factory.Services.CreateScope();
@@ -320,6 +350,14 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
     [Fact]
     public async Task FullSeed_WorkshopSupportsStudentAndTeacherAndPreservesEdits()
     {
+        await Seed();
+        Dictionary<Guid, string?> passwordHashes;
+        using (var legacyScope = factory.Services.CreateScope())
+        {
+            var legacy = legacyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            passwordHashes = await legacy.Users.ToDictionaryAsync(user => user.Id, user => user.PasswordHash);
+            Assert.False(await legacy.Courses.AnyAsync(course => course.Title == "Tiếng Anh tại quán cà phê"));
+        }
         await SeedFullAsync();
         Guid courseId, studentId, teacherId, pendingId;
         var editedDeadline = DateTimeOffset.UtcNow.AddDays(10);
@@ -388,6 +426,9 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
         Assert.Contains(await after.WritingSubmissions.Where(submission => submission.Assignment.CourseId == courseId).ToListAsync(),
             submission => submission.Feedback == "Giảng viên đã bổ sung nhận xét.");
         Assert.Equal(2, await after.FlashcardReviews.CountAsync(review => review.StudentUserId == studentId));
+        var usersAfter = await after.Users.ToListAsync();
+        Assert.Equal(passwordHashes.Count, usersAfter.Count);
+        Assert.All(usersAfter, user => Assert.Equal(passwordHashes[user.Id], user.PasswordHash));
         Assert.False(await after.Enrollments.AnyAsync(enrollment => enrollment.Course.IsPaid));
         Assert.Empty(await after.Payments.ToListAsync());
 
@@ -395,7 +436,7 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
         {
             using var scope = factory.Services.CreateScope();
             await LearningDemoSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>(),
-                scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(), IdentityTestHelpers.Password,
+                scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(), null,
                 scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
         }
     }

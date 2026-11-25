@@ -157,22 +157,28 @@ Học viên có thể học tiếp từ trang Hôm nay, nộp bài viết để 
 ### Cách kích hoạt Seed dữ liệu
 
 1. **Tự động seed khi khởi động (Development)**:
-   Khi biến môi trường `ASPNETCORE_ENVIRONMENT=Development`, cấu hình:
-   - `LearningDemo:Enabled` = `true` (trong `docker-compose.yml`, biến môi trường hoặc `.env`).
-   - `LearningDemo:Password` = `<mật_khẩu_mong_muốn>` (bắt buộc phải có giá trị).
-   Ứng dụng sẽ tự động áp dụng migration và khởi tạo dữ liệu mẫu khi khởi động.
+   Bật `LearningDemo__Enabled=true` trong môi trường `Development`. Khi cần tạo tài khoản mẫu, đặt thêm `LearningDemo__Password`. Docker Compose đọc các giá trị này từ tệp `.env`. Ứng dụng áp dụng migration theo cấu hình khởi động.
 
 2. **Chạy seed độc lập qua CLI**:
-   Có thể thực hiện seed dữ liệu demo một lần thông qua đối số dòng lệnh `--seed-demo`:
+   Với database đã có đủ năm tài khoản mẫu, chạy lệnh sau để cập nhật dữ liệu và giữ mật khẩu hiện tại.
+
    ```bash
    dotnet run --project src/EnglishLearningPlatform.Web -- --seed-demo
    ```
+
+   Nếu còn thiếu tài khoản mẫu, đặt mật khẩu bằng user-secrets của dự án Web trước khi chạy lệnh trên. Mật khẩu cần ít nhất 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.
+
+   ```bash
+   dotnet user-secrets set 'LearningDemo:Password' '<mật-khẩu-mẫu>' --project src/EnglishLearningPlatform.Web
+   ```
+
+   Khi dùng `dotnet run`, cấu hình được lấy từ user-secrets hoặc biến môi trường của terminal. Tệp `.env` dùng cho Docker Compose.
 
 ---
 
 ### Danh sách tài khoản Demo mặc định
 
-Mật khẩu của tất cả các tài khoản demo dưới đây được đặt theo giá trị của biến cấu hình `LearningDemo:Password` (ví dụ: `<your-demo-password>`):
+Tài khoản mới dùng mật khẩu trong `LearningDemo:Password`. Tài khoản đã có tiếp tục dùng mật khẩu được đặt khi tạo.
 
 | Vai trò | Email đăng nhập | Mục đích sử dụng |
 | --- | --- | --- |
@@ -201,7 +207,7 @@ Trang đăng nhập có nút chọn nhanh **Học viên**, **Giảng viên** và
 1. Đăng nhập bằng `student1@demo.example.test` và mở **Tiếng Anh tại quán cà phê**. Khóa có sáu bài, ba bài đầu đã hoàn thành. Dữ liệu mới khởi tạo có hoạt động vào năm ngày liên tiếp tính đến hôm qua.
 2. Mở **Uống tại quán hay mang đi?** để ôn bộ **Từ vựng gọi món** và làm **Luyện gọi món theo 5 dạng câu hỏi**. Bài luyện có chọn đáp án, điền từ, ghép cặp, sắp xếp và nghe chép chính tả với tệp âm thanh lưu trong ứng dụng.
 3. Trên **Hôm nay**, mở **Việc học** để xem hạn nộp bài **Viết lời nhắn đặt món** và phản hồi cho bài **Viết đoạn gọi món**. Bài **Lịch sự nhờ sửa món** đang chờ chấm. Phần hỏi đáp có một câu đã được trả lời và một câu đang chờ giảng viên.
-4. Đăng nhập bằng `teacher2@demo.example.test` để chấm bài còn lại hoặc trả lời học viên. Có thể quay lại tài khoản học viên để xem kết quả.
+4. Đăng nhập bằng `teacher2@demo.example.test` và mở **Việc cần xử lý** để chấm bài hoặc trả lời học viên. Trong **Bài tập viết** của khóa, chọn **Giao bài viết**, nhập đề, rồi **Xem trước**. Có thể giao ngay, lưu bản nháp đề hoặc hẹn giờ theo giờ Việt Nam.
 
 Chạy lại lệnh seed giữ nguyên tiến độ, bài nộp và nội dung đã sửa. Tài khoản mẫu bắt đầu với các khóa miễn phí. Để thử khóa trả phí, dùng luồng thanh toán thử nghiệm.
 

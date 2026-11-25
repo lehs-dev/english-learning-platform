@@ -1,5 +1,6 @@
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Infrastructure.Homework;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningPlatform.Infrastructure.Learning;
@@ -24,7 +25,7 @@ public sealed partial class StudentLearningService
         var enrollments = db.Enrollments.AsNoTracking().Valid().Where(enrollment =>
             enrollment.StudentUserId == studentId &&
             (enrollment.Course.Status == CourseStatus.Published || enrollment.Course.Status == CourseStatus.Unpublished));
-        var assignments = db.WritingAssignments.AsNoTracking()
+        var assignments = db.WritingAssignments.AsNoTracking().ReleasedAt(now)
             .Where(assignment => enrollments.Any(enrollment => enrollment.CourseId == assignment.CourseId));
 
         var pending = await assignments.Where(assignment =>

@@ -29,13 +29,21 @@ public sealed class WritingDraftMigrationTests : IAsyncLifetime
         var teacher = new ApplicationUser { Id = Guid.NewGuid(), UserName = "teacher", FullName = "Giảng viên" };
         var student = new ApplicationUser { Id = Guid.NewGuid(), UserName = "student", FullName = "Học viên" };
         var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Writing class", Status = CourseStatus.Published };
-        var first = new WritingAssignment { Course = course, Title = "Submitted", Prompt = "Write one paragraph." };
-        var second = new WritingAssignment { Course = course, Title = "In progress", Prompt = "Write a reply." };
         db.Users.AddRange(teacher, student);
-        db.WritingAssignments.AddRange(first, second);
+        db.Courses.Add(course);
+        await db.SaveChangesAsync();
+
+        var first = Guid.NewGuid();
+        var second = Guid.NewGuid();
+        var created = DateTimeOffset.UtcNow;
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO [WritingAssignments] ([Id], [CourseId], [Title], [Prompt], [CreatedAtUtc])
+            VALUES ({first}, {course.Id}, N'Submitted', N'Write one paragraph.', {created}),
+                   ({second}, {course.Id}, N'In progress', N'Write a reply.', {created})
+            """);
         var submission = new WritingSubmission
         {
-            Assignment = first, StudentUserId = student.Id, Response = "Existing finished response.",
+            AssignmentId = first, StudentUserId = student.Id, Response = "Existing finished response.",
             Feedback = "Existing teacher feedback.", Score = 85, ReviewedAtUtc = DateTimeOffset.UtcNow
         };
         db.WritingSubmissions.Add(submission);
@@ -48,7 +56,7 @@ public sealed class WritingDraftMigrationTests : IAsyncLifetime
 
         var draft = new WritingSubmissionDraft
         {
-            AssignmentId = second.Id, StudentUserId = student.Id, Response = "Unfinished response.",
+            AssignmentId = second, StudentUserId = student.Id, Response = "Unfinished response.",
             SavedAtUtc = DateTimeOffset.UtcNow, Version = Guid.NewGuid()
         };
         db.WritingSubmissionDrafts.Add(draft);
@@ -62,5 +70,30 @@ public sealed class WritingDraftMigrationTests : IAsyncLifetime
         Assert.Equal(submission.Response, stored.Response);
         Assert.Equal(submission.Feedback, stored.Feedback);
         Assert.Equal(submission.Score, stored.Score);
+    }
+
+    [Fact]
+    public async Task DowngradeRefusesToReleasePrivateAssignments()
+    {
+        await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlServer(database.ConnectionString).Options);
+        await db.Database.MigrateAsync();
+        var teacher = new ApplicationUser { Id = Guid.NewGuid(), UserName = "teacher", FullName = "Giảng viên" };
+        var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Writing class", Status = CourseStatus.Published };
+        var draft = new WritingAssignment { Course = course, Title = "Draft", Prompt = "Draft prompt", IsDraft = true };
+        var scheduled = new WritingAssignment
+        {
+            Course = course, Title = "Scheduled", Prompt = "Scheduled prompt", PublishAtUtc = DateTimeOffset.UtcNow.AddDays(1)
+        };
+        db.Users.Add(teacher);
+        db.WritingAssignments.AddRange(draft, scheduled);
+        await db.SaveChangesAsync();
+
+        var error = await Assert.ThrowsAsync<SqlException>(() =>
+            db.GetService<IMigrator>().MigrateAsync("20261124155333_AddWritingSubmissionDrafts"));
+        Assert.Equal(51000, error.Number);
+        db.ChangeTracker.Clear();
+        Assert.True((await db.WritingAssignments.SingleAsync(row => row.Id == draft.Id)).IsDraft);
+        Assert.Equal(scheduled.PublishAtUtc, (await db.WritingAssignments.SingleAsync(row => row.Id == scheduled.Id)).PublishAtUtc);
     }
 }
