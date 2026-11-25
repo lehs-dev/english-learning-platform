@@ -170,6 +170,7 @@ jobs:
       # so a single runner never hosts more than one test app at a time;
       # the parallelism comes from the three shard jobs on separate runners.
       - name: Run integration tests (shard ${{ matrix.shard }})
+        id: integration-tests
         run: >
           dotnet test
           tests/EnglishLearningPlatform.IntegrationTests/EnglishLearningPlatform.IntegrationTests.csproj
@@ -179,6 +180,27 @@ jobs:
           --filter "${{ matrix.filter }}"
           --logger "trx;LogFileName=integration-tests-shard-${{ matrix.shard }}.trx"
           --results-directory TestResults
+
+      - name: Annotate failed integration tests
+        if: failure() && steps.integration-tests.outcome == 'failure'
+        run: |
+          python3 - "TestResults/integration-tests-shard-${{ matrix.shard }}.trx" <<'PY'
+          import re
+          import sys
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          report = Path(sys.argv[1])
+          if report.is_file():
+              failures = ET.parse(report).findall(".//{*}UnitTestResult[@outcome='Failed']")
+              for result in failures[:15]:
+                  name = result.get("testName", "Unnamed test")
+                  name = name.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                  stack = result.findtext(".//{*}StackTrace", "")
+                  location = re.search(r"(tests/EnglishLearningPlatform\.IntegrationTests/\w+\.cs):line (\d+)", stack)
+                  properties = f",file={location[1]},line={location[2]}" if location else ""
+                  print(f"::error title=Integration test failed{properties}::{name}")
+          PY
 
       - name: Upload test results
         if: always()
