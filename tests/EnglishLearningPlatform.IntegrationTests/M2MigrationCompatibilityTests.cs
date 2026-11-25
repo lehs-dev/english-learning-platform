@@ -13,6 +13,7 @@ namespace EnglishLearningPlatform.IntegrationTests;
 public sealed class M2MigrationCompatibilityTests : IAsyncLifetime
 {
     private const string PreviousMigration = "20261119055627_AddEstudy2Features";
+    private const string M2Migration = "20261119072519_AddEstudyM2";
     private static readonly DateTimeOffset SavedAt = new(2026, 11, 18, 8, 30, 0, TimeSpan.Zero);
     private static readonly DateOnly PlanStart = new(2026, 11, 12);
     private readonly DatabaseFixture database = new();
@@ -25,7 +26,8 @@ public sealed class M2MigrationCompatibilityTests : IAsyncLifetime
     {
         await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlServer(database.ConnectionString).Options);
-        await db.GetService<IMigrator>().MigrateAsync(PreviousMigration);
+        var migrator = db.GetService<IMigrator>();
+        await migrator.MigrateAsync(PreviousMigration);
 
         var teacher = new ApplicationUser { Id = Guid.NewGuid(), UserName = "legacy-teacher", FullName = "Legacy teacher" };
         var student = new ApplicationUser { Id = Guid.NewGuid(), UserName = "legacy-student", FullName = "Legacy student" };
@@ -33,7 +35,8 @@ public sealed class M2MigrationCompatibilityTests : IAsyncLifetime
         await db.SaveChangesAsync();
         var legacy = await SeedLegacyAsync(db, teacher.Id, student.Id);
 
-        await db.Database.MigrateAsync();
+        // Exercise M2's downgrade guard before later migrations add their own rollback rules.
+        await migrator.MigrateAsync(M2Migration);
         var oldAnswer = await db.AttemptAnswers.AsNoTracking().Include(a => a.SelectedOption)
             .Include(a => a.Attempt).ThenInclude(a => a.SkillResults)
             .SingleAsync(a => a.Id == legacy.AnswerId);
@@ -46,8 +49,6 @@ public sealed class M2MigrationCompatibilityTests : IAsyncLifetime
         Assert.Equal(legacy.AttemptId, oldAnswer.AttemptId);
         Assert.Equal(100m, oldAnswer.Attempt.OverallScore);
         Assert.Equal(100m, Assert.Single(oldAnswer.Attempt.SkillResults).Score);
-        var migratedActivity = await db.StudentActivityDays.SingleAsync(day => day.StudentUserId == student.Id);
-        Assert.Equal(new DateOnly(2026, 11, 18), migratedActivity.ActivityDate);
 
         var oldPlan = await db.Set<LearningPlan>().AsNoTracking().Include(p => p.Items).SingleAsync(p => p.Id == legacy.PlanId);
         Assert.Equal(7, oldPlan.DurationDays);
@@ -84,9 +85,9 @@ public sealed class M2MigrationCompatibilityTests : IAsyncLifetime
         Assert.Equal(2, await db.AttemptAnswers.CountAsync());
 
         var appliedMigrations = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
-        var downgrade = await Assert.ThrowsAsync<SqlException>(() => db.GetService<IMigrator>().MigrateAsync(PreviousMigration));
+        var downgrade = await Assert.ThrowsAsync<SqlException>(() => migrator.MigrateAsync(PreviousMigration));
         Assert.Equal(51000, downgrade.Number);
-        Assert.Contains("downgrade blocked", downgrade.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Estudy M2 downgrade blocked", downgrade.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(appliedMigrations, await db.Database.GetAppliedMigrationsAsync());
         var preservedPlan = await db.Set<LearningPlan>().AsNoTracking().Include(p => p.Items).SingleAsync(p => p.Id == newPlan.Id);
         Assert.Equal(30, preservedPlan.DurationDays);
@@ -96,6 +97,10 @@ public sealed class M2MigrationCompatibilityTests : IAsyncLifetime
         Assert.Equal(" lived ", preservedAnswer.TextAnswer);
         Assert.True(preservedAnswer.IsCorrect);
         Assert.Equal(2, await db.AttemptAnswers.CountAsync());
+
+        await migrator.MigrateAsync();
+        var migratedActivity = await db.StudentActivityDays.SingleAsync(day => day.StudentUserId == student.Id);
+        Assert.Equal(new DateOnly(2026, 11, 18), migratedActivity.ActivityDate);
     }
 
     private static async Task<LegacyIds> SeedLegacyAsync(AppDbContext db, Guid teacher, Guid student)

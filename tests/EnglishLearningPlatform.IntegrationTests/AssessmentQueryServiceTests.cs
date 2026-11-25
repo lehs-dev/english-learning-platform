@@ -105,7 +105,7 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
     [InlineData("javascript:alert(1)")]
     [InlineData("file:///C:/private.mp3")]
     [InlineData("/relative-audio.mp3")]
-    public async Task TakingSheet_DoesNotExposeUnsafeAudioUrls(string audioUrl)
+    public async Task TakingSheet_DoesNotExposeUnsafeAudioUrlsOrTranscripts(string audioUrl)
     {
         var data = await SeedAsync();
         using var scope = factory.Services.CreateScope();
@@ -113,15 +113,20 @@ public sealed class AssessmentQueryServiceTests(IntegrationTestFactory factory)
         var stimulus = await db.Stimuli.SingleAsync(s => s.OwnerTeacherUserId == data.Teacher);
         // Mô phỏng dữ liệu legacy bị hỏng; luồng ghi EF bình thường hiện đã chặn sửa Stimulus đã dùng.
         await db.Stimuli.Where(s => s.Id == stimulus.Id).ExecuteUpdateAsync(set => set
-            .SetProperty(s => s.StimulusType, StimulusType.Audio).SetProperty(s => s.ResourceUrl, audioUrl));
+            .SetProperty(s => s.StimulusType, StimulusType.Audio)
+            .SetProperty(s => s.ResourceUrl, audioUrl)
+            .SetProperty(s => s.ContentText, "Private transcript"));
         var attempt = AttemptFor(data);
         db.Attempts.Add(attempt);
         await db.SaveChangesAsync();
         var query = new AssessmentQueryService(db, new FixedTimeProvider(Now));
         var sheet = await query.GetTakingSheetAsync(data.Student, attempt.Id);
         Assert.NotNull(sheet);
-        Assert.All(sheet.Questions, question => Assert.Null(question.AudioUrl));
-        Assert.Contains(sheet.Questions, question => question.StimulusContent == "Shared passage");
+        Assert.All(sheet.Questions, question =>
+        {
+            Assert.Null(question.AudioUrl);
+            Assert.Null(question.StimulusContent);
+        });
     }
 
     [Fact]
