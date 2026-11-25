@@ -20,7 +20,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Module> Modules => Set<Module>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<LessonResource> LessonResources => Set<LessonResource>();
+    public DbSet<WritingAssignment> WritingAssignments => Set<WritingAssignment>();
+    public DbSet<WritingSubmission> WritingSubmissions => Set<WritingSubmission>();
+    public DbSet<WritingSubmissionDraft> WritingSubmissionDrafts => Set<WritingSubmissionDraft>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<CourseDiscussionThread> CourseDiscussionThreads => Set<CourseDiscussionThread>();
+    public DbSet<CourseDiscussionMessage> CourseDiscussionMessages => Set<CourseDiscussionMessage>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<LessonProgress> LessonProgressEntries => Set<LessonProgress>();
@@ -38,6 +43,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<AttemptAnswer> AttemptAnswers => Set<AttemptAnswer>();
     public DbSet<AttemptSkillResult> AttemptSkillResults => Set<AttemptSkillResult>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<QuestionAcceptedAnswer> QuestionAcceptedAnswers => Set<QuestionAcceptedAnswer>();
+    public DbSet<PracticeSubmissionHistory> PracticeSubmissionHistories => Set<PracticeSubmissionHistory>();
+    public DbSet<PracticeAnswerHistory> PracticeAnswerHistories => Set<PracticeAnswerHistory>();
+    public DbSet<FlashcardDeck> FlashcardDecks => Set<FlashcardDeck>();
+    public DbSet<Flashcard> Flashcards => Set<Flashcard>();
+    public DbSet<FlashcardReview> FlashcardReviews => Set<FlashcardReview>();
+    public DbSet<FlashcardReviewState> FlashcardReviewStates => Set<FlashcardReviewState>();
+    public DbSet<LearningPlan> LearningPlans => Set<LearningPlan>();
+    public DbSet<LearningPlanItem> LearningPlanItems => Set<LearningPlanItem>();
+    public DbSet<GamificationEvent> GamificationEvents => Set<GamificationEvent>();
+    public DbSet<StudentActivityDay> StudentActivityDays => Set<StudentActivityDay>();
+    public DbSet<StudentAchievement> StudentAchievements => Set<StudentAchievement>();
 
     // Cả API sync/async đều qua cùng một hàng rào. Những bảng khác giữ nguyên luồng EF mặc định.
     public override int SaveChanges(bool acceptAllChangesOnSuccess) =>

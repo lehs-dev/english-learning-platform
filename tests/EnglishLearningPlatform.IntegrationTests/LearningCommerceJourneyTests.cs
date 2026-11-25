@@ -321,7 +321,8 @@ public sealed class LearningCommerceJourneyTests(CheckoutTestFactory factory) : 
     {
         using var response = await PostAsync(teacher,
             $"/TeacherCourses/Content?courseId={data.Course.Id}&kind={kind}&parentId={parent}&id={id}", fields);
-        Assert.Equal($"/TeacherCourses/Manage/{data.Course.Id}", response.Headers.Location?.ToString());
+        var selection = kind == ContentKind.Module ? $"moduleId={id}" : $"moduleId={parent}&lessonId={id}";
+        Assert.Equal($"/TeacherCourses/Manage/{data.Course.Id}?{selection}", response.Headers.Location?.ToString());
     }
 
     private static async Task<Guid> CreateOrderAsync(HttpClient student, Guid courseId, Guid? spoofedBuyer = null)

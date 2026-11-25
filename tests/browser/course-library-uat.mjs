@@ -73,7 +73,7 @@ try {
     await check(role + ' course library desktop', async () => {
       await page.goto(role === 'student' ? '/Learning' : '/Courses');
       if (role === 'student') {
-        assert.equal(await page.locator('.student-sidebar .studio-nav-link span').count(), 7);
+        assert.equal(await page.locator('.student-sidebar .studio-nav-link span').count(), 3);
         const enrolled = await page.locator('[data-enrolled-courses] [data-course-id]').evaluateAll(items => items.map(item => item.dataset.courseId));
         const discovery = await page.locator('.catalog-results [data-course-id]').evaluateAll(items => items.map(item => item.dataset.courseId));
         assert.ok(enrolled.length > 0);

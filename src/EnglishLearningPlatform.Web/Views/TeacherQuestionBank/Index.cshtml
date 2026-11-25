@@ -15,22 +15,16 @@
     <link rel="stylesheet" href="~/css/question-bank.css" asp-append-version="true" />
 }
 
-<nav class="teacher-breadcrumb" aria-label="Đường dẫn điều hướng"><span>Giảng dạy</span><span aria-hidden="true">/</span><span aria-current="page">Ngân hàng câu hỏi</span></nav>
-<div class="page-heading question-bank-heading">
+<header class="teacher-banner">
     <div>
         <h1>Ngân hàng câu hỏi</h1>
-        <p>Soạn, phân loại và tái sử dụng câu hỏi trong các bài luyện tập và kiểm tra.</p>
+        <p>Dùng lại câu hỏi trong bài luyện tập và bài kiểm tra.</p>
     </div>
-    <div class="actions">
+    <div class="question-bank-header-actions">
         <a class="button" asp-controller="TeacherQuestionBank" asp-action="Create"><span aria-hidden="true">+</span> Tạo câu hỏi</a>
         <a class="button secondary" asp-controller="TeacherStimuli" asp-action="Create">Tạo bài đọc và âm thanh</a>
     </div>
-</div>
-
-<section class="teacher-intro" aria-labelledby="question-intro-title">
-    <span class="teacher-intro-emblem" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg></span>
-    <div><h2 id="question-intro-title">Một thư viện câu hỏi, nhiều cách ôn luyện</h2><p>Soạn nội dung rõ ràng, phân loại theo kỹ năng và trình độ để dễ tìm lại.</p></div>
-</section>
+</header>
 
 <section class="panel question-bank-filters" aria-labelledby="question-filter-title">
     <h2 id="question-filter-title" class="visually-hidden">Tìm và lọc câu hỏi</h2>
@@ -90,7 +84,7 @@
     </form>
 </section>
 
-<div class="teacher-results-heading"><h2>Danh sách câu hỏi <span class="teacher-count">@result.TotalCount</span></h2><p class="question-bank-total">@result.Items.Count câu trên trang này</p></div>
+<div class="teacher-results-heading"><h2>Danh sách câu hỏi <span class="teacher-count">@result.TotalCount</span></h2></div>
 
 @if (result.Items.Count == 0)
 {
@@ -110,19 +104,19 @@
 else
 {
     <div class="question-bank-table-wrap" role="region" aria-label="Danh sách câu hỏi" tabindex="0">
-        <table class="question-bank-table">
+        <table class="question-bank-table" role="table">
             <caption class="visually-hidden">Nội dung và thuộc tính câu hỏi trong ngân hàng câu hỏi</caption>
-            <thead>
-                <tr>
-                    <th scope="col">Nội dung câu hỏi</th>
-                    <th scope="col">Kỹ năng</th>
-                    <th scope="col">Trình độ</th>
-                    <th scope="col">Trạng thái</th>
-                    <th scope="col" class="question-option-count">Lựa chọn</th>
-                    <th scope="col"><span class="visually-hidden">Thao tác</span></th>
+            <thead role="rowgroup">
+                <tr role="row">
+                    <th role="columnheader" scope="col">Nội dung câu hỏi</th>
+                    <th role="columnheader" scope="col">Kỹ năng</th>
+                    <th role="columnheader" scope="col">Trình độ</th>
+                    <th role="columnheader" scope="col">Trạng thái</th>
+                    <th role="columnheader" scope="col" class="question-option-count">Lựa chọn</th>
+                    <th role="columnheader" scope="col"><span class="visually-hidden">Thao tác</span></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
                 @foreach (var question in result.Items)
                 {
                     var statusClass = question.Status switch
@@ -131,13 +125,19 @@ else
                         QuestionStatus.Archived => "is-archived",
                         _ => "is-draft"
                     };
-                    <tr data-question-row>
-                        <td class="question-bank-text"><p class="preserve">@question.Content</p></td>
-                        <td><span class="question-skill-badge"><partial name="_UiText" model="question.PrimarySkill" /></span></td>
-                        <td class="question-level">@QuestionLevels.Display(question.Level)</td>
-                        <td><span class="question-status-badge @statusClass"><partial name="_UiText" model="question.Status" /></span></td>
-                        <td class="question-option-count">@question.OptionCount</td>
-                        <td>
+                    <tr role="row" data-question-row>
+                        <td role="cell" class="question-bank-text">
+                            <p class="preserve">@question.Content</p>
+                            @if (question.QuestionType != QuestionType.MultipleChoice)
+                            {
+                                <small><partial name="_UiText" model="question.QuestionType" /></small>
+                            }
+                        </td>
+                        <td role="cell"><span class="question-skill-badge"><partial name="_UiText" model="question.PrimarySkill" /></span></td>
+                        <td role="cell" class="question-level" data-label="Trình độ">@QuestionLevels.Display(question.Level)</td>
+                        <td role="cell"><span class="question-status-badge @statusClass"><partial name="_UiText" model="question.Status" /></span></td>
+                        <td role="cell" class="question-option-count" data-label="Số lựa chọn">@(question.QuestionType == QuestionType.MultipleChoice ? question.OptionCount.ToString() : "—")</td>
+                        <td role="cell">
                             <div class="question-bank-row-actions">
                                 <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Details" asp-route-id="@question.Id">Xem</a>
                                 <a class="button secondary" asp-controller="TeacherQuestionBank" asp-action="Edit" asp-route-id="@question.Id">Sửa</a>

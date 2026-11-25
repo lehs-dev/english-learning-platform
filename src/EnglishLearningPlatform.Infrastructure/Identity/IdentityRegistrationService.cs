@@ -35,7 +35,7 @@ public sealed class IdentityRegistrationService(
             await transaction.RollbackAsync();
 
             return RegisterStudentResult.Failure(
-                createResult.Errors.Select(error => error.Description));
+                createResult.Errors.Select(GetRegistrationMessage).Distinct());
         }
 
         var roleResult = await userManager.AddToRoleAsync(user, AppRoles.Student);
@@ -44,12 +44,30 @@ public sealed class IdentityRegistrationService(
         {
             await transaction.RollbackAsync();
 
-            return RegisterStudentResult.Failure(
-                roleResult.Errors.Select(error => error.Description));
+            return RegisterStudentResult.Failure(["Không thể tạo tài khoản. Vui lòng thử lại."]);
         }
 
         await transaction.CommitAsync();
 
         return RegisterStudentResult.Success();
     }
+
+    private static string GetRegistrationMessage(IdentityError error) => error.Code switch
+    {
+        nameof(IdentityErrorDescriber.DuplicateUserName) or nameof(IdentityErrorDescriber.DuplicateEmail)
+            => "Địa chỉ thư điện tử đã được sử dụng.",
+        nameof(IdentityErrorDescriber.InvalidUserName) or nameof(IdentityErrorDescriber.InvalidEmail)
+            => "Địa chỉ thư điện tử không hợp lệ.",
+        nameof(IdentityErrorDescriber.PasswordTooShort)
+            => "Mật khẩu phải có ít nhất 8 ký tự.",
+        nameof(IdentityErrorDescriber.PasswordRequiresDigit)
+            => "Mật khẩu cần có chữ số.",
+        nameof(IdentityErrorDescriber.PasswordRequiresLower)
+            => "Mật khẩu cần có chữ thường.",
+        nameof(IdentityErrorDescriber.PasswordRequiresUpper)
+            => "Mật khẩu cần có chữ hoa.",
+        nameof(IdentityErrorDescriber.PasswordRequiresNonAlphanumeric)
+            => "Mật khẩu cần có ký tự đặc biệt.",
+        _ => "Không thể tạo tài khoản. Vui lòng thử lại."
+    };
 }

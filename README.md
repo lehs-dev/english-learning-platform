@@ -1,224 +1,226 @@
-# English Learning Platform
+# English Learning Platform (ELP)
 
-**Đề tài:** Xây dựng nền tảng học tập và đánh giá năng lực tiếng Anh trực tuyến trên nền web bằng ASP.NET Core.
+Nền tảng học tập và đánh giá năng lực tiếng Anh trực tuyến được xây dựng trên nền tảng **ASP.NET Core (.NET 10)** theo mô hình kiến trúc phân lớp (Layered Architecture).
 
-**Bàn giao Practice–Assessment–Result (21/10/2026):** xem [QA6: chạy/config/migration và demo](docs/handover/qa6-run-demo.md)
-và [testcase, actual, lỗi/retest và gói bằng chứng](docs/acceptance/qa6-handover-results.md).
-Có launcher demo Windows riêng, không reset database đang làm việc; kết quả local không thay CI/rehearsal nhóm.
-Kết quả sau cập nhật main: [kiểm tra trước push QA2–QA6](docs/acceptance/qa-pre-push-20261021.md).
+---
 
-Muốn khám phá nhiều Course, Module, Lesson, Practice, Placement/Skill/Mock Assessment và audio mẫu trên UI, bật [bộ dữ liệu demo mở rộng](docs/project/demo-seed-data.md) trong Development.
+## 1. Giới thiệu dự án
 
-> **Cập nhật Công việc 10–12 (11/10/2026):** Có giao diện Final Assessment (Start/Save/Resume/Submit/Result), huy hiệu hoàn thành khóa, Admin tra cứu giao dịch/tài khoản và bộ hồ sơ bàn giao trong [docs/handover](docs/handover/README.md). Trạng thái kiểm thử, CI và rehearsal được ghi riêng theo bằng chứng thực tế; không suy ra mọi phân hệ của dự án đã hoàn tất.
+Hệ thống cung cấp giải pháp toàn diện cho việc đào tạo, luyện tập và khảo thí tiếng Anh trực tuyến với 3 nhóm người dùng chính (**Student**, **Teacher**, **Admin**) và đối tượng khách vãng lai (**Guest**).
 
-**Cập nhật 03/10/2026:** Đã có catalog Course công khai, tìm/lọc/phân trang, detail chỉ metadata/cấu trúc/giá, enroll Free, đọc Lesson/resource có quyền và giao diện Teacher authoring/preview/Publish/Unpublish/Archive. Paid hiện có schema và kiểm tra Enrollment/Payment; checkout/webhook chưa triển khai. Xem [hướng dẫn Course và dữ liệu demo](docs/project/course-authoring.md).
+### Các phân hệ & tính năng chính
 
-**Cập nhật 08/10/2026:** Đã có Order/hosted checkout, webhook ký HMAC xác minh phía server, chống Enrollment trùng, My Courses có progress, trang Module/Lesson và Completed/Incomplete. Áp dụng migration `AddCheckoutOrderMetadata`. Thanh toán mặc định tắt và chưa nối provider thật; xem [cấu hình và hợp đồng checkout](docs/architecture/payment-sandbox.md). Progress chỉ tính Lesson Published trong Module Visible; không có bài thì không tính phần trăm; Archived chỉ đọc. Chi tiết ở [hướng dẫn Learning](docs/project/course-authoring.md).
+Học viên có thể học tiếp từ trang Hôm nay, nộp bài viết để nhận phản hồi, hỏi riêng giảng viên và theo dõi streak theo ngày Việt Nam. Giáo viên có thể giao bài viết, tải ảnh và audio vào bài học, nhập flashcard từ CSV và tạo câu nghe chép chính tả cho bài luyện hoặc bài thi. Xem [báo cáo rà soát và lộ trình nâng cấp](docs/platform-upgrade-roadmap.md).
 
-**Checkout hợp nhất:** Hosted checkout/metadata Order và progress của main dùng chung service với UI Estudy và sandbox local. Hosted được ưu tiên khi cấu hình sẵn sàng; sandbox là chế độ opt-in chỉ Development, không thu tiền thật và không thể xác nhận Order hosted. Helper bảo vệ begin/commit/rollback/dispose, cancellation và callback replay. Xem [sandbox local](docs/project/checkout-local.md) và [hợp đồng hosted](docs/architecture/payment-sandbox.md). Chưa thử provider thật hoặc pair với Sơn/Khánh.
+- **Learning (Học tập)**:
+  - Khóa học được tổ chức theo cấu trúc phân cấp: `Course → Module → Lesson`.
+  - Học viên theo dõi tiến độ học tập (`Progress`), tự đánh dấu hoàn thành bài học (`Completed / Incomplete`).
+  - Hỗ trợ học liệu đa phương tiện (văn bản, âm thanh, hình ảnh).
+- **Practice (Luyện tập)**:
+  - Bài luyện tập gắn liền với từng bài học hoặc chương học.
+  - Cho phép học viên làm lại không giới hạn số lần, hiển thị kết quả và giải thích chi tiết ngay sau khi nộp bài.
+- **Assessment (Đánh giá & Khảo thí)**:
+  - Hỗ trợ đa dạng loại bài kiểm tra: **Placement Test** (xếp lớp), **Skill Assessment** (đánh giá kỹ năng), **Mock Exam** (thi thử) và **Final Assessment** (bài thi kết thúc khóa học).
+  - Quản lý thời gian làm bài phía máy chủ (server timer), tự động lưu bài làm (auto-save), bảo vệ nội dung thi.
+  - Chấm điểm tự động theo trọng số câu hỏi; phân tích kết quả chi tiết theo 4 kỹ năng: **Reading** (kèm văn bản đọc), **Listening** (kèm file âm thanh), **Vocabulary**, **Grammar**.
+- **Question Bank (Ngân hàng câu hỏi)**:
+  - Quản lý danh mục câu hỏi phong phú, hỗ trợ gắn ngữ liệu đọc và file âm thanh (Stimulus Audio / Text).
+  - Câu hỏi hỗ trợ phân loại theo kỹ năng chính, độ khó và trạng thái xuất bản.
+- **Commerce & Payment (Thanh toán & Ghi danh)**:
+  - Hỗ trợ cả khóa học miễn phí (Free Enrollment) và khóa học trả phí (Paid Course).
+  - Tích hợp cổng thanh toán VNPay Sandbox & Hosted Checkout, bảo mật chữ ký HMAC và chống ghi nhận trùng lặp giao dịch.
+- **Phân quyền người dùng (Role-Based Access Control)**:
+  - **Guest**: Xem danh mục khóa học công khai, chi tiết khóa học, đăng ký tài khoản học viên và đăng nhập.
+  - **Student**: Đăng ký khóa học, học bài, làm bài luyện tập, tham gia thi đánh giá và xem lịch sử kết quả.
+  - **Teacher**: Quản lý khóa học, module, bài học do mình sở hữu; quản lý ngân hàng câu hỏi và học liệu nghe/đọc; thiết lập bài Practice và Assessment.
+  - **Admin**: Quản lý tài khoản người dùng, phân quyền vai trò, quản trị hệ thống và tra cứu lịch sử giao dịch.
 
-## Sản phẩm cần xây
+---
 
-| Người dùng | Luồng chính |
-| --- | --- |
-| Guest | Xem danh mục/chi tiết khóa công khai, đăng ký tài khoản Student, đăng nhập. Guest chưa xác thực, không phải role trong database. |
-| Student | Chọn khóa và enroll → học theo Module/Lesson → đánh dấu hoàn thành → luyện tập → làm bài đánh giá → xem điểm, tiến độ và gợi ý học tiếp. |
-| Teacher | Tạo và quản lý khóa học, Module, Lesson; quản lý ngân hàng câu hỏi; tạo Practice/Assessment; xem kết quả của nội dung mình sở hữu. |
-| Admin | Quản lý tài khoản, role, trạng thái và thao tác quản trị; không sửa nội dung học tập của Teacher. |
+## 2. Công nghệ sử dụng & Cấu trúc dự án
 
-Trong phạm vi hiện tại, mỗi tài khoản có một role đang hoạt động: `Student`, `Teacher` hoặc `Admin`. Teacher chỉ thay đổi tài nguyên mình sở hữu; mọi kiểm tra quyền phải được thực hiện ở server.
+### Công nghệ
 
-### Các luồng nghiệp vụ cần phân biệt
+- **Backend**: .NET 10, ASP.NET Core MVC, Entity Framework Core 10, ASP.NET Core Identity.
+- **Cơ sở dữ liệu**: Microsoft SQL Server 2022.
+- **Testing**: xUnit, Playwright.
+- **Containerization**: Docker, Docker Compose.
 
-- **Learning:** `Course → Module → Lesson`. Student đã enroll được mở mọi Lesson đang khả dụng, không bắt buộc học tuần tự. Student tự đánh dấu Lesson `Completed/Incomplete`. Progress được tính trên các Lesson khả dụng; nếu không có Lesson khả dụng, hiển thị “Chưa có nội dung khả dụng”.
-- **Practice:** Bài luyện gắn với Lesson hoặc Module. Student có thể làm lại không giới hạn; chấm đều theo số câu đúng, lưu kết quả gần nhất và xem đáp án/giải thích sau khi nộp. Teacher được thay danh sách/thứ tự câu hỏi sau xuất bản: học viên đang làm giữ phiên bản đã mở, kết quả đã nộp giữ nguyên, lần làm lại dùng phiên bản mới nhất. Xem [cách cập nhật và kiểm tra phiên bản Practice](docs/architecture/practice-versions.md).
-- **Assessment:** Bài đánh giá có attempt chính thức, deadline do server quản lý, giới hạn lượt làm theo cấu hình, chấm điểm theo trọng số câu hỏi và lưu lịch sử. Kết quả gồm điểm tổng, điểm theo kỹ năng và kỹ năng cần cải thiện; không hiện đáp án chi tiết của từng câu trong Assessment. Các loại cần hỗ trợ là Placement Test, Skill Assessment và Mock/Practice Exam.
+### Cấu trúc mã nguồn
 
-Mỗi Question của MVP là trắc nghiệm chọn **một** đáp án đúng, có một `PrimarySkill` trong Reading, Listening, Vocabulary, Grammar. Kết quả Placement không tự nhận là chứng nhận CEFR/TOEIC. Các ý tưởng như thanh toán, diễn đàn, livestream hoặc chấm Speaking/Writing bằng AI nằm ngoài phạm vi hiện tại.
-
-### Các mốc bàn giao
-
-| Mốc | Bằng chứng cần có |
-| --- | --- |
-| Tuần 7 — bản demo môn Công nghệ hiện đại | Chạy ổn định luồng đăng ký/đăng nhập → chọn khóa → học Lesson → làm bài đánh giá → nộp → chấm → xem kết quả và tiến độ; có test, CI, PR/review và mỗi người trong nhóm vấn đáp tự giải thích được luồng. |
-| Tuần 13 — bản nộp .NET và QLDA | Hoàn thiện phạm vi đã thống nhất, giao diện và dữ liệu demo, kiểm thử liên module, tài liệu/báo cáo, slide, minh chứng tiến độ và bàn giao mã nguồn. |
-
-Ưu tiên hoàn thành một luồng xuyên suốt trước các mở rộng. Mỗi chức năng cụ thể cần có issue với tiêu chí nghiệm thu, người phụ trách và mốc hoàn thành.
-
-## Công nghệ và cấu trúc repo
-
-- .NET 10, ASP.NET Core MVC, EF Core 10, ASP.NET Core Identity, SQL Server 2022.
-- xUnit cho test; Docker Compose cho môi trường; GitHub Actions cho CI và đóng gói container lên GHCR.
-- `src/EnglishLearningPlatform.Domain`: entity, enum, quy tắc lõi.
-- `src/EnglishLearningPlatform.Application`: interface, DTO và service nghiệp vụ.
-- `src/EnglishLearningPlatform.Infrastructure`: EF Core, SQL Server, Identity và tích hợp hạ tầng.
-- `src/EnglishLearningPlatform.Web`: controller, middleware, view và static assets.
-- `tests/`: unit test và integration test. CI chạy **unit test và integration test** trên PR/push vào `main`; trước khi mở PR hãy chạy các test liên quan tại máy của mình.
-
-CD hiện chỉ build/push image lên **GitHub Container Registry**, chưa tự triển khai website lên VPS/Azure.
-
-## Bắt đầu sau khi clone hoặc pull repo
-
-Cần Git và Docker có Docker Compose. Nếu chạy ứng dụng trên máy host, cài thêm .NET 10 SDK. Repo dùng SQL Server 2022; các migration khởi tạo schema và seed ba role (**Student**, **Teacher**, **Admin**) đã được commit. Database cần áp dụng migration khi tạo mới hoặc khi code có migration mới; EF Core chỉ áp dụng migration còn thiếu.
-
-Khi chạy với `ASPNETCORE_ENVIRONMENT=Development`, web mặc định tự áp dụng migration còn thiếu **trước khi seed dữ liệu hoặc nhận request**. Cơ chế này dùng chung cho Windows local, Linux/macOS, Dev Container và Compose Development, nên sau khi pull code mới, chỉ cần khởi động lại web với đúng connection string. Database phải sẵn sàng; nếu cập nhật thất bại, web dừng khởi động để tránh lỗi thiếu cột khi đang làm bài. Đặt `Database__ApplyMigrationsOnStartup=false` nếu muốn tự quản lý migration bằng các lệnh bên dưới. Production luôn dùng bước `--migrate` riêng, kể cả khi cờ này được bật.
-
-### Cách A: VS Code Dev Container
-
-Cần VS Code và extension Dev Containers. Mở repo trong VS Code, chọn **Dev Containers: Reopen in Container**. Compose chờ SQL Server healthy trước khi mở môi trường .NET. Có thể xem log từ terminal trên máy host:
-
-    docker compose -f .devcontainer/docker-compose.yml logs -f db
-
-Nhấn **Ctrl+C** để thoát xem log, không dừng database. Mở terminal tích hợp trong Dev Container và chạy:
-
-    dotnet ef database update --project src/EnglishLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
-    dotnet run --project src/EnglishLearningPlatform.Web
-
-Trong Dev Container, hostname database là **db**. Mở **http://localhost:8080** trên máy host. Database được lưu trong volume **sqlserver-dev-data**; lần sau mở lại container thì không cần tạo lại. Sau khi pull migration mới, khởi động lại web để cập nhật schema.
-
-Lệnh EF ở trên là bước cập nhật thủ công tùy chọn trong Development; `dotnet run` cũng tự cập nhật schema khi khởi động. Nếu host đã dùng cổng 1433, đặt `ELP_SQL_PORT` thành cổng trống trước khi mở Dev Container; kết nối bên trong container vẫn dùng `db,1433`.
-
-### Cách B: Ứng dụng local, SQL Server trong Docker
-
-Cách này chạy .NET trên máy host và chỉ chạy database trong Docker. Cần cài .NET 10 SDK. Trong thư mục gốc repo, tạo file cấu hình local (chỉ cần lần đầu):
-
-    cp .env.example .env
-
-Trên PowerShell dùng **Copy-Item .env.example .env**. Mở **.env**, đặt **MSSQL_SA_PASSWORD** riêng cho máy của bạn. Không commit file **.env** hoặc mật khẩu.
-
-Khởi động database:
-
-    docker compose up -d db
-    docker compose logs -f db
-
-Chờ log SQL Server báo đã sẵn sàng rồi nhấn **Ctrl+C** để thoát xem log (container vẫn chạy). Cài công cụ EF Core một lần nếu máy chưa có:
-
-    dotnet tool install --global dotnet-ef --version '10.*'
-
-Đặt connection string cho lệnh EF và web chạy trên máy host. Thay **YOUR_MSSQL_SA_PASSWORD** bằng đúng mật khẩu trong **.env**.
-
-Linux/macOS, Git Bash hoặc WSL:
-
-    export ConnectionStrings__DefaultConnection='Server=127.0.0.1,1433;Database=EnglishLearningDb;User Id=sa;Password=YOUR_MSSQL_SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true'
-
-PowerShell:
-
-    $env:ConnectionStrings__DefaultConnection = 'Server=127.0.0.1,1433;Database=EnglishLearningDb;User Id=sa;Password=YOUR_MSSQL_SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true'
-
-Áp dụng các migration đã có trong repo:
-
-    dotnet ef database update --project src/EnglishLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
-
-Chạy lệnh này khi tạo database local mới và sau khi pull thay đổi có migration. Nếu database đã cập nhật, lệnh kết thúc mà không thay đổi schema. Sau đó chạy web trong cùng terminal để giữ connection string:
-
-    dotnet restore EnglishLearningPlatform.sln
-    dotnet run --project src/EnglishLearningPlatform.Web
-
-Mở URL được in trong terminal. Ứng dụng local kết nối tới **127.0.0.1,1433**, khớp địa chỉ IPv4 Compose đã bind và tránh timeout khi `localhost` được phân giải thành IPv6. Nếu đặt `ELP_SQL_PORT` khác 1433, đổi cổng trong connection string cho khớp.
-
-### Cách C: Ứng dụng và database cùng chạy trong Docker Compose
-
-Thực hiện Cách B từ bước tạo **.env** đến hết lệnh **dotnet ef database update**; không chạy **dotnet run** trên host. Lệnh EF dùng **127.0.0.1,1433**, còn web trong Compose tự dùng hostname **db**. Sau đó chạy:
-
-    docker compose up --build -d
-
-Đặt `MSSQL_SA_PASSWORD` trong environment hoặc `.env` local (không commit). Compose chờ SQL healthy, chạy service `migrate` một lần rồi mới mở `web`; cập nhật schema không cần EF CLI trên host. Khi pull migration mới, chạy `docker compose run --rm migrate` trước khi mở lại web. Mở **http://localhost:8080**; `docker compose ps` và **http://localhost:8080/health** kiểm tra readiness. Image chạy bằng user `app`. `ELP_SQL_PORT` và `ELP_WEB_PORT` đổi cổng khi cần; cổng mặc định chỉ bind localhost.
-
-Demo dữ liệu và checkout local chỉ bật khi opt-in Development: xem [hướng dẫn demo](docs/project/son-demo-fallback.md). `bash scripts/fresh-demo.sh` tạo project/volume riêng, từ chối tên project đã có dữ liệu. [Browser UAT](tests/browser/README.md) chạy Guest → thanh toán → học → Final → kết quả → Teacher → Admin và lưu ảnh không chứa secret.
-
-Dừng container nhưng giữ dữ liệu bằng **docker compose down** hoặc **docker compose stop**. Volume **sqlserver-data** giữ database qua các lần dừng/chạy. Chỉ dùng **docker compose down -v** nếu chủ động muốn xóa database local.
-
-### Cách D: SQL Server cài trực tiếp trên Windows
-
-Cần .NET 10 SDK và SQL Server local. Nếu dùng instance mặc định `localhost` với Windows Authentication, dùng cùng profile `LocalSqlServer` để cập nhật database rồi chạy web:
-
-```powershell
-dotnet run --project src/EnglishLearningPlatform.Web --launch-profile LocalSqlServer -- --migrate
-dotnet run --project src/EnglishLearningPlatform.Web --launch-profile LocalSqlServer
+```text
+├── src/
+│   ├── EnglishLearningPlatform.Domain/          # Entity, Enum, Value Objects, Domain Exceptions
+│   ├── EnglishLearningPlatform.Application/     # Interface, DTO, Service nghiệp vụ
+│   ├── EnglishLearningPlatform.Infrastructure/  # EF Core, Identity, Persistence, Migrations, Seeders
+│   └── EnglishLearningPlatform.Web/             # MVC Controllers, Views, ViewModels, Middleware
+├── tests/
+│   ├── EnglishLearningPlatform.UnitTests/       # Unit tests (xUnit)
+│   ├── EnglishLearningPlatform.IntegrationTests/# Integration tests với database
+│   └── browser/                                 # Kiểm thử UI/E2E với Playwright
+├── scripts/                                     # Các script hỗ trợ phát triển và kiểm thử
+├── docker-compose.yml                           # Docker Compose cho Database, Migration và Web
+└── Dockerfile                                   # Multi-stage Dockerfile cho ứng dụng Web
 ```
 
-Mở **http://localhost:5098**. Profile `LocalSqlServer` trỏ tới database **EnglishLearningDb** trên instance mặc định; chọn profile này khi chạy Windows local. Nếu dùng named instance hoặc SQL Authentication, đặt connection string phù hợp và chạy profile `http` để giữ cấu hình bạn đã đặt.
+---
 
-Có thể chạy riêng lệnh `--migrate` sau khi pull code có migration mới. Lệnh chỉ áp dụng migration còn thiếu rồi thoát; không mở web và không cần cài `dotnet-ef`. Nếu nộp bài hoặc bấm **Hoàn tất lượt đã hết giờ** báo `Invalid column name 'ContentLockedAtUtc'`, database còn thiếu migration `20261015181741_AddQuestionAndStimulusContentLocks`. Khởi động lại web Development để tự cập nhật, hoặc chạy lệnh cập nhật ở trên nếu đã tắt migration khi khởi động; migration thêm cột cho `Questions` và `Stimuli`, ghi nhận khóa nội dung cũ và giữ nguyên bài làm, đáp án, điểm số. Không cần tạo lại database.
+## 3. Hướng dẫn chạy dự án
 
-Trang đăng nhập có ba nút Student/Teacher/Admin để chọn tài khoản demo. Trong Development, các nút tự điền cả mật khẩu từ `LearningDemo:Password` trong user-secrets hoặc biến môi trường `LearningDemo__Password`; giá trị này phải trùng mật khẩu của các tài khoản đã seed. User-secrets chỉ lưu trên máy local. Trang Production không xuất mật khẩu demo.
+### Yêu cầu môi trường
 
-`dotnet ef` không đọc `launchSettings.json` hay profile `LocalSqlServer`. Vì vậy, phải đặt biến `ConnectionStrings__DefaultConnection` trước lệnh EF trong cùng terminal, hoặc dùng user-secrets. `appsettings.json` không chứa connection string hoặc mật khẩu mặc định; bỏ bước cấu hình sẽ không thể kết nối database.
+- **Cách 1 (Khuyên dùng)**: [Docker Desktop](https://www.docker.com/) hoặc Docker Engine có hỗ trợ Docker Compose.
+- **Cách 2**: [.NET 10 SDK](https://dotnet.microsoft.com/download) và Microsoft SQL Server 2022 (hoặc SQL Server chạy trong Docker).
 
-Trước khi build hoặc cập nhật database trên Windows, dừng ứng dụng đang chạy bằng **Ctrl+C** trong terminal của `dotnet run` hoặc Stop Debugging trong VS Code. Nếu app đang giữ DLL, EF có thể báo `Build failed` và build báo MSB3021/MSB3027. Khi đã build thành công, có thể thêm `--no-build` cho lệnh `dotnet ef database update`; chạy web sau khi cập nhật database xong.
+---
 
-Cách A/B vẫn dùng `dotnet run --project src/EnglishLearningPlatform.Web` (profile `http`), nhận connection string và URL từ environment. Cách C chạy DLL đã publish; không dùng launch profile. Không chọn `LocalSqlServer` trong Docker/Dev Container vì profile đó dành cho Windows Authentication trên máy host.
+### Cách 1: Chạy toàn bộ bằng Docker Compose (Nhanh nhất)
 
-## Một phiên làm việc của thành viên
+1. **Chuẩn bị cấu hình môi trường**:
+   Sao chép file cấu hình mẫu `.env.example` thành `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Mở file `.env` và thiết lập mật khẩu SQL Server cùng mật khẩu cho dữ liệu demo:
+   ```env
+   MSSQL_SA_PASSWORD=<your-strong-password>
+   LearningDemo__Enabled=true
+   LearningDemo__Password=<your-demo-password>
+   ```
 
-Mỗi phiên nên kết thúc bằng **một thay đổi có thể kiểm tra được** (commit/PR hoặc kết quả thử nghiệm) **và một cập nhật tiến độ**. Nếu bị chặn, ghi nguyên nhân và người cần hỗ trợ; không đánh dấu Done theo số giờ đã làm.
+2. **Khởi động ứng dụng**:
+   ```bash
+   docker compose up --build -d
+   ```
+   Docker Compose sẽ tự động:
+   - Khởi chạy SQL Server và chờ trạng thái *healthy*.
+   - Chạy container `migrate` để cập nhật schema cơ sở dữ liệu.
+   - Khởi chạy dịch vụ `web` và seed dữ liệu demo (nếu `LearningDemo__Enabled=true`).
 
-### 1. Nhận và hiểu việc trước khi sửa mã
+3. **Truy cập ứng dụng**:
+   - Web Application: **http://localhost:8080**
+   - Kiểm tra trạng thái: **http://localhost:8080/health**
 
-1. Mở issue được giao: đọc mục tiêu, tiêu chí nghiệm thu (AC), deadline và các issue phụ thuộc. Nếu chưa có issue, tạo hoặc nhờ trưởng nhóm chốt issue trước khi code.
-2. Đối chiếu quy tắc nghiệp vụ trong issue với màn hình/API, quyền Student/Teacher/Admin và dữ liệu cần lưu. Ghi câu hỏi vào issue nếu đặc tả hoặc ERD còn mâu thuẫn; chốt hợp đồng dữ liệu với người phụ trách module liên quan.
-3. Chọn một phần việc đủ nhỏ để kiểm tra trong phiên: ví dụ một hành vi, một validation, một bug kèm test. Xác nhận ai review và ai giữ migration nếu có thay đổi schema.
+4. **Dừng ứng dụng**:
+   ```bash
+   docker compose down
+   ```
+   *(Nếu muốn xóa sạch toàn bộ dữ liệu cơ sở dữ liệu để làm mới, thêm cờ `-v`: `docker compose down -v`)*.
 
-### 2. Cập nhật nhánh và làm việc
+---
 
-Kiểm tra `git status` trước; lưu hoặc hoàn tất thay đổi đang dở rồi mới đổi nhánh. Với issue mới:
+### Cách 2: Chạy Local với .NET SDK (SQL Server trên Docker)
 
-```bash
-git switch main
-git pull --ff-only origin main
-git switch -c feature/123-course-enrollment
-```
+1. **Khởi chạy SQL Server trong Docker**:
+   ```bash
+   cp .env.example .env
+   # Đặt MSSQL_SA_PASSWORD trong file .env
+   docker compose up -d db
+   ```
 
-Đổi `123-course-enrollment` thành số issue và tên việc thật. Với nhánh đang làm dở, chuyển sang đúng nhánh đó rồi lấy thay đổi mới từ `main` theo cách nhóm đã thống nhất. Dùng `fix/<issue>-<ten-ngan>` cho bug và `docs/<issue>-<ten-ngan>` cho tài liệu. Không commit trực tiếp vào `main`.
+2. **Cài đặt công cụ EF Core CLI** (nếu máy chưa cài):
+   ```bash
+   dotnet tool install --global dotnet-ef --version '10.*'
+   ```
 
-- Sửa đúng phạm vi issue, commit từng phần có ý nghĩa. Controller không nên chứa toàn bộ logic nghiệp vụ; kiểm tra authorization và validation ở server.
-- Nếu đụng tới Course/Module/Lesson, Practice/Assessment, Identity hay FK/index, trao đổi với owner của module và người giữ schema **trước** khi đổi contract hoặc migration.
-- Viết test cho quy tắc quan trọng, đặc biệt các trường hợp sai quyền, dữ liệu trùng, deadline/submit lặp và tính điểm. Với UI, tự đi qua luồng bằng role và dữ liệu demo phù hợp.
-- Ghi lại lệnh đã chạy, kết quả và ảnh/chứng cứ demo khi issue yêu cầu; không đưa mật khẩu, `.env` hay dữ liệu riêng tư vào commit/log/chụp màn hình.
+3. **Cấu hình biến môi trường kết nối**:
+   - **Linux / macOS / WSL**:
+     ```bash
+     export ConnectionStrings__DefaultConnection='Server=127.0.0.1,1433;Database=EnglishLearningDb;User Id=sa;Password=YOUR_MSSQL_SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true'
+     export ASPNETCORE_ENVIRONMENT=Development
+     export LearningDemo__Enabled=true
+     export LearningDemo__Password='<your-demo-password>'
+     ```
+   - **Windows PowerShell**:
+     ```powershell
+     $env:ConnectionStrings__DefaultConnection = 'Server=127.0.0.1,1433;Database=EnglishLearningDb;User Id=sa;Password=YOUR_MSSQL_SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true'
+     $env:ASPNETCORE_ENVIRONMENT = 'Development'
+     $env:LearningDemo__Enabled = 'true'
+     $env:LearningDemo__Password = '<your-demo-password>'
+     ```
 
-### 3. Tự kiểm tra và bàn giao cuối phiên
+4. **Áp dụng Database Migration**:
+   ```bash
+   dotnet ef database update --project src/EnglishLearningPlatform.Infrastructure --startup-project src/EnglishLearningPlatform.Web
+   ```
 
-```bash
-git diff --check
-dotnet build EnglishLearningPlatform.sln
-dotnet test EnglishLearningPlatform.sln
-git status
-```
+5. **Khởi chạy ứng dụng Web**:
+   ```bash
+   dotnet run --project src/EnglishLearningPlatform.Web
+   ```
+   Mở trình duyệt theo địa chỉ được thông báo trên terminal (mặc định thường là **http://localhost:5000** hoặc **http://localhost:5098**).
 
-Nếu một test hoặc bước chạy tay thất bại, sửa hoặc ghi rõ lỗi và cách tái hiện trên issue/PR. Khi thay đổi đã sẵn sàng:
+---
 
-1. Commit có nội dung rõ, ví dụ `feat(learning): add enrollment validation`; push nhánh (`git push -u origin HEAD`).
-2. Mở PR vào **`main`** theo [PR template](.github/pull_request_template.md): liên kết issue (`Closes #123` khi thực sự giải quyết xong), liệt kê thay đổi, lệnh/kết quả test, cách thử tay, ảnh UI nếu cần, migration và ảnh hưởng tới module khác.
-3. Theo dõi CI, sửa lỗi, nhờ **một thành viên khác** review. Người review thử các AC, quyền truy cập và hiểu đủ logic để giải thích khi vấn đáp. Chỉ merge khi review xong và CI xanh.
-4. Cập nhật issue/bảng tiến độ: trạng thái, link commit/PR, AC đã đạt, việc còn dở và người cần tiếp nhận. Nếu còn dở, đẩy nhánh hoặc mở draft PR, ghi blocker và bước tiếp theo; giữ trạng thái In Progress.
+## 4. Hướng dẫn Seed dữ liệu mẫu (Demo Data)
 
-**Ví dụ ghi cuối phiên:** `Issue #123 — đã chặn enroll trùng, test X/Y đạt, PR #45 đang chờ Khánh review; còn kiểm tra 403 với Teacher trước ngày 27/9.`
+### Cách kích hoạt Seed dữ liệu
 
-### Khi nào được đánh dấu Done?
+1. **Tự động seed khi khởi động (Development)**:
+   Bật `LearningDemo__Enabled=true` trong môi trường `Development`. Khi cần tạo tài khoản mẫu, đặt thêm `LearningDemo__Password`. Docker Compose đọc các giá trị này từ tệp `.env`. Ứng dụng áp dụng migration theo cấu hình khởi động.
 
-- Mọi AC của issue có bằng chứng kiểm tra; dữ liệu, quyền và trường hợp lỗi liên quan đã được thử.
-- Build/test liên quan chạy được; CI của PR xanh; thay đổi schema có migration và hướng dẫn áp dụng nếu cần.
-- PR đã được thành viên khác review/merge; issue và bảng tiến độ có link, trạng thái và ghi chú bàn giao chính xác.
+2. **Chạy seed độc lập qua CLI**:
+   Với database đã có đủ năm tài khoản mẫu, chạy lệnh sau để cập nhật dữ liệu và giữ mật khẩu hiện tại.
 
-## Phân công và trao đổi chéo
+   ```bash
+   dotnet run --project src/EnglishLearningPlatform.Web -- --seed-demo
+   ```
 
-| Người | Trách nhiệm chính | Cần phối hợp với |
+   Nếu còn thiếu tài khoản mẫu, đặt mật khẩu bằng user-secrets của dự án Web trước khi chạy lệnh trên. Mật khẩu cần ít nhất 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.
+
+   ```bash
+   dotnet user-secrets set 'LearningDemo:Password' '<mật-khẩu-mẫu>' --project src/EnglishLearningPlatform.Web
+   ```
+
+   Khi dùng `dotnet run`, cấu hình được lấy từ user-secrets hoặc biến môi trường của terminal. Tệp `.env` dùng cho Docker Compose.
+
+---
+
+### Danh sách tài khoản Demo mặc định
+
+Tài khoản mới dùng mật khẩu trong `LearningDemo:Password`. Tài khoản đã có tiếp tục dùng mật khẩu được đặt khi tạo.
+
+| Vai trò | Email đăng nhập | Mục đích sử dụng |
 | --- | --- | --- |
-| Sơn (trưởng nhóm) | Kiến trúc, Identity/Authorization, tích hợp, toàn vẹn dữ liệu, CI/CD và release. | Khánh/Hoàng khi đổi schema hoặc contract; Khang/Dương để kiểm thử luồng. |
-| Khánh | Learning: Course, Module, Lesson, Enrollment, Progress và recommendation. | Hoàng ở liên kết bài học/bài đánh giá; Khang ở UI. |
-| Hoàng | Question Bank, Practice, Assessment, Attempt, Scoring và Result. | Khánh ở Course/Final; Sơn ở transaction/quyền; Khang ở UI. |
-| Khang | UI, Admin, dữ liệu demo, QA, tài liệu và hỗ trợ báo cáo. | Các owner API để thử trọn luồng bốn actor. |
-| Dương | Code chéo, test tự động, tích hợp và chuẩn bị vấn đáp. | Pair/review với các owner; ghi rõ phần đã làm trong issue/PR. |
+| Quản trị viên | `admin1@demo.example.test` | Quản lý tài khoản, phân quyền, tra cứu giao dịch |
+| Giảng viên | `teacher1@demo.example.test` | Quản lý danh mục mẫu, ngân hàng câu hỏi và đề thi |
+| Giảng viên | `teacher2@demo.example.test` | Quản lý khóa **Tiếng Anh tại quán cà phê**, chấm bài và trả lời học viên |
+| Học viên | `student1@demo.example.test` | Học tiếp khóa đã ghi danh, ôn thẻ từ và xem nhận xét |
+| Học viên | `student2@demo.example.test` | Thử ghi danh khóa miễn phí hoặc mua khóa học |
 
-Không chờ đến tuần demo mới thử phần của người khác. Sau mỗi tuần, mỗi owner trình bày luồng đang làm được; một người khác clone, chạy và nêu được request → service → database → kết quả.
+Trang đăng nhập có nút chọn nhanh **Học viên**, **Giảng viên** và **Quản trị** cho các tài khoản số 1. Để vào tài khoản số 2, nhập địa chỉ trong bảng và dùng cùng mật khẩu đã cấu hình khi tạo tài khoản.
 
-## Tài liệu liên quan
+---
 
-- [Kiến trúc](docs/architecture/architecture.md) và [ERD nghiệp vụ hiện có](docs/architecture/erd.md) — đối chiếu với phạm vi ở README/issue trước khi chốt migration mới.
-- [Profile, UI và quyền Learning](docs/project/profile-ui.md) — cấu trúc code, phạm vi giao diện và cách kiểm thử.
-- [Backlog tham khảo](docs/project/backlog.csv) và [GitHub Project](docs/project/github-project.md).
-- [Kế hoạch luyện vấn đáp](docs/project/defense-readiness.md) và [thiết lập Fedora Dev Container](docs/setup/fedora-devcontainer.md).
+### Dữ liệu được khởi tạo sẵn
 
-GitHub issue/PR là nơi theo dõi việc đang thực hiện; bảng tiến độ và báo cáo môn học lấy bằng chứng từ đó và được cập nhật theo mốc nhóm thống nhất.
+- **Khóa học (Courses)**:
+  - **Khóa học miễn phí (Free Course)**: Gồm các Module, Lesson đã xuất bản và bài thi cuối khóa (Final Assessment). Tài khoản `student1` đã được ghi danh sẵn vào khóa học này.
+  - **Khóa học có phí (Paid Course)**: Dùng để thử nghiệm quy trình thanh toán và ghi danh trả phí.
+  - **Khóa học bản nháp (Draft Course)**: Dùng cho giáo viên thử nghiệm chỉnh sửa và xuất bản.
+- **Ngân hàng câu hỏi & Học liệu**:
+  - Đầy đủ 4 kỹ năng: **Reading** (kèm bài đọc), **Listening** (kèm file audio mẫu), **Vocabulary**, **Grammar**.
+  - Các bài thi Placement Test, Skill Assessment và Practice Test mẫu với đầy đủ cấu hình thời gian và trọng số điểm.
 
-**Lưu ý khi đưa README vào repo:** `docs/project/git-workflow.md` cũ vẫn hướng dẫn dùng `develop`. Quy trình đang áp dụng nằm trong README này (`feature/fix/docs` → PR vào `main`); hãy đồng bộ tài liệu Git cũ trước khi cho nhóm dùng làm hướng dẫn.
+### Thử một lượt học và phản hồi
+
+1. Đăng nhập bằng `student1@demo.example.test` và mở **Tiếng Anh tại quán cà phê**. Khóa có sáu bài, ba bài đầu đã hoàn thành. Dữ liệu mới khởi tạo có hoạt động vào năm ngày liên tiếp tính đến hôm qua.
+2. Mở **Uống tại quán hay mang đi?** để ôn bộ **Từ vựng gọi món** và làm **Luyện gọi món theo 5 dạng câu hỏi**. Bài luyện có chọn đáp án, điền từ, ghép cặp, sắp xếp và nghe chép chính tả với tệp âm thanh lưu trong ứng dụng.
+3. Trên **Hôm nay**, mở **Việc học** để xem hạn nộp bài **Viết lời nhắn đặt món** và phản hồi cho bài **Viết đoạn gọi món**. Bài **Lịch sự nhờ sửa món** đang chờ chấm. Phần hỏi đáp có một câu đã được trả lời và một câu đang chờ giảng viên.
+4. Đăng nhập bằng `teacher2@demo.example.test` và mở **Việc cần xử lý** để chấm bài hoặc trả lời học viên. Trong **Bài tập viết** của khóa, chọn **Giao bài viết**, nhập đề, rồi **Xem trước**. Có thể giao ngay, lưu bản nháp đề hoặc hẹn giờ theo giờ Việt Nam.
+
+Chạy lại lệnh seed giữ nguyên tiến độ, bài nộp và nội dung đã sửa. Tài khoản mẫu bắt đầu với các khóa miễn phí. Để thử khóa trả phí, dùng luồng thanh toán thử nghiệm.
+
+---
+
+## 5. Chạy kiểm thử (Testing)
+
+Trên máy giới hạn RAM, chọn ca cần chạy và dùng `tests/low-memory.runsettings`. Các kiểm thử tích hợp dùng database tạm riêng trên SQL Server đã chỉ định qua `ELP_TEST_SQLSERVER`.
+
+```bash
+dotnet test tests/EnglishLearningPlatform.UnitTests -m:1 \
+  --settings tests/low-memory.runsettings --filter 'FullyQualifiedName~GamificationPolicyTests'
+
+dotnet test tests/EnglishLearningPlatform.IntegrationTests -m:1 \
+  --settings tests/low-memory.runsettings --filter 'FullyQualifiedName~WritingHomeworkTests'
+```

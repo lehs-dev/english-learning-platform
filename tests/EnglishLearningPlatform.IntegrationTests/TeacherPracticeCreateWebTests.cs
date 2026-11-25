@@ -208,41 +208,27 @@ public sealed class TeacherPracticeCreateWebTests : IClassFixture<IntegrationTes
         }
 
         using var client = await LoginAsync(own.Teacher);
-        using var response = await client.GetAsync("/TeacherCourses/Manage/" + own.CourseId);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var links = CreateLinks(await response.Content.ReadAsStringAsync()).ToList();
-        var moduleLinks = links.Where(href => LinkQuery(href).ContainsKey("moduleId")).ToList();
-        var lessonLinks = links.Where(href => LinkQuery(href).ContainsKey("lessonId")).ToList();
-        Assert.Equal(2, moduleLinks.Count);
-        Assert.Equal(lessonCount, lessonLinks.Count);
+        List<Guid> moduleIds;
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var moduleIds = await db.Modules.Where(m => m.CourseId == own.CourseId).Select(m => m.Id).ToListAsync();
-            foreach (var id in moduleIds)
-            {
-                Assert.Single(moduleLinks, href => LinkQuery(href)["moduleId"].ToString() == id.ToString());
-            }
-            foreach (var id in lessonIds)
-            {
-                Assert.Single(lessonLinks, href => LinkQuery(href)["lessonId"].ToString() == id.ToString());
-            }
+            moduleIds = await db.Modules.Where(m => m.CourseId == own.CourseId).Select(m => m.Id).ToListAsync();
         }
 
-        foreach (var href in links)
+        foreach (var parent in moduleIds.Select(id => (Key: "moduleId", Field: "Input.ModuleId", Id: id))
+                     .Concat(lessonIds.Select(id => (Key: "lessonId", Field: "Input.LessonId", Id: id))))
         {
+            using var response = await client.GetAsync($"/TeacherCourses/Manage/{own.CourseId}?{parent.Key}={parent.Id}");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var href = Assert.Single(CreateLinks(await response.Content.ReadAsStringAsync()),
+                href => LinkQuery(href).Count > 0);
             var query = LinkQuery(href);
             Assert.Equal(2, query.Count);
             Assert.Equal(own.CourseId.ToString(), query["courseId"].ToString());
-            Assert.NotEqual(query.ContainsKey("moduleId"), query.ContainsKey("lessonId"));
+            Assert.Equal(parent.Id.ToString(), query[parent.Key].ToString());
             using var form = await client.GetAsync(href);
             Assert.Equal(HttpStatusCode.OK, form.StatusCode);
-            var html = await form.Content.ReadAsStringAsync();
-            if (query.ContainsKey("moduleId"))
-                AssertSelected(html, "Input.ModuleId", Guid.Parse(query["moduleId"].ToString()));
-            else
-                AssertSelected(html, "Input.LessonId", Guid.Parse(query["lessonId"].ToString()));
+            AssertSelected(await form.Content.ReadAsStringAsync(), parent.Field, parent.Id);
         }
         await AssertNoPracticeAsync(own.Teacher.Id);
     }

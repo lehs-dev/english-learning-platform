@@ -8,6 +8,9 @@
 <form id="question-editor-form" method="post" asp-action="Edit" asp-route-id="@Model.Id" class="editor-form question-form question-locked-form">
     <div asp-validation-summary="All" class="validation" role="alert"></div>
     @* Gửi nguyên nội dung đã khóa để giữ hợp đồng lưu; máy chủ kiểm tra lại mọi thay đổi. *@
+    <input type="hidden" asp-for="QuestionType" />
+    @for (var index = 0; index < Model.AcceptedAnswers.Count; index++)
+    { <input type="hidden" asp-for="AcceptedAnswers[index]" /> }
     <input type="hidden" asp-for="Content" />
     <input type="hidden" asp-for="PrimarySkill" />
     <input type="hidden" asp-for="StimulusId" />
@@ -30,7 +33,7 @@
         <div class="question-editor-card question-editor-content question-locked-content">
             <section class="question-editor-section" aria-labelledby="question-content-heading">
                 <div class="question-section-heading">
-                    <span class="question-step" aria-hidden="true">01</span>
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg></span>
                     <h2 id="question-content-heading">Nội dung câu hỏi</h2>
                     <partial name="_ReadOnlyBadge" />
                 </div>
@@ -47,13 +50,30 @@
 
             <section class="question-editor-section" aria-labelledby="question-options-heading">
                 <div class="question-section-heading">
-                    <span class="question-step" aria-hidden="true">02</span>
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg></span>
                     <div>
                         <h2 id="question-options-heading">Lựa chọn &amp; đáp án</h2>
                         <p>Đáp án đúng được giữ nguyên.</p>
                     </div>
                     <partial name="_ReadOnlyBadge" />
                 </div>
+                @if (Model.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
+                { <ul>@foreach (var answer in Model.AcceptedAnswers) { <li>@answer</li> }</ul> }
+                @if (Model.StructuredItems.Count > 0)
+                {
+                    <ol>
+                        @foreach (var item in Model.StructuredItems)
+                        {
+                            <li class="preserve">
+                                @item.Text
+                                @if (item.MatchText is not null)
+                                {
+                                    <text> ↔ @item.MatchText</text>
+                                }
+                            </li>
+                        }
+                    </ol>
+                }
                 <ol class="question-locked-options" aria-label="Các lựa chọn đã khóa">
                     @for (var index = 0; index < Model.Options.Count; index++)
                     {
@@ -72,7 +92,7 @@
 
             <section class="question-editor-section" aria-labelledby="question-explanation-heading">
                 <div class="question-section-heading">
-                    <span class="question-step" aria-hidden="true">03</span>
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#info")"></use></svg></span>
                     <h2 id="question-explanation-heading">Giải thích đáp án</h2>
                     <partial name="_ReadOnlyBadge" />
                 </div>

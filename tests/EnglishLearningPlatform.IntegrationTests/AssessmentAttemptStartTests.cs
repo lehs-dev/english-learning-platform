@@ -182,7 +182,7 @@ public sealed class AssessmentAttemptStartTests(
     public async Task ManualSubmitAndLazyExpiry_AtExactDeadline_GradeOnceWithoutExtendingTime()
     {
         var (studentId, assessmentId) = await SeedAsync();
-        var clock = new TestClock(new DateTimeOffset(2026, 10, 21, 0, 0, 0, TimeSpan.Zero));
+        var clock = new TestClock(new DateTimeOffset(2026, 10, 21, 16, 40, 0, TimeSpan.Zero));
         AttemptStartResult started;
         using (var scope = factory.Services.CreateScope())
         {
@@ -219,6 +219,9 @@ public sealed class AssessmentAttemptStartTests(
         Assert.Equal(started.DeadlineUtc, attempt.DeadlineUtc);
         Assert.Single(attempt.Answers);
         Assert.Single(attempt.SkillResults);
+        var activity = await check.ServiceProvider.GetRequiredService<AppDbContext>().StudentActivityDays
+            .SingleAsync(d => d.StudentUserId == studentId);
+        Assert.Equal(new DateOnly(2026, 10, 21), activity.ActivityDate);
     }
 
     [Theory]

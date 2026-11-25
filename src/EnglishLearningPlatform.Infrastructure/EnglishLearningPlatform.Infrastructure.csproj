@@ -8,6 +8,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
 
     <EmbeddedResource Include="DemoContent\city-library-listening.wav" />
+    <EmbeddedResource Include="DemoContent\coffee-to-go.wav" />
 
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
 

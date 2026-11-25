@@ -8,16 +8,29 @@
     var questionNumber = 0;
 }
 @section Styles { <link rel="stylesheet" href="~/css/teacher-assessments.css" asp-append-version="true" /> }
-<nav class="ta-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-controller="TeacherAssessments" asp-action="Index" data-editor-navigation>Bài kiểm tra</a><span aria-hidden="true">/</span><span aria-current="page">Câu hỏi và điểm</span></nav>
-<div class="ta-heading"><div><h1>@Model.Editor.Title</h1><p>Chọn câu hỏi và phân bổ điểm để xây dựng đề kiểm tra.</p></div><a class="button secondary" asp-controller="TeacherAssessmentPreview" asp-action="Index" asp-route-id="@Model.Editor.AssessmentId" target="_blank" rel="noopener" data-editor-navigation>Xem trước bản đã lưu <span aria-hidden="true">↗</span></a></div>
-<div class="ta-editor-meta"><span class="ta-status status-@Model.Editor.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Editor.Status" /></span><span><partial name="_UiText" model="Model.Editor.AssessmentType" /></span>@if (Model.Editor.TargetSkill.HasValue) { <span><partial name="_UiText" model="Model.Editor.TargetSkill" /></span> }</div>
-<ol class="ta-steps" aria-label="Các bước soạn đề"><li class="is-complete"><span>✓</span>Cấu hình đề</li><li class="is-current" aria-current="step"><span>2</span>Câu hỏi và điểm</li><li><span>3</span>Xem trước và mở bài</li></ol>
+<nav class="workspace-path" aria-label="Đường dẫn điều hướng">
+    <partial name="~/Views/TeacherAssessments/_AssessmentBackLink.cshtml" model="Model.Editor.CourseId" /><span aria-hidden="true">/</span><span aria-current="page">Câu hỏi và điểm</span>
+</nav>
+<header class="teacher-banner teacher-banner--light">
+    <div>
+        <h1>@Model.Editor.Title</h1>
+        <div class="workspace-meta">
+            <span class="workspace-status status-@Model.Editor.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Editor.Status" /></span>
+            <span><partial name="_UiText" model="Model.Editor.AssessmentType" /></span>
+            @if (Model.Editor.TargetSkill.HasValue) { <span><partial name="_UiText" model="Model.Editor.TargetSkill" /></span> }
+        </div>
+    </div>
+</header>
+<partial name="~/Views/TeacherAssessments/_AssessmentTabs.cshtml" model='new EnglishLearningPlatform.Web.Models.Assessment.AssessmentWorkspaceNav(Model.Editor.AssessmentId, "questions")' />
 @if (Model.Editor.Status == AssessmentStatus.Published)
 { <p class="ta-inline-note">Đề đang mở và chưa có lượt làm. Bạn có thể đổi câu hỏi và điểm khi đề vẫn hợp lệ và có ít nhất 5 câu khác nhau. Nội dung câu hỏi đã dùng trong đề được mở vẫn được khóa.</p> }
 <nav class="ta-mobile-shortcuts" aria-label="Điều hướng soạn đề"><a href="#assessment-bank-title">Tìm câu hỏi</a><a href="#assessment-selected-title">Câu hỏi đã chọn ↓</a></nav>
 <div class="ta-editor-grid"><div class="ta-bank-column">
 <section class="ta-card ta-bank-card">
-    <div class="ta-card-heading"><h2 id="assessment-bank-title">Ngân hàng câu hỏi</h2><span class="ta-count">@Model.Result.TotalCount</span></div>
+    <div class="ta-card-heading">
+        <h2 id="assessment-bank-title">Ngân hàng câu hỏi <span class="ta-count">@Model.Result.TotalCount</span></h2>
+        <a class="button secondary small" asp-controller="TeacherQuestionBank" asp-action="Create" target="_blank" rel="noopener noreferrer">Tạo câu hỏi (thẻ mới)</a>
+    </div>
 
     <form method="get" asp-action="Index" data-search-form>
         <input type="hidden" name="id"
@@ -103,7 +116,15 @@
                     @foreach (var question in Model.Result.Items)
                     {
                         <tr>
-<td><p class="preserve ta-bank-content" data-bank-content>@question.Content</p><div class="ta-question-meta"><span data-bank-skill="@question.PrimarySkill"><partial name="_UiText" model="question.PrimarySkill" /></span><span>@QuestionLevels.Display(question.Level)</span><span><partial name="_UiText" model="question.Status" /></span></div></td>
+                            <td>
+                                <p class="preserve ta-bank-content" data-bank-content>@question.Content</p>
+                                <div class="ta-question-meta">
+                                    <span data-bank-type><partial name="_UiText" model="question.QuestionType" /></span>
+                                    <span data-bank-skill="@question.PrimarySkill"><partial name="_UiText" model="question.PrimarySkill" /></span>
+                                    <span>@QuestionLevels.Display(question.Level)</span>
+                                    <span><partial name="_UiText" model="question.Status" /></span>
+                                </div>
+                            </td>
                             <td>
                                 @if (question.Status != QuestionStatus.Archived)
                                 {
@@ -195,7 +216,7 @@
                     <input type="hidden" data-question-id
                            value="@item.QuestionId" />
                     <p class="preserve" data-content>@item.Content</p>
-                    <p class="muted"><partial name="_UiText" model="item.PrimarySkill" /> · <partial name="_UiText" model="item.Status" /></p>
+                    <p class="muted"><partial name="_UiText" model="item.QuestionType" /> · <partial name="_UiText" model="item.PrimarySkill" /> · <partial name="_UiText" model="item.Status" /></p>
 
                     <label>
                         Điểm
@@ -232,7 +253,6 @@
 <p class="ta-help">Đề cần ít nhất 5 câu hỏi khác nhau trước khi mở bài kiểm tra.</p>
 </section>
 
-<section class="ta-card ta-next-step"><span class="ta-kicker">HOÀN THIỆN ĐỀ</span><h2>Kiểm tra trước khi mở bài</h2><p class="ta-help">Lưu danh sách câu hỏi, kiểm tra điểm và xem trước toàn bộ đề.</p><a class="button ta-full-width" asp-controller="TeacherAssessments" asp-action="Edit" asp-route-id="@Model.Editor.AssessmentId" data-editor-navigation>Về cấu hình và mở bài <span aria-hidden="true">→</span></a><a class="ta-side-link" asp-controller="TeacherAssessmentScope" asp-action="Edit" asp-route-id="@Model.Editor.AssessmentId" data-editor-navigation>Phạm vi truy cập <span aria-hidden="true">→</span></a></section>
 </aside></div>
 @section Scripts {
     <script src="~/js/teacher-assessment-questions.js"

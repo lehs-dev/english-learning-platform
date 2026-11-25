@@ -1,0 +1,56 @@
+@model EnglishLearningPlatform.Web.Models.Flashcards.TeacherFlashcardEditModel
+@{ ViewData["Title"] = Model.Deck.Title; ViewData["ActiveSection"] = "flashcards"; var draft = Model.Deck.Status == FlashcardDeckStatus.Draft; }
+@section Styles { <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" /> }
+<nav class="workspace-path" aria-label="Đường dẫn điều hướng"><a asp-action="Index">Bộ thẻ từ vựng</a><span aria-hidden="true">/</span><span aria-current="page">Quản lý</span></nav>
+<header class="teacher-banner teacher-banner--light"><div><h1>@Model.Deck.Title</h1><p>@Model.Deck.Cards.Count thẻ · @(draft ? "Nháp" : Model.Deck.Status == FlashcardDeckStatus.Published ? "Đã xuất bản" : "Đã lưu trữ")</p></div><a class="button secondary" asp-action="Preview" asp-route-id="@Model.Deck.Id">Xem trước</a></header>
+@if (draft)
+{
+    <form method="post" asp-action="Update" asp-route-id="@Model.Deck.Id" class="fc-panel fc-form">
+        <h2>Thông tin bộ thẻ</h2><input type="hidden" name="CourseId" value="@Model.Deck.CourseId" />
+        <label for="deck-title">Tên bộ thẻ</label><input id="deck-title" name="Title" value="@Model.Deck.Title" required maxlength="200" />
+        <label for="deck-lesson">Bài học</label><select name="LessonId" id="deck-lesson"><option value="">Toàn khóa học</option>@foreach (var lesson in Model.Courses.Where(c => c.Id == Model.Deck.CourseId).SelectMany(c => c.Lessons)) { <option value="@lesson.Id" selected="@(lesson.Id == Model.Deck.LessonId)">@lesson.Title</option> }</select>
+        <label for="deck-description">Mô tả</label><textarea id="deck-description" name="Description" maxlength="4000" rows="3">@Model.Deck.Description</textarea><div><button class="button" type="submit">Lưu thông tin</button></div>
+    </form>
+    <section class="fc-panel" aria-labelledby="flashcard-import-title">
+        <h2 id="flashcard-import-title">Nhập thẻ từ CSV</h2>
+        <form method="post" asp-action="ImportCards" asp-route-id="@Model.Deck.Id" enctype="multipart/form-data" class="fc-form">
+            <label for="flashcards-csv">Tệp CSV UTF-8</label>
+            <input id="flashcards-csv" name="csvFile" type="file" accept=".csv,text/csv" required aria-describedby="flashcard-import-help" />
+            <p id="flashcard-import-help" class="muted">Tối đa 1 MiB và 1.000 thẻ. Mỗi dòng cần có mặt trước và mặt sau. Các thẻ trùng toàn bộ nội dung sẽ được bỏ qua.</p>
+            <div class="actions">
+                <button class="button" type="submit">Nhập thẻ</button>
+                <a class="button secondary" asp-action="CsvExample">Tải mẫu CSV</a>
+            </div>
+        </form>
+    </section>
+    <section class="fc-panel"><h2>Thêm một thẻ</h2><form method="post" asp-action="SaveCard" asp-route-id="@Model.Deck.Id" class="fc-form">
+        <label for="new-front">Mặt trước (từ / cụm từ)</label><input id="new-front" name="FrontText" required maxlength="500" />
+        <label for="new-back">Mặt sau (nghĩa / định nghĩa)</label><textarea id="new-back" name="BackText" required maxlength="1000" rows="2"></textarea>
+        <label for="new-example">Ví dụ</label><textarea id="new-example" name="Example" maxlength="2000" rows="2"></textarea>
+        <label for="new-pronunciation">Phiên âm</label><input id="new-pronunciation" name="Pronunciation" maxlength="200" />
+        <label for="new-audio">Đường dẫn âm thanh HTTPS</label><input id="new-audio" type="url" name="AudioResourceUrl" maxlength="2000" placeholder="https://..." /><div><button class="button" type="submit">Thêm thẻ</button></div>
+    </form></section>
+}
+else { <p class="fc-notice">Nội dung bộ thẻ đã xuất bản được giữ nguyên để học viên ôn tập nhất quán.</p> }
+<h2>Danh sách thẻ</h2>
+@foreach (var card in Model.Deck.Cards)
+{
+    <section class="fc-panel">
+    @if (draft)
+    {
+        <details><summary><strong>@card.FrontText</strong> — @card.BackText</summary><form method="post" asp-action="SaveCard" asp-route-id="@Model.Deck.Id" class="fc-form">
+            <input type="hidden" name="cardId" value="@card.Id" />
+            <label for="front-@card.Id">Mặt trước</label><input id="front-@card.Id" name="FrontText" value="@card.FrontText" required maxlength="500" />
+            <label for="back-@card.Id">Mặt sau</label><textarea id="back-@card.Id" name="BackText" required maxlength="1000" rows="2">@card.BackText</textarea>
+            <label for="example-@card.Id">Ví dụ</label><textarea id="example-@card.Id" name="Example" maxlength="2000" rows="2">@card.Example</textarea>
+            <label for="pronunciation-@card.Id">Phiên âm</label><input id="pronunciation-@card.Id" name="Pronunciation" value="@card.Pronunciation" maxlength="200" />
+            <label for="audio-@card.Id">Âm thanh HTTPS</label><input id="audio-@card.Id" name="AudioResourceUrl" value="@card.AudioResourceUrl" type="url" maxlength="2000" /><div><button class="button" type="submit">Lưu thẻ</button></div>
+        </form><form method="post" asp-action="DeleteCard" asp-route-id="@Model.Deck.Id"><input type="hidden" name="cardId" value="@card.Id" /><button type="submit" class="button secondary">Xóa thẻ</button></form></details>
+    }
+    else { <h3>@card.FrontText</h3><p>@card.BackText</p><p class="muted">@card.Example</p> }
+    </section>
+}
+<div class="actions">
+@if (draft) { <form asp-action="Publish" asp-route-id="@Model.Deck.Id" method="post"><button class="button" type="submit">Xuất bản bộ thẻ</button></form> }
+@if (Model.Deck.Status != FlashcardDeckStatus.Archived) { <form asp-action="Archive" asp-route-id="@Model.Deck.Id" method="post"><button class="button secondary" type="submit">Lưu trữ bộ thẻ</button></form> }
+</div>

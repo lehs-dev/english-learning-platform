@@ -120,7 +120,10 @@ public sealed class ContentLockMigrationTests : IAsyncLifetime
         await migrator.MigrateAsync(LockMigration);
         db.ChangeTracker.Clear();
 
-        var saved = await db.Questions.AsNoTracking().ToDictionaryAsync(q => q.Id);
+        // Materialize only columns that exist at the migration being tested.
+        var saved = await db.Questions.AsNoTracking()
+            .Select(q => new { q.Id, q.Content, q.PrimarySkill, q.Status, q.ContentLockedAtUtc })
+            .ToDictionaryAsync(q => q.Id);
         Assert.Equal(cases.Length, saved.Count);
         var lockTime = saved[questions[1].Id].ContentLockedAtUtc;
         Assert.NotNull(lockTime);

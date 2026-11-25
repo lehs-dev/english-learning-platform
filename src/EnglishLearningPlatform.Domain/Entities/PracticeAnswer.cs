@@ -8,6 +8,9 @@ public sealed class PracticeAnswer : BaseEntity
     public PracticeSubmission PracticeSubmission { get; set; } = null!;
     public Guid PracticeQuestionId { get; set; }
     public PracticeQuestion PracticeQuestion { get; set; } = null!;
-    public Guid SelectedOptionId { get; set; }
-    public QuestionOption SelectedOption { get; set; } = null!;
+    public Guid? SelectedOptionId { get; set; }
+    public QuestionOption? SelectedOption { get; set; }
+    public bool? IsCorrect { get; set; }
+    public string? TextAnswer { get; set; }
+    public string? StructuredAnswerJson { get; set; }
 }

@@ -1,6 +1,12 @@
 using EnglishLearningPlatform.Application;
 using EnglishLearningPlatform.Infrastructure;
+using EnglishLearningPlatform.Infrastructure.Identity;
+using EnglishLearningPlatform.Infrastructure.Learning;
+using EnglishLearningPlatform.Infrastructure.Persistence;
 using EnglishLearningPlatform.Web.Commerce;
+using EnglishLearningPlatform.Web.Infrastructure;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +15,7 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IPaymentWebhookProcessor, PaymentWebhookProcessor>();
+builder.Services.AddSingleton<LessonMediaStore>();
 
 var app = builder.Build();
 
@@ -20,24 +27,41 @@ if (seedDemoOnly && !app.Environment.IsDevelopment())
     throw new InvalidOperationException("--seed-demo requires the Development environment.");
 if (seedDemoOnly && migrateOnly)
     throw new InvalidOperationException("Use --seed-demo or --migrate separately.");
-var migrateOnStartup = app.Environment.IsDevelopment() &&
+var isDevelopment = app.Environment.IsDevelopment();
+var runDemoSeed = isDevelopment && !migrateOnly &&
+    (seedDemoOnly || builder.Configuration.GetValue<bool>("LearningDemo:Enabled"));
+var demoPassword = builder.Configuration["LearningDemo:Password"];
+if (runDemoSeed && string.IsNullOrWhiteSpace(demoPassword))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    if (!await db.Database.CanConnectAsync() || !(await db.Database.GetAppliedMigrationsAsync()).Any() ||
+        !await LearningDemoSeeder.HasAllAccountsAsync(users))
+    {
+        app.Logger.LogError("{Reason}", LearningDemoSeeder.PasswordRequiredMessage);
+        Environment.ExitCode = 1;
+        return;
+    }
+}
+
+var migrateOnStartup = isDevelopment &&
     builder.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup");
 if (migrateOnly || migrateOnStartup || seedDemoOnly)
 {
     using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<EnglishLearningPlatform.Infrastructure.Persistence.AppDbContext>();
-    await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.MigrateAsync(db.Database);
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
     if (migrateOnly) return;
 }
 
-if (app.Environment.IsDevelopment() &&
-    (seedDemoOnly || builder.Configuration.GetValue<bool>("LearningDemo:Enabled")))
+if (runDemoSeed)
 {
     using var scope = app.Services.CreateScope();
-    await EnglishLearningPlatform.Infrastructure.Learning.LearningDemoSeeder.SeedAsync(
-        scope.ServiceProvider.GetRequiredService<EnglishLearningPlatform.Infrastructure.Persistence.AppDbContext>(),
-        scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser>>(),
-        builder.Configuration["LearningDemo:Password"] ?? "",
+    await LearningDemoSeeder.SeedAsync(
+        scope.ServiceProvider.GetRequiredService<AppDbContext>(),
+        scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
+        demoPassword,
         scope.ServiceProvider.GetRequiredService<EnglishLearningPlatform.Application.Stimuli.IStimulusAudioStore>());
 }
 

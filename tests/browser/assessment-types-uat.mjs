@@ -218,7 +218,7 @@ try {
     }
 
     await runCase(`${type}-select-save-and-reload-five-questions`, async () => {
-      const href = await teacher.getByRole('link', { name: 'Chọn câu hỏi và điểm', exact: true }).getAttribute('href');
+      const href = await teacher.getByRole('navigation', { name: 'Quản lý bài kiểm tra' }).getByRole('link', { name: 'Câu hỏi và điểm', exact: true }).getAttribute('href');
       await teacher.goto(href);
       await teacher.locator('#Search').fill(runId);
       await submit(teacher, teacher.getByRole('button', { name: 'Tìm / lọc', exact: true }));

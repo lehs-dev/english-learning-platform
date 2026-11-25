@@ -311,6 +311,58 @@ public sealed class TeacherAssessmentDraftTests : IClassFixture<IntegrationTestF
     }
 
     [Fact]
+    public async Task Http_CourseWorkspace_CreatesLinkedDraftAndDoesNotAcceptForeignCourse()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);
+        var other = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);
+        var course = new Course { OwnerTeacherUserId = teacher.Id, Title = "Workspace course" };
+        var foreign = new Course { OwnerTeacherUserId = other.Id, Title = "Foreign workspace course" };
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Courses.AddRange(course, foreign);
+            await db.SaveChangesAsync();
+        }
+        await CreateAsync(teacher);
+
+        using var client = await LoginAsync(teacher);
+        string courseTab = $"/TeacherCourses/Manage/{course.Id}?tab=assessments";
+        string createPath = $"{EditPath}?courseId={course.Id}";
+        using var initial = await client.GetAsync(courseTab);
+        Assert.Equal(HttpStatusCode.OK, initial.StatusCode);
+        Assert.Contains(createPath, await initial.Content.ReadAsStringAsync());
+
+        var fields = await FormFieldsAsync(client, createPath);
+        fields["Input.Title"] = "Workspace assessment";
+        using var foreignCreate = await client.PostAsync($"{EditPath}?courseId={foreign.Id}", new FormUrlEncodedContent(fields));
+        Assert.True(foreignCreate.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.NotFound);
+        if (foreignCreate.StatusCode == HttpStatusCode.Redirect)
+            Assert.Contains("/Account/AccessDenied", foreignCreate.Headers.Location?.ToString());
+
+        using var created = await client.PostAsync(createPath, new FormUrlEncodedContent(fields));
+        Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var linked = Assert.Single(await db.Assessments.AsNoTracking().Where(a => a.CourseId.HasValue
+                && a.OwnerTeacherUserId == teacher.Id).ToListAsync());
+            Assert.Equal(course.Id, linked.CourseId);
+            Assert.Equal(AssessmentStatus.Draft, linked.Status);
+            Assert.Equal("Workspace assessment", linked.Title);
+            Assert.Equal($"{EditPath}/{linked.Id}", created.Headers.Location?.ToString());
+        }
+
+        using var editor = await client.GetAsync(created.Headers.Location);
+        var editorHtml = await editor.Content.ReadAsStringAsync();
+        Assert.Contains(courseTab, editorHtml);
+        Assert.Matches("aria-current=\"page\"[^>]*>Cấu hình", WebUtility.HtmlDecode(editorHtml));
+        using var courseList = await client.GetAsync(courseTab);
+        var courseListHtml = await courseList.Content.ReadAsStringAsync();
+        Assert.Contains("Workspace assessment", courseListHtml);
+        Assert.DoesNotContain("Test draft", courseListHtml);
+    }
+
+    [Fact]
     public async Task Http_GuestStudentForeignOwnerAndMissingCsrf_AreRejectedWithoutWrites()
     {
         var owner = await IdentityTestHelpers.CreateUserAsync(_factory, AppRoles.Teacher);

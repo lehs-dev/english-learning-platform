@@ -9,7 +9,7 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence;
 internal static class ContentImmutabilityGuard
 {
     private static readonly string[] QuestionFields =
-        { "Content", "PrimarySkill", "StimulusId", "Explanation", "OwnerTeacherUserId", "ContentLockedAtUtc" };
+        { "QuestionType", "StructuredDefinitionJson", "Content", "PrimarySkill", "StimulusId", "Explanation", "OwnerTeacherUserId", "ContentLockedAtUtc" };
     private static readonly string[] StimulusFields =
         { "StimulusType", "Title", "ContentText", "ResourceUrl", "OwnerTeacherUserId", "ContentLockedAtUtc" };
 
@@ -17,15 +17,18 @@ internal static class ContentImmutabilityGuard
     {
         db.ChangeTracker.DetectChanges();
         return db.ChangeTracker.Entries().Any(e =>
-            (e.Entity is Question && (e.State == EntityState.Deleted
+            (e.Entity is PracticeSubmissionHistory or PracticeAnswerHistory && e.State is EntityState.Modified or EntityState.Deleted)
+            || (e.Entity is Question && (e.State == EntityState.Deleted
                 || (e.State == EntityState.Modified && QuestionFields.Any(p => e.Property(p).IsModified))))
             || (e.Entity is Stimulus && (e.State == EntityState.Deleted
                 || (e.State == EntityState.Modified && StimulusFields.Any(p => e.Property(p).IsModified))))
-            || (e.Entity is QuestionOption && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted));
+            || (e.Entity is QuestionOption or QuestionAcceptedAnswer && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted));
     }
 
     public static async Task ValidateAsync(AppDbContext db, CancellationToken ct)
     {
+        if (db.ChangeTracker.Entries().Any(e => e.Entity is PracticeSubmissionHistory or PracticeAnswerHistory && e.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Không được sửa hoặc xóa lịch sử luyện tập.");
         // Đọc dữ liệu thật, không tin OriginalValues hoặc dấu khóa trong object do caller gửi vào.
         foreach (var entry in db.ChangeTracker.Entries<Question>().Where(e => e.State is EntityState.Modified or EntityState.Deleted).OrderBy(e => e.Entity.Id).ToArray())
         {
@@ -37,6 +40,7 @@ internal static class ContentImmutabilityGuard
             if (saved.ContentLockedAtUtc.HasValue && saved.ContentLockedAtUtc != next.ContentLockedAtUtc)
                 throw Locked(); // Không xóa hoặc đổi thời điểm khóa cũ.
             if (await IsQuestionLockedAsync(db, id, ct) && (entry.State == EntityState.Deleted
+                || saved.QuestionType != next.QuestionType || saved.StructuredDefinitionJson != next.StructuredDefinitionJson
                 || saved.Content != next.Content || saved.PrimarySkill != next.PrimarySkill
                 || saved.StimulusId != next.StimulusId || saved.Explanation != next.Explanation
                 || saved.OwnerTeacherUserId != next.OwnerTeacherUserId)) throw Locked();
@@ -53,6 +57,21 @@ internal static class ContentImmutabilityGuard
             {
                 if (db.ChangeTracker.Entries<Question>().Any(q => q.State == EntityState.Added && q.Entity.Id == id)) continue;
                 // Giữ khóa parent tới sau SaveChanges; Publish không chen vào giữa kiểm tra và ghi.
+                await db.QuestionsForUpdate(id).AsNoTracking().SingleOrDefaultAsync(ct);
+                if (await IsQuestionLockedAsync(db, id, ct)) throw Locked();
+            }
+        }
+
+        foreach (var entry in db.ChangeTracker.Entries<QuestionAcceptedAnswer>().Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted).ToArray())
+        {
+            var next = entry.Entity;
+            var saved = entry.State == EntityState.Added ? null
+                : await db.Set<QuestionAcceptedAnswer>().AsNoTracking().SingleOrDefaultAsync(a => a.Id == next.Id, ct);
+            if (entry.State == EntityState.Modified && saved != null && saved.AnswerText == next.AnswerText
+                && saved.OrderIndex == next.OrderIndex && saved.QuestionId == next.QuestionId) continue;
+            foreach (Guid id in new[] { next.QuestionId, saved?.QuestionId ?? next.QuestionId }.Distinct().OrderBy(id => id))
+            {
+                if (db.ChangeTracker.Entries<Question>().Any(q => q.State == EntityState.Added && q.Entity.Id == id)) continue;
                 await db.QuestionsForUpdate(id).AsNoTracking().SingleOrDefaultAsync(ct);
                 if (await IsQuestionLockedAsync(db, id, ct)) throw Locked();
             }

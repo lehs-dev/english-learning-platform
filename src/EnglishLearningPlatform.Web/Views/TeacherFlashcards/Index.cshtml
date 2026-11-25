@@ -1,0 +1,31 @@
+@model IReadOnlyList<EnglishLearningPlatform.Application.Flashcards.FlashcardDeckSummary>
+@{
+    ViewData["Title"] = "Bộ thẻ từ vựng"; ViewData["ActiveSection"] = "flashcards";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" />
+}
+<header class="teacher-banner">
+    <div>
+        <h1>Bộ thẻ từ vựng</h1>
+        <p>Soạn bộ thẻ cho khóa học hoặc một bài học cụ thể.</p>
+    </div><a class="button" asp-action="Create">Tạo bộ thẻ</a>
+</header>
+@if (Model.Count == 0)
+{
+    <section class="fc-panel">
+        <h2>Tạo bộ thẻ đầu tiên</h2>
+        <p>Thêm từ, nghĩa và ví dụ, rồi xuất bản cho học viên.</p>
+    </section>
+}
+<div class="fc-grid">@foreach (var deck in Model) {
+    <article class="fc-panel">
+        <p class="muted">@deck.CourseTitle</p>
+        <h2>@deck.Title</h2>
+        <p>@deck.CardCount thẻ · @(deck.Status == FlashcardDeckStatus.Draft ? "Nháp" : deck.Status ==
+                        FlashcardDeckStatus.Published ? "Đã xuất bản" : "Đã lưu trữ")</p>
+            <div class="actions"><a class="button" asp-action="Edit" asp-route-id="@deck.Id">Quản lý</a><a
+                class="button secondary" asp-action="Preview" asp-route-id="@deck.Id">Xem trước</a></div>
+            </article>
+        }
+    </div>

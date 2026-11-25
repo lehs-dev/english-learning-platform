@@ -43,6 +43,14 @@ public static class SqlServerLockingQueries
         db.Enrollments.FromSqlInterpolated(
             $"SELECT * FROM Enrollments WITH (UPDLOCK, HOLDLOCK) WHERE StudentUserId = {studentId} AND CourseId = {courseId}");
 
+    public static IQueryable<WritingSubmissionDraft> WritingDraftsForUpdate(this AppDbContext db, Guid assignmentId, Guid studentId) =>
+        db.WritingSubmissionDrafts.FromSqlInterpolated(
+            $"SELECT * FROM WritingSubmissionDrafts WITH (UPDLOCK, HOLDLOCK) WHERE AssignmentId = {assignmentId} AND StudentUserId = {studentId}");
+
+    public static IQueryable<WritingAssignment> WritingAssignmentsForUpdate(this AppDbContext db, Guid assignmentId) =>
+        db.WritingAssignments.FromSqlInterpolated(
+            $"SELECT * FROM WritingAssignments WITH (UPDLOCK, HOLDLOCK) WHERE Id = {assignmentId}");
+
     public static IQueryable<Payment> PaymentsForUpdate(this AppDbContext db, string providerTransactionId) =>
         db.Payments.FromSqlInterpolated(
             $"SELECT * FROM Payment WITH (UPDLOCK, HOLDLOCK) WHERE ProviderTransactionId = {providerTransactionId}");

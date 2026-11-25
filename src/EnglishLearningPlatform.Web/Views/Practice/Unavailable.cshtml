@@ -1,9 +1,24 @@
-@{ ViewData["Title"] = "Bài luyện chưa khả dụng"; }
-<div class="panel" style="max-width: 580px; margin: 48px auto; text-align: center; padding: 48px 32px; background: #FFFFFF; border: 1px solid var(--v2-border, #E4E4EE); border-radius: 28px; box-shadow: var(--v2-shadow-card, 0 10px 30px rgba(25, 26, 35, 0.05));">
-    <div style="width: 72px; height: 72px; border-radius: 20px; background: #FFF1F2; color: #E11D48; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-        <svg class="icon" style="width: 36px; height: 36px;" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg>
-    </div>
-    <h1 style="font-size: 26px; font-weight: 800; color: #191A23; margin: 0 0 12px; letter-spacing: -0.02em;">Bài luyện chưa khả dụng</h1>
-    <p style="font-size: 15px; color: #64748B; margin: 0 0 28px; line-height: 1.6;">Bài luyện hoặc nội dung trong khóa đã thay đổi trạng thái. Kết quả đã nộp trước đó vẫn được giữ nguyên.</p>
-    <a class="button button-primary" asp-controller="Learning" asp-action="Dashboard" style="border-radius: 14px; padding: 12px 24px; font-weight: 700;">Về bàn học của tôi</a>
+@{
+    var staleReviewPracticeId = ViewData["StaleReviewPracticeId"] as Guid?;
+    ViewData["Title"] = staleReviewPracticeId.HasValue ? "Lượt ôn đã thay đổi" : "Bài luyện chưa khả dụng";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
+}
+
+<div class="activity-scene">
+    <section class="activity-panel activity-empty" aria-labelledby="unavailable-practice-title">
+        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg>
+        <h1 id="unavailable-practice-title">@ViewData["Title"]</h1>
+        @if (staleReviewPracticeId is Guid practiceId)
+        {
+            <p>Mở kết quả gần nhất để kiểm tra câu cần ôn.</p>
+            <a class="button" asp-action="Result" asp-route-id="@practiceId">Xem kết quả gần nhất</a>
+        }
+        else
+        {
+            <p>Bài luyện hoặc nội dung trong khóa đã thay đổi trạng thái. Bạn vẫn có thể xem kết quả đã nộp.</p>
+            <a class="button" asp-controller="Learning" asp-action="Dashboard">Về bàn học của tôi</a>
+        }
+    </section>
 </div>

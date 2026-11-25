@@ -16,12 +16,12 @@
     <span aria-hidden="true">/</span>
     <span aria-current="page">Tạo bài đọc và âm thanh</span>
 </nav>
-<div class="page-heading question-editor-heading">
+<header class="teacher-banner teacher-banner--light question-editor-heading">
     <div>
         <h1>Tạo bài đọc và âm thanh</h1>
         <p>Thêm bài đọc hoặc âm thanh để sử dụng khi soạn câu hỏi.</p>
     </div>
-</div>
+</header>
 
 <form asp-controller="TeacherStimuli" asp-action="Create" method="post" asp-antiforgery="true" enctype="multipart/form-data" class="editor-form question-form stimulus-form" data-stimulus-editor>
     <div asp-validation-summary="All" class="validation" role="alert"></div>
@@ -30,7 +30,7 @@
             <fieldset class="question-editor-section stimulus-type-section">
                 <legend class="visually-hidden">Loại nội dung</legend>
                 <div class="question-section-heading">
-                    <span class="question-step" aria-hidden="true">01</span>
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg></span>
                     <h2>Loại nội dung <span class="required">*</span></h2>
                 </div>
                 <div class="stimulus-type-choices">
@@ -50,7 +50,7 @@
 
             <section class="question-editor-section stimulus-info-section" aria-labelledby="stimulus-info-heading">
                 <div class="question-section-heading">
-                    <span class="question-step" aria-hidden="true">02</span>
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg></span>
                     <h2 id="stimulus-info-heading">Thông tin nội dung</h2>
                 </div>
                 <div class="form-group">
@@ -64,7 +64,7 @@
             <fieldset class="question-editor-section stimulus-mode-panel" data-stimulus-passage hidden="@(isAudio ? "hidden" : null)" disabled="@(isAudio ? "disabled" : null)">
                 <legend class="visually-hidden">Nội dung bài đọc</legend>
                 <div class="question-section-heading">
-                    <span class="question-step" aria-hidden="true">03</span>
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#info")"></use></svg></span>
                     <h2><label asp-for="ContentText">Nội dung bài đọc <span class="required">*</span></label></h2>
                 </div>
                 <div class="question-text-editor" data-question-text-editor>
@@ -83,7 +83,7 @@
             <fieldset class="question-editor-section stimulus-mode-panel" data-stimulus-audio hidden="@(!isAudio ? "hidden" : null)" disabled="@(!isAudio ? "disabled" : null)">
                 <legend class="visually-hidden">Tệp âm thanh</legend>
                 <div class="question-section-heading">
-                    <span class="question-step" aria-hidden="true">03</span>
+                    <span class="question-step" aria-hidden="true"><svg class="icon"><use href="@Url.Content("~/images/icons.svg#info")"></use></svg></span>
                     <h2>Tệp âm thanh <span class="required">*</span></h2>
                 </div>
                 <div class="stimulus-upload-zone" data-audio-dropzone>

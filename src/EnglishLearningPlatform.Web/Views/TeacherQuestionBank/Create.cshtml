@@ -14,16 +14,15 @@
     <span aria-current="page">Tạo câu hỏi</span>
 </nav>
 
-<div class="page-heading question-editor-heading">
+<header class="teacher-banner teacher-banner--light question-editor-heading">
     <div>
         <h1>Tạo câu hỏi</h1>
-        <p>Soạn nội dung, thêm lựa chọn và thiết lập đáp án đúng.</p>
     </div>
     <div class="actions">
         <a class="button secondary" asp-action="Index">Hủy</a>
         <button class="button question-submit" type="submit" form="question-editor-form"><span class="question-plus" aria-hidden="true">+</span>Tạo câu hỏi</button>
     </div>
-</div>
+</header>
 
 <partial name="_Form" model="Model" />
 

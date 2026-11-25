@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Application.Practice;
 
 namespace EnglishLearningPlatform.Application.QuestionBank;
 
@@ -13,4 +14,9 @@ public sealed record QuestionEditor(
     DateTimeOffset CreatedAtUtc,
     IReadOnlyList<QuestionOptionItem> Options,
     bool ScoringContentLocked,
-    string? LockReason);
+    string? LockReason)
+{
+    public QuestionType QuestionType { get; init; } = QuestionType.MultipleChoice;
+    public IReadOnlyList<string> AcceptedAnswers { get; init; } = [];
+    public IReadOnlyList<StructuredQuestionAuthorItem> StructuredItems { get; init; } = [];
+}

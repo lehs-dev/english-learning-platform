@@ -16,10 +16,9 @@
 }
 
 <nav class="teacher-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-action="Index">Ngân hàng câu hỏi</a><span aria-hidden="true">/</span><span aria-current="page">Chi tiết câu hỏi</span></nav>
-<div class="page-heading question-detail-heading">
+<header class="teacher-banner teacher-banner--light question-detail-heading">
     <div>
         <h1>Chi tiết câu hỏi</h1>
-        <p>Thông tin, lựa chọn và đáp án của câu hỏi.</p>
     </div>
     <div class="actions">
         <a class="button" asp-controller="TeacherQuestionBank" asp-action="Edit" asp-route-id="@Model.Id">Chỉnh sửa câu hỏi</a>
@@ -28,9 +27,12 @@
             Quay lại ngân hàng câu hỏi
         </a>
     </div>
-</div>
-
+</header>
 <dl class="question-bank-metadata question-detail-summary" aria-label="Thông tin câu hỏi">
+    <div>
+        <dt>Loại câu hỏi</dt>
+        <dd><partial name="_UiText" model="Model.QuestionType" /></dd>
+    </div>
     <div>
         <dt>Kỹ năng</dt>
         <dd><span class="question-skill-badge"><partial name="_UiText" model="Model.PrimarySkill" /></span></dd>
@@ -52,25 +54,53 @@
             <p class="preserve question-bank-content">@Model.Content</p>
         </section>
 
-        <section class="panel question-detail-card" aria-labelledby="question-options-title">
-            <h2 id="question-options-title">Các lựa chọn</h2>
-            <ol class="question-bank-options" type="A" role="list">
-                @foreach (var option in Model.Options)
-                {
-                    <li class="question-bank-option @(option.IsCorrect ? "is-correct" : "")">
-                        <span class="question-option-letter" aria-hidden="true"></span>
-                        <span class="preserve question-bank-option-content">@option.Content</span>
-                        @if (option.IsCorrect)
-                        {
-                            <strong class="question-bank-correct-label">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10" /></svg>
-                                Đáp án đúng
-                            </strong>
-                        }
-                    </li>
-                }
-            </ol>
-        </section>
+        @if (Model.QuestionType == QuestionType.MultipleChoice)
+        {
+            <section class="panel question-detail-card" aria-labelledby="question-options-title">
+                <h2 id="question-options-title">Các lựa chọn</h2>
+                <ol class="question-bank-options" type="A" role="list">
+                    @foreach (var option in Model.Options)
+                    {
+                        <li class="question-bank-option @(option.IsCorrect ? "is-correct" : "")">
+                            <span class="question-option-letter" aria-hidden="true"></span>
+                            <span class="preserve question-bank-option-content">@option.Content</span>
+                            @if (option.IsCorrect)
+                            {
+                                <strong class="question-bank-correct-label">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10" /></svg>
+                                    Đáp án đúng
+                                </strong>
+                            }
+                        </li>
+                    }
+                </ol>
+            </section>
+        }
+        else if (Model.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
+        {
+            <section class="panel question-detail-card" aria-labelledby="question-answers-title">
+                <h2 id="question-answers-title">Đáp án được chấp nhận</h2>
+                <ul>@foreach (var answer in Model.AcceptedAnswers) { <li>@answer</li> }</ul>
+            </section>
+        }
+        else
+        {
+            <section class="panel question-detail-card" aria-labelledby="question-answers-title">
+                <h2 id="question-answers-title">@(Model.QuestionType == QuestionType.Matching ? "Các cặp đúng" : "Thứ tự đúng")</h2>
+                <ol>
+                    @foreach (var item in Model.StructuredItems)
+                    {
+                        <li class="preserve">
+                            @item.Text
+                            @if (item.MatchText is not null)
+                            {
+                                <text> ↔ @item.MatchText</text>
+                            }
+                        </li>
+                    }
+                </ol>
+            </section>
+        }
 
         @if (!string.IsNullOrWhiteSpace(Model.Explanation))
         {

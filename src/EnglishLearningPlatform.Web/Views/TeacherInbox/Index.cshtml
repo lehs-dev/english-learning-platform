@@ -1,0 +1,139 @@
+@model TeacherInboxPage
+@{
+    Layout = "_LayoutTeacher";
+    ViewData["Title"] = "Việc cần xử lý";
+    var kind = Model.Query.Kind;
+    var types = new[]
+    {
+        (Kind: TeacherInboxKind.All, Label: "Tất cả"),
+        (Kind: TeacherInboxKind.Writing, Label: "Bài viết"),
+        (Kind: TeacherInboxKind.Discussion, Label: "Hỏi đáp")
+    };
+    var sections = new[]
+    {
+        (Kind: TeacherInboxKind.Writing, Title: "Bài viết chờ chấm", Icon: "pencil",
+            Controller: "Homework", Items: Model.Writing, Count: Model.WritingCount, Empty: "Không có bài viết chờ chấm."),
+        (Kind: TeacherInboxKind.Discussion, Title: "Câu hỏi chờ trả lời", Icon: "send",
+            Controller: "CourseDiscussion", Items: Model.Discussions, Count: Model.DiscussionCount, Empty: "Không có câu hỏi chờ trả lời.")
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/teacher-inbox.css" asp-append-version="true" />
+}
+
+<header class="teacher-banner teacher-inbox-banner">
+    <div>
+        <h1>Việc cần xử lý</h1>
+        <p>Chấm bài viết và trả lời học viên.</p>
+    </div>
+    <svg class="icon teacher-inbox-banner-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+</header>
+
+<div class="teacher-inbox-controls">
+    <nav class="teacher-inbox-types" aria-label="Loại việc cần xử lý">
+        @foreach (var type in types)
+        {
+            <a asp-action="Index" asp-route-kind="@(type.Kind == TeacherInboxKind.All ? null : type.Kind.ToString())"
+               asp-route-courseId="@Model.Query.CourseId" aria-current="@(kind == type.Kind ? "page" : null)">
+                @type.Label
+            </a>
+        }
+    </nav>
+    @if (Model.Courses.Count > 0)
+    {
+        <form class="teacher-inbox-filter" asp-action="Index" method="get">
+            @if (kind != TeacherInboxKind.All)
+            {
+                <input type="hidden" name="kind" value="@kind" />
+            }
+            <label class="visually-hidden" for="inbox-course">Khóa học</label>
+            <select id="inbox-course" name="courseId">
+                <option value="">Tất cả khóa học</option>
+                @foreach (var course in Model.Courses)
+                {
+                    <option value="@course.Id" selected="@(course.Id == Model.Query.CourseId)">@course.Title</option>
+                }
+            </select>
+            <button class="button secondary" type="submit">Lọc</button>
+        </form>
+    }
+</div>
+
+@if (kind == TeacherInboxKind.All && Model.WritingCount == 0 && Model.DiscussionCount == 0)
+{
+    <section class="teacher-report-panel teacher-inbox-empty" aria-labelledby="inbox-empty-title">
+        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+        <h2 id="inbox-empty-title">Không có việc nào đang chờ</h2>
+    </section>
+}
+else
+{
+    <div class="teacher-inbox-sections">
+        @foreach (var panel in sections.Where(panel => kind == TeacherInboxKind.All || kind == panel.Kind))
+        {
+            var headingId = $"inbox-{panel.Kind.ToString().ToLowerInvariant()}";
+            <section class="teacher-report-panel" aria-labelledby="@headingId">
+                <h2 id="@headingId" class="teacher-inbox-title">
+                    <span class="teacher-inbox-icon">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content($"~/images/icons.svg#{panel.Icon}")"></use></svg>
+                    </span>
+                    @panel.Title
+                </h2>
+                @if (panel.Items.Count == 0)
+                {
+                    <p>@panel.Empty</p>
+                }
+                else
+                {
+                    <ul class="teacher-inbox-items">
+                        @foreach (var item in panel.Items)
+                        {
+                            <li>
+                                <a class="teacher-inbox-item" asp-controller="@panel.Controller" asp-action="Details" asp-route-id="@item.Id">
+                                    <span class="teacher-inbox-copy">
+                                        <strong>@item.Title</strong>
+                                        <small>@item.CourseTitle</small>
+                                    </span>
+                                    <span class="teacher-inbox-meta">
+                                        @if (panel.Kind == TeacherInboxKind.Writing)
+                                        {
+                                            <span class="teacher-inbox-count">@item.Pending bài nộp</span>
+                                        }
+                                        <time datetime="@item.WaitingSinceUtc.ToString("O")">
+                                            @item.WaitingSinceUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM")
+                                        </time>
+                                    </span>
+                                    <svg class="icon teacher-inbox-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    @if (kind == TeacherInboxKind.All && panel.Count > panel.Items.Count)
+                    {
+                        <a asp-action="Index" asp-route-kind="@panel.Kind" asp-route-courseId="@Model.Query.CourseId"
+                           class="button secondary teacher-inbox-more">
+                            @(panel.Kind == TeacherInboxKind.Writing ? "Xem tất cả bài viết" : "Xem tất cả câu hỏi")
+                        </a>
+                    }
+                }
+            </section>
+        }
+    </div>
+    @if (Model.PageCount > 1)
+    {
+        <nav class="teacher-inbox-pagination" aria-label="Phân trang việc cần xử lý">
+            @if (Model.Query.Page > 1)
+            {
+                <a asp-action="Index" asp-route-kind="@kind" asp-route-courseId="@Model.Query.CourseId"
+                   asp-route-page="@(Model.Query.Page - 1)" class="button secondary">Trang trước</a>
+            }
+            <span>Trang @Model.Query.Page/@Model.PageCount</span>
+            @if (Model.Query.Page < Model.PageCount)
+            {
+                <a asp-action="Index" asp-route-kind="@kind" asp-route-courseId="@Model.Query.CourseId"
+                   asp-route-page="@(Model.Query.Page + 1)" class="button secondary">Trang sau</a>
+            }
+        </nav>
+    }
+}

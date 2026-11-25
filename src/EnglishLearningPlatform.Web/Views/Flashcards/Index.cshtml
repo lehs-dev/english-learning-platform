@@ -1,0 +1,62 @@
+@model IReadOnlyList<EnglishLearningPlatform.Application.Flashcards.FlashcardDeckSummary>
+@{
+    ViewData["Title"] = "Thẻ từ vựng";
+    ViewData["ActiveSection"] = "courses";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/flashcards.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
+}
+
+<div class="learning-screens flashcard-library">
+    <header class="fc-heading">
+        <div>
+            <h1 class="learning-title">Thẻ từ vựng</h1>
+            @if (Model.Count > 0)
+            {
+                <p>@Model.Count bộ thẻ <span aria-hidden="true">·</span> @Model.Sum(deck => deck.DueCount) thẻ đến hạn</p>
+            }
+        </div>
+        <a class="button secondary" asp-controller="LearningPath" asp-action="Index">Lộ trình học <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
+    </header>
+    @if (TempData["Error"] is string error)
+    {
+        <p class="fc-notice" role="alert">@error</p>
+    }
+    @if (Model.Count == 0)
+    {
+        <section class="fc-panel learning-surface">
+            <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+            <h2>Chưa có bộ thẻ khả dụng</h2>
+            <p>Bộ thẻ từ các khóa bạn đã ghi danh sẽ xuất hiện tại đây khi được xuất bản.</p>
+            <a asp-controller="Learning" asp-action="Index" class="button">Khóa học của tôi</a>
+        </section>
+    }
+    else
+    {
+        <div class="fc-grid">
+            @foreach (var deck in Model)
+            {
+                <article class="fc-panel learning-surface flashcard-deck">
+                    <div class="flashcard-deck-cover">
+                        <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+                        <span class="flashcard-due @(deck.DueCount > 0 ? "has-due" : "")">@deck.DueCount thẻ đến hạn</span>
+                    </div>
+                    <div class="flashcard-deck-copy">
+                        <p class="flashcard-course">@deck.CourseTitle</p>
+                        <h2>@deck.Title</h2>
+                        @if (!string.IsNullOrWhiteSpace(deck.Description))
+                        {
+                            <p>@deck.Description</p>
+                        }
+                        <span class="flashcard-count">@deck.CardCount thẻ</span>
+                        <a class="button @(deck.DueCount > 0 ? "" : "secondary")" asp-action="Study" asp-route-id="@deck.Id">
+                            @(deck.DueCount > 0 ? "Bắt đầu ôn tập" : "Xem lịch ôn tập")
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>

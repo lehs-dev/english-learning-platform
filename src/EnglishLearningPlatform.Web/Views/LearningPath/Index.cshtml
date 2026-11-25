@@ -1,0 +1,162 @@
+@model EnglishLearningPlatform.Application.LearningPath.LearningPathPage
+@using EnglishLearningPlatform.Application.LearningPath
+@using EnglishLearningPlatform.Domain.Entities
+@{
+    Layout = "_LayoutStudent";
+    var plan = Model.Plan;
+    var title = plan is null ? "Lộ trình học" : $"Lộ trình học {plan.DurationDays} ngày";
+    ViewData["Title"] = title;
+    ViewData["ActiveSection"] = "dashboard";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
+}
+
+<div class="learning-path-page learning-screens">
+    <div class="course-section-heading">
+        <div>
+            <h1 class="learning-title">@title</h1>
+            <p class="muted">15–30 phút mỗi ngày để củng cố những kỹ năng bạn cần luyện thêm.</p>
+        </div>
+        @if (Model.CanGenerate && Model.AvailableDurations.Count > 0)
+        {
+            <form asp-action="Generate" method="post" class="learning-path-duration">
+                <div>
+                    <label for="learning-path-duration">Thời lượng</label>
+                    <select id="learning-path-duration" name="durationDays">
+                        @foreach (var duration in LearningPlan.SupportedDurations)
+                        {
+                            var available = Model.AvailableDurations.Contains(duration);
+                            <option value="@duration" disabled="@(!available)" selected="@(duration == Model.AvailableDurations[0])">
+                                @duration ngày @(!available ? "· Chưa đủ nội dung" : "")
+                            </option>
+                        }
+                    </select>
+                </div>
+                <button class="button" type="submit">Tạo lộ trình</button>
+            </form>
+        }
+    </div>
+
+    @if (Model.UnavailableRequestedDuration is int requested)
+    {
+        <p role="status">Chưa đủ hoạt động phù hợp để tạo lộ trình @requested ngày.</p>
+    }
+
+    @if (plan is null)
+    {
+        <section class="learning-surface learning-path-summary">
+            @switch (Model.Readiness)
+            {
+                case LearningPathReadiness.NeedsAssessment:
+                    <h2>Hãy đánh giá năng lực trước</h2>
+                    <p>Cần kết quả đánh giá có ít nhất 3 câu hỏi cho mỗi kỹ năng để xác định nội dung phù hợp.</p>
+                    <a class="button" asp-controller="Assessment" asp-action="Index">Làm bài đánh giá</a>
+                    break;
+                case LearningPathReadiness.NoWeakSkills:
+                    <h2>Bạn đang có nền tảng tốt</h2>
+                    <p>Chưa có kỹ năng nào dưới 60% trong kết quả đánh giá đủ dữ liệu gần nhất. Bạn có thể tiếp tục luyện tập hoặc làm bài đánh giá mới.</p>
+                    <a class="button" asp-controller="Practice" asp-action="Index">Tiếp tục luyện tập</a>
+                    break;
+                case LearningPathReadiness.InsufficientContent:
+                    <h2>Chưa đủ nội dung cho lộ trình</h2>
+                    <p>Các khóa học đã ghi danh chưa có đủ hoạt động đã xuất bản cho kỹ năng cần luyện. Hãy khám phá thêm khóa học hoặc quay lại khi giảng viên bổ sung nội dung.</p>
+                    <a class="button" asp-controller="Learning" asp-action="Index">Khóa học của tôi</a>
+                    break;
+                default:
+                    <h2>Sẵn sàng xây dựng thói quen học tập</h2>
+                    <p>Lộ trình sẽ chọn bài học, bài luyện tập và thẻ từ vựng trong những khóa học bạn đã ghi danh.</p>
+                    break;
+            }
+        </section>
+    }
+    else
+    {
+        var completed = plan.Items.Count(i => i.Status == LearningPlanItemStatus.Completed);
+        var expired = Model.Today > plan.EndDate;
+        var canSkip = plan.Status == LearningPlanStatus.Active && !expired;
+        <section class="learning-surface learning-path-summary">
+            <p><strong>@plan.StartDate.ToString("dd/MM/yyyy") – @plan.EndDate.ToString("dd/MM/yyyy")</strong> · Giờ Việt Nam</p>
+            <p>@completed / @plan.Items.Count hoạt động hoàn thành</p>
+            <progress value="@completed" max="@plan.Items.Count" aria-label="Tiến độ lộ trình"></progress>
+            <div class="learning-path-skills">
+                @foreach (var skill in Model.WeakSkills)
+                {
+                    <span class="pill-tag pill-tag-purple"><partial name="_UiText" model="skill" /></span>
+                }
+            </div>
+            @if (plan.Status == LearningPlanStatus.Completed)
+            {
+                <p role="status">Bạn đã hoàn tất lộ trình này.</p>
+            }
+            else if (expired)
+            {
+                <p role="status">Chu kỳ @plan.DurationDays ngày đã kết thúc.</p>
+            }
+            @if (Model.CanGenerate && Model.AvailableDurations.Count == 0 && Model.UnavailableRequestedDuration is null)
+            {
+                <p>Chưa có đủ kết quả đánh giá hoặc hoạt động phù hợp để tạo lộ trình mới.</p>
+            }
+        </section>
+        <div class="learning-path-days">
+            @foreach (var day in Enumerable.Range(1, plan.DurationDays))
+            {
+                var date = plan.StartDate.AddDays(day - 1);
+                var today = date == Model.Today;
+                var items = plan.Items.Where(i => i.DayIndex == day).OrderBy(i => i.Position).ToArray();
+                <section class="learning-surface learning-path-day @(today ? "learning-path-today" : "")" aria-labelledby="path-day-@day">
+                    <div class="course-section-heading">
+                        <h2 id="path-day-@day">Ngày @day · @date.ToString("dd/MM")</h2>
+                        <span class="muted">@items.Sum(i => i.EstimatedMinutes) phút @(today ? "· Hôm nay" : "")</span>
+                    </div>
+                    <ol class="learning-path-activities">
+                        @foreach (var item in items)
+                        {
+                            var actionable = item.Status is LearningPlanItemStatus.Pending or LearningPlanItemStatus.InProgress;
+                            <li>
+                                <div>
+                                    <strong>@item.Title</strong>
+                                    <p class="muted">@item.EstimatedMinutes phút · <partial name="_UiText" model="item.Skill" /></p>
+                                    @switch (item.Status)
+                                    {
+                                        case LearningPlanItemStatus.Completed:
+                                            <span class="pill-tag">Đã hoàn thành</span>
+                                            break;
+                                        case LearningPlanItemStatus.Skipped:
+                                            <span class="pill-tag">Đã bỏ qua</span>
+                                            break;
+                                        case LearningPlanItemStatus.Unavailable:
+                                            <span class="pill-tag">Nội dung hiện không khả dụng</span>
+                                            break;
+                                    }
+                                </div>
+                                <div class="learning-path-actions">
+                                    @if (actionable)
+                                    {
+                                        @switch (item.TargetType)
+                                        {
+                                            case LearningPlanTargetType.Lesson:
+                                                <a class="button" asp-controller="Learning" asp-action="Lesson" asp-route-id="@item.TargetId">Học bài</a>
+                                                break;
+                                            case LearningPlanTargetType.Practice:
+                                                <a class="button" asp-controller="Practice" asp-action="Take" asp-route-id="@item.TargetId">Luyện tập</a>
+                                                break;
+                                            case LearningPlanTargetType.FlashcardDeck:
+                                                <a class="button" asp-controller="Flashcards" asp-action="Study" asp-route-id="@item.TargetId">Ôn thẻ</a>
+                                                break;
+                                        }
+                                    }
+                                    @if (canSkip && item.Status is LearningPlanItemStatus.Pending or LearningPlanItemStatus.InProgress or LearningPlanItemStatus.Unavailable)
+                                    {
+                                        <form asp-action="Skip" asp-route-id="@item.Id" method="post"><button type="submit" class="button secondary">Bỏ qua</button></form>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ol>
+                </section>
+            }
+        </div>
+        <p class="muted learning-path-footnote">Hoạt động được ghi nhận khi bạn hoàn thành bài học, nộp bài luyện tập hoặc ôn đủ tối đa 5 thẻ khác nhau trong ngày được lên lịch.</p>
+    }
+</div>

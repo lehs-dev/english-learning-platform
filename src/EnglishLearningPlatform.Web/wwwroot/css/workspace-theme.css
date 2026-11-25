@@ -1,0 +1,77 @@
+:is(.student-workspace-v2, .teacher-studio, .admin-body, .canvas-body) {
+    --workspace-ink: #15203a;
+    --workspace-navy: #102347;
+    --workspace-blue: #3457d5;
+    --workspace-blue-deep: #2847b9;
+    --workspace-blue-soft: #eef2ff;
+    --workspace-teal: #0f766e;
+    --workspace-teal-soft: #e6f6f2;
+    --workspace-line: #e0e6ef;
+    --workspace-canvas: #f3f5f9;
+    --workspace-muted: #53627a;
+    --workspace-shadow: 0 2px 5px rgb(21 32 58 / 4%);
+    --workspace-radius: 16px;
+    --primary: var(--workspace-blue);
+    --primary-dark: var(--workspace-blue-deep);
+    --primary-soft: var(--workspace-blue-soft);
+    --primary-rgb: 52 87 213;
+    --ink: var(--workspace-ink);
+    --ink-rgb: 21 32 58;
+    --text-secondary: var(--workspace-muted);
+    --muted: var(--workspace-muted);
+    --v2-canvas-bg: var(--workspace-canvas);
+    --v2-text-muted: var(--workspace-muted);
+    --v2-text-secondary: #45546c;
+    --v2-text-ink: var(--workspace-ink);
+    --v2-dark: var(--workspace-navy);
+    --v2-dark-hover: #223a65;
+    --v2-border-light: var(--workspace-line);
+    --border: var(--workspace-line);
+    --border-strong: #a9b6cc;
+    --border-primary: #bfcafa;
+    --page: var(--workspace-canvas);
+    color: var(--workspace-ink);
+}
+
+:is(.student-workspace-v2, .teacher-studio, .admin-body, .canvas-body) .account-trigger {
+    min-height: 44px;
+    padding: 4px 9px 4px 5px;
+    border: 1px solid var(--workspace-line);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: var(--workspace-shadow);
+}
+
+:is(.student-workspace-v2, .teacher-studio, .admin-body, .canvas-body) .account-trigger .avatar {
+    width: 33px;
+    height: 33px;
+    border: 1px solid #dbe4ff;
+    background: var(--workspace-blue-soft);
+    color: var(--workspace-blue-deep);
+    font-weight: 800;
+}
+
+:is(.student-workspace-v2, .teacher-studio, .admin-body, .canvas-body) .account-trigger .chevron {
+    width: 15px;
+    height: 15px;
+    color: var(--workspace-muted);
+}
+
+:is(.student-workspace-v2, .teacher-studio, .admin-body, .canvas-body) .account-dropdown {
+    border-color: var(--workspace-line);
+    border-radius: 14px;
+    box-shadow: 0 14px 36px rgb(21 32 58 / 12%);
+}
+
+@media (min-width: 760px) {
+    :is(.student-workspace-v2, .teacher-studio, .admin-body, .canvas-body) .account-trigger-name {
+        display: block;
+        max-width: 12rem;
+        overflow: hidden;
+        color: var(--workspace-ink);
+        font-size: .8rem;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

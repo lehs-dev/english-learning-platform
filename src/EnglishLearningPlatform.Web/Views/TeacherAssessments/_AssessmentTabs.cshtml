@@ -1,0 +1,21 @@
+@model EnglishLearningPlatform.Web.Models.Assessment.AssessmentWorkspaceNav
+@{
+    var tabs = new (string Key, string Label, string Controller, string Action, bool Available)[]
+    {
+        ("configuration", "Cấu hình", "TeacherAssessments", "Edit", Model.CanEdit),
+        ("questions", "Câu hỏi và điểm", "TeacherAssessmentQuestions", "Index", Model.CanEdit),
+        ("scope", "Phạm vi", "TeacherAssessmentScope", "Edit", true),
+        ("preview", "Xem trước", "TeacherAssessmentPreview", "Index", Model.CanPreview)
+    };
+}
+<nav class="workspace-tabs" aria-label="Quản lý bài kiểm tra">
+    @foreach (var tab in tabs)
+    {
+        if (tab.Available)
+        {
+            <a asp-controller="@tab.Controller" asp-action="@tab.Action" asp-route-id="@Model.Id" aria-current="@(tab.Key == Model.Tab ? "page" : null)"
+               data-configuration-navigation="@(Model.Tab == "configuration" ? "" : null)"
+               data-editor-navigation="@(Model.Tab == "questions" ? "" : null)">@tab.Label</a>
+        }
+    }
+</nav>

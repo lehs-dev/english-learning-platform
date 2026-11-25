@@ -1,3 +1,4 @@
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Enums;
 
 namespace EnglishLearningPlatform.Application.Assessment;
@@ -21,6 +22,12 @@ public sealed record AssessmentQuestionTakingModel(
     IReadOnlyList<AssessmentOptionTakingModel> Options)
 {
     public string? AudioUrl { get; init; }
+    public QuestionType QuestionType { get; init; } = QuestionType.MultipleChoice;
+    public string? TextAnswer { get; init; }
+    public string? StructuredAnswerJson { get; init; }
+    public StructuredQuestionPrompt? StructuredPrompt { get; init; }
+    public bool HasAnswer => SelectedOptionId.HasValue || !string.IsNullOrWhiteSpace(TextAnswer) ||
+        !string.IsNullOrWhiteSpace(StructuredAnswerJson);
 }
 
 public sealed record AssessmentOptionTakingModel(
@@ -38,7 +45,13 @@ public sealed record AssessmentResultView(
     bool Passed,
     DateTimeOffset FinalizedAtUtc,
     AttemptFinalizationReason FinalizationReason,
-    IReadOnlyList<SkillScoreBreakdown> SkillBreakdowns);
+    IReadOnlyList<SkillScoreBreakdown> SkillBreakdowns)
+{
+    public IReadOnlyList<AssessmentQuestionFeedback> QuestionFeedback { get; init; } = [];
+}
+
+public sealed record AssessmentQuestionFeedback(int Number, string Content, string? SubmittedAnswer,
+    decimal EarnedPoints, decimal Points);
 
 public sealed record SkillScoreBreakdown(
     EnglishSkill Skill,

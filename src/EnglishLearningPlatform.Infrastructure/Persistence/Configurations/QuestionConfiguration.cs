@@ -19,6 +19,11 @@ public sealed class QuestionConfiguration : IEntityTypeConfiguration<Question>
                 "CK_Questions_Status",
                 "[Status] IN (N'Draft', N'Published', N'Archived')");
        });
+        e.Property(x => x.QuestionType).HasConversion<string>().HasMaxLength(24)
+            .HasDefaultValue(EnglishLearningPlatform.Domain.Enums.QuestionType.MultipleChoice)
+            .HasSentinel(EnglishLearningPlatform.Domain.Enums.QuestionType.MultipleChoice).IsRequired();
+        e.ToTable("Questions", table => table.HasCheckConstraint("CK_Questions_QuestionType", "[QuestionType] IN (N'MultipleChoice', N'FillBlank', N'Matching', N'Ordering', N'Dictation')"));
+        e.Property(x => x.StructuredDefinitionJson).HasMaxLength(32768);
         e.Property(x => x.Content).HasMaxLength(4000).IsRequired();
         e.Property(x => x.PrimarySkill).HasConversion<string>().HasMaxLength(24).IsRequired();
         e.Property(x => x.Level).HasMaxLength(32);

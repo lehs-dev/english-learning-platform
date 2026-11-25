@@ -218,11 +218,21 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool?>("IsCorrect")
+                        .HasColumnType("bit");
+
                     b.Property<DateTimeOffset>("SavedAtUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<Guid>("SelectedOptionId")
+                    b.Property<Guid?>("SelectedOptionId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StructuredAnswerJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TextAnswer")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTimeOffset?>("UpdatedAtUtc")
                         .HasColumnType("datetimeoffset");
@@ -390,6 +400,72 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Courses", (string)null);
                 });
 
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.CourseDiscussionMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AuthorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("SequenceNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ThreadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("WrittenByTeacher")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("ThreadId", "SequenceNumber")
+                        .IsUnique();
+
+                    b.ToTable("CourseDiscussionMessages");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.CourseDiscussionThread", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnrollmentId");
+
+                    b.ToTable("CourseDiscussionThreads");
+                });
+
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.CourseSkill", b =>
                 {
                     b.Property<Guid>("CourseId")
@@ -474,6 +550,373 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Enrollments", (string)null);
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Flashcard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AudioResourceUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("BackText")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("DeckId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Example")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("FrontText")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Pronunciation")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeckId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("Flashcards", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Flashcards_OrderIndex", "[OrderIndex] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.FlashcardDeck", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OwnerTeacherUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("CourseId", "Status");
+
+                    b.HasIndex("OwnerTeacherUserId", "Status");
+
+                    b.ToTable("FlashcardDecks", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FlashcardDecks_Status", "[Status] IN (N'Draft', N'Published', N'Archived')");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.FlashcardReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("FlashcardId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Rating")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<Guid>("ReviewRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("ReviewedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlashcardId");
+
+                    b.HasIndex("ReviewRequestId")
+                        .IsUnique();
+
+                    b.HasIndex("StudentUserId", "ReviewedAtUtc");
+
+                    b.ToTable("FlashcardReviews", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FlashcardReviews_Rating", "[Rating] IN (N'Again', N'Hard', N'Good')");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.FlashcardReviewState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("FlashcardId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LastRating")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<DateTimeOffset>("LastReviewedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("NextDueAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Repetitions")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlashcardId");
+
+                    b.HasIndex("StudentUserId", "FlashcardId")
+                        .IsUnique();
+
+                    b.HasIndex("StudentUserId", "NextDueAtUtc");
+
+                    b.ToTable("FlashcardReviewStates", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FlashcardReviewStates_Rating", "[LastRating] IN (N'Again', N'Hard', N'Good')");
+
+                            t.HasCheckConstraint("CK_FlashcardReviewStates_Repetitions", "[Repetitions] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.GamificationEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTimeOffset>("OccurredAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("WindowKey")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("Xp")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentUserId", "OccurredAtUtc");
+
+                    b.HasIndex("StudentUserId", "EventType", "SourceId", "WindowKey")
+                        .IsUnique();
+
+                    b.ToTable("GamificationEvents", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GamificationEvents_EventType", "[EventType] IN (N'LessonCompleted', N'PracticeSubmitted', N'PracticeHighScorer', N'FlashcardsReviewed', N'DailyGoalReached')");
+
+                            t.HasCheckConstraint("CK_GamificationEvents_Xp", "[Xp] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.LearningPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DurationDays")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(7);
+
+                    b.Property<Guid?>("SourceAssessmentAttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TimezoneId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceAssessmentAttemptId");
+
+                    b.HasIndex("StudentUserId")
+                        .IsUnique()
+                        .HasFilter("[Status] = N'Active'");
+
+                    b.HasIndex("StudentUserId", "StartDate");
+
+                    b.ToTable("LearningPlans", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_LearningPlans_DurationDays", "[DurationDays] IN (7, 14, 30)");
+
+                            t.HasCheckConstraint("CK_LearningPlans_Status", "[Status] IN (N'Active', N'Completed', N'Archived')");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.LearningPlanItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("CompletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("DayIndex")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EstimatedMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PlanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Skill")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId", "DayIndex", "Position")
+                        .IsUnique();
+
+                    b.ToTable("LearningPlanItems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_LearningPlanItems_DayIndex", "[DayIndex] BETWEEN 1 AND 30");
+
+                            t.HasCheckConstraint("CK_LearningPlanItems_EstimatedMinutes", "[EstimatedMinutes] BETWEEN 1 AND 30");
+
+                            t.HasCheckConstraint("CK_LearningPlanItems_Position", "[Position] BETWEEN 1 AND 3");
+
+                            t.HasCheckConstraint("CK_LearningPlanItems_Skill", "[Skill] IN (N'Vocabulary', N'Grammar', N'Reading', N'Listening')");
+
+                            t.HasCheckConstraint("CK_LearningPlanItems_Status", "[Status] IN (N'Pending', N'InProgress', N'Completed', N'Skipped', N'Unavailable')");
+
+                            t.HasCheckConstraint("CK_LearningPlanItems_TargetType", "[TargetType] IN (N'Course', N'Lesson', N'Practice', N'Assessment', N'FlashcardDeck')");
+                        });
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Lesson", b =>
@@ -781,14 +1224,24 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<bool?>("IsCorrect")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("PracticeQuestionId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PracticeSubmissionId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("SelectedOptionId")
+                    b.Property<Guid?>("SelectedOptionId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StructuredAnswerJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TextAnswer")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTimeOffset?>("UpdatedAtUtc")
                         .HasColumnType("datetimeoffset");
@@ -803,6 +1256,70 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("PracticeAnswers", (string)null);
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeAnswerHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorrectAnswersJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Explanation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("HistoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("PracticeQuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("QuestionContent")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("SelectedAnswer")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("SelectedOptionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SourceAnswerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("SourceCreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("SourceUpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("StructuredAnswerJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TextAnswer")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HistoryId", "PracticeQuestionId")
+                        .IsUnique();
+
+                    b.ToTable("PracticeAnswerHistories", (string)null);
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeQuestion", b =>
@@ -928,6 +1445,50 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeSubmissionHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("PracticeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Score")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTimeOffset>("SourceCreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("SourceSubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("SourceUpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("SubmittedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentUserId", "PracticeId", "SubmittedAtUtc");
+
+                    b.ToTable("PracticeSubmissionHistories", (string)null);
+                });
+
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Question", b =>
                 {
                     b.Property<Guid>("Id")
@@ -960,6 +1521,13 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         .HasMaxLength(24)
                         .HasColumnType("nvarchar(24)");
 
+                    b.Property<string>("QuestionType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)")
+                        .HasDefaultValue("MultipleChoice");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -967,6 +1535,10 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid?>("StimulusId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StructuredDefinitionJson")
+                        .HasMaxLength(32768)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset?>("UpdatedAtUtc")
                         .HasColumnType("datetimeoffset");
@@ -981,8 +1553,41 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("CK_Questions_PrimarySkill", "[PrimarySkill] IN (N'Reading', N'Listening', N'Vocabulary', N'Grammar')");
 
+                            t.HasCheckConstraint("CK_Questions_QuestionType", "[QuestionType] IN (N'MultipleChoice', N'FillBlank', N'Matching', N'Ordering', N'Dictation')");
+
                             t.HasCheckConstraint("CK_Questions_Status", "[Status] IN (N'Draft', N'Published', N'Archived')");
                         });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.QuestionAcceptedAnswer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnswerText")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("QuestionAcceptedAnswers", (string)null);
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.QuestionOption", b =>
@@ -1065,6 +1670,169 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("OwnerTeacherUserId");
 
                     b.ToTable("Stimuli", (string)null);
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.StudentAchievement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("AwardedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("BadgeCode")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentUserId", "BadgeCode")
+                        .IsUnique();
+
+                    b.ToTable("StudentAchievements", (string)null);
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.StudentActivityDay", b =>
+                {
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("ActivityDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("StudentUserId", "ActivityDate");
+
+                    b.ToTable("StudentActivityDays", (string)null);
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DueAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDraft")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Prompt")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTimeOffset?>("PublishAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId", "CreatedAtUtc", "Id")
+                        .IsDescending(false, true, false);
+
+                    b.ToTable("WritingAssignments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WritingAssignments_Publication", "([IsDraft] = 0 OR [PublishAtUtc] IS NULL) AND ([PublishAtUtc] IS NULL OR [DueAtUtc] IS NULL OR [DueAtUtc] > [PublishAtUtc])");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingSubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Feedback")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Response")
+                        .IsRequired()
+                        .HasMaxLength(6000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ReviewedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentUserId");
+
+                    b.HasIndex("AssignmentId", "StudentUserId")
+                        .IsUnique();
+
+                    b.HasIndex("AssignmentId", "ReviewedAtUtc", "CreatedAtUtc", "Id");
+
+                    b.ToTable("WritingSubmissions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WritingSubmissions_Review", "([ReviewedAtUtc] IS NULL AND [Feedback] IS NULL AND [Score] IS NULL) OR ([ReviewedAtUtc] IS NOT NULL AND [Feedback] IS NOT NULL AND ([Score] IS NULL OR [Score] BETWEEN 0 AND 100))");
+                        });
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingSubmissionDraft", b =>
+                {
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Response")
+                        .IsRequired()
+                        .HasMaxLength(6000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("SavedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("Version")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AssignmentId", "StudentUserId");
+
+                    b.HasIndex("StudentUserId");
+
+                    b.ToTable("WritingSubmissionDrafts", (string)null);
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", b =>
@@ -1377,8 +2145,7 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.HasOne("EnglishLearningPlatform.Domain.Entities.QuestionOption", "SelectedOption")
                         .WithMany()
                         .HasForeignKey("SelectedOptionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("AssessmentQuestion");
 
@@ -1425,6 +2192,34 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("FinalAssessment");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.CourseDiscussionMessage", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.CourseDiscussionThread", "Thread")
+                        .WithMany("Messages")
+                        .HasForeignKey("ThreadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Thread");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.CourseDiscussionThread", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Enrollment", "Enrollment")
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Enrollment");
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.CourseSkill", b =>
@@ -1478,6 +2273,111 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("LastAccessedLesson");
 
                     b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Flashcard", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.FlashcardDeck", "Deck")
+                        .WithMany("Cards")
+                        .HasForeignKey("DeckId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Deck");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.FlashcardDeck", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Lesson", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerTeacherUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.FlashcardReview", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Flashcard", "Flashcard")
+                        .WithMany()
+                        .HasForeignKey("FlashcardId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Flashcard");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.FlashcardReviewState", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Flashcard", "Flashcard")
+                        .WithMany()
+                        .HasForeignKey("FlashcardId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Flashcard");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.GamificationEvent", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.LearningPlan", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Attempt", "SourceAssessmentAttempt")
+                        .WithMany()
+                        .HasForeignKey("SourceAssessmentAttemptId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("SourceAssessmentAttempt");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.LearningPlanItem", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.LearningPlan", "Plan")
+                        .WithMany("Items")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Lesson", b =>
@@ -1600,14 +2500,24 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.HasOne("EnglishLearningPlatform.Domain.Entities.QuestionOption", "SelectedOption")
                         .WithMany()
                         .HasForeignKey("SelectedOptionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("PracticeQuestion");
 
                     b.Navigation("PracticeSubmission");
 
                     b.Navigation("SelectedOption");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeAnswerHistory", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.PracticeSubmissionHistory", "History")
+                        .WithMany("Answers")
+                        .HasForeignKey("HistoryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeQuestion", b =>
@@ -1679,6 +2589,17 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Stimulus");
                 });
 
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.QuestionAcceptedAnswer", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Question", "Question")
+                        .WithMany("AcceptedAnswers")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.QuestionOption", b =>
                 {
                     b.HasOne("EnglishLearningPlatform.Domain.Entities.Question", "Question")
@@ -1695,6 +2616,67 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("OwnerTeacherUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.StudentAchievement", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.StudentActivityDay", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingAssignment", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingSubmission", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.WritingAssignment", "Assignment")
+                        .WithMany("Submissions")
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Assignment");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingSubmissionDraft", b =>
+                {
+                    b.HasOne("EnglishLearningPlatform.Domain.Entities.WritingAssignment", null)
+                        .WithMany()
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EnglishLearningPlatform.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
@@ -1782,9 +2764,24 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Topics");
                 });
 
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.CourseDiscussionThread", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Enrollment", b =>
                 {
                     b.Navigation("LessonProgressEntries");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.FlashcardDeck", b =>
+                {
+                    b.Navigation("Cards");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.LearningPlan", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Lesson", b =>
@@ -1825,8 +2822,15 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Answers");
                 });
 
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.PracticeSubmissionHistory", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Question", b =>
                 {
+                    b.Navigation("AcceptedAnswers");
+
                     b.Navigation("AssessmentQuestions");
 
                     b.Navigation("Options");
@@ -1837,6 +2841,11 @@ namespace EnglishLearningPlatform.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.Stimulus", b =>
                 {
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("EnglishLearningPlatform.Domain.Entities.WritingAssignment", b =>
+                {
+                    b.Navigation("Submissions");
                 });
 #pragma warning restore 612, 618
         }

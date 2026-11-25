@@ -24,8 +24,7 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         using var teacherLogin = await IdentityTestHelpers.LoginAsync(teacherClient, teacher);
         Assert.Equal(HttpStatusCode.Redirect, teacherLogin.StatusCode);
 
-        // Chỉ đổi chữ trên UI: route Resource và tên field POST phải giữ nguyên.
-        using var manage = await teacherClient.GetAsync($"/TeacherCourses/Manage/{course.Id}");
+        using var manage = await teacherClient.GetAsync($"/TeacherCourses/Manage/{course.Id}?lessonId={lesson.Id}");
         Assert.Equal(HttpStatusCode.OK, manage.StatusCode);
         var manageHtml = WebUtility.HtmlDecode(await manage.Content.ReadAsStringAsync());
         Assert.Contains("Thêm nội dung", manageHtml);
@@ -59,6 +58,56 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         Assert.Contains("Nội dung bài học", studentHtml);
         Assert.Contains("Mở nội dung trong thẻ mới", studentHtml);
         Assert.DoesNotContain("tài nguyên", studentHtml, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task LessonMediaUpload_RendersImageForEnrolledStudentAndDeniesOutsider()
+    {
+        var teacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        var student = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var outsider = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var course = await Seed(teacher.Id);
+        var lesson = course.Modules.First().Lessons.First();
+
+        using var teacherClient = IdentityTestHelpers.CreateClient(factory);
+        using var teacherLogin = await IdentityTestHelpers.LoginAsync(teacherClient, teacher);
+        Assert.Equal(HttpStatusCode.Redirect, teacherLogin.StatusCode);
+        var formPath = $"/TeacherCourses/Content?courseId={course.Id}&kind=Resource&parentId={lesson.Id}";
+        var token = await IdentityTestHelpers.GetTokenAsync(teacherClient, formPath);
+        var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNQ6ngHAAJoAZlf4lN8AAAAAElFTkSuQmCC");
+        using var form = new MultipartFormDataContent();
+        form.Add(new StringContent(token), "__RequestVerificationToken");
+        form.Add(new StringContent("A blue pixel"), "Input.Title");
+        form.Add(new StringContent(nameof(LessonResourceType.Image)), "Input.ResourceType");
+        form.Add(new ByteArrayContent(png), "mediaFile", "pixel.png");
+        using var upload = await teacherClient.PostAsync(formPath, form);
+        Assert.Equal(HttpStatusCode.Redirect, upload.StatusCode);
+        Assert.Contains($"/TeacherCourses/Manage/{course.Id}", upload.Headers.Location?.ToString());
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var url = await db.LessonResources.Where(r => r.LessonId == lesson.Id && r.ResourceType == LessonResourceType.Image)
+            .Select(r => r.ResourceUrl).SingleAsync();
+        Assert.StartsWith("/LessonMedia/", url);
+        Assert.True((await scope.ServiceProvider.GetRequiredService<ICourseService>().EnrollFreeAsync(student.Id, course.Id)).Success);
+
+        using var studentClient = IdentityTestHelpers.CreateClient(factory);
+        using var studentLogin = await IdentityTestHelpers.LoginAsync(studentClient, student);
+        Assert.Equal(HttpStatusCode.Redirect, studentLogin.StatusCode);
+        using var page = await studentClient.GetAsync($"/Learning/Lesson/{lesson.Id}");
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        Assert.Contains($"src=\"{url}\"", await page.Content.ReadAsStringAsync());
+        using var image = await studentClient.GetAsync(url);
+        Assert.Equal(HttpStatusCode.OK, image.StatusCode);
+        Assert.Equal("image/png", image.Content.Headers.ContentType?.MediaType);
+        Assert.True(image.Headers.CacheControl?.NoStore == true);
+        Assert.Equal(png, await image.Content.ReadAsByteArrayAsync());
+
+        using var outsiderClient = IdentityTestHelpers.CreateClient(factory);
+        using var outsiderLogin = await IdentityTestHelpers.LoginAsync(outsiderClient, outsider);
+        Assert.Equal(HttpStatusCode.Redirect, outsiderLogin.StatusCode);
+        using var denied = await outsiderClient.GetAsync(url);
+        Assert.Equal(HttpStatusCode.NotFound, denied.StatusCode);
     }
 
     [Fact]
@@ -147,7 +196,13 @@ public sealed class CourseFeatureTests(IntegrationTestFactory factory) : IClassF
         using var resourcePost = await Post(resourcePath, new() { ["Input.Title"] = "Text via UI", ["Input.ResourceType"] = "1", ["Input.ContentText"] = "<script>alert('xss')</script>UI_SECRET" }); Assert.Equal(HttpStatusCode.Redirect, resourcePost.StatusCode);
         using var publishedLesson = await Post(lessonPath + $"&id={lessonId}", new() { ["Input.Title"] = "Lesson via UI", ["Input.Status"] = "2" }); Assert.Equal(HttpStatusCode.Redirect, publishedLesson.StatusCode);
         using var publishedCourse = await Post($"/TeacherCourses/Publish/{courseId}", new()); Assert.Equal(HttpStatusCode.Redirect, publishedCourse.StatusCode);
-        using var manage = await client.GetAsync($"/TeacherCourses/Manage/{courseId}"); Assert.Equal(HttpStatusCode.OK, manage.StatusCode); Assert.Contains("Text via UI", await manage.Content.ReadAsStringAsync());
+        Assert.Contains("tab=publishing", publishedCourse.Headers.Location?.ToString());
+        using var manage = await client.GetAsync(resourcePost.Headers.Location);
+        Assert.Equal(HttpStatusCode.OK, manage.StatusCode);
+        var lessonHtml = await manage.Content.ReadAsStringAsync();
+        Assert.Contains($"lessonId={lessonId}", resourcePost.Headers.Location?.ToString());
+        Assert.Contains("Text via UI", lessonHtml);
+        Assert.Contains("curriculum-tree", lessonHtml);
         using var preview = await client.GetAsync($"/Learning/Lesson/{lessonId}"); Assert.Equal(HttpStatusCode.OK, preview.StatusCode);
         Assert.DoesNotContain("<script>alert", await preview.Content.ReadAsStringAsync()); Assert.Contains("&lt;script&gt;", await preview.Content.ReadAsStringAsync());
         using var guestClient = IdentityTestHelpers.CreateClient(factory); using var detail = await guestClient.GetAsync($"/Courses/Details/{courseId}"); Assert.DoesNotContain("UI_SECRET", await detail.Content.ReadAsStringAsync());

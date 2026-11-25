@@ -1,4 +1,4 @@
-﻿@model EnglishLearningPlatform.Web.Models.Assessment.TeacherAssessmentScopeViewModel
+@model EnglishLearningPlatform.Web.Models.Assessment.TeacherAssessmentScopeViewModel
 @{
     Layout = "_LayoutTeacher";
     ViewData["Title"] = "Phạm vi truy cập bài kiểm tra";
@@ -6,8 +6,14 @@
     ViewData["PageClass"] = "teacher-assessment-page";
 }
 @section Styles { <link rel="stylesheet" href="~/css/teacher-assessments.css" asp-append-version="true" /> }
-<nav class="ta-breadcrumb" aria-label="Đường dẫn điều hướng"><a asp-controller="TeacherAssessments" asp-action="Index">Bài kiểm tra</a><span aria-hidden="true">/</span><span aria-current="page">Phạm vi truy cập</span></nav>
-<div class="ta-heading"><div><h1>Phạm vi truy cập</h1><p>@Model.Editor.Title</p></div><a class="button secondary" asp-controller="TeacherAssessments" asp-action="Index">Về danh sách</a></div>
+@{
+    var canPreview = Model.Editor.Status is AssessmentStatus.Draft or AssessmentStatus.Published;
+}
+<nav class="workspace-path" aria-label="Đường dẫn điều hướng">
+    <partial name="~/Views/TeacherAssessments/_AssessmentBackLink.cshtml" model="Model.Editor.CourseId" /><span aria-hidden="true">/</span><span aria-current="page">Phạm vi</span>
+</nav>
+<header class="teacher-banner teacher-banner--light"><h1>@Model.Editor.Title</h1></header>
+<partial name="~/Views/TeacherAssessments/_AssessmentTabs.cshtml" model='new EnglishLearningPlatform.Web.Models.Assessment.AssessmentWorkspaceNav(Model.Editor.AssessmentId, "scope", canPreview && !Model.Editor.HasAttempt, canPreview)' />
 <div class="ta-config-grid">
     <section class="ta-card ta-scope-card" data-scope-editor data-can-change="@Model.Editor.CanChangeScope.ToString().ToLowerInvariant()" data-has-attempt="@Model.Editor.HasAttempt.ToString().ToLowerInvariant()" data-is-final="@Model.Editor.IsFinal.ToString().ToLowerInvariant()">
         <div class="ta-card-heading"><h2>Ai có thể làm bài kiểm tra này?</h2><span class="ta-status status-@Model.Editor.Status.ToString().ToLowerInvariant()"><partial name="_UiText" model="Model.Editor.Status" /></span></div>

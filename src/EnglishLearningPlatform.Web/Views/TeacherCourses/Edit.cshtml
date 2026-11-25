@@ -1,7 +1,7 @@
 @model CourseEditModel
 @{
     var isNew = !Model.Id.HasValue;
-    var title = isNew ? "Tạo khóa học" : "Chỉnh sửa khóa học";
+    var title = isNew ? "Tạo khóa học" : "Thông tin và học phí";
     var cancelUrl = isNew ? Url.Action("Index") : Url.Action("Manage", new { id = Model.Id });
     ViewData["Title"] = title;
     ViewData["PageClass"] = "course-editor-page";
@@ -14,26 +14,21 @@
 <nav class="course-editor-breadcrumb" aria-label="Đường dẫn điều hướng">
     <a asp-action="Index">Khóa học</a><span aria-hidden="true">/</span><span aria-current="page">@title</span>
 </nav>
-<div class="course-editor-heading">
+<header class="teacher-banner teacher-banner--light course-editor-heading">
     <div>
         <div class="course-editor-title">
-            <h1>@title</h1>
+            <h1>@(isNew ? title : Model.Input.Title)</h1>
             @if (isNew) { <span class="course-draft-badge"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg>Bản nháp</span> }
         </div>
-        <p>@(isNew ? "Bắt đầu với thông tin cơ bản, sau đó xây dựng nội dung của bạn." : "Cập nhật thông tin để học viên hiểu rõ hơn về khóa học của bạn.")</p>
     </div>
     <div class="course-editor-actions">
         <a class="button secondary" href="@cancelUrl">Hủy</a>
         <button class="button" type="submit" form="course-editor-form"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>@(isNew ? "Lưu và tiếp tục" : "Lưu thay đổi")</button>
     </div>
-</div>
-@if (isNew)
+</header>
+@if (Model.Id is { } id)
 {
-    <ol class="course-editor-steps" aria-label="Các bước tạo khóa học">
-        <li class="is-current" aria-current="step"><span>1</span>Thông tin khóa học</li>
-        <li><span>2</span>Nội dung bài học</li>
-        <li><span>3</span>Xuất bản</li>
-    </ol>
+    <partial name="_WorkspaceTabs" model='new CourseWorkspaceNav(id, "info")' />
 }
 
 <form method="post" asp-action="Edit" asp-route-id="@Model.Id" id="course-editor-form" class="course-editor-form" data-course-editor>
@@ -43,7 +38,7 @@
             <section class="course-editor-card" aria-labelledby="course-basics-heading">
                 <div class="course-card-heading">
                     <span class="course-section-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg></span>
-                    <div><h2 id="course-basics-heading">Thông tin cơ bản</h2><p>Giúp học viên hiểu rõ khóa học của bạn.</p></div>
+                    <div><h2 id="course-basics-heading">Thông tin cơ bản</h2></div>
                 </div>
                 <div class="course-field">
                     <div class="course-label-row"><label asp-for="Input.Title">Tên khóa học <span class="course-required" aria-hidden="true">*</span></label><span class="course-field-count" data-course-title-count>@(Model.Input.Title?.Length ?? 0)/200</span></div>
@@ -152,10 +147,6 @@
                     </div>
                 </article>
             </section>
-            <div class="course-editor-tip">
-                <div class="course-tip-main"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#sparkles")"></use></svg><div><h2>Một khởi đầu rõ ràng</h2><p>Tên dễ hiểu và mục tiêu cụ thể giúp học viên chọn đúng khóa học.</p></div></div>
-                <div class="course-tip-note"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg><p>@(isNew ? "Bản nháp chỉ hiển thị với bạn. Bạn có thể xuất bản sau khi thêm nội dung." : "Sau khi lưu, bạn sẽ trở lại trang quản lý nội dung khóa học.")</p></div>
-            </div>
         </aside>
     </div>
     <div class="course-editor-savebar">

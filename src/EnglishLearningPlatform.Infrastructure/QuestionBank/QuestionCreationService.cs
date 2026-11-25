@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Application.QuestionBank;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
@@ -40,6 +41,9 @@ public sealed class QuestionCreationService(
             return QuestionWriteResult.Failure(errors);
         }
 
+        // FillBlank does not require an options list; normalize optional collections after validation.
+        request = request with { Options = request.Options ?? [], AcceptedAnswers = request.AcceptedAnswers ?? [] };
+
         // 3. Kiểm tra quyền sử dụng Stimulus.
         if (request.StimulusId is Guid stimulusId)
         {
@@ -48,7 +52,8 @@ public sealed class QuestionCreationService(
                 .AnyAsync(
                     stimulus =>
                         stimulus.Id == stimulusId
-                        && stimulus.OwnerTeacherUserId == actorUserId,
+                        && stimulus.OwnerTeacherUserId == actorUserId
+                        && (request.QuestionType != QuestionType.Dictation || stimulus.StimulusType == StimulusType.Audio),
                     cancellationToken);
 
             if (!canUseStimulus)
@@ -58,7 +63,9 @@ public sealed class QuestionCreationService(
                     new QuestionError(
                         nameof(request.StimulusId),
                         "invalid",
-                        "Ngữ liệu không tồn tại hoặc không thuộc quyền sở hữu của bạn.")
+                        request.QuestionType == QuestionType.Dictation
+                            ? "Chọn một ngữ liệu âm thanh thuộc ngân hàng của bạn."
+                            : "Ngữ liệu không tồn tại hoặc không thuộc quyền sở hữu của bạn.")
                 ]);
             }
         }
@@ -67,6 +74,8 @@ public sealed class QuestionCreationService(
         var question = new Question
         {
             OwnerTeacherUserId = actorUserId,
+            QuestionType = request.QuestionType,
+            StructuredDefinitionJson = StructuredQuestionEvaluator.CreateDefinition(request.QuestionType, request.StructuredItems),
             Content = request.Content,
             PrimarySkill = request.PrimarySkill!.Value,
             Level = request.Level,
@@ -87,6 +96,9 @@ public sealed class QuestionCreationService(
                 OrderIndex = index
             });
         }
+
+        for (var i = 0; i < request.AcceptedAnswers.Count; i++)
+            question.AcceptedAnswers.Add(new QuestionAcceptedAnswer { AnswerText = request.AcceptedAnswers[i], OrderIndex = i });
 
         // 6. Lưu Question và Options.
         db.Questions.Add(question);

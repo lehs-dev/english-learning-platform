@@ -1,0 +1,5 @@
+@using EnglishLearningPlatform.Infrastructure.Identity
+@{
+    ViewData["ActiveSection"] = "courses";
+    Layout = User.IsInRole(AppRoles.Teacher) ? "_LayoutTeacher" : "_LayoutStudent";
+}

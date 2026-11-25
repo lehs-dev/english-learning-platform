@@ -4,71 +4,70 @@
     var routeSection = routeController switch
     {
         "learning" when string.Equals(routeAction, "Dashboard", StringComparison.OrdinalIgnoreCase) => "dashboard",
+        "learning" when string.Equals(routeAction, "Progress", StringComparison.OrdinalIgnoreCase) => "progress",
         "learning" or "courses" => "courses",
-        "practice" => "practice",
-        "assessment" => "assessment",
-        "checkout" when string.Equals(routeAction, "History", StringComparison.OrdinalIgnoreCase) => "history",
+        "practice" => "courses",
+        "learningpath" => "dashboard",
+        "flashcards" => "courses",
+        "achievements" => "progress",
+        "assessment" => "progress",
+        "checkout" when string.Equals(routeAction, "History", StringComparison.OrdinalIgnoreCase) => "profile",
         "profile" => "profile",
         _ => ""
     };
     var activeSection = ViewData["ActiveSection"] as string ?? routeSection;
     var currentTitle = ViewData["Title"] as string ?? "Học tập";
+    var topbarContext = ViewData["TopbarContext"] as string;
+    var isFocusMode = (ViewData["FocusMode"] as bool? == true) || (ViewData["PageClass"]?.ToString()?.Contains("focus-mode") == true);
 }
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#176bff" />
+    <meta name="theme-color" content="#102347" />
     <title>@currentTitle - Estudy Học viên</title>
     <partial name="_BrandHead" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/role-layouts.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/workspace-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student-workspace.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="student-workspace-v2 @ViewData["PageClass"]">
+<body class="student-workspace-v2 @(isFocusMode ? "student-focus-mode" : "") @ViewData["PageClass"]">
     <a class="skip-link" href="#main-content">Đến nội dung chính</a>
     <div class="studio-shell student-shell">
         <aside class="studio-sidebar student-sidebar" id="student-sidebar" aria-label="Thanh điều hướng học tập">
             <div class="studio-sidebar-header">
                 <a class="brand studio-brand" asp-controller="Learning" asp-action="Dashboard" aria-label="Estudy - Trang chủ">
-                    <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
+                    <span class="student-brand-mark">
+                        <svg class="brand-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg>
+                    </span>
                     <span>Estudy</span>
                 </a>
                 <button class="sidebar-close icon-button" type="button" data-sidebar-close aria-label="Đóng thanh điều hướng học tập">
                     <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                 </button>
             </div>
-            <p class="workspace-caption">Không gian học tập</p>
+            <p class="workspace-caption">Học tập</p>
             <nav class="studio-nav" aria-label="Menu chức năng học viên">
                 <div class="studio-nav-group">
                     <a class="studio-nav-link @(activeSection == "dashboard" ? "is-active" : "")"
                        asp-controller="Learning" asp-action="Dashboard" aria-current="@(activeSection == "dashboard" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#dashboard")"></use></svg>
-                        <span>Trang chủ</span>
+                        <span>Hôm nay</span>
                     </a>
                     <a class="studio-nav-link @(activeSection is "courses" or "mycourses" or "learning" ? "is-active" : "")"
                        asp-controller="Learning" asp-action="Index" aria-current="@(activeSection is "courses" or "mycourses" or "learning" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
                         <span>Khóa học của tôi</span>
                     </a>
-                    <a class="studio-nav-link @(activeSection == "practice" ? "is-active" : "")"
-                       asp-controller="Practice" asp-action="Index"
-                       aria-current="@(activeSection == "practice" ? "page" : null)">
+                    <a class="studio-nav-link @(activeSection is "progress" or "achievements" ? "is-active" : "")"
+                       asp-controller="Learning" asp-action="Progress" aria-current="@(activeSection is "progress" or "achievements" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
-                        <span>Luyện tập</span>
-                    </a>
-                    <a class="studio-nav-link @(activeSection is "assessment" or "exams" ? "is-active" : "")"
-                       asp-controller="Assessment" asp-action="Index" aria-current="@(activeSection is "assessment" or "exams" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
-                        <span>Đánh giá năng lực</span>
-                    </a>
-                    <a class="studio-nav-link @(activeSection is "history" or "transactions" ? "is-active" : "")"
-                       asp-controller="Checkout" asp-action="History" aria-current="@(activeSection is "history" or "transactions" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#history")"></use></svg>
-                        <span>Lịch sử giao dịch</span>
+                        <span>Tiến độ &amp; kết quả</span>
                     </a>
                 </div>
             </nav>
@@ -79,14 +78,22 @@
                 <button class="mobile-sidebar-toggle icon-button" type="button" data-sidebar-toggle aria-controls="student-sidebar" aria-expanded="false" aria-label="Mở thanh điều hướng học tập">
                     <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#menu")"></use></svg>
                 </button>
-                <form class="student-course-search" asp-controller="Learning" asp-action="Index" method="get" role="search">
-                    <label class="visually-hidden" for="student-course-search">Tìm khóa học</label>
-                    <input id="student-course-search" type="search" name="Search" value="@(Context.Request.Query["Search"].ToString())" maxlength="200" placeholder="Tìm khóa học..." />
-                    <button class="icon-button" type="submit" aria-label="Tìm khóa học">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
-                    </button>
-                </form>
+                @if (!string.IsNullOrWhiteSpace(topbarContext))
+                {
+                    <span class="student-topbar-label">@topbarContext</span>
+                }
+                @if (string.IsNullOrWhiteSpace(topbarContext) && !isFocusMode)
+                {
+                    <a class="student-mobile-brand" asp-controller="Learning" asp-action="Dashboard" aria-label="Estudy - Trang chủ">Estudy</a>
+                }
                 <div class="studio-topbar-actions">
+                    @if (!isFocusMode)
+                    {
+                        <a class="student-topbar-discover" asp-controller="Courses" asp-action="Index">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                            Khám phá
+                        </a>
+                    }
                     @await Component.InvokeAsync("AccountMenu")
                 </div>
             </header>

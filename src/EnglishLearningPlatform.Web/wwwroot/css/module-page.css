@@ -60,3 +60,29 @@
 @media (max-width: 1400px) { .module-page-hero { flex-wrap: wrap; gap: 16px; } .module-page-actions { margin-left: auto; } }
 @media (max-width: 1100px) { .module-page-grid { grid-template-columns: minmax(0, 1fr); } .module-page-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
 @media (max-width: 600px) { .module-page.teacher-studio .studio-main { padding: 20px 16px 28px; } .module-page-hero { padding: 18px; gap: 12px; } .module-page-emblem { width: 42px; height: 44px; border-radius: 9px; } .module-page-emblem .icon { width: 25px; height: 25px; } .module-page-heading h1 { font-size: 23px; } .module-page-actions { width: 100%; } .module-page-actions > a { flex: 1; font-size: 11px; } .module-page-card { padding: 16px; } .module-page-card-heading { flex-wrap: wrap; gap: 10px; } .module-page-lesson { gap: 10px; padding: 12px; flex-wrap: wrap; } .module-page-lesson > .button { margin-left: auto; } .module-page-lesson-info h3 { font-size: 13px; } .module-page-aside { grid-template-columns: minmax(0, 1fr); } }
+
+.student-workspace-v2.module-page :is(.module-page-actions, .module-page-lesson) .button {
+    min-height: 44px;
+    font-size: .875rem;
+}
+
+.student-workspace-v2.module-page .module-page-lesson-info h3 {
+    font-size: .9375rem;
+}
+
+.student-workspace-v2.module-page .module-page-lesson-status {
+    font-size: .8125rem;
+}
+
+@media (max-width: 600px) {
+    .student-workspace-v2.module-page .module-page-lesson {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .student-workspace-v2.module-page .module-page-lesson > .button {
+        grid-column: 2;
+        justify-self: start;
+        margin-left: 0;
+    }
+}

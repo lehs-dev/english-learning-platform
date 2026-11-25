@@ -8,7 +8,7 @@ namespace EnglishLearningPlatform.Application.Assessment;
 public interface IAssessmentDefinitionValidator
 {
     // Caller phải đọc dữ liệu thật từ database:
-    // - Questions gồm Question, Options và Stimulus.
+    // - Questions gồm Question, Options, AcceptedAnswers và Stimulus.
     // - linkedCourse là Course đang gắn với Assessment.
     // - finalCourses là các Course đang chọn Assessment này làm Final.
     //

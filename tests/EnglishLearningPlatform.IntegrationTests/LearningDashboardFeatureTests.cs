@@ -20,6 +20,81 @@ namespace EnglishLearningPlatform.IntegrationTests;
 public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
     [Fact]
+    public async Task CourseDiscussion_IsPrivateAndReplaysDoNotDuplicateMessages()
+    {
+        var data = await SeedAsync();
+        var classmate = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
+        var foreignTeacher = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Teacher);
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Enrollments.Add(new Enrollment { StudentUserId = classmate.Id, CourseId = data.Course.Id });
+        await db.SaveChangesAsync();
+
+        using var student = await ClientAsync(data.Student);
+        using var teacher = await ClientAsync(data.Teacher);
+        using var peer = await ClientAsync(classmate);
+        using var outsider = await ClientAsync(foreignTeacher);
+        var courseUrl = $"/CourseDiscussion/Index/{data.Course.Id}";
+        var threadId = Guid.NewGuid();
+        var threadUrl = $"/CourseDiscussion/Details/{threadId}";
+        const string subject = "Question about the first lesson";
+        const string response = "Try reading the second <example> aloud.";
+        var question = new Dictionary<string, string>
+        {
+            ["requestId"] = threadId.ToString(), ["subject"] = subject, ["body"] = "Can you explain this phrase?"
+        };
+        using var noToken = await student.PostAsync($"/CourseDiscussion/Ask/{data.Course.Id}", new FormUrlEncodedContent(question));
+        Assert.Equal(HttpStatusCode.BadRequest, noToken.StatusCode);
+        question["__RequestVerificationToken"] = await IdentityTestHelpers.GetTokenAsync(student, courseUrl);
+        using var firstAsk = await student.PostAsync($"/CourseDiscussion/Ask/{data.Course.Id}", new FormUrlEncodedContent(question));
+        using var replay = await student.PostAsync($"/CourseDiscussion/Ask/{data.Course.Id}", new FormUrlEncodedContent(question));
+        Assert.Equal(threadUrl, firstAsk.Headers.Location?.ToString());
+        Assert.Equal(threadUrl, replay.Headers.Location?.ToString());
+        Assert.Contains(subject, await teacher.GetStringAsync(courseUrl));
+        Assert.DoesNotContain(subject, await peer.GetStringAsync(courseUrl));
+        using var peerRead = await peer.GetAsync(threadUrl);
+        using var foreignRead = await outsider.GetAsync(threadUrl);
+        Assert.Equal(HttpStatusCode.NotFound, peerRead.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, foreignRead.StatusCode);
+
+        var reply = new Dictionary<string, string>
+        {
+            ["requestId"] = Guid.NewGuid().ToString(), ["body"] = response,
+            ["__RequestVerificationToken"] = await IdentityTestHelpers.GetTokenAsync(teacher, threadUrl)
+        };
+        using var posted = await teacher.PostAsync($"/CourseDiscussion/Reply/{threadId}", new FormUrlEncodedContent(reply));
+        using var replyReplay = await teacher.PostAsync($"/CourseDiscussion/Reply/{threadId}", new FormUrlEncodedContent(reply));
+        Assert.Equal(HttpStatusCode.Redirect, posted.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, replyReplay.StatusCode);
+        var html = await student.GetStringAsync(threadUrl);
+        Assert.Contains("Try reading the second &lt;example&gt; aloud.", html);
+        Assert.Equal(2, await db.CourseDiscussionMessages.CountAsync(m => m.ThreadId == threadId));
+
+        await db.Courses.Where(c => c.Id == data.Course.Id).ExecuteUpdateAsync(u => u.SetProperty(c => c.Status, CourseStatus.Archived));
+        html = await student.GetStringAsync(threadUrl);
+        Assert.DoesNotContain($"action=\"/CourseDiscussion/Reply/{threadId}\"", html);
+        var discussion = scope.ServiceProvider.GetRequiredService<ICourseDiscussionService>();
+        Assert.Equal(LearningAccessResult.Forbidden, (await discussion.ReplyAsync(data.Teacher.Id, threadId, Guid.NewGuid(), "Late reply")).Access);
+    }
+
+    [Fact]
+    public async Task CompletingLessonWithNextAction_OpensTheNextLessonAndResumeSkipsCompletedLesson()
+    {
+        var data = await SeedAsync();
+        using var student = await ClientAsync(data.Student);
+        var lessonUrl = $"/Learning/Lesson/{data.First.Id}";
+        var nextLessonUrl = $"/Learning/Lesson/{data.Second.Id}";
+        var token = await IdentityTestHelpers.GetTokenAsync(student, lessonUrl);
+        using var completed = await student.PostAsync($"/Learning/Completion/{data.First.Id}", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["completed"] = "true", ["goNext"] = "true", ["__RequestVerificationToken"] = token
+        }));
+        Assert.Equal(nextLessonUrl, completed.Headers.Location?.ToString());
+        using var resumed = await student.GetAsync($"/Learning/Continue/{data.Course.Id}");
+        Assert.Equal(nextLessonUrl, resumed.Headers.Location?.ToString());
+    }
+
+    [Fact]
     public async Task Profile_UsesAssessmentHistoryAndSharedCourseCards()
     {
         var data = await SeedAsync();
@@ -79,10 +154,14 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         using var client = await ClientAsync(student);
         using var otherClient = await ClientAsync(other);
-        var path = ProfileAvatarStore.PathFor(factory.Services.GetRequiredService<IWebHostEnvironment>(), student.Id);
+        var environment = factory.Services.GetRequiredService<IWebHostEnvironment>();
+        var originalContentRoot = environment.ContentRootPath;
+        var avatarTestRoot = Directory.CreateTempSubdirectory("ELP_AvatarTests_").FullName;
         var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/aMcAAAAASUVORK5CYII=");
         try
         {
+            // This class's tests share a sequential factory; only this test redirects private file storage.
+            environment.ContentRootPath = avatarTestRoot;
             var token = await IdentityTestHelpers.GetTokenAsync(client, "/Profile");
             using var form = new MultipartFormDataContent();
             form.Add(new StringContent(token), "__RequestVerificationToken");
@@ -102,7 +181,11 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
             Assert.Equal(HttpStatusCode.Redirect, (await client.PostAsync("/Profile/Avatar", invalid)).StatusCode);
             Assert.Equal(png, await client.GetByteArrayAsync("/Profile/AvatarImage"));
         }
-        finally { if (File.Exists(path)) File.Delete(path); }
+        finally
+        {
+            environment.ContentRootPath = originalContentRoot;
+            Directory.Delete(avatarTestRoot, recursive: true);
+        }
     }
 
     [Fact]
@@ -580,7 +663,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
         {
             string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
-            Assert.Contains(path == "/Profile" ? "Đang làm" : "Chưa có kết quả bài kiểm tra năng lực.", html);
+            Assert.Contains(path == "/Profile" ? "Đang làm" : "Bạn chưa có kết quả đánh giá.", html);
             Assert.DoesNotContain("data-representative-attempt=", html);
             Assert.DoesNotContain($"/Assessment/Result/{activeAttempt.Id}", html);
         }
@@ -755,8 +838,11 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Contains($"/Assessment/Take/{data.Assessment.Id}", lessonHtml);
 
         string courseHtml = WebUtility.HtmlDecode(await client.GetStringAsync($"/Learning/Course/{data.Course.Id}"));
-        Assert.Contains("Bạn đã hoàn thành tất cả bài học.", courseHtml);
+        Assert.Contains("2 / 2 bài học hoàn thành", courseHtml);
         Assert.Contains("Hãy làm bài thi cuối khóa để hoàn tất khóa học.", courseHtml);
+        Assert.Contains($"href=\"/Learning/Course/{data.Course.Id}?tab=assessment\"", courseHtml);
+        var assessmentTab = WebUtility.HtmlDecode(await client.GetStringAsync($"/Learning/Course/{data.Course.Id}?tab=assessment"));
+        Assert.Contains($"href=\"/Assessment/Take/{data.Assessment.Id}\"", assessmentTab);
 
         // Continue không được fallback về bài đầu khi mọi lesson đã hoàn thành.
         using var continuation = await client.GetAsync($"/Learning/Continue/{data.Course.Id}");
@@ -766,6 +852,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         string dashboardHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
         Assert.Contains("Hoàn tất khóa", dashboardHtml);
         Assert.Contains($"href=\"/Learning/Course/{data.Course.Id}\"", dashboardHtml);
+        Assert.Contains($"href=\"/Learning/Course/{data.Course.Id}?tab=assessment\"", dashboardHtml);
         Assert.DoesNotContain($"href=\"/Learning/Continue/{data.Course.Id}\"", dashboardHtml);
         string libraryHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning"));
         Assert.Contains($"href=\"/Learning/Continue/{data.Course.Id}\"", libraryHtml);
@@ -1205,7 +1292,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Equal(100m, latest.Score);
         Assert.Equal(3, latest.Answers.Count);
         Assert.Equal(questions.Select(q => q.Question.Options.Single(o => o.IsCorrect).Id).OrderBy(id => id),
-            latest.Answers.Select(a => a.SelectedOptionId).OrderBy(id => id));
+            latest.Answers.Select(a => a.SelectedOptionId!.Value).OrderBy(id => id));
     }
 
 
@@ -1288,10 +1375,20 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Equal(HttpStatusCode.OK, dashboard.StatusCode);
         Assert.Contains("no-store", dashboard.Headers.CacheControl!.ToString());
         Assert.Contains(data.Course.Title, await dashboard.Content.ReadAsStringAsync());
-        using var course = await student.GetAsync($"/Learning/Course/{data.Course.Id}");
+        var coursePath = $"/Learning/Course/{data.Course.Id}";
+        var practiceTabPath = coursePath + "?tab=practice";
+        var assessmentTabPath = coursePath + "?tab=assessment";
+        using var course = await student.GetAsync(coursePath);
+        Assert.Equal(HttpStatusCode.OK, course.StatusCode);
         var html = await course.Content.ReadAsStringAsync();
-        Assert.Contains($"/Practice/Take/{data.Practice.Id}", html);
-        Assert.Contains($"/Assessment/Take/{data.Assessment.Id}", html);
+        Assert.Contains($"href=\"{practiceTabPath}\"", html);
+        Assert.Contains($"href=\"{assessmentTabPath}\"", html);
+        using var practiceTab = await student.GetAsync(practiceTabPath);
+        Assert.Equal(HttpStatusCode.OK, practiceTab.StatusCode);
+        Assert.Contains($"/Practice/Take/{data.Practice.Id}", await practiceTab.Content.ReadAsStringAsync());
+        using var assessmentTab = await student.GetAsync(assessmentTabPath);
+        Assert.Equal(HttpStatusCode.OK, assessmentTab.StatusCode);
+        Assert.Contains($"/Assessment/Take/{data.Assessment.Id}", await assessmentTab.Content.ReadAsStringAsync());
         var token = await IdentityTestHelpers.GetTokenAsync(student, $"/Practice/Take/{data.Practice.Id}");
         using var missingCsrf = await student.PostAsync($"/Practice/Submit/{data.Practice.Id}", new FormUrlEncodedContent([]));
         Assert.Equal(HttpStatusCode.BadRequest, missingCsrf.StatusCode);

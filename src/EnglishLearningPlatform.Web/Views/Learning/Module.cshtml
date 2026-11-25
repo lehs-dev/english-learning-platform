@@ -7,8 +7,10 @@
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/module-page.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
 }
 
+<div class="learning-screens module-study">
 <nav class="module-page-breadcrumb" aria-label="Đường dẫn điều hướng">
     <a asp-action="Course" asp-route-id="@Model.CourseId">@Model.CourseTitle</a><span aria-hidden="true">/</span><span aria-current="page">Chương học</span>
 </nav>
@@ -37,7 +39,7 @@
 
 <div class="module-page-grid">
     <section class="module-page-card module-page-lessons" aria-labelledby="module-lessons-heading">
-        <div class="module-page-card-heading"><div><h2 id="module-lessons-heading">Bài học trong chương</h2><p>@(Model.IsOwner ? "Bạn đang xem toàn bộ bài học, bao gồm bản nháp và bài đã ẩn." : "Học theo thứ tự hoặc chọn bài học bạn muốn xem lại.")</p></div><span class="module-page-badge">@Model.Lessons.Count bài học</span></div>
+        <div class="module-page-card-heading"><div><h2 id="module-lessons-heading">Bài học trong chương</h2>@if (Model.IsOwner) { <p>Bạn đang xem toàn bộ bài học, bao gồm bản nháp và bài đã ẩn.</p> }</div></div>
         @if (Model.Lessons.Count == 0)
         {
             <div class="module-page-empty"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg><h3>@(Model.IsOwner ? "Chương học chưa có bài học" : "Chưa có bài học khả dụng")</h3><p>@(Model.IsOwner ? "Thêm bài học đầu tiên để bắt đầu xây dựng nội dung cho chương này." : "Bài học sẽ xuất hiện tại đây khi được giảng viên xuất bản.")</p>
@@ -68,7 +70,7 @@
             <p>@(Model.IsOwner ? "Thêm nội dung, sắp xếp bài học và quản lý việc hiển thị tại trang nội dung khóa học." : Model.CourseStatus == CourseStatus.Archived ? "Xem lại nội dung bài học và tiến độ đã ghi nhận của bạn trong khóa học này." : "Mở từng bài để xem nội dung. Đánh dấu hoàn thành khi bạn đã học xong.")</p>
             @if (Model.IsOwner)
             {
-                <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.CourseId">Quản lý nội dung</a>
+                <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@Model.CourseId" asp-route-moduleId="@Model.Id">Quản lý nội dung</a>
                 <a class="module-page-practice-link" asp-controller="TeacherPractices" asp-action="Create" asp-route-courseId="@Model.CourseId" asp-route-moduleId="@Model.Id">Tạo bài luyện tập cho chương<svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
             }
             else { <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId">Về khóa học<svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a> }
@@ -79,3 +81,4 @@
 {
     <div class="module-page-activities"><partial name="_CourseActivities" model="activities" /></div>
 }
+</div>

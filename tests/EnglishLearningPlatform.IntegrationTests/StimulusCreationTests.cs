@@ -329,7 +329,7 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         for (int refresh = 0; refresh < 2; refresh++)
         {
             await AssertSharedMediaAsync(studentClient, takingPath, type, media, 5);
-            await AssertSharedMediaAsync(studentClient, $"/Practice/Take/{practice.Id}", type, media, 2);
+            await AssertSharedMediaAsync(studentClient, $"/Practice/Take/{practice.Id}", type, media, type == StimulusType.Passage ? 1 : 2);
         }
         Assert.Equal(1, await db.Attempts.CountAsync(a => a.AssessmentId == draft.Id));
         Assert.False(await db.AttemptAnswers.AnyAsync(a => a.Attempt.AssessmentId == draft.Id));

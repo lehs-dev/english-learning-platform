@@ -1,0 +1,99 @@
+@using EnglishLearningPlatform.Application.Homework
+@using EnglishLearningPlatform.Infrastructure.Identity
+@model WritingHomeworkCourse
+@{
+    ViewData["Title"] = "Bài tập viết";
+    bool teacher = User.IsInRole(AppRoles.Teacher);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/homework.css" asp-append-version="true" />
+}
+
+<div class="activity-scene homework-page">
+    <header class="activity-hero homework-header">
+        <div>
+            <a class="activity-course-link" asp-controller="@(teacher ? "TeacherCourses" : "Learning")" asp-action="@(teacher ? "Manage" : "Course")" asp-route-id="@Model.CourseId">
+                <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                @Model.CourseTitle
+            </a>
+            <h1>Bài tập viết</h1>
+        </div>
+        @if (Model.CanAssign)
+        {
+            <a class="button" asp-action="Create" asp-route-id="@Model.CourseId">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>
+                Giao bài viết
+            </a>
+        }
+    </header>
+    @if (Model.Assignments.Count == 0)
+    {
+        <div class="activity-panel activity-empty">
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>
+            <p>@(Model.Page > 1 ? "Trang này đã hết bài tập." : "Khóa học chưa có bài tập viết.")</p>
+        </div>
+    }
+    else
+    {
+        <ul class="homework-list">
+            @foreach (var assignment in Model.Assignments)
+            {
+                <li class="activity-panel homework-row">
+                    <span class="homework-row-icon" aria-hidden="true">
+                        <svg class="icon"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>
+                    </span>
+                    <div class="homework-row-title">
+                        <h2><a asp-action="Details" asp-route-id="@assignment.Id">@assignment.Title</a></h2>
+                        @if (assignment.DueAtUtc is { } due)
+                        {
+                            <p class="muted">Hạn nộp <time datetime="@due.ToString("O")">@due.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></p>
+                        }
+                        @if (teacher && assignment.Scheduled && assignment.PublishAtUtc is { } publishAt)
+                        {
+                            <p class="muted">Giao lúc <time datetime="@publishAt.ToString("O")">@publishAt.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM/yyyy HH:mm")</time></p>
+                        }
+                    </div>
+                    <div class="homework-row-status">
+                        @if (teacher)
+                        {
+                            if (assignment.IsDraft)
+                            {
+                                <span class="activity-tag neutral">Bản nháp</span>
+                            }
+                            else if (assignment.Scheduled)
+                            {
+                                <span class="activity-tag attention">Đã hẹn giờ</span>
+                            }
+                            else if (assignment.AwaitingReview is > 0 and int waiting)
+                            {
+                                <span class="activity-tag attention">@waiting bài chờ chấm</span>
+                            }
+                            else
+                            {
+                                <span class="activity-tag good">Đã giao</span>
+                            }
+                            @if (assignment.CanEdit)
+                            {
+                                <a class="homework-row-edit" asp-action="Edit" asp-route-id="@assignment.Id" aria-label="Sửa @assignment.Title">Sửa</a>
+                            }
+                        }
+                        else
+                        {
+                            <span class="activity-tag @(assignment.Reviewed ? "good" : assignment.Open && !assignment.Submitted ? "attention" : "neutral")">@(assignment.Reviewed ? "Có phản hồi" : assignment.Submitted ? "Đã nộp" : assignment.Open ? "Chưa nộp" : "Đã đóng")</span>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+    @if (Model.Page > 1 || Model.HasNextPage)
+    {
+        <nav class="homework-pagination" aria-label="Trang bài tập">
+            @if (Model.Page > 1) { <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId" asp-route-page="@(Model.Page - 1)">Trang trước</a> }
+            <span>Trang @Model.Page</span>
+            @if (Model.HasNextPage) { <a class="button secondary" asp-action="Course" asp-route-id="@Model.CourseId" asp-route-page="@(Model.Page + 1)">Trang sau</a> }
+        </nav>
+    }
+</div>

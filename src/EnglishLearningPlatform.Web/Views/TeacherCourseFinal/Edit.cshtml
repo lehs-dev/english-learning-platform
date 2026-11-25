@@ -12,12 +12,11 @@
 
 <nav class="course-final-breadcrumb" aria-label="Đường dẫn điều hướng">
     <a asp-controller="TeacherCourses" asp-action="Index">Khóa học của tôi</a><span aria-hidden="true">/</span>
-    <a asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@editor.CourseId">Nội dung khóa học</a><span aria-hidden="true">/</span><span aria-current="page">Bài kiểm tra cuối khóa</span>
+    <a asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@editor.CourseId" asp-route-tab="assessments">Bài kiểm tra</a><span aria-hidden="true">/</span><span aria-current="page">Bài kiểm tra cuối khóa</span>
 </nav>
-<header class="course-final-heading">
+<header class="teacher-banner teacher-banner--light course-final-heading">
     <div><h1>Bài kiểm tra cuối khóa</h1><p>Chọn bài kiểm tra để đánh giá kết quả học tập và ghi nhận hoàn thành khóa học.</p></div>
     <div class="course-final-heading-actions">
-        <a class="button secondary" asp-controller="TeacherCourses" asp-action="Manage" asp-route-id="@editor.CourseId"><svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>Nội dung khóa học</a>
         @if (editor.CanChangeFinal)
         {
             <button class="button" type="submit" form="course-final-form"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#save")"></use></svg>Lưu lựa chọn</button>
@@ -25,6 +24,7 @@
     </div>
 </header>
 
+<partial name="~/Views/TeacherCourses/_WorkspaceTabs.cshtml" model='new CourseWorkspaceNav(editor.CourseId, "assessments")' />
 <div class="course-final-course">
     <span class="course-final-icon"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
     <div><span>Khóa học</span><h2>@editor.CourseTitle</h2></div>

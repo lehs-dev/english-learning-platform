@@ -22,9 +22,10 @@ public sealed class CourseProgressService(AppDbContext db)
         return enrollments.ToDictionary(e => e.CourseId, e =>
         {
             var available = groups[e.CourseId].Select(l => l.Id).ToArray();
-            Guid? next = e.LastAccessedLessonId.HasValue && available.Contains(e.LastAccessedLessonId.Value)
-                ? e.LastAccessedLessonId : available.Where(id => !completed.Contains(id)).Select(id => (Guid?)id).FirstOrDefault()
-                    ?? available.Select(id => (Guid?)id).FirstOrDefault();
+            var last = e.LastAccessedLessonId is Guid lastId && available.Contains(lastId) ? e.LastAccessedLessonId : null;
+            Guid? next = last.HasValue && !completed.Contains(last.Value)
+                ? last : available.Where(id => !completed.Contains(id)).Select(id => (Guid?)id).FirstOrDefault()
+                    ?? last ?? available.Select(id => (Guid?)id).FirstOrDefault();
             return new CourseProgress(available.Count(completed.Contains), available.Length, e.CompletedAtUtc, next);
         });
     }

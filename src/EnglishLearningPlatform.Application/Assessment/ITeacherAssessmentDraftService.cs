@@ -14,7 +14,8 @@ public interface ITeacherAssessmentDraftService
     Task<LearningOutcome<IReadOnlyList<TeacherAssessmentListItem>>>
         GetListAsync(
             Guid actorUserId,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default,
+            Guid? courseId = null);
 
     /// <summary>
     /// Đọc cấu hình Draft để mở form sửa.
@@ -48,5 +49,6 @@ public interface ITeacherAssessmentDraftService
         Guid actorUserId,
         Guid? assessmentId,
         AssessmentDraftRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        Guid? newCourseId = null);
 }

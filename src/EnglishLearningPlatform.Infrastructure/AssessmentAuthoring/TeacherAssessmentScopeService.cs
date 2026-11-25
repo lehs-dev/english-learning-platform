@@ -332,8 +332,10 @@ public sealed class TeacherAssessmentScopeService : ITeacherAssessmentScopeServi
                     .Include(item => item.Question)
                         .ThenInclude(question => question.Options)
                     .Include(item => item.Question)
+                        .ThenInclude(question => question.AcceptedAnswers)
+                    .Include(item => item.Question)
                         .ThenInclude(question => question.Stimulus)
-                    .AsSingleQuery()
+                    .AsSplitQuery()
                     .OrderBy(item => item.OrderIndex)
                     .ThenBy(item => item.Id)
                     .ToListAsync(cancellationToken);

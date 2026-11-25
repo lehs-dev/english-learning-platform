@@ -1,6 +1,7 @@
 using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Domain.Common;
@@ -158,37 +159,53 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
             .Where(a => a.Id == attemptId && a.StudentUserId == studentId &&
                 a.Status == AttemptStatus.InProgress && a.DeadlineUtc > now &&
                 assessments.Any(assessment => assessment.Id == a.AssessmentId))
-            .Select(a => new AssessmentTakingSheet(
+            .Select(a => new
+            {
                 a.Id, a.AssessmentId, a.Assessment.Title, a.Assessment.Description,
                 a.Assessment.DurationMinutes, a.DeadlineUtc,
-                a.Assessment.Questions.OrderBy(q => q.OrderIndex).ThenBy(q => q.Id)
-                    .Select(q => new AssessmentQuestionTakingModel(
-                        q.Id, q.QuestionId, q.Question.Content, q.Points,
-                        q.Question.Stimulus == null ? null : q.Question.Stimulus.ContentText,
-                        a.Answers.Where(answer => answer.AssessmentQuestionId == q.Id)
-                            .Select(answer => (Guid?)answer.SelectedOptionId).SingleOrDefault(),
-                        q.Question.Options.OrderBy(option => option.OrderIndex).ThenBy(option => option.Id)
-                            .Select(option => new AssessmentOptionTakingModel(option.Id, option.Content, option.OrderIndex))
-                            .ToList())
+                Questions = a.Assessment.Questions.OrderBy(q => q.OrderIndex).ThenBy(q => q.Id)
+                    .Select(q => new
                     {
+                        q.Id, q.QuestionId, q.Question.Content, q.Points, q.Question.QuestionType,
+                        q.Question.StructuredDefinitionJson,
+                        StimulusContent = q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Passage
+                            ? q.Question.Stimulus.ContentText : null,
+                        Answer = a.Answers.Where(answer => answer.AssessmentQuestionId == q.Id)
+                            .Select(answer => new { answer.SelectedOptionId, answer.TextAnswer, answer.StructuredAnswerJson })
+                            .SingleOrDefault(),
+                        Options = q.Question.Options.OrderBy(option => option.OrderIndex).ThenBy(option => option.Id)
+                            .Select(option => new AssessmentOptionTakingModel(option.Id, option.Content, option.OrderIndex))
+                            .ToList(),
                         AudioUrl = q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Audio
                             ? q.Question.Stimulus.ResourceUrl : null
                     })
-                    .ToList()))
+                    .ToList()
+            })
             .SingleOrDefaultAsync(ct);
 
         // A slow read must not return a sheet whose deadline elapsed in flight.
         if (sheet is null || sheet.DeadlineUtc <= timeProvider.GetUtcNow()) return null;
         // Chỉ trả audio nội bộ theo hash hoặc HTTP(S) legacy; không trả URL tùy ý như file/javascript.
-        return sheet with
-        {
-            Questions = sheet.Questions.Select(question => question with
+        var questions = sheet.Questions.Select(question => new AssessmentQuestionTakingModel(
+            question.Id, question.QuestionId, question.Content, question.Points,
+            question.StimulusContent, question.Answer?.SelectedOptionId, question.Options)
             {
-                AudioUrl = StimulusAudioUrl.TryGetHash(question.AudioUrl, out _) || (Uri.TryCreate(question.AudioUrl, UriKind.Absolute, out var uri) &&
-                    (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
-                    ) ? question.AudioUrl : null
-            }).ToList()
-        };
+                QuestionType = question.QuestionType,
+                TextAnswer = question.Answer?.TextAnswer,
+                StructuredAnswerJson = question.Answer?.StructuredAnswerJson,
+                // The persisted definition contains the key. Only its shuffled public choices go to the client.
+                StructuredPrompt = StructuredQuestionEvaluator.IsStructured(question.QuestionType)
+                    ? StructuredQuestionEvaluator.GetPrompt(new Question
+                    {
+                        QuestionType = question.QuestionType,
+                        StructuredDefinitionJson = question.StructuredDefinitionJson
+                    }) : null,
+                AudioUrl = StimulusAudioUrl.TryGetHash(question.AudioUrl, out _) ||
+                    (Uri.TryCreate(question.AudioUrl, UriKind.Absolute, out var uri) &&
+                     (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)) ? question.AudioUrl : null
+            }).ToList();
+        return new AssessmentTakingSheet(sheet.Id, sheet.AssessmentId, sheet.Title, sheet.Description,
+            sheet.DurationMinutes, sheet.DeadlineUtc, questions);
     }
 
     public async Task<AssessmentResultView?> GetAttemptResultAsync(
@@ -233,7 +250,8 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
                 Earned = s.Attempt.Assessment.Questions
                     .Where(q => q.Question.PrimarySkill == s.Skill &&
                         s.Attempt.Answers.Any(answer => answer.AssessmentQuestionId == q.Id &&
-                            q.Question.Options.Any(option => option.Id == answer.SelectedOptionId && option.IsCorrect)))
+                            (answer.IsCorrect ?? q.Question.Options.Any(option =>
+                                option.Id == answer.SelectedOptionId && option.IsCorrect))))
                     .Sum(q => q.Points)
             }).ToListAsync(ct);
 
@@ -252,11 +270,53 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
             breakdowns.Add(new SkillScoreBreakdown(skill.Skill, skill.Score, skill.DistinctCount, isWeak));
         }
 
-        // DTO chỉ chứa điểm tổng hợp; không trả Answer, Option hoặc Explanation.
         return result with
         {
-            SkillBreakdowns = breakdowns
+            SkillBreakdowns = breakdowns,
+            QuestionFeedback = await GetQuestionFeedbackAsync(studentId, attemptId, ct)
         };
+    }
+
+    private async Task<IReadOnlyList<AssessmentQuestionFeedback>> GetQuestionFeedbackAsync(
+        Guid studentId, Guid attemptId, CancellationToken ct)
+    {
+        // Official assessments may permit retakes. The result shows what the
+        // student submitted and the awarded points while keeping the keys private.
+        var rows = await db.AssessmentQuestions.AsNoTracking()
+            .Where(link => link.Question.QuestionType != QuestionType.MultipleChoice &&
+                link.Assessment.Attempts.Any(attempt => attempt.Id == attemptId &&
+                    attempt.StudentUserId == studentId && attempt.Status == AttemptStatus.Graded))
+            .OrderBy(link => link.OrderIndex).ThenBy(link => link.Id)
+            .Select(link => new
+            {
+                link.Id, link.OrderIndex, link.Points, link.Question.Content, link.Question.QuestionType,
+                link.Question.StructuredDefinitionJson
+            })
+            .ToListAsync(ct);
+        if (rows.Count == 0)
+            return [];
+
+        var ids = rows.Select(link => link.Id).ToArray();
+        var answers = await db.AttemptAnswers.AsNoTracking()
+            .Where(answer => answer.AttemptId == attemptId && ids.Contains(answer.AssessmentQuestionId))
+            .Select(answer => new { answer.AssessmentQuestionId, answer.TextAnswer, answer.StructuredAnswerJson, answer.IsCorrect })
+            .ToDictionaryAsync(answer => answer.AssessmentQuestionId, ct);
+        return rows.Select(link =>
+        {
+            answers.TryGetValue(link.Id, out var answer);
+            var submitted = answer?.TextAnswer;
+            if (answer?.StructuredAnswerJson is { } json)
+            {
+                submitted = StructuredQuestionEvaluator.Evaluate(new Question
+                {
+                    QuestionType = link.QuestionType,
+                    StructuredDefinitionJson = link.StructuredDefinitionJson
+                }, json).SubmittedAnswer;
+            }
+
+            return new AssessmentQuestionFeedback(link.OrderIndex + 1, link.Content, submitted,
+                answer?.IsCorrect == true ? link.Points : 0m, link.Points);
+        }).ToList();
     }
 
     public async Task<Guid?> FindExpiredAttemptIdAsync(

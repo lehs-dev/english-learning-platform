@@ -22,15 +22,19 @@
     const versions = new Map();
     const dirtyQuestions = new Set();
     const failedQuestions = new Set();
+    const textTimers = new Map();
     const dialog = form.querySelector('[data-submit-dialog]');
     const questions = [...form.querySelectorAll('[data-question]')];
-    const answeredCount = () => questions.filter(question =>
-        question.querySelector('input[type="radio"]:checked')?.value).length;
+    const hasAnswer = question => Boolean(
+        question.querySelector('input[type="radio"]:checked')?.value ||
+        question.querySelector('[data-assessment-text]')?.value.trim() ||
+        question.querySelector('[data-structured-answer]')?.value);
+    const answeredCount = () => questions.filter(hasAnswer).length;
     const updateProgress = () => {
         const progressEl = form.querySelector('[data-answer-progress]');
         if (progressEl) progressEl.textContent = `${answeredCount()}/${questions.length} câu đã trả lời`;
         questions.forEach((question, index) => {
-            const answered = Boolean(question.querySelector('input[type="radio"]:checked')?.value);
+            const answered = hasAnswer(question);
             const link = form.querySelector(`[data-question-link="${index + 1}"]`);
             if (link) {
                 link.classList.toggle('is-answered', answered);
@@ -63,6 +67,8 @@
         const radioName = selected?.name ?? question.querySelector('input[type="radio"]')?.name;
         // Gửi chuỗi rỗng khi bỏ chọn để model binder nhận SelectedOptionId = null.
         if (radioName) data.append(radioName, selected?.value ?? '');
+        const otherAnswer = question.querySelector('[data-assessment-text], [data-structured-answer]');
+        if (otherAnswer?.name) data.append(otherAnswer.name, otherAnswer.value);
         return data;
     };
     const send = saveOnly => {
@@ -116,8 +122,8 @@
     });
     updateProgress();
 
-    form.addEventListener('change', event => {
-        if (!event.target.matches('input[type="radio"]') || submitting) return;
+    const markChanged = (event, debounce) => {
+        if (submitting) return;
         const question = event.target.closest('[data-question]');
         const questionIndex = questions.indexOf(question);
         if (questionIndex < 0) return;
@@ -126,40 +132,53 @@
         versions.set(questionIndex, currentChange);
         dirtyQuestions.add(questionIndex);
         failedQuestions.delete(questionIndex);
-        const data = answerData(question);
         updateSaveStatus();
-        // Preserve selection order if answers change while an earlier save is in flight.
-        saving = saving.then(async () => {
-            if (submitting) return;
-            try {
-                const response = await fetch(form.dataset.saveUrl, {
-                    method: 'POST', body: data, credentials: 'same-origin',
-                    headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10000)
-                });
-                if (response.redirected) {
-                    submitting = true;
-                    window.location.assign(response.url);
-                    return;
-                }
-                if (!response.ok) throw new Error('save');
-                const result = await response.json();
-                if (!result || result.saved !== true) throw new Error('save');
+        const queueSave = () => {
+            textTimers.delete(questionIndex);
+            const data = answerData(question);
+            // Preserve response order if answers change while an earlier save is in flight.
+            saving = saving.then(async () => {
+                if (submitting || versions.get(questionIndex) !== currentChange) return;
+                try {
+                    const response = await fetch(form.dataset.saveUrl, {
+                        method: 'POST', body: data, credentials: 'same-origin',
+                        headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10000)
+                    });
+                    if (response.redirected) {
+                        submitting = true;
+                        window.location.assign(response.url);
+                        return;
+                    }
+                    if (!response.ok) throw new Error('save');
+                    const result = await response.json();
+                    if (!result || result.saved !== true) throw new Error('save');
 
-                // Chỉ đánh dấu sạch khi câu này chưa bị đổi tiếp trong lúc chờ.
-                if (versions.get(questionIndex) === currentChange) {
-                    dirtyQuestions.delete(questionIndex);
-                    failedQuestions.delete(questionIndex);
-                }
-                updateSaveStatus();
-            } catch {
-                // Lỗi của một version cũ không che lỗi/trạng thái của version mới hơn.
-                if (versions.get(questionIndex) === currentChange) {
-                    dirtyQuestions.add(questionIndex);
-                    failedQuestions.add(questionIndex);
+                    if (versions.get(questionIndex) === currentChange) {
+                        dirtyQuestions.delete(questionIndex);
+                        failedQuestions.delete(questionIndex);
+                    }
                     updateSaveStatus();
+                } catch {
+                    if (versions.get(questionIndex) === currentChange) {
+                        dirtyQuestions.add(questionIndex);
+                        failedQuestions.add(questionIndex);
+                        updateSaveStatus();
+                    }
                 }
-            }
-        });
+            });
+        };
+        if (debounce) {
+            window.clearTimeout(textTimers.get(questionIndex));
+            textTimers.set(questionIndex, window.setTimeout(queueSave, 350));
+        } else {
+            queueSave();
+        }
+    };
+    form.addEventListener('change', event => {
+        if (event.target.matches('input[type="radio"], [data-structured-answer]')) markChanged(event, false);
+    });
+    form.addEventListener('input', event => {
+        if (event.target.matches('[data-assessment-text]')) markChanged(event, true);
     });
 
     // Giữ lựa chọn trên trang khi mất mạng; cảnh báo nếu rời đi trước lúc lưu xong.

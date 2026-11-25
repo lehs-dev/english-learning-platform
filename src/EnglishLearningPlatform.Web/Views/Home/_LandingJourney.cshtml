@@ -1,0 +1,35 @@
+<section class="lp-journey" id="journey" aria-labelledby="journey-heading">
+    <header class="lp-section-heading">
+        <h2 id="journey-heading">Lộ trình học</h2>
+        <a class="lp-text-link" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Index", "Assessment")">
+            Kiểm tra trình độ
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+        </a>
+    </header>
+
+    <div class="lp-journey-board">
+        <article class="lp-journey-step lp-journey-step--lesson">
+            <span class="lp-step-icon" aria-hidden="true">
+                <svg class="lp-illustration" viewBox="0 0 40 40" focusable="false"><use href="@Url.Content("~/images/landing-illustrations.svg#scene")"></use></svg>
+            </span>
+            <h3>Học theo tình huống</h3>
+            <p>Nghe và đọc mẫu câu trong ngữ cảnh.</p>
+        </article>
+
+        <article class="lp-journey-step lp-journey-step--review">
+            <span class="lp-step-icon" aria-hidden="true">
+                <svg class="lp-illustration" viewBox="0 0 40 40" focusable="false"><use href="@Url.Content("~/images/landing-illustrations.svg#review")"></use></svg>
+            </span>
+            <h3>Ôn và luyện lại</h3>
+            <p>Ôn thẻ từ và nghe chép chính tả.</p>
+        </article>
+
+        <article class="lp-journey-step lp-journey-step--feedback">
+            <span class="lp-step-icon" aria-hidden="true">
+                <svg class="lp-illustration" viewBox="0 0 40 40" focusable="false"><use href="@Url.Content("~/images/landing-illustrations.svg#feedback")"></use></svg>
+            </span>
+            <h3>Hỏi giảng viên</h3>
+            <p>Hỏi riêng và nhận góp ý bài viết.</p>
+        </article>
+    </div>
+</section>

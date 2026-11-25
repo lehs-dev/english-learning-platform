@@ -1,0 +1,78 @@
+@model CourseDiscussionConversationViewModel
+@{
+    var conversation = Model.Conversation;
+    ViewData["Title"] = conversation.Subject;
+    ViewData["ActiveSection"] = "courses";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/course-discussion.css" asp-append-version="true" />
+}
+
+<div class="activity-scene discussion-workspace">
+    <header class="activity-hero discussion-heading">
+        <div>
+            <a class="activity-course-link" asp-action="Index" asp-route-id="@conversation.Course.CourseId">
+                <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                Hỏi đáp khóa học
+            </a>
+            <h1>@conversation.Subject</h1>
+            <p>@conversation.Course.CourseTitle · @(conversation.Course.IsTeacher ? "Học viên" : "Giảng viên") @conversation.ParticipantName</p>
+        </div>
+    </header>
+
+    <section class="activity-panel discussion-panel discussion-conversation" aria-label="Nội dung trao đổi">
+        @if (conversation.Pages > 1)
+        {
+            <nav class="discussion-pagination" aria-label="Trang tin nhắn">
+                @if (conversation.Page < conversation.Pages)
+                {
+                    <a class="button secondary" asp-action="Details" asp-route-id="@conversation.ThreadId"
+                       asp-route-page="@(conversation.Page + 1)">Tin cũ hơn</a>
+                }
+                @if (conversation.Page > 1)
+                {
+                    <a class="button secondary" asp-action="Details" asp-route-id="@conversation.ThreadId"
+                       asp-route-page="@(conversation.Page - 1)">Tin mới hơn</a>
+                }
+            </nav>
+        }
+        <ol class="discussion-messages">
+            @foreach (var message in conversation.Messages)
+            {
+                <li class="@(message.IsMine ? "is-mine" : "")">
+                    <div class="discussion-message-meta">
+                        <span class="discussion-message-icon" aria-hidden="true">
+                            <svg class="icon"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
+                        </span>
+                        <strong>@(message.IsMine ? "Bạn" : message.WrittenByTeacher ? "Giảng viên" : "Học viên")</strong>
+                        <time datetime="@message.SentAtUtc.ToString("O")">@message.SentAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time>
+                    </div>
+                    <p>@message.Body</p>
+                </li>
+            }
+        </ol>
+    </section>
+
+    @if (conversation.Course.CanWrite)
+    {
+        <section class="activity-panel discussion-panel discussion-compose" id="discussion-reply" aria-labelledby="discussion-reply-title">
+            <div class="activity-section-title">
+                <h2 id="discussion-reply-title">Trả lời</h2>
+            </div>
+            <form class="discussion-form" method="post" asp-action="Reply" asp-route-id="@conversation.ThreadId">
+                <div asp-validation-summary="ModelOnly" role="alert"></div>
+                <input type="hidden" name="requestId" value="@Model.RequestId" />
+                <label for="discussion-reply-body">Nội dung trả lời</label>
+                <textarea id="discussion-reply-body" name="body" maxlength="@CourseDiscussionLimits.BodyLength" rows="5" required>@Model.Body</textarea>
+                @Html.ValidationMessage("body")
+                <div><button class="button" type="submit">Gửi phản hồi</button></div>
+            </form>
+        </section>
+    }
+    else
+    {
+        <p class="notice">Khóa học này hiện ở chế độ chỉ xem đối với phần hỏi đáp.</p>
+    }
+</div>

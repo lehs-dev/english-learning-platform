@@ -1,0 +1,114 @@
+@model CourseDiscussionInboxViewModel
+@{
+    ViewData["Title"] = "Hỏi đáp khóa học";
+    ViewData["ActiveSection"] = "courses";
+    var inbox = Model.Inbox;
+    var course = inbox.Course;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/course-discussion.css" asp-append-version="true" />
+}
+
+<div class="activity-scene discussion-workspace">
+    <header class="activity-hero discussion-heading">
+        <div>
+            <a class="activity-course-link" asp-controller="@(course.IsTeacher ? "TeacherCourses" : "Learning")"
+               asp-action="@(course.IsTeacher ? "Manage" : "Course")" asp-route-id="@course.CourseId">
+                <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                @course.CourseTitle
+            </a>
+            <h1>Hỏi đáp khóa học</h1>
+            <p class="discussion-privacy">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#lock")"></use></svg>
+                @(course.IsTeacher ? "Mỗi trao đổi chỉ hiển thị với bạn và học viên đặt câu hỏi." : "Bạn và giảng viên có thể trao đổi riêng tại đây.")
+            </p>
+        </div>
+        @if (!course.IsTeacher && course.CanWrite)
+        {
+            <a class="button" href="#discussion-ask">Đặt câu hỏi</a>
+        }
+    </header>
+
+    <div class="discussion-inbox-layout @(!course.IsTeacher && course.CanWrite ? "has-composer" : null)">
+        <section class="activity-panel discussion-panel" aria-labelledby="discussion-list-title">
+            <div class="activity-section-title">
+                <h2 id="discussion-list-title">@(course.IsTeacher ? "Câu hỏi của học viên" : "Câu hỏi đã gửi")</h2>
+            </div>
+            @if (inbox.Threads.Count == 0)
+            {
+                <div class="activity-empty">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#send")"></use></svg>
+                    <p>@(course.IsTeacher ? "Chưa có học viên nào gửi câu hỏi." : "Bạn chưa gửi câu hỏi nào.")</p>
+                </div>
+            }
+            else
+            {
+                <ul class="discussion-threads">
+                    @foreach (var thread in inbox.Threads)
+                    {
+                        <li>
+                            <span class="discussion-thread-icon" aria-hidden="true">
+                                <svg class="icon"><use href="@Url.Content("~/images/icons.svg#send")"></use></svg>
+                            </span>
+                            <a class="discussion-thread-link" asp-action="Details" asp-route-id="@thread.Id">
+                                <strong>@thread.Subject</strong>
+                                <span class="muted">
+                                    @if (course.IsTeacher)
+                                    {
+                                        <span>@thread.ParticipantName · </span>
+                                    }
+                                    <time datetime="@thread.LastMessageAtUtc.ToString("O")">@thread.LastMessageAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time>
+                                </span>
+                            </a>
+                            <span class="activity-tag @(thread.IsAwaitingTeacher ? "attention" : "good")">
+                                @(thread.IsAwaitingTeacher ? "Chờ giảng viên" : "Đã có phản hồi")
+                            </span>
+                        </li>
+                    }
+                </ul>
+            }
+            @if (inbox.Pages > 1)
+            {
+                <nav class="discussion-pagination" aria-label="Trang câu hỏi">
+                    @if (inbox.Page > 1)
+                    {
+                        <a class="button secondary" asp-action="Index" asp-route-id="@course.CourseId" asp-route-page="@(inbox.Page - 1)">Trang trước</a>
+                    }
+                    <span>Trang @inbox.Page / @inbox.Pages</span>
+                    @if (inbox.Page < inbox.Pages)
+                    {
+                        <a class="button secondary" asp-action="Index" asp-route-id="@course.CourseId" asp-route-page="@(inbox.Page + 1)">Trang sau</a>
+                    }
+                </nav>
+            }
+        </section>
+
+        @if (!course.IsTeacher && course.CanWrite)
+        {
+            <section class="activity-panel discussion-panel discussion-compose" id="discussion-ask" aria-labelledby="discussion-ask-title">
+                <div class="activity-section-title">
+                    <h2 id="discussion-ask-title">Gửi câu hỏi đến giảng viên</h2>
+                </div>
+                <form class="discussion-form" method="post" asp-action="Ask" asp-route-id="@course.CourseId">
+                    <div asp-validation-summary="ModelOnly" role="alert"></div>
+                    <input type="hidden" name="requestId" value="@Model.RequestId" />
+                    <label for="discussion-subject">Chủ đề</label>
+                    <input id="discussion-subject" name="subject" maxlength="@CourseDiscussionLimits.SubjectLength" value="@Model.Subject" required />
+                    @Html.ValidationMessage("subject")
+                    <label for="discussion-body">Nội dung câu hỏi</label>
+                    <textarea id="discussion-body" name="body" maxlength="@CourseDiscussionLimits.BodyLength" rows="5"
+                              aria-describedby="discussion-body-hint" required>@Model.Body</textarea>
+                    <p class="muted" id="discussion-body-hint">Ghi tên bài học hoặc bài tập nếu câu hỏi liên quan đến nội dung cụ thể.</p>
+                    @Html.ValidationMessage("body")
+                    <div><button class="button" type="submit">Gửi câu hỏi</button></div>
+                </form>
+            </section>
+        }
+        else if (!course.CanWrite)
+        {
+            <p class="notice">Khóa học này hiện ở chế độ chỉ xem đối với phần hỏi đáp.</p>
+        }
+    </div>
+</div>

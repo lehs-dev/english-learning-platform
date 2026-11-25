@@ -1,3 +1,4 @@
+using EnglishLearningPlatform.Domain.Common;
 using EnglishLearningPlatform.Domain.Enums;
 
 namespace EnglishLearningPlatform.Domain.Entities;
@@ -9,8 +10,8 @@ public static class CourseRules
 
     public static bool ValidResource(LessonResourceType type, string? text, string? url) =>
         Enum.IsDefined(type) && (type == LessonResourceType.Text ? !string.IsNullOrWhiteSpace(text) :
-            url?.Length <= 2048 && Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
-            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps));
+            url?.Length <= 2048 && (LessonMediaResource.TryParse(url, out var media) && media.Matches(type) ||
+                Uri.TryCreate(url, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)));
 
     public static IReadOnlyList<string> PublishErrors(Course course)
     {

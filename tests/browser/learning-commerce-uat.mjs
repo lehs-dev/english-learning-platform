@@ -90,25 +90,25 @@ const complete = async (page, lesson, value) => {
   else await post(page, `/Learning/Completion/${lesson}`, { completed: String(value) });
 };
 const contentPath = (course, kind, parent, id) => `/TeacherCourses/Content?courseId=${course.id}&kind=${kind}&parentId=${parent}${id ? `&id=${id}` : ''}`;
-const resourceIdFromUrl = url => {
-  const id = url.searchParams.get('id') ?? url.pathname.split('/').pop();
-  assert.match(id, /^[a-f0-9-]{36}$/i, `Missing resource ID in ${url.pathname}`);
+const selectedId = (page, key) => {
+  const id = new URL(page.url()).searchParams.get(key);
+  assert.match(id ?? '', /^[a-f0-9-]{36}$/i, `Missing ${key} in the course workspace`);
   return id;
 };
 const editLesson = async (teacher, course, lesson, title, status) => {
   await teacher.goto(contentPath(course, 'Lesson', course.moduleId, lesson));
   await teacher.locator('#Input_Title').fill(title);
   await teacher.locator('#Input_Status').selectOption(status);
-  await submit(teacher, teacher.getByRole('button', { name: 'Lưu nội dung', exact: true }));
+  await submit(teacher, teacher.getByRole('button', { name: 'Lưu bài học', exact: true }));
   assert.match(new URL(teacher.url()).pathname, /\/TeacherCourses\/Manage\//);
 };
 const editModule = async (teacher, course, visibility) => {
   await teacher.goto(contentPath(course, 'Module', course.id, course.moduleId));
   await teacher.locator('#Input_Visibility').selectOption(visibility);
-  await submit(teacher, teacher.getByRole('button', { name: 'Lưu nội dung', exact: true }));
+  await submit(teacher, teacher.getByRole('button', { name: 'Lưu chương học', exact: true }));
 };
 const changeStatus = async (teacher, course, name) => {
-  await teacher.goto(`/TeacherCourses/Manage/${course.id}`);
+  await teacher.goto(`/TeacherCourses/Manage/${course.id}?tab=publishing`);
   await submit(teacher, teacher.getByRole('button', { name, exact: true }));
 };
 const createCourse = async (teacher, paid) => {
@@ -116,23 +116,20 @@ const createCourse = async (teacher, paid) => {
   await teacher.goto('/TeacherCourses/Edit');
   await teacher.locator('#Input_Title').fill(course.title);
   await teacher.locator('#Input_Description').fill('Dữ liệu UAT riêng: ghi danh, thanh toán và tiến độ động.');
-  await teacher.locator('#Input_IsPaid').selectOption(String(paid));
+  await teacher.locator(`input[name="Input.IsPaid"][value="${paid}"]`).check();
   if (paid) await teacher.locator('#Input_Price').fill('199000');
-  await submit(teacher, teacher.getByRole('button', { name: 'Lưu khóa học', exact: true }));
+  await submit(teacher, teacher.getByRole('button', { name: 'Lưu và tiếp tục', exact: true }));
   course.id = new URL(teacher.url()).pathname.split('/').pop();
   await teacher.goto(contentPath(course, 'Module', course.id));
   await teacher.locator('#Input_Title').fill('UAT module');
-  await submit(teacher, teacher.getByRole('button', { name: 'Lưu nội dung', exact: true }));
-  const moduleEdit = new URL(await teacher.getByRole('link', { name: 'Sửa Module', exact: true }).getAttribute('href'), baseURL);
-  course.moduleId = resourceIdFromUrl(moduleEdit);
+  await submit(teacher, teacher.getByRole('button', { name: 'Lưu chương học', exact: true }));
+  course.moduleId = selectedId(teacher, "moduleId");
   for (let i = 0; i < 3; i++) {
     const title = `UAT lesson ${i + 1}`;
     await teacher.goto(contentPath(course, 'Lesson', course.moduleId));
     await teacher.locator('#Input_Title').fill(title);
-    await submit(teacher, teacher.getByRole('button', { name: 'Lưu nội dung', exact: true }));
-    const row = teacher.locator('.lesson-editor').filter({ has: teacher.locator('h4').filter({ hasText: title }) });
-    const editUrl = new URL(await row.getByRole('link', { name: 'Sửa Lesson', exact: true }).getAttribute('href'), baseURL);
-    const id = resourceIdFromUrl(editUrl);
+    await submit(teacher, teacher.getByRole('button', { name: 'Lưu bài học', exact: true }));
+    const id = selectedId(teacher, "lessonId");
     course.lessons.push(id);
     await teacher.goto(contentPath(course, 'Resource', id));
     await teacher.locator('#Input_Title').fill(`UAT text ${i + 1}`);
@@ -140,7 +137,7 @@ const createCourse = async (teacher, paid) => {
     await submit(teacher, teacher.getByRole('button', { name: 'Lưu nội dung', exact: true }));
     if (i < 2) await editLesson(teacher, course, id, title, '2');
   }
-  await changeStatus(teacher, course, 'Publish');
+  await changeStatus(teacher, course, 'Xuất bản khóa học');
   return course;
 };
 const runCase = async (id, actor, expected, work) => {
@@ -269,7 +266,7 @@ try {
   });
   await runCase('LC-UAT-08', 'Teacher 1 and both Students', 'Unpublish removes public access/new enrollment; existing students can continue.', async () => {
     for (const [page, newcomer, course] of [[freeStudent, paidStudent, data.free], [paidStudent, freeStudent, data.paid]]) {
-      await changeStatus(teacher, course, 'Unpublish');
+      await changeStatus(teacher, course, 'Ngừng xuất bản');
       assert.equal((await guest.goto(`/Courses/Details/${course.id}`)).status(), 404);
       await denied(newcomer, `/Learning/Lesson/${course.lessons[0]}`);
       if (course.paid) await post(newcomer, '/Checkout/CreateOrder', { CourseId: course.id });
@@ -284,7 +281,7 @@ try {
   });
   await runCase('LC-UAT-09', 'Teacher 1 and both Students', 'Archive preserves reading/history and denies forged progress writes.', async () => {
     for (const [page, course] of [[freeStudent, data.free], [paidStudent, data.paid]]) {
-      await changeStatus(teacher, course, 'Archive');
+      await changeStatus(teacher, course, 'Lưu trữ');
       await page.goto(`/Learning/Lesson/${course.lessons[0]}`);
       assert.match(await page.locator('body').innerText(), /LC_UAT_PRIVATE_TEXT_1/);
       assert.equal(await page.locator('form[action*="/Learning/Completion/"]').count(), 0);

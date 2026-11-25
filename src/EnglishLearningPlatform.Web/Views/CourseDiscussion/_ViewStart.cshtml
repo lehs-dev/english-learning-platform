@@ -1,0 +1,4 @@
+@using EnglishLearningPlatform.Infrastructure.Identity
+@{
+    Layout = User.IsInRole(AppRoles.Teacher) ? "_LayoutTeacher" : "_LayoutStudent";
+}

@@ -1,8 +1,10 @@
 using System.Data;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Identity;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Infrastructure.Gamification;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Learning;
 using EnglishLearningPlatform.Infrastructure.Persistence;
@@ -169,8 +171,10 @@ public sealed class AssessmentAttemptService(
             .Include(item => item.Question)
                 .ThenInclude(question => question.Options)
             .Include(item => item.Question)
+                .ThenInclude(question => question.AcceptedAnswers)
+            .Include(item => item.Question)
                 .ThenInclude(question => question.Stimulus)
-            .AsSingleQuery()
+            .AsSplitQuery()
             .OrderBy(item => item.OrderIndex)
             .ThenBy(item => item.Id)
             .ToListAsync(ct);
@@ -306,11 +310,18 @@ public sealed class AssessmentAttemptService(
     }
 
 
-    public async Task<AttemptSaveStatus> SaveAnswerAsync(
+    public Task<AttemptSaveStatus> SaveAnswerAsync(
         Guid studentId,
         Guid attemptId,
         Guid assessmentQuestionId,
         Guid? selectedOptionId,
+        CancellationToken ct = default) =>
+        SaveResponsesAsync(studentId, attemptId, [new(assessmentQuestionId, selectedOptionId)], ct);
+
+    public async Task<AttemptSaveStatus> SaveResponsesAsync(
+        Guid studentId,
+        Guid attemptId,
+        IReadOnlyList<AssessmentResponse> responses,
         CancellationToken ct = default)
     {
         var snapshot = await db.Attempts.AsNoTracking()
@@ -380,70 +391,90 @@ public sealed class AssessmentAttemptService(
             return AttemptSaveStatus.Expired;
         }
 
-        // Kiểm tra câu hỏi thuộc chính Assessment đang làm.
-        var questionId = await db.AssessmentQuestions
-            .AsNoTracking()
-            .Where(q =>
-                q.Id == assessmentQuestionId &&
-                q.AssessmentId == assessment.Id)
-            .Select(q => (Guid?)q.QuestionId)
-            .SingleOrDefaultAsync(ct);
-
-        if (!questionId.HasValue)
+        var questionIds = responses.Select(response => response.AssessmentQuestionId).ToHashSet();
+        if (questionIds.Count != responses.Count || questionIds.Contains(Guid.Empty))
             return AttemptSaveStatus.InvalidAnswer;
 
-        // Không được chọn option thuộc câu hỏi khác.
-        if (selectedOptionId.HasValue)
-        {
-            var validOption = await db.QuestionOptions
-                .AsNoTracking()
-                .AnyAsync(o =>
-                    o.Id == selectedOptionId.Value &&
-                    o.QuestionId == questionId.Value,
-                    ct);
+        var questions = await db.AssessmentQuestions
+            .AsNoTracking()
+            .Where(q => q.AssessmentId == assessment.Id && questionIds.Contains(q.Id))
+            .Include(q => q.Question).ThenInclude(q => q.Options)
+            .ToDictionaryAsync(q => q.Id, ct);
 
-            if (!validOption)
+        if (questions.Count != questionIds.Count)
+            return AttemptSaveStatus.InvalidAnswer;
+
+        // Validate the complete batch before writing any rows. A bad answer must
+        // not change previously saved responses from the same request.
+        var validated = new List<AssessmentResponse>(responses.Count);
+        foreach (var response in responses)
+        {
+            var value = ValidateResponse(questions[response.AssessmentQuestionId].Question, response);
+            if (value is null)
                 return AttemptSaveStatus.InvalidAnswer;
+            validated.Add(value);
         }
 
-        var answer = await db.AttemptAnswers
-            .SingleOrDefaultAsync(a =>
-                a.AttemptId == attemptId &&
-                a.AssessmentQuestionId == assessmentQuestionId,
-                ct);
+        var savedAnswers = await db.AttemptAnswers
+            .Where(answer => answer.AttemptId == attemptId && questionIds.Contains(answer.AssessmentQuestionId))
+            .ToDictionaryAsync(answer => answer.AssessmentQuestionId, ct);
 
-        if (!selectedOptionId.HasValue)
+        bool saved = false;
+        foreach (var response in validated)
         {
-            if (answer is not null)
+            savedAnswers.TryGetValue(response.AssessmentQuestionId, out var answer);
+            if (!response.SelectedOptionId.HasValue && response.TextAnswer is null && response.StructuredAnswerJson is null)
             {
-                db.AttemptAnswers.Remove(answer);
-                await db.SaveChangesAsync(ct);
+                if (answer is not null)
+                    db.AttemptAnswers.Remove(answer);
+                continue;
             }
 
-            await tx.CommitAsync(ct);
-            return AttemptSaveStatus.Cleared;
-        }
-
-        if (answer is null)
-        {
-            db.AttemptAnswers.Add(new AttemptAnswer
+            if (answer is null)
             {
-                AttemptId = attemptId,
-                AssessmentQuestionId = assessmentQuestionId,
-                SelectedOptionId = selectedOptionId.Value,
-                SavedAtUtc = now
-            });
-        }
-        else
-        {
-            answer.SelectedOptionId = selectedOptionId.Value;
+                answer = new AttemptAnswer
+                {
+                    AttemptId = attemptId,
+                    AssessmentQuestionId = response.AssessmentQuestionId
+                };
+                db.AttemptAnswers.Add(answer);
+            }
+
+            answer.SelectedOptionId = response.SelectedOptionId;
+            answer.TextAnswer = response.TextAnswer;
+            answer.StructuredAnswerJson = response.StructuredAnswerJson;
             answer.SavedAtUtc = now;
+            saved = true;
         }
 
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
+        return saved ? AttemptSaveStatus.Saved : AttemptSaveStatus.Cleared;
+    }
 
-        return AttemptSaveStatus.Saved;
+    private static AssessmentResponse? ValidateResponse(Question question, AssessmentResponse response)
+    {
+        switch (question.QuestionType)
+        {
+            case QuestionType.MultipleChoice:
+                return response.TextAnswer is null && response.StructuredAnswerJson is null &&
+                    (!response.SelectedOptionId.HasValue || question.Options.Any(o => o.Id == response.SelectedOptionId))
+                    ? response : null;
+            case QuestionType.FillBlank:
+            case QuestionType.Dictation:
+                if (response.SelectedOptionId.HasValue || response.StructuredAnswerJson is not null ||
+                    response.TextAnswer is { Length: > 500 })
+                    return null;
+                return string.IsNullOrWhiteSpace(response.TextAnswer) ? response with { TextAnswer = null } : response;
+            case QuestionType.Matching:
+            case QuestionType.Ordering:
+                if (response.SelectedOptionId.HasValue || response.TextAnswer is not null)
+                    return null;
+                var evaluation = StructuredQuestionEvaluator.Evaluate(question, response.StructuredAnswerJson);
+                return evaluation.IsValid ? response with { StructuredAnswerJson = evaluation.CanonicalJson } : null;
+            default:
+                return null;
+        }
     }
 
 
@@ -501,25 +532,40 @@ public sealed class AssessmentAttemptService(
             .Include(a => a.Questions)
                 .ThenInclude(aq => aq.Question)
                     .ThenInclude(q => q.Options)
+            .Include(a => a.Questions)
+                .ThenInclude(aq => aq.Question)
+                    .ThenInclude(q => q.AcceptedAnswers)
             .AsSplitQuery()
             .SingleAsync(a => a.Id == assessment.Id, ct);
 
-        var responses = await db.AttemptAnswers
-            .AsNoTracking()
+        var answers = await db.AttemptAnswers
             .Where(a => a.AttemptId == attempt.Id)
-            .Select(a => new QuestionResponse(
-                a.AssessmentQuestion.QuestionId,
-                (Guid?)a.SelectedOptionId))
             .ToListAsync(ct);
 
         if (assessmentForScoring.Questions.Count == 0)
             return new(AttemptFinalizeStatus.Unavailable);
+
+        var byId = assessmentForScoring.Questions.ToDictionary(item => item.Id);
+        var responses = new List<QuestionResponse>(answers.Count);
+        var grading = new List<(AttemptAnswer Answer, bool Correct)>(answers.Count);
+        foreach (var answer in answers)
+        {
+            if (!byId.TryGetValue(answer.AssessmentQuestionId, out var item))
+                continue;
+            var response = new QuestionResponse(item.QuestionId, answer.SelectedOptionId, answer.TextAnswer,
+                answer.StructuredAnswerJson);
+            responses.Add(response);
+            grading.Add((answer, AssessmentAnswerScoring.IsCorrect(item.Question, response)));
+        }
 
         var result = scoring.Score(
             assessmentForScoring, responses);
 
         if (result.MaxScore <= 0m)
             return new(AttemptFinalizeStatus.Unavailable);
+
+        foreach (var (answer, correct) in grading)
+            answer.IsCorrect = correct;
 
         attempt.OverallScore = result.Percentage;
 
@@ -556,6 +602,17 @@ public sealed class AssessmentAttemptService(
         // commit together, including lazy finalization from Start/Save.
         if (assessment.CourseId is Guid courseId)
             await CourseCompletion.ReconcileAsync(db, courseId, ct);
+
+        var lastAnswerAt = grading
+            .Where(item => item.Answer.SelectedOptionId.HasValue || !string.IsNullOrWhiteSpace(item.Answer.TextAnswer) ||
+                !string.IsNullOrWhiteSpace(item.Answer.StructuredAnswerJson))
+            .Max(item => (DateTimeOffset?)item.Answer.SavedAtUtc);
+        if (lastAnswerAt.HasValue)
+        {
+            // A later visit can trigger deadline grading. Credit the day on which the learner last answered.
+            var studiedAt = reason == AttemptFinalizationReason.DeadlineElapsed ? lastAnswerAt.Value : now;
+            await StudentActivityDays.RecordAsync(db, attempt.StudentUserId, studiedAt, ct);
+        }
 
         return new(
             AttemptFinalizeStatus.Graded,

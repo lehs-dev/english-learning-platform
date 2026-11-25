@@ -1,0 +1,213 @@
+.fc-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem
+}
+
+.fc-heading h1 {
+    margin: .5rem 0
+}
+
+.fc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+    gap: 1rem
+}
+
+.fc-panel {
+    padding: 1.5rem;
+    border: 1px solid #dce5ed;
+    border-radius: 16px;
+    background: #fff;
+    margin-bottom: 1rem;
+    min-width: 0;
+    overflow-wrap: anywhere
+}
+
+.fc-panel h2 {
+    margin-top: 0
+}
+
+.fc-form {
+    display: grid;
+    gap: .65rem;
+    max-width: 820px
+}
+
+.fc-form input,
+.fc-form textarea,
+.fc-form select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: .65rem;
+    border: 1px solid #bbcbd8;
+    border-radius: 8px;
+    font: inherit
+}
+
+.fc-form label {
+    font-weight: 600
+}
+
+.fc-form .button {
+    width: auto
+}
+
+.fc-notice {
+    padding: 1rem;
+    background: #eef6ff;
+    border-radius: 10px
+}
+
+.fc-study {
+    max-width: 660px;
+    margin: 1.5rem auto;
+    text-align: center
+}
+
+.fc-flip {
+    display: block;
+    width: 100%;
+    height: 340px;
+    border: 0;
+    background: transparent;
+    perspective: 1000px;
+    cursor: pointer;
+    font: inherit;
+    text-align: center;
+    padding: 0
+}
+
+.fc-flip-inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform .4s
+}
+
+.fc-flip.is-flipped .fc-flip-inner {
+    transform: rotateY(180deg)
+}
+
+.fc-front,
+.fc-back {
+    box-sizing: border-box;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid #c9d8e6;
+    border-radius: 20px;
+    backface-visibility: hidden;
+    background: #fff;
+    box-shadow: 0 8px 24px #172b4d0d;
+    overflow: auto;
+    overflow-wrap: anywhere
+}
+
+.fc-front {
+    font-size: 2rem;
+    color: #153c61
+}
+
+.fc-back {
+    transform: rotateY(180deg);
+    font-size: 1.45rem;
+    background: #edf7f4;
+    color: #153c61
+}
+
+.fc-front small,
+.fc-back small {
+    font-size: 1rem
+}
+
+.fc-ratings {
+    display: flex;
+    gap: .65rem;
+    justify-content: center;
+    flex-wrap: wrap
+}
+
+.fc-study [data-flashcard-answer] {
+    margin-top: 1rem;
+}
+
+.fc-study audio,
+.fc-panel audio {
+    max-width: 100%;
+    margin-top: 1rem
+}
+
+.fc-flip:focus-visible {
+    outline: 3px solid #176da6;
+    outline-offset: 5px;
+    border-radius: 20px
+}
+
+.fc-panel details summary {
+    cursor: pointer;
+    padding: .4rem 0
+}
+
+.fc-panel details form {
+    margin-top: 1rem
+}
+
+.fc-panel .actions {
+    flex-wrap: wrap
+}
+
+@media(max-width:520px) {
+    .fc-heading {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .fc-panel {
+        padding: 1rem
+    }
+
+    .fc-flip {
+        height: 320px
+    }
+
+    .fc-front {
+        font-size: 1.6rem
+    }
+
+    .fc-back {
+        font-size: 1.2rem
+    }
+
+    .fc-ratings .button {
+        flex: 1 1 100%
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .fc-flip-inner {
+        transition: none
+    }
+}
+
+.fc-heading>div {
+    min-width: 0;
+    overflow-wrap: anywhere
+}
+
+.fc-front>span,
+.fc-back>span,
+.fc-front small,
+.fc-back small {
+    max-width: 100%
+}

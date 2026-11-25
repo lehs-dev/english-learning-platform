@@ -13,15 +13,15 @@ namespace EnglishLearningPlatform.Web.Controllers;
 public sealed class TeacherAssessmentLifecycleController(ITeacherAssessmentLifecycleService service) : Controller
 {
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> Unpublish(Guid id, DateTimeOffset? expectedUpdatedAtUtc, CancellationToken ct) =>
-        Change(id, AssessmentStatus.Unpublished, expectedUpdatedAtUtc, ct);
+    public Task<IActionResult> Unpublish(Guid id, DateTimeOffset? expectedUpdatedAtUtc, CancellationToken ct, Guid? returnCourseId = null) =>
+        Change(id, AssessmentStatus.Unpublished, expectedUpdatedAtUtc, ct, returnCourseId);
 
     [HttpPost, ValidateAntiForgeryToken]
-    public Task<IActionResult> Archive(Guid id, DateTimeOffset? expectedUpdatedAtUtc, CancellationToken ct) =>
-        Change(id, AssessmentStatus.Archived, expectedUpdatedAtUtc, ct);
+    public Task<IActionResult> Archive(Guid id, DateTimeOffset? expectedUpdatedAtUtc, CancellationToken ct, Guid? returnCourseId = null) =>
+        Change(id, AssessmentStatus.Archived, expectedUpdatedAtUtc, ct, returnCourseId);
 
     // Hai action không nhận trạng thái tùy ý từ form; đích do server quyết định.
-    private async Task<IActionResult> Change(Guid id, AssessmentStatus target, DateTimeOffset? version, CancellationToken ct)
+    private async Task<IActionResult> Change(Guid id, AssessmentStatus target, DateTimeOffset? version, CancellationToken ct, Guid? returnCourseId)
     {
         if (!ModelState.IsValid || id == Guid.Empty) return BadRequest();
         Guid actor = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -31,6 +31,8 @@ public sealed class TeacherAssessmentLifecycleController(ITeacherAssessmentLifec
         TempData[result.Success ? "Success" : "Error"] = result.Success
             ? "Đã đổi trạng thái đề. Các lượt làm và kết quả hiện có được giữ nguyên."
             : string.Join("\n", result.Errors.Values.SelectMany(messages => messages));
-        return RedirectToAction("Index", "TeacherAssessments");
+        return returnCourseId.HasValue
+            ? RedirectToAction("Manage", "TeacherCourses", new { id = returnCourseId, tab = "assessments" })
+            : RedirectToAction("Index", "TeacherAssessments");
     }
 }

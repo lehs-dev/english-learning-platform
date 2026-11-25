@@ -7,6 +7,8 @@ public sealed class TeacherAssessmentDraftViewModel
 {
     // null: tạo mới; có giá trị: sửa Assessment tương ứng.
     public Guid? Id { get; set; }
+    public Guid? CourseId { get; set; }
+    public string? CourseTitle { get; set; }
 
     // Controller lấy từ server, không lấy từ form.
     public AssessmentStatus Status { get; set; } = AssessmentStatus.Draft;

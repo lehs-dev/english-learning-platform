@@ -149,19 +149,13 @@ public sealed class AssessmentController(IAssessmentQueryService queries, IAttem
             return await Finalize(attemptId, ct, onlyExpired: true);
         }
 
-        // Accept partial answer sets: autosave sends only the question(s) changed in
-        // this tab, so answers saved by another tab remain untouched. Still reject
-        // duplicate/foreign questions and options that do not belong to the question.
-        if (input.Answers.Select(a => a.AssessmentQuestionId).Distinct().Count() != input.Answers.Count ||
-            input.Answers.Any(answer => !sheet.Questions.Any(question =>
-                question.AssessmentQuestionId == answer.AssessmentQuestionId &&
-                (!answer.SelectedOptionId.HasValue || question.Options.Any(option => option.Id == answer.SelectedOptionId)))))
-            return BadRequest();
-
-        foreach (var answer in input.Answers)
+        // Autosave may send only questions changed in this tab. The service validates
+        // the entire batch against the actual attempt, then saves it atomically.
+        if (input.Answers.Count > 0)
         {
-            var status = await attempts.SaveAnswerAsync(StudentId, attemptId,
-                answer.AssessmentQuestionId, answer.SelectedOptionId, ct);
+            var responses = input.Answers.Select(answer => new AssessmentResponse(answer.AssessmentQuestionId,
+                answer.SelectedOptionId, answer.TextAnswer, answer.StructuredAnswerJson)).ToArray();
+            var status = await attempts.SaveResponsesAsync(StudentId, attemptId, responses, ct);
             switch (status)
             {
                 case AttemptSaveStatus.Saved:

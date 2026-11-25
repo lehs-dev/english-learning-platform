@@ -18,19 +18,61 @@ public static class LearningDemoSeeder
     private const string LegacyPaidDescription = "Khóa trả phí mẫu; chưa tích hợp thanh toán.";
     private const string PaidDescription = "Khóa trả phí mẫu; thanh toán qua Sandbox để mở quyền học.";
 
-    public static async Task SeedAsync(AppDbContext db, UserManager<ApplicationUser> users, string password,
+    private static readonly (string Name, string Role)[] DemoAccounts =
+    [
+        ("admin1", AppRoles.Admin),
+        ("teacher1", AppRoles.Teacher),
+        ("teacher2", AppRoles.Teacher),
+        ("student1", AppRoles.Student),
+        ("student2", AppRoles.Student)
+    ];
+
+    public const string PasswordRequiredMessage =
+        "Cần cấu hình LearningDemo:Password để tạo tài khoản mẫu còn thiếu. " +
+        "Trong Development, đặt bằng dotnet user-secrets hoặc biến môi trường LearningDemo__Password.";
+
+    public static async Task<bool> HasAllAccountsAsync(UserManager<ApplicationUser> users)
+    {
+        var emails = DemoAccounts.Select(account => users.NormalizeEmail(EmailFor(account.Name))).ToArray();
+        return await users.Users.Where(user => emails.Contains(user.NormalizedEmail))
+            .Select(user => user.NormalizedEmail).Distinct().CountAsync() == DemoAccounts.Length;
+    }
+
+    public static async Task SeedAsync(AppDbContext db, UserManager<ApplicationUser> users, string? password,
         IStimulusAudioStore? audioStore = null)
     {
-        if (string.IsNullOrWhiteSpace(password))
-            throw new InvalidOperationException("Set LearningDemo:Password using local user-secrets/environment before enabling the demo seed.");
+        var accounts = new Dictionary<string, ApplicationUser>(StringComparer.Ordinal);
+        foreach (var (name, role) in DemoAccounts)
+        {
+            var existing = await users.FindByEmailAsync(EmailFor(name));
+            if (existing is null) continue;
+            var roles = await users.GetRolesAsync(existing);
+            if (roles.Count != 1 || roles[0] != role)
+                throw new InvalidOperationException("Demo account already exists with an unexpected role.");
+            accounts.Add(name, existing);
+        }
 
-        await User("admin1", AppRoles.Admin);
-        var teacher = await User("teacher1", AppRoles.Teacher);
-        await User("teacher2", AppRoles.Teacher);
-        var student = await User("student1", AppRoles.Student);
-        await User("student2", AppRoles.Student);
+        if (accounts.Count != DemoAccounts.Length && string.IsNullOrWhiteSpace(password))
+            throw new InvalidOperationException(PasswordRequiredMessage);
 
         await using var transaction = await db.Database.BeginTransactionAsync();
+        if (!string.IsNullOrWhiteSpace(password))
+        {
+            foreach (var (name, role) in DemoAccounts)
+            {
+                if (accounts.ContainsKey(name)) continue;
+                var email = EmailFor(name);
+                var user = new ApplicationUser { UserName = email, Email = email, FullName = "Demo " + name };
+                var created = await users.CreateAsync(user, password);
+                if (!created.Succeeded) throw new InvalidOperationException("Demo password does not meet Identity requirements.");
+                var assigned = await users.AddToRoleAsync(user, role);
+                if (!assigned.Succeeded) throw new InvalidOperationException("Apply Identity role migrations before demo seeding.");
+                accounts.Add(name, user);
+            }
+        }
+
+        var teacher = accounts["teacher1"];
+        var student = accounts["student1"];
         var free = await db.Courses.SingleOrDefaultAsync(c =>
             c.OwnerTeacherUserId == teacher.Id && c.Title == FreeCourseTitle);
         if (free is null)
@@ -72,27 +114,13 @@ public static class LearningDemoSeeder
         await transaction.CommitAsync();
 
         if (audioStore is not null)
-            await LearningDemoContentSeeder.SeedAsync(db, teacher.Id, student.Id, audioStore);
-
-        async Task<ApplicationUser> User(string name, string role)
         {
-            var email = name + "@demo.example.test";
-            var existing = await users.FindByEmailAsync(email);
-            if (existing is not null)
-            {
-                var roles = await users.GetRolesAsync(existing);
-                if (roles.Count != 1 || roles[0] != role)
-                    throw new InvalidOperationException("Demo account already exists with an unexpected role.");
-                return existing;
-            }
-            var user = new ApplicationUser { UserName = email, Email = email, FullName = "Demo " + name };
-            var created = await users.CreateAsync(user, password);
-            if (!created.Succeeded) throw new InvalidOperationException("Demo password does not meet Identity requirements.");
-            var assigned = await users.AddToRoleAsync(user, role);
-            if (!assigned.Succeeded) throw new InvalidOperationException("Apply Identity role migrations before demo seeding.");
-            return user;
+            await LearningDemoContentSeeder.SeedAsync(db, teacher.Id, student.Id, audioStore);
+            await LearningDemoWorkshopSeeder.SeedAsync(db, accounts["teacher2"].Id, student.Id, audioStore);
         }
     }
+
+    private static string EmailFor(string name) => name + "@demo.example.test";
 
     private static Course FreeCourse(Guid teacherId) => new()
     {

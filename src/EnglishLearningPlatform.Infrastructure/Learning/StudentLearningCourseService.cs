@@ -1,8 +1,11 @@
 using System.Data;
 using EnglishLearningPlatform.Application.Identity;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Gamification;
+using EnglishLearningPlatform.Application.LearningPath;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Infrastructure.Gamification;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +14,9 @@ namespace EnglishLearningPlatform.Infrastructure.Learning;
 
 public sealed class StudentLearningCourseService(
     AppDbContext db, ILearningAccessService access, IActiveUserValidator activeUsers,
-    CourseQueries queries, CourseProgressService courseProgress) : IStudentLearningCourseService
+    CourseQueries queries, CourseProgressService courseProgress,
+    IGamificationService? gamification = null, ILearningPathService? learningPath = null,
+    TimeProvider? time = null) : IStudentLearningCourseService
 {
     private Task<LearningAccessResult> Manage(Guid user, Guid course, CancellationToken ct) =>
         access.CheckAccessAsync(user, LearningResourceType.Course, course, LearningOperation.ManageContent, ct);
@@ -136,17 +141,32 @@ public sealed class StudentLearningCourseService(
         if (allowed != LearningAccessResult.Allowed) return WriteOutcome.Denied(allowed);
         var enrollment = await db.Enrollments.Valid().SingleAsync(e => e.StudentUserId == userId && e.CourseId == courseId, ct);
         var progress = await db.LessonProgressEntries.SingleOrDefaultAsync(p => p.EnrollmentId == enrollment.Id && p.LessonId == id, ct);
+        var progressChanged = progress is null || progress.IsCompleted != completed;
+        var now = (time ?? TimeProvider.System).GetUtcNow();
         if (progress is null)
         {
-            progress = new LessonProgress { EnrollmentId = enrollment.Id, LessonId = id };
+            progress = new LessonProgress { EnrollmentId = enrollment.Id, LessonId = id, CreatedAtUtc = now };
             db.LessonProgressEntries.Add(progress);
         }
-        progress.IsCompleted = completed;
-        progress.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        if (progressChanged)
+        {
+            progress.IsCompleted = completed;
+            progress.UpdatedAtUtc = now;
+        }
         enrollment.LastAccessedLessonId = id;
         await db.SaveChangesAsync(ct);
         await courseProgress.ReconcileCompletionAsync(courseId.Value, ct);
+        if (completed && progressChanged)
+            await StudentActivityDays.RecordAsync(db, userId, now, ct);
         await tx.CommitAsync(ct);
+        await tx.DisposeAsync();
+        if (completed)
+        {
+            if (gamification is not null)
+                await gamification.AwardXpAsync(userId, GamificationEventType.LessonCompleted, id, 10, ct);
+            if (learningPath is not null)
+                await learningPath.TrackCompletionAsync(userId, LearningPlanTargetType.Lesson, id, ct);
+        }
         return WriteOutcome.Ok(id);
     }
 }

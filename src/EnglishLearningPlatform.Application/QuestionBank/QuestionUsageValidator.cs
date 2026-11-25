@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Application.Stimuli;
+using EnglishLearningPlatform.Application.Practice;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Domain.Common;
@@ -121,6 +122,11 @@ public sealed class QuestionUsageValidator : IQuestionUsageValidator
 
             return errors.AsReadOnly();
         }
+        if (question.AcceptedAnswers == null || question.AcceptedAnswers.Any(a => a == null))
+        {
+            errors.Add(new(nameof(Question.AcceptedAnswers), "required", "Không có dữ liệu đáp án được chấp nhận hợp lệ."));
+            return errors.AsReadOnly();
+        }
         // Chuyển options từ entity sang request của validator đã có.
         // Thao tác này chỉ tạo dữ liệu trong bộ nhớ, không lưu database.
         List<QuestionOptionRequest> optionRequests =
@@ -149,6 +155,9 @@ public sealed class QuestionUsageValidator : IQuestionUsageValidator
         }
         CreateQuestionRequest request = new CreateQuestionRequest
         {
+            QuestionType = question.QuestionType,
+            AcceptedAnswers = question.AcceptedAnswers.Select(a => a.AnswerText).ToArray(),
+            StructuredItems = StructuredQuestionEvaluator.GetAuthorItems(question) ?? [],
             Content = question.Content,
             PrimarySkill = question.PrimarySkill,
             Level = question.Level,
@@ -156,12 +165,10 @@ public sealed class QuestionUsageValidator : IQuestionUsageValidator
             StimulusId = question.StimulusId,
             Options = optionRequests
         };
-        // Kiểm tra lại cấu trúc MCQ trên dữ liệu đã lưu:
-        // - Nội dung hợp lệ.
-        // - Có PrimarySkill hợp lệ.
-        // - Có ít nhất 2 option.
-        // - Có đúng 1 đáp án đúng.
-        // - Nội dung option và metadata không vượt giới hạn.
+        if (!StructuredQuestionEvaluator.IsStructured(question.QuestionType) && question.StructuredDefinitionJson is not null)
+            errors.Add(new(nameof(Question.StructuredDefinitionJson), "mixed_answers", "Cấu trúc đáp án không khớp loại câu hỏi."));
+
+        // Kiểm tra lại nội dung và cấu trúc đáp án của câu hỏi đã lưu.
         IReadOnlyList<QuestionError> structureErrors =
             _createQuestionValidator.Validate(request);
 

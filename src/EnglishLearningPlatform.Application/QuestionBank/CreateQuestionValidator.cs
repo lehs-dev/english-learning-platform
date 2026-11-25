@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Application.Practice;
 namespace EnglishLearningPlatform.Application.QuestionBank;
 
 public sealed class CreateQuestionValidator : ICreateQuestionValidator
@@ -33,6 +34,52 @@ public sealed class CreateQuestionValidator : ICreateQuestionValidator
             , "max_length"
             , "Trình độ không được vượt quá 32 ký tự."));
         }
+        if (request.Explanation?.Length > 4000)
+            errors.Add(new(nameof(request.Explanation), "max_length", "Giải thích không được vượt quá 4000 ký tự."));
+
+        if (StructuredQuestionEvaluator.IsStructured(request.QuestionType))
+        {
+            if (!StructuredQuestionEvaluator.IsValidAuthorItems(request.QuestionType, request.StructuredItems))
+            {
+                string message = request.QuestionType == QuestionType.Matching
+                    ? "Nhập từ 2 đến 10 cặp. Mỗi cột phải có nội dung khác nhau, từ 1 đến 200 ký tự."
+                    : "Nhập từ 2 đến 10 mục khác nhau, mỗi mục từ 1 đến 200 ký tự, theo thứ tự đúng.";
+                errors.Add(new(nameof(request.StructuredItems), "invalid", message));
+            }
+            if (request.Options is { Count: > 0 } || request.AcceptedAnswers is { Count: > 0 })
+                errors.Add(new(nameof(request.StructuredItems), "mixed_answers", "Chỉ nhập đáp án cho loại câu hỏi đã chọn."));
+            return errors.AsReadOnly();
+        }
+
+        if (request.StructuredItems is { Count: > 0 })
+            errors.Add(new(nameof(request.StructuredItems), "mixed_answers", "Loại câu hỏi này không dùng cặp ghép hoặc mục sắp xếp."));
+        if (request.QuestionType == QuestionType.Dictation)
+        {
+            if (request.PrimarySkill != EnglishSkill.Listening)
+                errors.Add(new(nameof(request.PrimarySkill), "listening_required", "Câu nghe chép chính tả thuộc kỹ năng Nghe."));
+            if (!request.StimulusId.HasValue || request.StimulusId == Guid.Empty)
+                errors.Add(new(nameof(request.StimulusId), "audio_required", "Chọn một ngữ liệu âm thanh cho câu nghe chép chính tả."));
+        }
+
+        if (request.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
+        {
+            if (request.AcceptedAnswers == null || request.AcceptedAnswers.Count == 0)
+                errors.Add(new(nameof(request.AcceptedAnswers), "required", "Nhập ít nhất một đáp án được chấp nhận."));
+            else
+                for (var i = 0; i < request.AcceptedAnswers.Count; i++)
+                    if (string.IsNullOrWhiteSpace(request.AcceptedAnswers[i]) || request.AcceptedAnswers[i].Length > 500)
+                        errors.Add(new($"AcceptedAnswers[{i}]", "invalid", "Đáp án phải có từ 1 đến 500 ký tự."));
+            if (request.Options?.Count > 0)
+                errors.Add(new(nameof(request.Options), "invalid", "Câu trả lời bằng văn bản không có lựa chọn trắc nghiệm."));
+            return errors.AsReadOnly();
+        }
+        if (request.QuestionType != QuestionType.MultipleChoice)
+        {
+            errors.Add(new(nameof(request.QuestionType), "unsupported", "Loại câu hỏi không hợp lệ."));
+            return errors.AsReadOnly();
+        }
+        if (request.AcceptedAnswers?.Count > 0)
+            errors.Add(new(nameof(request.AcceptedAnswers), "invalid", "Câu trắc nghiệm sử dụng đáp án trong lựa chọn."));
         if (request.Options is null)
         {
             errors.Add(new(nameof(request.Options)

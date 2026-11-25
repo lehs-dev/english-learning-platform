@@ -1,3 +1,5 @@
+using EnglishLearningPlatform.Application.Homework;
+using EnglishLearningPlatform.Infrastructure.Homework;
 using EnglishLearningPlatform.Infrastructure.Authorization;
 using EnglishLearningPlatform.Infrastructure.Identity;
 using EnglishLearningPlatform.Infrastructure.Persistence;
@@ -86,6 +88,7 @@ public static class DependencyInjection
         services.AddScoped<ICourseService>(provider => provider.GetRequiredService<CourseService>());
         services.AddScoped<CourseQueries>();
         services.AddScoped<CourseProgressService>();
+        services.AddScoped<IWritingHomeworkService, WritingHomeworkService>();
         services.AddScoped<ICourseCatalogService, CourseCatalogService>();
         services.AddScoped<IStudentLearningCourseService, StudentLearningCourseService>();
         services.AddScoped<ICourseAuthoringService, CourseAuthoringService>();
@@ -130,6 +133,8 @@ public static class DependencyInjection
         services.AddScoped<IAdminOverviewDetailQueryService, AdminOverviewDetailQueryService>();
         services.AddScoped<IAdminManagementService, AdminManagementService>();
         services.AddScoped<IStudentLearningService, StudentLearningService>();
+        services.AddScoped<ICourseDiscussionService, CourseDiscussionService>();
+        services.AddScoped<ITeacherInboxService, TeacherInboxService>();
         services.AddScoped<ITeacherCourseReportService, TeacherCourseReportService>();
         services.AddScoped<IPracticeService, PracticeService>();
         services.AddScoped<ITeacherPracticeService, TeacherPracticeService>();
@@ -160,6 +165,11 @@ public static class DependencyInjection
         services.AddScoped<ITeacherCourseFinalService, TeacherCourseFinalService>();
         services.AddScoped<ITeacherAssessmentLifecycleService, TeacherAssessmentLifecycleService>();
         services.AddScoped<ITeacherAssessmentCloneService, TeacherAssessmentCloneService>();
+        services.AddScoped<EnglishLearningPlatform.Application.Flashcards.IFlashcardService, EnglishLearningPlatform.Infrastructure.Flashcards.FlashcardService>();
+        services.AddScoped<EnglishLearningPlatform.Application.Flashcards.ITeacherFlashcardService, EnglishLearningPlatform.Infrastructure.Flashcards.TeacherFlashcardService>();
+        services.AddScoped<EnglishLearningPlatform.Application.LearningPath.ILearningPathService, EnglishLearningPlatform.Infrastructure.LearningPath.LearningPathService>();
+        services.AddScoped<EnglishLearningPlatform.Application.Gamification.IGamificationService, EnglishLearningPlatform.Infrastructure.Gamification.GamificationService>();
+        services.AddScoped<EnglishLearningPlatform.Application.TeacherAnalytics.ITeacherAnalyticsQueryService, EnglishLearningPlatform.Infrastructure.TeacherAnalytics.TeacherAnalyticsQueryService>();
         return services;
     }
 }

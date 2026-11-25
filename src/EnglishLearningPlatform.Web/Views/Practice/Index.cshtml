@@ -1,68 +1,116 @@
 @model PracticeHubPage
 @{
     ViewData["Title"] = "Luyện tập";
-    ViewData["ActiveSection"] = "practice";
+    ViewData["ActiveSection"] = "courses";
 }
 @section Styles {
-    <link rel="stylesheet" href="~/css/courses.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/assessment.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
 }
 
-<div class="course-library">
-    <div class="page-heading course-library-heading">
+<div class="activity-scene activity-catalog">
+    <header class="activity-hero">
         <div>
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <span class="v2-pill-tag">Luyện tập</span>
-                <span class="v2-pill-tag" style="background:#FAF9FE; color:var(--v2-text-muted);">@Model.Practices.Count bài khả dụng</span>
-            </div>
             <h1>Luyện tập theo kỹ năng</h1>
-            <p>Chọn một bài luyện, xem lại lời giải và quay lại khóa học khi đã sẵn sàng.</p>
+            <p>Chọn bài để luyện nghe, đọc, từ vựng hoặc ngữ pháp. Xem lời giải ngay sau khi nộp.</p>
         </div>
-        <a class="button secondary" asp-controller="Learning" asp-action="Dashboard">Về bàn học</a>
-    </div>
+        <div class="activity-actions">
+            <a class="button" href="#practice-list-title">Xem bài luyện</a>
+            <a class="button secondary" asp-controller="Learning" asp-action="Dashboard">Về bàn học</a>
+        </div>
+    </header>
 
-    <section class="card-v2" aria-labelledby="practice-recommendations-title" style="padding:28px 32px; margin-bottom:24px;">
-        <div class="clean-section-header" style="margin:0 0 16px;">
-            <h2 id="practice-recommendations-title" class="clean-section-title" style="font-size:19px;">Gợi ý ôn tập theo kỹ năng</h2>
+    <section aria-labelledby="practice-list-title">
+        <div class="activity-section-title">
+            <h2 id="practice-list-title">Bài luyện khả dụng</h2>
+            <span class="muted">@Model.Practices.Count bài</span>
         </div>
-        @if (Model.Recommendations.Count == 0)
+        @if (Model.Practices.Count == 0)
         {
-            <p class="muted" style="margin:0;">Chưa có gợi ý ôn tập. Hoàn thành một bài đánh giá năng lực để nhận gợi ý theo kỹ năng yếu.</p>
-            <a class="button secondary" style="margin-top:14px;" asp-controller="Assessment" asp-action="Index">Xem bài đánh giá</a>
+            <div class="activity-panel activity-empty">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+                <h3>Chưa có bài luyện nào khả dụng</h3>
+                <p>Bài luyện sẽ xuất hiện khi khóa học bạn tham gia có nội dung luyện tập được mở.</p>
+                <a class="button" asp-controller="Learning" asp-action="Index">Xem khóa học của tôi</a>
+            </div>
         }
         else
         {
-            <div class="articles-cards-row">
+            <div class="activity-grid">
+                @foreach (var practice in Model.Practices)
+                {
+                    <article class="activity-card">
+                        <span class="activity-tag">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
+                            @practice.QuestionCount câu
+                        </span>
+                        <div class="activity-card-heading">
+                            <h3>@practice.Title</h3>
+                            <p class="activity-meta">
+                                <a asp-controller="Learning" asp-action="Course" asp-route-id="@practice.CourseId">@practice.CourseTitle</a>
+                            </p>
+                        </div>
+                        <div class="activity-tags">
+                            @foreach (var skill in practice.Skills)
+                            {
+                                <span class="activity-tag neutral"><partial name="_UiText" model="skill" /></span>
+                            }
+                        </div>
+                        <footer class="activity-card-footer">
+                            <a class="button" asp-action="Take" asp-route-id="@practice.Id">
+                                Luyện ngay
+                                <svg class="icon" width="16" height="16" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                            </a>
+                        </footer>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <section aria-labelledby="practice-recommendations-title">
+        <div class="activity-section-title">
+            <h2 id="practice-recommendations-title">Gợi ý ôn tập theo kỹ năng</h2>
+        </div>
+        @if (Model.Recommendations.Count == 0)
+        {
+            <div class="activity-panel activity-empty">
+                <p>Hoàn thành một bài đánh giá năng lực để nhận gợi ý theo kỹ năng cần cải thiện.</p>
+                <a class="button secondary" asp-controller="Assessment" asp-action="Index">Xem bài đánh giá</a>
+            </div>
+        }
+        else
+        {
+            <div class="activity-grid">
                 @foreach (var recommendation in Model.Recommendations)
                 {
-                    <article class="article-clean-card">
-                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                            <span class="pill-tag pill-tag-orange"><partial name="_UiText" model="recommendation.Skill" /></span>
-                            <strong style="font-size:15px; color:var(--v2-dark);">@recommendation.Score.ToString("0.##")%</strong>
+                    <article class="activity-card">
+                        <div class="activity-card-top">
+                            <h3><partial name="_UiText" model="recommendation.Skill" /></h3>
+                            <span class="activity-tag attention">@recommendation.Score.ToString("0.##")%</span>
                         </div>
-                        <p class="section-subtitle-clean" style="margin:0 0 12px;">
+                        <p class="activity-meta">
                             Căn cứ từ bài: <a asp-controller="Assessment" asp-action="Result" asp-route-id="@recommendation.AttemptId">@recommendation.AssessmentTitle</a>
                         </p>
                         @if (recommendation.Contents.Count == 0)
                         {
-                            <p class="muted" style="margin:0;">Chưa có nội dung phù hợp để ôn kỹ năng này.</p>
+                            <p class="activity-meta">Chưa có nội dung phù hợp để ôn kỹ năng này.</p>
                         }
                         else
                         {
-                            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            <div class="activity-tags">
                                 @foreach (var content in recommendation.Contents.Take(3))
                                 {
                                     switch (content.Kind)
                                     {
                                         case RecommendedContentKind.Course:
-                                            <a class="btn-dark-sm" asp-controller="Learning" asp-action="Course" asp-route-id="@content.Id">Học: @content.Title</a>
+                                            <a class="button secondary" asp-controller="Learning" asp-action="Course" asp-route-id="@content.Id">Học · @content.Title</a>
                                             break;
                                         case RecommendedContentKind.Practice:
-                                            <a class="btn-dark-sm" asp-controller="Practice" asp-action="Take" asp-route-id="@content.Id">Luyện: @content.Title</a>
+                                            <a class="button secondary" asp-controller="Practice" asp-action="Take" asp-route-id="@content.Id">Luyện · @content.Title</a>
                                             break;
                                         case RecommendedContentKind.Assessment:
-                                            <a class="btn-dark-sm" asp-controller="Assessment" asp-action="Take" asp-route-id="@content.Id">Đánh giá: @content.Title</a>
+                                            <a class="button secondary" asp-controller="Assessment" asp-action="Take" asp-route-id="@content.Id">Đánh giá · @content.Title</a>
                                             break;
                                     }
                                 }
@@ -74,67 +122,18 @@
         }
     </section>
 
-    <section aria-labelledby="practice-list-title" style="margin-bottom:28px;">
-        <div class="course-section-heading">
-            <h2 id="practice-list-title">Bài luyện khả dụng</h2>
-            <span class="muted">@Model.Practices.Count bài</span>
-        </div>
-        @if (Model.Practices.Count == 0)
-        {
-            <div class="enrolled-empty">
-                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
-                <div>
-                    <h3>Chưa có bài luyện nào khả dụng</h3>
-                    <p>Bài luyện sẽ xuất hiện khi khóa học bạn tham gia có nội dung luyện tập được mở.</p>
-                </div>
-                <a class="button" asp-controller="Learning" asp-action="Index">Xem khóa học của tôi</a>
-            </div>
-        }
-        else
-        {
-            <div class="course-grid">
-                @foreach (var practice in Model.Practices)
-                {
-                    <article class="card-v2" style="padding:22px; display:flex; flex-direction:column; gap:12px;">
-                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                            <span class="v2-pill-tag">Luyện tập</span>
-                            <span class="v2-pill-tag" style="background:#FAF9FE; color:var(--v2-text-muted);">@practice.QuestionCount câu</span>
-                        </div>
-                        <div>
-                            <h3 style="margin:0 0 6px; font-size:18px; color:var(--v2-dark);">@practice.Title</h3>
-                            <p class="muted" style="margin:0;">
-                                <a asp-controller="Learning" asp-action="Course" asp-route-id="@practice.CourseId">@practice.CourseTitle</a>
-                            </p>
-                        </div>
-                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                            @foreach (var skill in practice.Skills)
-                            {
-                                <span class="pill-tag pill-tag-purple"><partial name="_UiText" model="skill" /></span>
-                            }
-                        </div>
-                        <div style="margin-top:auto;">
-                            <a class="button" asp-action="Take" asp-route-id="@practice.Id">Luyện ngay &rarr;</a>
-                        </div>
-                    </article>
-                }
-            </div>
-        }
-    </section>
-
-    <section class="card-v2" aria-labelledby="practice-results-title" style="padding:28px 32px;">
-        <div class="clean-section-header" style="margin:0 0 16px;">
-            <h2 id="practice-results-title" class="clean-section-title" style="font-size:19px;">Kết quả luyện tập gần đây</h2>
-            <span class="muted">Tối đa 20 kết quả mới nhất</span>
+    <section class="activity-panel" aria-labelledby="practice-results-title">
+        <div class="activity-section-title">
+            <h2 id="practice-results-title">Kết quả luyện tập gần đây</h2>
         </div>
         @if (Model.Results.Count == 0)
         {
-            <p class="muted" style="margin:0;">Bạn chưa nộp bài luyện tập nào.</p>
+            <p class="muted">Bạn chưa nộp bài luyện tập nào.</p>
         }
         else
         {
-            <div class="transaction-history-table-wrap" style="overflow-x:auto;">
-                <table class="transaction-history-table" style="width:100%;">
-                    <caption class="visually-hidden">Kết quả luyện tập gần đây</caption>
+            <div class="assessment-table-wrap" role="region" aria-labelledby="practice-results-title" tabindex="0">
+                <table class="assessment-table">
                     <thead>
                         <tr>
                             <th scope="col">Bài luyện</th>
@@ -147,14 +146,12 @@
                         @foreach (var result in Model.Results)
                         {
                             <tr>
-                                <td data-label="Bài luyện" style="font-weight:600; color:var(--v2-dark);">@result.Title</td>
-                                <td data-label="Điểm"><strong>@result.Score.ToString("0.##")%</strong></td>
-                                <td data-label="Nộp lúc">
+                                <th scope="row">@result.Title</th>
+                                <td><strong>@result.Score.ToString("0.##")%</strong></td>
+                                <td>
                                     <time datetime="@result.SubmittedAtUtc.ToString("O")">@result.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy HH:mm")</time>
                                 </td>
-                                <td data-label="Thao tác">
-                                    <a class="button secondary" style="padding:6px 14px; font-size:12px;" asp-action="Result" asp-route-id="@result.PracticeId">Xem lại</a>
-                                </td>
+                                <td><a class="button secondary" asp-action="Result" asp-route-id="@result.PracticeId">Xem lại</a></td>
                             </tr>
                         }
                     </tbody>

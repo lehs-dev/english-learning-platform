@@ -97,7 +97,8 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         const string returnUrl = "/Practice";
         var initialLoginHtml = WebUtility.HtmlDecode(await client.GetStringAsync(
             $"/Account/Login?returnUrl={Uri.EscapeDataString(returnUrl)}"));
-        var registerLink = Regex.Match(initialLoginHtml, "href=\"([^\"]+)\"[^>]*>Đăng ký ngay");
+        var registerLink = Regex.Match(initialLoginHtml,
+            "<p class=\"auth-switch\">[^<]*<a href=\"([^\"]+)\">Đăng ký</a>");
         Assert.True(registerLink.Success);
         string getPath = registerLink.Groups[1].Value;
         string registerHtml = WebUtility.HtmlDecode(await client.GetStringAsync(getPath));
@@ -219,7 +220,7 @@ public sealed class ProfileAndLoginTests(IntegrationTestFactory factory) : IClas
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
         Assert.Contains("data-auth-panel", html);
-        Assert.Contains("Email không hợp lệ.", html);
+        Assert.Contains("Địa chỉ thư điện tử không hợp lệ.", html);
         Assert.Contains("value=\"invalid-email\"", html);
         Assert.Contains("value=\"/Practice\"", html);
         Assert.DoesNotContain("<html", html);

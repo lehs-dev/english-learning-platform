@@ -108,7 +108,7 @@ public sealed class TeacherPracticeIndexWebTests : IClassFixture<IntegrationTest
         Assert.Empty(Url(href).Fragment); // Không quay lại anchor của trang Khóa học cũ.
         Assert.Empty(Url(href).Query); // Menu mở danh sách mặc định, không giữ bộ lọc trang hiện tại.
         Assert.Contains("studio-nav-link", classes);
-        Assert.Contains("/images/icons.svg#check-circle", practiceLink);
+        Assert.Contains("/images/icons.svg#target", practiceLink);
         Assert.Equal(shouldBeActive, classes.Contains("is-active"));
         Assert.Equal(shouldBeActive ? "page" : string.Empty, Attribute(practiceLink, "aria-current"));
 

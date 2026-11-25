@@ -1,0 +1,66 @@
+@model DashboardCoursework
+@using EnglishLearningPlatform.Application.Homework
+
+@if (Model.PendingWriting.Count > 0 || Model.RecentFeedback.Count > 0)
+{
+    <section class="today-section" aria-labelledby="today-coursework-title">
+        <header class="today-section-heading">
+            <h2 id="today-coursework-title">Việc học</h2>
+        </header>
+        <div class="today-coursework-grid">
+            @if (Model.PendingWriting.Count > 0)
+            {
+                <section class="today-compact-widget today-coursework-card" aria-labelledby="today-writing-title">
+                    <h3 id="today-writing-title">Bài viết chờ nộp</h3>
+                    <ul class="today-coursework-list">
+                        @foreach (var assignment in Model.PendingWriting)
+                        {
+                            <li>
+                                <a class="today-coursework-link" asp-controller="Homework" asp-action="Details" asp-route-id="@assignment.AssignmentId">
+                                    <span class="today-icon-tile today-icon-tile--warm">
+                                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#pencil")"></use></svg>
+                                    </span>
+                                    <span class="today-coursework-copy">
+                                        <strong>@assignment.Title</strong>
+                                        <small>@assignment.CourseTitle</small>
+                                        @if (assignment.DueAtUtc is { } deadline)
+                                        {
+                                            <time datetime="@deadline.ToString("O")">Hạn @deadline.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("HH:mm dd/MM")</time>
+                                        }
+                                    </span>
+                                    <svg class="icon today-coursework-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+            @if (Model.RecentFeedback.Count > 0)
+            {
+                <section class="today-compact-widget today-coursework-card" aria-labelledby="today-feedback-title">
+                    <h3 id="today-feedback-title">Phản hồi gần đây</h3>
+                    <ul class="today-coursework-list">
+                        @foreach (var feedback in Model.RecentFeedback)
+                        {
+                            var review = feedback.Kind == DashboardCourseFeedbackKind.WritingReview;
+                            var icon = review ? "clipboard-check" : "send";
+                            <li>
+                                <a class="today-coursework-link" asp-controller="@(review ? "Homework" : "CourseDiscussion")" asp-action="Details" asp-route-id="@feedback.TargetId">
+                                    <span class="today-icon-tile today-icon-tile--teal">
+                                        <svg class="icon" aria-hidden="true"><use href="@Url.Content($"~/images/icons.svg#{icon}")"></use></svg>
+                                    </span>
+                                    <span class="today-coursework-copy">
+                                        <strong>@feedback.Title</strong>
+                                        <small>@feedback.CourseTitle</small>
+                                        <span class="today-coursework-feedback">@(review ? "Có nhận xét" : "Đã trả lời") <span aria-hidden="true">·</span> <time datetime="@feedback.OccurredAtUtc.ToString("O")">@feedback.OccurredAtUtc.ToOffset(WritingHomeworkLimits.DisplayOffset).ToString("dd/MM")</time></span>
+                                    </span>
+                                    <svg class="icon today-coursework-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        </div>
+    </section>
+}

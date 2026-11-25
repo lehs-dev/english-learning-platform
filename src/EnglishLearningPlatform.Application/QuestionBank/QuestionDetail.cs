@@ -1,4 +1,5 @@
 using EnglishLearningPlatform.Domain.Enums;
+using EnglishLearningPlatform.Application.Practice;
 
 namespace EnglishLearningPlatform.Application.QuestionBank;
 
@@ -7,6 +8,9 @@ public sealed class QuestionDetail
     public Guid Id { get; set; }
     //Content of the question
     public string Content { get; set; } = string.Empty;
+    public QuestionType QuestionType { get; set; } = QuestionType.MultipleChoice;
+    public IReadOnlyList<string> AcceptedAnswers { get; set; } = [];
+    public IReadOnlyList<StructuredQuestionAuthorItem> StructuredItems { get; set; } = [];
     public EnglishSkill PrimarySkill { get; set; }
 
     //infomation non-required

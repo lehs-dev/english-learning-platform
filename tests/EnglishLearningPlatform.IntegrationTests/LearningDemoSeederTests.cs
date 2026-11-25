@@ -1,6 +1,11 @@
 using System.Net;
 using EnglishLearningPlatform.Application.Assessment;
+using EnglishLearningPlatform.Application.Flashcards;
+using EnglishLearningPlatform.Application.Gamification;
+using EnglishLearningPlatform.Application.Homework;
 using EnglishLearningPlatform.Application.Learning;
+using EnglishLearningPlatform.Application.Practice;
+using EnglishLearningPlatform.Application.Stimuli;
 using EnglishLearningPlatform.Domain.Entities;
 using EnglishLearningPlatform.Domain.Enums;
 using EnglishLearningPlatform.Infrastructure.Identity;
@@ -296,6 +301,36 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
         Assert.True(await manager.CheckPasswordAsync(existing, IdentityTestHelpers.Password));
     }
 
+    [Fact]
+    public async Task MissingDemoAccountWithoutPassword_LeavesExistingAccountsAndDataUntouched()
+    {
+        using (var scope = factory.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            await CreateDemoUser(users, "admin1", AppRoles.Admin);
+            await CreateDemoUser(users, "teacher1", AppRoles.Teacher);
+            await CreateDemoUser(users, "teacher2", AppRoles.Teacher);
+            await CreateDemoUser(users, "student1", AppRoles.Student);
+        }
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => LearningDemoSeeder.SeedAsync(
+                services.GetRequiredService<AppDbContext>(),
+                services.GetRequiredService<UserManager<ApplicationUser>>(),
+                null, services.GetRequiredService<IStimulusAudioStore>()));
+        }
+
+        using var verification = factory.Services.CreateScope();
+        var db = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(4, await db.Users.CountAsync());
+        Assert.False(await db.Users.AnyAsync(user => user.Email == "student2@demo.example.test"));
+        Assert.False(await db.Courses.AnyAsync());
+        Assert.False(await db.WritingAssignments.AnyAsync());
+        Assert.False(await db.FlashcardDecks.AnyAsync());
+    }
+
     private async Task Seed(string password = IdentityTestHelpers.Password)
     {
         using var scope = factory.Services.CreateScope();
@@ -310,6 +345,100 @@ public sealed class LearningDemoSeederTests : IAsyncLifetime
         Assert.True((await users.CreateAsync(user, IdentityTestHelpers.Password)).Succeeded);
         Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
         return user;
+    }
+
+    [Fact]
+    public async Task FullSeed_WorkshopSupportsStudentAndTeacherAndPreservesEdits()
+    {
+        await Seed();
+        Dictionary<Guid, string?> passwordHashes;
+        using (var legacyScope = factory.Services.CreateScope())
+        {
+            var legacy = legacyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            passwordHashes = await legacy.Users.ToDictionaryAsync(user => user.Id, user => user.PasswordHash);
+            Assert.False(await legacy.Courses.AnyAsync(course => course.Title == "Tiếng Anh tại quán cà phê"));
+        }
+        await SeedFullAsync();
+        Guid courseId, studentId, teacherId, pendingId;
+        var editedDeadline = DateTimeOffset.UtcNow.AddDays(10);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            var db = services.GetRequiredService<AppDbContext>();
+            var course = await db.Courses.SingleAsync(course => course.Title == "Tiếng Anh tại quán cà phê");
+            courseId = course.Id;
+            teacherId = course.OwnerTeacherUserId;
+            Assert.Equal("teacher2@demo.example.test", await db.Users.Where(user => user.Id == teacherId)
+                .Select(user => user.Email).SingleAsync());
+            studentId = await db.Users.Where(user => user.Email == "student1@demo.example.test").Select(user => user.Id).SingleAsync();
+            Assert.Equal(6, await db.Lessons.CountAsync(lesson => lesson.Module.CourseId == courseId));
+            Assert.Equal(3, await db.LessonProgressEntries.CountAsync(progress => progress.Enrollment.CourseId == courseId &&
+                progress.Enrollment.StudentUserId == studentId && progress.IsCompleted));
+
+            var practiceId = await db.Practices.Where(practice => practice.Lesson!.Module.CourseId == courseId)
+                .Select(practice => practice.Id).SingleAsync();
+            var sheet = await services.GetRequiredService<IPracticeService>().GetSheetAsync(studentId, practiceId);
+            Assert.Equal(LearningAccessResult.Allowed, sheet.Access);
+            Assert.Equal(Enum.GetValues<QuestionType>(), sheet.Value!.Questions.Select(question => question.QuestionType));
+            var audioUrl = Assert.Single(sheet.Value.Questions, question => question.QuestionType == QuestionType.Dictation).AudioUrl;
+            Assert.NotNull(audioUrl);
+            var audio = await services.GetRequiredService<IStimulusAudioStore>().ReadAsync(audioUrl.Split('/')[^1]);
+            Assert.NotNull(audio);
+            Assert.Equal("audio/wav", audio.ContentType);
+
+            var decks = await services.GetRequiredService<IFlashcardService>().GetDecksAsync(studentId);
+            Assert.Equal(6, Assert.Single(decks.Value!, deck => deck.CourseId == courseId).CardCount);
+            var streak = await services.GetRequiredService<IGamificationService>().GetSummaryAsync(studentId);
+            Assert.Equal(5, streak.Value!.LongestStreak);
+
+            var inbox = await services.GetRequiredService<ICourseDiscussionService>().GetInboxAsync(teacherId, courseId, 1);
+            Assert.Equal(2, inbox.Value!.Threads.Count);
+            Assert.Single(inbox.Value.Threads, thread => thread.IsAwaitingTeacher);
+            var homework = services.GetRequiredService<IWritingHomeworkService>();
+            var work = await homework.GetCourseAsync(studentId, courseId, 1, CancellationToken.None);
+            Assert.Equal(3, work.Value!.Assignments.Count);
+            var pending = Assert.Single(work.Value.Assignments, task => !task.Submitted);
+            Assert.Equal("Viết lời nhắn đặt món", pending.Title);
+            Assert.True(pending.Open);
+            Assert.NotNull(pending.DueAtUtc);
+            pendingId = pending.Id;
+            var reviewed = Assert.Single(work.Value.Assignments, task => task.Reviewed);
+            var review = await homework.GetAssignmentAsync(studentId, reviewed.Id, 1, CancellationToken.None);
+            Assert.Equal(92, Assert.Single(review.Value!.Submissions).Score);
+
+            course.Title = "Khóa mẫu đã đổi tên";
+            (await db.WritingAssignments.SingleAsync(assignment => assignment.Id == pendingId)).DueAtUtc = editedDeadline;
+            var existingReview = await db.WritingSubmissions.SingleAsync(submission => submission.AssignmentId == reviewed.Id);
+            existingReview.Feedback = "Giảng viên đã bổ sung nhận xét.";
+            await db.SaveChangesAsync();
+        }
+        await SeedFullAsync();
+
+        using var verification = factory.Services.CreateScope();
+        var after = verification.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Single(await after.Courses.Where(course => course.OwnerTeacherUserId == teacherId).ToListAsync());
+        Assert.Equal("Khóa mẫu đã đổi tên", await after.Courses.Where(course => course.Id == courseId)
+            .Select(course => course.Title).SingleAsync());
+        Assert.Equal(3, await after.WritingAssignments.CountAsync(assignment => assignment.CourseId == courseId));
+        Assert.Equal(editedDeadline, await after.WritingAssignments.Where(assignment => assignment.Id == pendingId)
+            .Select(assignment => assignment.DueAtUtc).SingleAsync());
+        Assert.Equal(2, await after.WritingSubmissions.CountAsync(submission => submission.Assignment.CourseId == courseId));
+        Assert.Contains(await after.WritingSubmissions.Where(submission => submission.Assignment.CourseId == courseId).ToListAsync(),
+            submission => submission.Feedback == "Giảng viên đã bổ sung nhận xét.");
+        Assert.Equal(2, await after.FlashcardReviews.CountAsync(review => review.StudentUserId == studentId));
+        var usersAfter = await after.Users.ToListAsync();
+        Assert.Equal(passwordHashes.Count, usersAfter.Count);
+        Assert.All(usersAfter, user => Assert.Equal(passwordHashes[user.Id], user.PasswordHash));
+        Assert.False(await after.Enrollments.AnyAsync(enrollment => enrollment.Course.IsPaid));
+        Assert.Empty(await after.Payments.ToListAsync());
+
+        async Task SeedFullAsync()
+        {
+            using var scope = factory.Services.CreateScope();
+            await LearningDemoSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>(),
+                scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(), null,
+                scope.ServiceProvider.GetRequiredService<IStimulusAudioStore>());
+        }
     }
 
     private static async Task<int[]> Counts(AppDbContext db) =>

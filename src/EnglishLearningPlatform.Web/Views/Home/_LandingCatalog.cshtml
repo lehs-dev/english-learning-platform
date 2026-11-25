@@ -1,0 +1,90 @@
+@model CatalogPage
+@{
+    var culture = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+    EnglishSkill[] filters = [EnglishSkill.Listening, EnglishSkill.Reading, EnglishSkill.Vocabulary, EnglishSkill.Grammar];
+}
+
+<section class="lp-catalog" id="courses" aria-labelledby="courses-heading">
+    <header class="lp-section-heading">
+        <h2 id="courses-heading">Khóa học tiếng Anh</h2>
+        <a class="lp-text-link" asp-controller="Courses" asp-action="Index" aria-label="Xem danh mục khóa học" data-landing-catalog-link>
+            Xem danh mục
+            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+        </a>
+    </header>
+
+    @if (Model.Courses.Count > 0)
+    {
+        <div class="lp-course-filters" role="group" aria-label="Lọc khóa học theo kỹ năng" data-landing-filter hidden>
+            <button class="lp-course-filter active" type="button" data-filter="all" aria-pressed="true">Tất cả</button>
+            @foreach (var skill in filters)
+            {
+                <button class="lp-course-filter" type="button" data-filter="@skill" aria-pressed="false">
+                    <partial name="_UiText" model="skill" />
+                </button>
+            }
+        </div>
+
+        <div class="homepage-courses-grid">
+            @foreach (var course in Model.Courses.Take(6))
+            {
+                var skill = course.Skills.FirstOrDefault();
+                var (icon, tone) = skill switch
+                {
+                    EnglishSkill.Listening => ("listen", "violet"),
+                    EnglishSkill.Reading => ("read", "sky"),
+                    EnglishSkill.Grammar => ("grammar", "peach"),
+                    EnglishSkill.Vocabulary => ("words", "lime"),
+                    _ => ("courses", "violet")
+                };
+                <article class="course-item-card" data-skill="@string.Join(" ", course.Skills)" data-course-tone="@tone">
+                    <div class="lp-course-cover">
+                        <span class="lp-course-motif" aria-hidden="true">
+                            <svg class="lp-illustration" viewBox="0 0 40 40" focusable="false"><use href="@Url.Content($"~/images/landing-illustrations.svg#{icon}")"></use></svg>
+                        </span>
+                        @if (course.Skills.Count > 0)
+                        {
+                            <ul class="lp-course-skills" aria-label="Kỹ năng trong khóa học">
+                                @foreach (var courseSkill in course.Skills)
+                                {
+                                    <li><partial name="_UiText" model="courseSkill" /></li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                    <div class="lp-course-body">
+                        <p class="lp-course-meta">
+                            <span class="lp-course-level"><partial name="_UiText" model="course.Level" /></span>
+                            <span class="lp-course-count">
+                                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                                @course.LessonCount bài học
+                            </span>
+                        </p>
+                        <h3>@course.Title</h3>
+                        <div class="lp-course-end">
+                            <span class="lp-course-price @(course.IsPaid ? "" : "is-free")">
+                                @(course.IsPaid ? course.Price.ToString("#,##0.##", culture) + " ₫" : "Miễn phí")
+                            </span>
+                            <a class="lp-course-link" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id" aria-label="Chi tiết khóa học @course.Title">
+                                Chi tiết
+                                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+        <div class="lp-catalog-empty" data-landing-filter-empty hidden>
+            <p>Chưa có khóa phù hợp trên trang này.</p>
+            <a class="lp-text-link" asp-controller="Courses" asp-action="Index" data-landing-catalog-link>Xem thêm khóa học</a>
+        </div>
+        <p class="visually-hidden" role="status" data-landing-filter-count></p>
+    }
+    else
+    {
+        <div class="lp-catalog-empty">
+            <h3>Khóa học đang được chuẩn bị</h3>
+            <a class="lp-text-link" href="#practice">Luyện thử</a>
+        </div>
+    }
+</section>
