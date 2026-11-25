@@ -159,8 +159,25 @@
                 @if (activeTab == "lessons")
                 {
                     <section id="tab-pane-lessons" class="course-tab-pane is-active course-room-section" aria-labelledby="course-lessons-title">
-                        <h2 id="course-lessons-title">Nội dung khóa học</h2>
+                        <div class="course-outline-header">
+                            <h2 id="course-lessons-title">Nội dung khóa học</h2>
+                            @if (Model.CanLearn && Model.Modules.Any(m => m.Lessons.Count > 0))
+                            {
+                                <div class="course-outline-tools" data-course-outline-tools>
+                                    <div class="course-outline-filters" role="group" aria-label="Lọc bài học">
+                                        <button type="button" class="course-outline-pill is-active" data-outline-filter="all" aria-pressed="true">Tất cả (@totalLessons)</button>
+                                        <button type="button" class="course-outline-pill" data-outline-filter="remaining" aria-pressed="false">Chưa học</button>
+                                        <button type="button" class="course-outline-pill" data-outline-filter="completed" aria-pressed="false">Đã xong</button>
+                                    </div>
+                                    @if (Model.Modules.Count > 1)
+                                    {
+                                        <button type="button" class="course-outline-toggle" data-outline-toggle-all>Mở tất cả chương</button>
+                                    }
+                                </div>
+                            }
+                        </div>
                         <partial name="_CourseOutline" model="Model" />
+                        <p class="learning-surface course-room-empty" data-outline-empty-filter hidden>Không có bài học nào khớp với trạng thái đã chọn.</p>
                     </section>
                 }
                 else if (activeTab == "practice")
@@ -266,3 +283,7 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="~/js/activity-filters.js" asp-append-version="true" defer></script>
+}

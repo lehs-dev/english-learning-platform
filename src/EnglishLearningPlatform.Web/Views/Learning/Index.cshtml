@@ -7,10 +7,9 @@
 
     var statusParam = Model.ActiveStatus ?? Context.Request.Query["status"].ToString();
     var hasSpecificStatus = !string.IsNullOrWhiteSpace(statusParam) && statusParam is "active" or "not-started" or "completed";
-    var searchQuery = Model.SearchQuery ?? Context.Request.Query["search"].ToString() ?? "";
+    var searchQuery = Model.SearchQuery ?? Context.Request.Query["Search"].ToString() ?? "";
 
-    // Phân loại khóa học
-    bool IsCompleted(CourseSummary c) => c.Progress?.CompletedAtUtc is not null && 
+    bool IsCompleted(CourseSummary c) => c.Progress?.CompletedAtUtc is not null &&
         (c.Progress.TotalLessons == 0 || c.Progress.CompletedLessons >= c.Progress.TotalLessons);
     bool IsInProgress(CourseSummary c) => (c.Progress is { TotalLessons: > 0 } p && (p.CompletedLessons > 0 || p.CompletedAtUtc is not null) && p.CompletedLessons < p.TotalLessons)
         || (c.Progress is { TotalLessons: > 0, CompletedAtUtc: null } pending && pending.CompletedLessons >= pending.TotalLessons);
@@ -21,7 +20,7 @@
     var totalNotStarted = allCourses.Count(IsNotStarted);
     var totalCompleted = allCourses.Count(IsCompleted);
 
-    var activeTab = hasSpecificStatus ? statusParam!.ToLowerInvariant() : (totalActive > 0 ? "active" : totalNotStarted > 0 ? "not-started" : "completed");
+    var activeTab = hasSpecificStatus ? statusParam!.ToLowerInvariant() : "all";
 
     var filtered = hasSpecificStatus ? (activeTab switch
     {
@@ -34,7 +33,32 @@
     {
         filtered = filtered.Where(c => c.Title.Contains(searchQuery, StringComparison.CurrentCultureIgnoreCase));
     }
-    var displayList = filtered.ToList();
+    if (Model.Catalog.Query.Level.HasValue)
+    {
+        filtered = filtered.Where(c => c.Level == Model.Catalog.Query.Level.Value);
+    }
+    if (Model.Catalog.Query.Skill.HasValue)
+    {
+        filtered = filtered.Where(c => c.Skills.Contains(Model.Catalog.Query.Skill.Value));
+    }
+    if (!string.IsNullOrWhiteSpace(Model.Catalog.Query.Topic))
+    {
+        filtered = filtered.Where(c => c.Topics.Contains(Model.Catalog.Query.Topic, StringComparer.CurrentCultureIgnoreCase));
+    }
+    if (Model.Catalog.Query.Teacher.HasValue)
+    {
+        filtered = filtered.Where(c => c.OwnerId == Model.Catalog.Query.Teacher.Value);
+    }
+    if (Model.Catalog.Query.Paid.HasValue)
+    {
+        filtered = filtered.Where(c => c.IsPaid == Model.Catalog.Query.Paid.Value);
+    }
+    var displayList = filtered.OrderByDescending(c => c.IsPaid).ToList();
+
+    var catalogQuery = Model.Catalog.Query;
+    var hasCatalogFilters = !string.IsNullOrWhiteSpace(catalogQuery.Search) || catalogQuery.Level.HasValue ||
+        catalogQuery.Skill.HasValue || !string.IsNullOrWhiteSpace(catalogQuery.Topic) ||
+        catalogQuery.Teacher.HasValue || catalogQuery.Paid.HasValue;
 }
 
 @section Styles {
@@ -50,54 +74,91 @@
                 <p class="my-courses-subtitle">@allCourses.Count khóa đã ghi danh <span aria-hidden="true">·</span> @totalCompleted đã hoàn thành</p>
             }
         </div>
-        <div class="my-courses-header-actions">
-            <a class="button secondary" asp-controller="Courses" asp-action="Index">
-                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
-                Khám phá khóa học
-                <svg class="icon library-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-            </a>
-        </div>
     </header>
 
-    <!-- Status Tabs & In-enrolled Search Bar -->
-    <div class="my-courses-filter-bar learning-surface">
-        <nav class="my-courses-tabs" aria-label="Lọc theo trạng thái khóa học">
-            <a class="tab-link @(activeTab == "active" ? "is-active" : "")"
-               asp-action="Index" asp-route-status="active" asp-route-search="@searchQuery"
-               aria-current="@(activeTab == "active" ? "page" : null)">
-                <span>Đang học</span> <span class="tab-badge">@totalActive</span>
-            </a>
-            <a class="tab-link @(activeTab == "not-started" ? "is-active" : "")"
-               asp-action="Index" asp-route-status="not-started" asp-route-search="@searchQuery"
-               aria-current="@(activeTab == "not-started" ? "page" : null)">
-                <span>Chưa bắt đầu</span> <span class="tab-badge">@totalNotStarted</span>
-            </a>
-            <a class="tab-link @(activeTab == "completed" ? "is-active" : "")"
-               asp-action="Index" asp-route-status="completed" asp-route-search="@searchQuery"
-               aria-current="@(activeTab == "completed" ? "page" : null)">
-                <span>Hoàn thành</span> <span class="tab-badge">@totalCompleted</span>
-            </a>
-        </nav>
+    @if (ViewData["QueryNotice"] is string notice)
+    {
+        <div class="notice">@notice</div>
+    }
 
-        <form class="my-courses-search-form" asp-action="Index" method="get" role="search" aria-label="Tìm kiếm khóa học đã ghi danh">
-            <input type="hidden" name="status" value="@activeTab" />
-            <div class="search-input-wrapper">
-                <svg class="icon search-icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
-                <input type="search" name="search" value="@searchQuery" placeholder="Tìm theo tên khóa học..." maxlength="200" aria-label="Tìm theo tên khóa học" />
-                @if (!string.IsNullOrWhiteSpace(searchQuery))
+    <!-- Top Unified Tabs, Search & Compact Filters -->
+    <div class="courses-top-toolbar learning-surface">
+        <div class="courses-top-row">
+            <nav class="my-courses-tabs" aria-label="Lọc theo trạng thái khóa học">
+                <a class="tab-link @(activeTab == "all" ? "is-active" : "")"
+                   asp-action="Index" asp-route-Search="@searchQuery"
+                   asp-route-Level="@catalogQuery.Level" asp-route-Skill="@catalogQuery.Skill"
+                   asp-route-Topic="@catalogQuery.Topic" asp-route-Teacher="@catalogQuery.Teacher" asp-route-Paid="@catalogQuery.Paid"
+                   aria-current="@(activeTab == "all" ? "page" : null)">
+                    <span>Tất cả</span> <span class="tab-badge">@allCourses.Count</span>
+                </a>
+                <a class="tab-link @(activeTab == "active" ? "is-active" : "")"
+                   asp-action="Index" asp-route-status="active" asp-route-Search="@searchQuery"
+                   asp-route-Level="@catalogQuery.Level" asp-route-Skill="@catalogQuery.Skill"
+                   asp-route-Topic="@catalogQuery.Topic" asp-route-Teacher="@catalogQuery.Teacher" asp-route-Paid="@catalogQuery.Paid"
+                   aria-current="@(activeTab == "active" ? "page" : null)">
+                    <span>Đang học</span> <span class="tab-badge">@totalActive</span>
+                </a>
+                <a class="tab-link @(activeTab == "not-started" ? "is-active" : "")"
+                   asp-action="Index" asp-route-status="not-started" asp-route-Search="@searchQuery"
+                   asp-route-Level="@catalogQuery.Level" asp-route-Skill="@catalogQuery.Skill"
+                   asp-route-Topic="@catalogQuery.Topic" asp-route-Teacher="@catalogQuery.Teacher" asp-route-Paid="@catalogQuery.Paid"
+                   aria-current="@(activeTab == "not-started" ? "page" : null)">
+                    <span>Chưa bắt đầu</span> <span class="tab-badge">@totalNotStarted</span>
+                </a>
+                <a class="tab-link @(activeTab == "completed" ? "is-active" : "")"
+                   asp-action="Index" asp-route-status="completed" asp-route-Search="@searchQuery"
+                   asp-route-Level="@catalogQuery.Level" asp-route-Skill="@catalogQuery.Skill"
+                   asp-route-Topic="@catalogQuery.Topic" asp-route-Teacher="@catalogQuery.Teacher" asp-route-Paid="@catalogQuery.Paid"
+                   aria-current="@(activeTab == "completed" ? "page" : null)">
+                    <span>Hoàn thành</span> <span class="tab-badge">@totalCompleted</span>
+                </a>
+            </nav>
+        </div>
+
+        <form class="courses-compact-filters" asp-action="Index" method="get" role="search" aria-label="Tìm kiếm và lọc khóa học">
+            @if (hasSpecificStatus)
+            {
+                <input type="hidden" name="status" value="@activeTab" />
+            }
+            <div class="courses-search-cell">
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                <input type="search" name="Search" value="@searchQuery" placeholder="Tìm theo tên khóa học..." maxlength="200" aria-label="Tìm theo tên khóa học" />
+            </div>
+            <select name="Level" aria-label="Cấp độ">
+                <option value="">Tất cả cấp độ</option>
+                @foreach (var level in Enum.GetValues<CourseLevel>())
                 {
-                    <a class="clear-search-link" asp-action="Index" asp-route-status="@activeTab" aria-label="Xóa tìm kiếm">&times;</a>
+                    <option value="@level" selected="@(catalogQuery.Level == level)"><partial name="_UiText" model="level" /></option>
+                }
+            </select>
+            <select name="Skill" aria-label="Kỹ năng">
+                <option value="">Tất cả kỹ năng</option>
+                @foreach (var skill in Enum.GetValues<EnglishSkill>())
+                {
+                    <option value="@skill" selected="@(catalogQuery.Skill == skill)"><partial name="_UiText" model="skill" /></option>
+                }
+            </select>
+            <select name="Paid" aria-label="Học phí">
+                <option value="">Tất cả học phí</option>
+                <option value="false" selected="@(catalogQuery.Paid == false)">Miễn phí</option>
+                <option value="true" selected="@(catalogQuery.Paid == true)">Có phí</option>
+            </select>
+            <div class="courses-filter-actions">
+                <button class="button" type="submit">Lọc</button>
+                @if (hasCatalogFilters || hasSpecificStatus)
+                {
+                    <a class="button secondary" asp-action="Index">Đặt lại</a>
                 }
             </div>
-            <button class="button secondary" type="submit">Tìm</button>
         </form>
     </div>
 
-    <!-- Enrolled Courses Grid -->
+    <!-- Enrolled / Purchased Courses Grid -->
     <section class="enrolled-courses-section" data-enrolled-courses aria-label="Danh sách khóa học đã ghi danh">
         @if (displayList.Count > 0)
         {
-            <h2 class="library-count">@displayList.Count khóa học</h2>
+            <h2 class="library-count">@displayList.Count khóa học của tôi</h2>
             <div class="enrolled-courses-grid">
                 @foreach (var course in displayList)
                 {
@@ -108,55 +169,70 @@
         else
         {
             <div class="my-courses-empty-panel learning-surface">
-                @if (!string.IsNullOrWhiteSpace(searchQuery))
+                @if (hasCatalogFilters)
                 {
                     <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg></div>
-                    <h3>Không tìm thấy khóa học nào</h3>
-                    <p>Không có khóa học nào trong danh sách đã ghi danh khớp với từ khóa "<strong>@searchQuery</strong>".</p>
-                    <a class="button secondary" asp-action="Index" asp-route-status="@activeTab">Xem tất cả khóa học @(activeTab switch { "completed" => "đã hoàn thành", "not-started" => "chưa bắt đầu", _ => "đang học" })</a>
+                    <h3>Không tìm thấy khóa học đã tham gia nào</h3>
+                    <p>Thử đổi bộ lọc hoặc xem các khóa gợi ý mới ở bên dưới.</p>
+                    <a class="button secondary" asp-action="Index">Xem tất cả khóa học</a>
                 }
                 else if (allCourses.Count == 0)
                 {
                     <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></div>
                     <h3>Bạn chưa ghi danh khóa học nào</h3>
-                    <p>Chọn một khóa học phù hợp để bắt đầu.</p>
-                    <a class="button" asp-controller="Courses" asp-action="Index">Khám phá khóa học ngay</a>
-                }
-                else if (activeTab == "completed")
-                {
-                    <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#graduation")"></use></svg></div>
-                    <h3>Bạn chưa hoàn thành khóa học nào</h3>
-                    <p>Hãy hoàn tất các bài học và bài thi kết thúc khóa để ghi nhận thành tích.</p>
-                    @if (totalActive > 0)
-                    {
-                        <a class="button" asp-action="Index" asp-route-status="active">Xem các khóa đang học (@totalActive)</a>
-                    }
-                    else
-                    {
-                        <a class="button" asp-controller="Courses" asp-action="Index">Khám phá khóa học ngay</a>
-                    }
-                }
-                else if (activeTab == "not-started")
-                {
-                    <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></div>
-                    <h3>Không có khóa học nào chưa bắt đầu</h3>
-                    <p>Bạn đã bắt đầu học tất cả các khóa đã ghi danh.</p>
-                    <a class="button" asp-controller="Courses" asp-action="Index">Khám phá thêm khóa học</a>
+                    <p>Chọn một khóa học phù hợp ngay bên dưới để bắt đầu.</p>
                 }
                 else
                 {
                     <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></div>
-                    <h3>Không có khóa học nào đang diễn ra</h3>
-                    <p>Hãy bắt đầu một khóa học đã ghi danh hoặc khám phá khóa học mới trong thư viện.</p>
-                    <div class="empty-actions" >
-                        @if (totalNotStarted > 0)
-                        {
-                            <a class="button" asp-action="Index" asp-route-status="not-started">Xem khóa chưa bắt đầu (@totalNotStarted)</a>
-                        }
-                        <a class="button secondary" asp-controller="Courses" asp-action="Index">Khám phá khóa học mới</a>
-                    </div>
+                    <h3>Không có khóa học ở trạng thái này</h3>
+                    <a class="button secondary" asp-action="Index">Xem tất cả khóa học của tôi</a>
                 }
             </div>
+        }
+    </section>
+
+    <!-- Other Courses to Discover (Unified Card Sizes) -->
+    <section class="discover-integrated-section" id="discover-courses" aria-labelledby="discover-courses-heading">
+        <header class="discover-integrated-header">
+            <h2 id="discover-courses-heading" class="learning-title">Khám phá thêm khóa học</h2>
+            <p class="my-courses-subtitle">Hiển thị @Model.Catalog.Courses.Count / @Model.Catalog.Total khóa học chưa tham gia.</p>
+        </header>
+
+        @if (Model.Catalog.Courses.Count == 0)
+        {
+            <div class="my-courses-empty-panel learning-surface">
+                <div class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg></div>
+                <h3>@(hasCatalogFilters ? "Không tìm thấy khóa học mới phù hợp" : "Bạn đã tham gia tất cả khóa học hiện có")</h3>
+                @if (hasCatalogFilters)
+                {
+                    <a class="button secondary" asp-action="Index">Đặt lại bộ lọc</a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="course-grid">
+                @foreach (var course in Model.Catalog.Courses)
+                {
+                    <partial name="_DiscoveryCourseCard" model="course" />
+                }
+            </div>
+            @if (Model.Catalog.Pages > 1)
+            {
+                <nav class="actions pagination" aria-label="Phân trang khóa học">
+                    @foreach (var pageNumber in new[] { catalogQuery.Page - 1, catalogQuery.Page + 1 }.Where(p => p >= 1 && p <= Model.Catalog.Pages))
+                    {
+                        <a class="button secondary" asp-action="Index" asp-fragment="discover-courses"
+                           asp-route-status="@(hasSpecificStatus ? activeTab : null)"
+                           asp-route-Page="@pageNumber" asp-route-Search="@catalogQuery.Search"
+                           asp-route-Level="@catalogQuery.Level" asp-route-Skill="@catalogQuery.Skill"
+                           asp-route-Topic="@catalogQuery.Topic" asp-route-Teacher="@catalogQuery.Teacher" asp-route-Paid="@catalogQuery.Paid">
+                            @(pageNumber < catalogQuery.Page ? "← Trang trước" : "Trang sau →")
+                        </a>
+                    }
+                </nav>
+            }
         }
     </section>
 </div>

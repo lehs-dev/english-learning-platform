@@ -1,24 +1,28 @@
 @model IReadOnlyList<AssessmentLink>
 @{
-    ViewData["Title"] = "Đánh giá năng lực";
-    ViewData["ActiveSection"] = "progress";
+    ViewData["Title"] = "Đề thi";
+    ViewData["ActiveSection"] = "assessment";
+    var distinctSkills = Model.SelectMany(a => a.Skills).Distinct().OrderBy(s => s).ToList();
+    var hasActiveAttempts = Model.Any(a => a.ActiveAttemptId.HasValue);
+    var independentCount = Model.Count(a => !a.CourseId.HasValue);
+    var courseCount = Model.Count(a => a.CourseId.HasValue);
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
 }
 
-<div class="activity-scene activity-catalog assessment-index-layout">
+<div class="activity-scene activity-catalog assessment-index-layout" data-assessment-library>
     <header class="activity-hero">
         <div>
-            <h1>Bài đánh giá năng lực</h1>
-            <p>Mở thông tin bài thi để xem thời lượng, số lượt làm và quy chế trước khi bắt đầu.</p>
+            <h1>Đề thi &amp; đánh giá năng lực</h1>
+            <p>Tìm nhanh bài thi hoặc bài đánh giá trong khóa học, kiểm tra quy chế và tiếp tục lượt làm dở bất cứ lúc nào.</p>
         </div>
         <div class="activity-actions">
             <a class="button" asp-action="History">
                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#history")"></use></svg>
                 Lịch sử làm bài
             </a>
-            <a class="button secondary" asp-controller="Learning" asp-action="Dashboard">Về bàn học</a>
+            <a class="button secondary" asp-controller="Learning" asp-action="Dashboard">Về trang chủ</a>
         </div>
     </header>
 
@@ -32,26 +36,76 @@
     }
     else
     {
+        <section class="activity-panel activity-filter-panel" aria-label="Tìm kiếm và lọc đề thi">
+            <div class="activity-filter-toolbar">
+                <div class="activity-search-field">
+                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                    <input type="search" placeholder="Tìm tên đề thi hoặc bài đánh giá..." aria-label="Tìm tên đề thi" data-library-search />
+                </div>
+                <div class="activity-filter-pills" role="group" aria-label="Lọc theo phạm vi">
+                    <button type="button" class="activity-pill is-active" data-scope-filter="all" aria-pressed="true">Tất cả (@Model.Count)</button>
+                    @if (independentCount > 0 && courseCount > 0)
+                    {
+                        <button type="button" class="activity-pill" data-scope-filter="independent" aria-pressed="false">Đề độc lập (@independentCount)</button>
+                        <button type="button" class="activity-pill" data-scope-filter="course" aria-pressed="false">Trong khóa học (@courseCount)</button>
+                    }
+                    @if (hasActiveAttempts)
+                    {
+                        <button type="button" class="activity-pill" data-scope-filter="active" aria-pressed="false">Đang làm dở (@Model.Count(a => a.ActiveAttemptId.HasValue))</button>
+                    }
+                </div>
+            </div>
+            @if (distinctSkills.Count > 1)
+            {
+                <div class="activity-filter-group">
+                    <span class="activity-filter-label">Kỹ năng</span>
+                    <div class="activity-filter-pills activity-skill-pills" role="group" aria-label="Lọc theo kỹ năng">
+                        <button type="button" class="activity-pill is-active" data-skill-filter="all" aria-pressed="true">Mọi kỹ năng</button>
+                        @foreach (var skill in distinctSkills)
+                        {
+                            <button type="button" class="activity-pill" data-skill-filter="@skill" aria-pressed="false"><partial name="_UiText" model="skill" /></button>
+                        }
+                    </div>
+                </div>
+            }
+        </section>
+
         <section aria-labelledby="available-assessments-title">
             <div class="activity-section-title">
-                <h2 id="available-assessments-title">Bài đánh giá khả dụng</h2>
-                <span class="muted">@Model.Count bài</span>
+                <h2 id="available-assessments-title">Danh sách đề khả dụng</h2>
+                <span class="muted" data-library-count role="status">@Model.Count / @Model.Count bài</span>
             </div>
-            <div class="activity-grid">
+            <div class="activity-grid" data-library-grid>
                 @foreach (var assessment in Model.OrderByDescending(a => a.ActiveAttemptId.HasValue))
                 {
                     bool active = assessment.ActiveAttemptId.HasValue;
-                    <article class="activity-card @(active ? "is-active" : null)">
+                    var skillList = string.Join(",", assessment.Skills);
+                    <article class="activity-card @(active ? "is-active" : null)"
+                             data-library-card
+                             data-title="@assessment.Title.ToLowerInvariant()"
+                             data-scope="@(assessment.CourseId.HasValue ? "course" : "independent")"
+                             data-active="@(active ? "true" : "false")"
+                             data-skills="@skillList">
                         <div class="activity-card-top">
                             <span class="activity-tag">
                                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
                                 <partial name="_UiText" model="assessment.Type" />
                             </span>
-                            @if (active) { <span class="activity-tag good">Đang làm bài</span> }
+                            @if (active)
+                            {
+                                <span class="activity-tag good">Đang làm bài</span>
+                            }
+                            else if (!assessment.CourseId.HasValue)
+                            {
+                                <span class="activity-tag neutral">Đề độc lập</span>
+                            }
                         </div>
                         <div class="activity-card-heading">
                             <h3>@assessment.Title</h3>
-                            <p class="activity-meta">@assessment.DurationMinutes phút · @assessment.QuestionCount câu</p>
+                            <p class="activity-meta">
+                                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg>
+                                @assessment.DurationMinutes phút · @assessment.QuestionCount câu
+                            </p>
                         </div>
                         <div class="activity-tags">
                             @foreach (var assessedSkill in assessment.Skills)
@@ -66,7 +120,7 @@
                             }
                             else
                             {
-                                <span class="activity-meta">Đề độc lập</span>
+                                <span class="activity-meta">Thi tự do</span>
                             }
                             <a class="button @(active ? null : "secondary")" asp-action="Take" asp-route-id="@assessment.Id" asp-route-attemptId="@assessment.ActiveAttemptId">
                                 @(active ? "Tiếp tục làm bài" : "Xem thông tin")
@@ -76,6 +130,16 @@
                     </article>
                 }
             </div>
+            <div class="activity-panel activity-empty" data-library-empty hidden>
+                <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                <h3>Không tìm thấy đề thi phù hợp</h3>
+                <p>Thử đổi từ khóa hoặc đặt lại bộ lọc để xem toàn bộ đề khả dụng.</p>
+                <button type="button" class="button secondary" data-library-reset>Đặt lại bộ lọc</button>
+            </div>
         </section>
     }
 </div>
+
+@section Scripts {
+    <script src="~/js/activity-filters.js" asp-append-version="true" defer></script>
+}

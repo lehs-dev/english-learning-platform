@@ -16,7 +16,7 @@
 @section Breadcrumbs {
     <ol class="breadcrumbs-list">
         <li><a asp-action="Course" asp-route-id="@Model.CourseId">@Model.CourseTitle</a></li>
-        <li><a asp-action="Module" asp-route-id="@Model.ModuleId">@Model.ModuleTitle</a></li>
+        <li><span>@Model.ModuleTitle</span></li>
         <li aria-current="page">@Model.Title</li>
     </ol>
 }
@@ -24,10 +24,10 @@
 <div class="lesson-study-layout learning-screens lesson-study-redesign">
     <header class="lesson-hero">
         <div class="lesson-hero-content">
-            <a class="lesson-chapter" asp-action="Module" asp-route-id="@Model.ModuleId">
+            <span class="lesson-chapter">
                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg>
                 @Model.ModuleTitle
-            </a>
+            </span>
             <h1 class="learning-title">@Model.Title</h1>
             @if (Model.IsCompleted)
             {
@@ -49,6 +49,13 @@
             </a>
         }
     </header>
+
+    <div class="lesson-top-backbar">
+        <a class="button secondary lesson-back-btn" asp-action="Course" asp-route-id="@Model.CourseId" asp-fragment="course-lessons-title">
+            <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+            <span>Quay lại nội dung khóa học</span>
+        </a>
+    </div>
 
     <partial name="_CourseNotice" />
     @if (Model.CourseStatus == CourseStatus.Archived)
@@ -78,7 +85,7 @@
             </div>
         </article>
 
-        @if (Model.Progress is not null || Model.CanRecordProgress || Model.Resources.Count > 1)
+        @if (Model.Progress is not null || Model.CanRecordProgress || Model.Resources.Count > 1 || Model.CourseModules.Count > 0)
         {
             <aside class="lesson-study-aside" aria-label="Tiến độ và học liệu">
                 @if (Model.Progress is not null || Model.CanRecordProgress)
@@ -120,6 +127,47 @@
                                 <li><a href="#lesson-resource-@index">@(string.IsNullOrWhiteSpace(resource.Title) ? $"Học liệu {index + 1}" : resource.Title)</a></li>
                             }
                         </ol>
+                    </nav>
+                }
+                @if (Model.CourseModules.Any(m => m.Lessons.Count > 0))
+                {
+                    <nav class="learning-surface lesson-outline-nav" aria-label="Đề cương khóa học">
+                        <div class="lesson-outline-header">
+                            <h2>Nội dung khóa học</h2>
+                            <a asp-action="Course" asp-route-id="@Model.CourseId">Tất cả</a>
+                        </div>
+                        <div class="lesson-outline-modules">
+                            @for (var mIdx = 0; mIdx < Model.CourseModules.Count; mIdx++)
+                            {
+                                var mod = Model.CourseModules[mIdx];
+                                if (mod.Lessons.Count == 0) continue;
+                                <details class="lesson-outline-module" open="@(mod.Id == Model.ModuleId)">
+                                    <summary>
+                                        <span>@((mIdx + 1).ToString("00")). @mod.Title</span>
+                                        <small>@mod.Lessons.Count</small>
+                                    </summary>
+                                    <ul>
+                                        @foreach (var item in mod.Lessons)
+                                        {
+                                            bool isCurrent = item.Id == Model.Id;
+                                            <li>
+                                                <a class="lesson-outline-link @(isCurrent ? "is-current" : "") @(item.IsCompleted ? "is-done" : "")"
+                                                   asp-action="Lesson" asp-route-id="@item.Id"
+                                                   aria-current="@(isCurrent ? "page" : null)">
+                                                    <span class="lesson-outline-dot" aria-hidden="true">
+                                                        @if (item.IsCompleted)
+                                                        {
+                                                            <svg class="icon"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+                                                        }
+                                                    </span>
+                                                    <span>@item.Title</span>
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </details>
+                            }
+                        </div>
                     </nav>
                 }
             </aside>

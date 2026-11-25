@@ -1,0 +1,92 @@
+@{
+    Layout = "_LayoutStudent";
+    ViewData["Title"] = "Từ điển Anh – Việt";
+    ViewData["ActiveSection"] = "dictionary";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student-today.css" asp-append-version="true" />
+}
+@section Scripts {
+    <script src="~/js/dictionary.js" asp-append-version="true" defer></script>
+}
+
+<div class="activity-scene dictionary-page" data-dictionary-widget data-lookup-url="@Url.Action("Lookup", "Dictionary")">
+    <header class="activity-hero">
+        <div>
+            <h1>Từ điển Anh – Việt</h1>
+            <p>Tra cứu nhanh nghĩa từ và cụm từ 2 chiều Anh – Việt, xem phiên âm IPA, ví dụ ngữ cảnh và nghe phát âm chuẩn.</p>
+        </div>
+        <div class="activity-actions">
+            <a class="button secondary" asp-controller="Learning" asp-action="Dashboard">Về trang chủ</a>
+        </div>
+    </header>
+
+    <div class="dictionary-layout">
+        <div class="dictionary-main">
+            <section class="activity-panel today-dictionary-card" aria-labelledby="dict-search-heading">
+                <header class="today-dict-header">
+                    <div>
+                        <h2 id="dict-search-heading">Tra cứu từ vựng</h2>
+                    </div>
+                    <div class="today-dict-directions" role="group" aria-label="Chiều dịch">
+                        <button type="button" class="today-dict-dir is-active" data-dict-dir="en-vi" aria-pressed="true">Anh → Việt</button>
+                        <button type="button" class="today-dict-dir" data-dict-dir="vi-en" aria-pressed="false">Việt → Anh</button>
+                    </div>
+                </header>
+
+                <form class="today-dict-form" data-dict-form role="search" aria-label="Tra từ Anh Việt">
+                    <div class="today-dict-input-wrap">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                        <input type="search" maxlength="200" autocomplete="off" autofocus
+                               placeholder="Nhập từ hoặc cụm từ tiếng Anh (vd: carrot, deadline, sustainable)..."
+                               aria-label="Từ cần tra" data-dict-input />
+                    </div>
+                    <button class="button today-dict-submit" type="submit" data-dict-submit>Tra từ</button>
+                </form>
+
+                <div class="dictionary-suggestions" aria-label="Gợi ý tra nhanh">
+                    <span class="today-muted">Gợi ý:</span>
+                    <button type="button" class="activity-pill" data-dict-sample="sustainable" data-sample-dir="en-vi">sustainable</button>
+                    <button type="button" class="activity-pill" data-dict-sample="deadline" data-sample-dir="en-vi">deadline</button>
+                    <button type="button" class="activity-pill" data-dict-sample="proficient" data-sample-dir="en-vi">proficient</button>
+                    <button type="button" class="activity-pill" data-dict-sample="thành công" data-sample-dir="vi-en">thành công</button>
+                    <button type="button" class="activity-pill" data-dict-sample="kinh nghiệm" data-sample-dir="vi-en">kinh nghiệm</button>
+                </div>
+
+                <div class="today-dict-status today-muted" data-dict-status role="status" hidden></div>
+
+                <div class="today-dict-result" data-dict-result hidden>
+                    <div class="today-dict-result-head">
+                        <div>
+                            <strong class="today-dict-word" data-dict-word></strong>
+                            <span class="today-dict-phonetic" data-dict-phonetic hidden></span>
+                        </div>
+                        <button type="button" class="today-dict-audio-btn" data-dict-audio-btn hidden aria-label="Nghe phát âm">
+                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#headphones")"></use></svg>
+                            <span>Phát âm</span>
+                        </button>
+                    </div>
+                    <p class="today-dict-translation" data-dict-translation></p>
+                    <div class="dict-alt-row" data-dict-alt-wrap hidden>
+                        <span class="today-muted">Nghĩa khác:</span>
+                        <div class="dict-chip-list" data-dict-alts></div>
+                    </div>
+                    <div class="dict-groups" data-dict-groups hidden></div>
+                    <p class="today-dict-source today-muted" data-dict-source></p>
+                </div>
+            </section>
+        </div>
+
+        <aside class="dictionary-aside">
+            <section class="activity-panel dictionary-history-card" aria-labelledby="dict-history-title">
+                <header class="dictionary-history-head">
+                    <h2 id="dict-history-title">Tra gần đây</h2>
+                    <button type="button" class="dictionary-clear-btn" data-dict-clear-history hidden>Xóa</button>
+                </header>
+                <p class="today-muted" data-dict-history-empty>Các từ bạn vừa tra sẽ được lưu tại đây để ôn lại nhanh.</p>
+                <ul class="dictionary-history-list" data-dict-history-list hidden></ul>
+            </section>
+        </aside>
+    </div>
+</div>

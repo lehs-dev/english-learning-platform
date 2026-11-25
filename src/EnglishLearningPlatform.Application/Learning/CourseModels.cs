@@ -58,6 +58,7 @@ public sealed record LessonPage(Guid Id, Guid CourseId, string CourseTitle, stri
     public Guid? FinalAssessmentId { get; init; }
     public LessonOutline? Previous { get; init; }
     public LessonOutline? Next { get; init; }
+    public IReadOnlyList<ModuleOutline> CourseModules { get; init; } = [];
 }
 public sealed record LearningOutcome<T>(LearningAccessResult Access, T? Value = default);
 public sealed record WriteOutcome(LearningAccessResult Access, Guid Id, IReadOnlyDictionary<string, string[]> Errors)

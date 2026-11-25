@@ -2,29 +2,97 @@
 @{
     Layout = "_LayoutStudent";
     ViewData["Title"] = "Thành tích";
-    ViewData["ActiveSection"] = "achievements";
+    ViewData["ActiveSection"] = "progress";
 }
-<h1>Thành tích của bạn</h1>
-<p>Chuỗi ngày học được tính từ 0 giờ theo giờ Việt Nam. Bạn có thể hoàn thành bài học, nộp bài luyện tập hoặc bài viết, làm bài thi có đáp án hoặc ôn ít nhất một thẻ để ghi nhận ngày học.</p>
-<div class="estudy-stats">
-    <article class="card"><h2>@Model.TotalXp XP</h2><p>Tổng điểm kinh nghiệm</p></article>
-    <article class="card"><h2>@Model.CurrentStreak ngày</h2><p>Chuỗi học hiện tại · @(Model.StudiedToday ? "Đã học hôm nay" : "Hôm nay chưa ghi nhận")</p></article>
-    <article class="card"><h2>@Model.LongestStreak ngày</h2><p>Chuỗi học dài nhất</p></article>
+@section Styles {
+    <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
+}
+@section Breadcrumbs {
+    <nav class="studio-breadcrumbs" aria-label="Đường dẫn điều hướng">
+        <ol class="breadcrumb-list">
+            <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Dashboard">Trang chủ</a></li>
+            <li class="breadcrumb-separator" aria-hidden="true">/</li>
+            <li class="breadcrumb-item"><a asp-controller="Learning" asp-action="Progress" asp-route-tab="achievements">Tiến độ &amp; kết quả</a></li>
+            <li class="breadcrumb-separator" aria-hidden="true">/</li>
+            <li class="breadcrumb-item" aria-current="page">Thành tích</li>
+        </ol>
+    </nav>
+}
+
+<div class="learning-screens achievements-page">
+    <header class="course-study-hero achievements-hero">
+        <div class="course-hero-content">
+            <div class="learning-context">
+                <span>Hồ sơ học tập</span>
+                <span>@(Model.StudiedToday ? "Đã học hôm nay" : "Hôm nay chưa ghi nhận")</span>
+            </div>
+            <h1 class="learning-title">Thành tích của bạn</h1>
+            <p class="course-hero-teacher">Chuỗi ngày học được tính từ 0 giờ theo giờ Việt Nam qua mỗi bài học, bài luyện tập, bài viết, bài thi hoặc lượt ôn thẻ.</p>
+        </div>
+        <a class="button secondary lesson-hero-action" asp-controller="Learning" asp-action="Progress" asp-route-tab="achievements">
+            Về trang Tiến độ
+            <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
+        </a>
+    </header>
+
+    <section class="achievements-stats-grid" aria-label="Chỉ số học tập">
+        <article class="learning-surface achievements-stat-card">
+            <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#sparkles")"></use></svg></span>
+            <div>
+                <h2>@Model.TotalXp XP</h2>
+                <p>Tổng điểm kinh nghiệm</p>
+            </div>
+        </article>
+        <article class="learning-surface achievements-stat-card">
+            <span class="learning-emblem is-teal"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg></span>
+            <div>
+                <h2>@Model.CurrentStreak ngày</h2>
+                <p>Chuỗi học hiện tại · @(Model.StudiedToday ? "Đã học hôm nay" : "Hôm nay chưa ghi nhận")</p>
+            </div>
+        </article>
+        <article class="learning-surface achievements-stat-card">
+            <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg></span>
+            <div>
+                <h2>@Model.LongestStreak ngày</h2>
+                <p>Chuỗi học dài nhất</p>
+            </div>
+        </article>
+    </section>
+
+    <section class="learning-surface achievements-section" aria-labelledby="achievements-badges-heading">
+        <div class="achievements-section-head">
+            <h2 id="achievements-badges-heading">Huy hiệu</h2>
+            <span class="muted">@Model.Badges.Count danh hiệu</span>
+        </div>
+        @if (Model.Badges.Count == 0)
+        {
+            <div class="achievements-empty">
+                <span class="learning-emblem"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg></span>
+                <div>
+                    <p>Hoàn thành bài học đầu tiên để nhận huy hiệu.</p>
+                    <a class="button" asp-controller="Learning" asp-action="Index">Đến khóa học của tôi</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="achievements-badges-grid">
+                @foreach (var badge in Model.Badges)
+                {
+                    <article class="achievements-badge-card">
+                        <span class="learning-emblem is-teal"><svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg></span>
+                        <div>
+                            <h3>@badge.Title</h3>
+                            <p>Nhận ngày @badge.AwardedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <details class="learning-surface achievements-xp-guide">
+        <summary>Cách nhận XP</summary>
+        <p>Bài học: 10 XP một lần. Mỗi bài luyện tập: 5 XP/ngày và thêm 10 XP khi đạt ít nhất 80%. Ôn 5 thẻ khác nhau trong một bộ: 5 XP/ngày. Hoàn thành 2 hoạt động khác nhau: thêm 10 XP/ngày.</p>
+    </details>
 </div>
-<h2>Huy hiệu</h2>
-@if (Model.Badges.Count == 0)
-{
-    <p>Hoàn thành bài học đầu tiên để nhận huy hiệu.</p>
-    <a class="button button-primary" asp-controller="Learning" asp-action="Index">Đến khóa học của tôi</a>
-}
-else
-{
-    <div class="estudy-stats">
-    @foreach (var badge in Model.Badges)
-    {
-        <article class="card"><h3>🏅 @badge.Title</h3><p>Nhận ngày @badge.AwardedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</p></article>
-    }
-    </div>
-}
-<details><summary>Cách nhận XP</summary><p>Bài học: 10 XP một lần. Mỗi bài luyện tập: 5 XP/ngày và thêm 10 XP khi đạt ít nhất 80%. Ôn 5 thẻ khác nhau trong một bộ: 5 XP/ngày. Hoàn thành 2 hoạt động khác nhau: thêm 10 XP/ngày.</p></details>
-@section Styles { <style>.estudy-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:1rem;margin:1.5rem 0}.estudy-stats .card{padding:1.5rem}</style> }

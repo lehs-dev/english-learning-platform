@@ -77,6 +77,20 @@
         else
         {
             <p class="muted">Chỉ hiển thị kỹ năng có ít nhất 3 câu hỏi khác nhau. Điểm yếu được xác định khi điểm gốc dưới 60%, độc lập với ngưỡng đạt của bài.</p>
+            <div class="assessment-skill-bars" aria-label="Biểu đồ điểm theo kỹ năng">
+                @foreach (var skill in Model.SkillBreakdowns)
+                {
+                    <div class="assessment-skill-bar-item">
+                        <div class="assessment-skill-bar-head">
+                            <strong><partial name="_UiText" model="skill.Skill" /></strong>
+                            <span class="assessment-skill-score @(skill.IsWeak ? "is-weak" : "is-strong")">@skill.Score.ToString("0.##")%</span>
+                        </div>
+                        <div class="assessment-skill-track" aria-hidden="true">
+                            <div class="assessment-skill-fill @(skill.IsWeak ? "is-weak" : "")" style="width: @skill.Score.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%;"></div>
+                        </div>
+                    </div>
+                }
+            </div>
             <div class="assessment-table-wrap" role="region" aria-label="Điểm theo kỹ năng" tabindex="0">
                 <table class="assessment-table">
                     <caption class="visually-hidden">Điểm kỹ năng chi tiết</caption>
