@@ -5,7 +5,26 @@
     <link rel="stylesheet" href="~/css/student-learning.css" asp-append-version="true" />
 }
 <div class="learning-screens flashcard-study-page">
-<div class="fc-heading"><div><a asp-action="Index">← Các bộ thẻ</a><h1 class="learning-title">@Model.Title</h1><p aria-live="polite"><strong>@Model.DueCount</strong> thẻ đến hạn / @Model.TotalCards thẻ</p></div></div>
+@{
+    int completedCards = Model.TotalCards > 0 ? Math.Max(0, Model.TotalCards - Model.DueCount) : 0;
+    int progressPct = Model.TotalCards > 0 ? (int)Math.Round(completedCards * 100.0 / Model.TotalCards) : 100;
+}
+<div class="fc-heading">
+    <div>
+        <a asp-action="Index">← Các bộ thẻ</a>
+        <h1 class="learning-title">@Model.Title</h1>
+        <p aria-live="polite"><strong>@Model.DueCount</strong> thẻ đến hạn / @Model.TotalCards thẻ</p>
+    </div>
+</div>
+@if (Model.TotalCards > 0)
+{
+    <div class="fc-session-progress" aria-label="Tiến độ phiên ôn">
+        <div class="fc-session-track" aria-hidden="true">
+            <div class="fc-session-fill" style="width: @(progressPct)%;"></div>
+        </div>
+        <span class="muted">@completedCards / @Model.TotalCards thẻ đã ôn</span>
+    </div>
+}
 @if (TempData["Success"] is string success) { <p class="fc-notice" role="status">@success</p> }
 @if (Model.Card is {} card)
 {
@@ -19,11 +38,11 @@
             <p>Bạn nhớ thẻ này đến mức nào?</p>
             <form asp-action="Review" asp-route-id="@Model.DeckId" method="post" class="fc-ratings">
                 <input type="hidden" name="flashcardId" value="@card.Id" /><input type="hidden" name="reviewRequestId" value="@Model.ReviewRequestId" />
-                <button class="button secondary" type="submit" name="rating" value="Again">Chưa nhớ</button>
-                <button class="button secondary" type="submit" name="rating" value="Hard">Còn khó</button>
-                <button class="button" type="submit" name="rating" value="Good">Đã nhớ</button>
+                <button class="button secondary" type="submit" name="rating" value="Again" data-flashcard-rating="1">Chưa nhớ (1)</button>
+                <button class="button secondary" type="submit" name="rating" value="Hard" data-flashcard-rating="2">Còn khó (2)</button>
+                <button class="button" type="submit" name="rating" value="Good" data-flashcard-rating="3">Đã nhớ (3)</button>
             </form>
-            <p class="muted">Chưa nhớ: ôn lại sau 10 phút. Còn khó: ngày mai. Đã nhớ: giãn dần theo số lần ôn.</p>
+            <p class="muted fc-shortcuts-hint">Chưa nhớ: ôn lại sau 10 phút. Còn khó: ngày mai. Đã nhớ: giãn dần theo số lần ôn. Phím tắt: <kbd>Space</kbd> lật thẻ, <kbd>1</kbd>–<kbd>3</kbd> đánh giá.</p>
         </div>
         <noscript><p>Vui lòng bật JavaScript để lật thẻ và gửi đánh giá.</p></noscript>
     </div>

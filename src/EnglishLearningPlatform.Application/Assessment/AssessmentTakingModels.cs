@@ -23,6 +23,7 @@ public sealed record AssessmentQuestionTakingModel(
 {
     public string? AudioUrl { get; init; }
     public QuestionType QuestionType { get; init; } = QuestionType.MultipleChoice;
+    public EnglishSkill? PrimarySkill { get; init; }
     public string? TextAnswer { get; init; }
     public string? StructuredAnswerJson { get; init; }
     public StructuredQuestionPrompt? StructuredPrompt { get; init; }

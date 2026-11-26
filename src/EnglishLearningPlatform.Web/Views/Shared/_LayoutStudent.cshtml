@@ -5,12 +5,11 @@
     {
         "learning" when string.Equals(routeAction, "Dashboard", StringComparison.OrdinalIgnoreCase) => "dashboard",
         "learning" when string.Equals(routeAction, "Progress", StringComparison.OrdinalIgnoreCase) => "progress",
-        "learning" or "courses" => "courses",
-        "practice" => "courses",
+        "learning" or "courses" or "homework" or "coursediscussion" or "practice" or "flashcards" => "courses",
         "learningpath" => "dashboard",
-        "flashcards" => "courses",
         "achievements" => "progress",
-        "assessment" => "progress",
+        "assessment" => "assessment",
+        "dictionary" => "dictionary",
         "checkout" when string.Equals(routeAction, "History", StringComparison.OrdinalIgnoreCase) => "profile",
         "profile" => "profile",
         _ => ""
@@ -57,17 +56,22 @@
                     <a class="studio-nav-link @(activeSection == "dashboard" ? "is-active" : "")"
                        asp-controller="Learning" asp-action="Dashboard" aria-current="@(activeSection == "dashboard" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#dashboard")"></use></svg>
-                        <span>Hôm nay</span>
+                        <span>Trang chủ</span>
                     </a>
                     <a class="studio-nav-link @(activeSection is "courses" or "mycourses" or "learning" ? "is-active" : "")"
                        asp-controller="Learning" asp-action="Index" aria-current="@(activeSection is "courses" or "mycourses" or "learning" ? "page" : null)">
                         <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
                         <span>Khóa học của tôi</span>
                     </a>
-                    <a class="studio-nav-link @(activeSection is "progress" or "achievements" ? "is-active" : "")"
-                       asp-controller="Learning" asp-action="Progress" aria-current="@(activeSection is "progress" or "achievements" ? "page" : null)">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
-                        <span>Tiến độ &amp; kết quả</span>
+                    <a class="studio-nav-link @(activeSection == "assessment" ? "is-active" : "")"
+                       asp-controller="Assessment" asp-action="Index" aria-current="@(activeSection == "assessment" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
+                        <span>Đề thi</span>
+                    </a>
+                    <a class="studio-nav-link @(activeSection == "dictionary" ? "is-active" : "")"
+                       asp-controller="Dictionary" asp-action="Index" aria-current="@(activeSection == "dictionary" ? "page" : null)">
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
+                        <span>Từ điển</span>
                     </a>
                 </div>
             </nav>
@@ -89,7 +93,7 @@
                 <div class="studio-topbar-actions">
                     @if (!isFocusMode)
                     {
-                        <a class="student-topbar-discover" asp-controller="Courses" asp-action="Index">
+                        <a class="student-topbar-discover" asp-controller="Learning" asp-action="Index" asp-fragment="discover-courses">
                             <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#search")"></use></svg>
                             Khám phá
                         </a>

@@ -25,11 +25,21 @@
     const textTimers = new Map();
     const dialog = form.querySelector('[data-submit-dialog]');
     const questions = [...form.querySelectorAll('[data-question]')];
+    const paletteFilters = [...form.querySelectorAll('[data-palette-filter]')];
+    let activePaletteFilter = 'all';
     const hasAnswer = question => Boolean(
         question.querySelector('input[type="radio"]:checked')?.value ||
         question.querySelector('[data-assessment-text]')?.value.trim() ||
         question.querySelector('[data-structured-answer]')?.value);
     const answeredCount = () => questions.filter(hasAnswer).length;
+    const applyPaletteFilter = () => {
+        questions.forEach((question, index) => {
+            const link = form.querySelector(`[data-question-link="${index + 1}"]`);
+            if (!link) return;
+            const hide = activePaletteFilter === 'unanswered' && hasAnswer(question);
+            link.hidden = hide;
+        });
+    };
     const updateProgress = () => {
         const progressEl = form.querySelector('[data-answer-progress]');
         if (progressEl) progressEl.textContent = `${answeredCount()}/${questions.length} câu đã trả lời`;
@@ -45,7 +55,21 @@
                 card.classList.toggle('is-selected', Boolean(radio && radio.checked));
             });
         });
+        applyPaletteFilter();
     };
+    paletteFilters.forEach(btn => btn.addEventListener('click', () => {
+        activePaletteFilter = btn.dataset.paletteFilter || 'all';
+        paletteFilters.forEach(other => {
+            const active = other === btn;
+            other.classList.toggle('is-active', active);
+            other.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        applyPaletteFilter();
+    }));
+    form.querySelectorAll('[data-question-link]').forEach(link => link.addEventListener('click', () => {
+        form.querySelectorAll('[data-question-link]').forEach(other => other.classList.remove('is-current'));
+        link.classList.add('is-current');
+    }));
     const answerIndex = question => question.querySelector('input[name$=".AssessmentQuestionId"]')
         ?.name.match(/^Answers\[([^\]]+)\]\.AssessmentQuestionId$/)?.[1];
     const updateSaveStatus = () => {

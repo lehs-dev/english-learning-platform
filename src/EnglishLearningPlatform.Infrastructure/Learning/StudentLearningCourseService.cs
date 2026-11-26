@@ -71,7 +71,9 @@ public sealed class StudentLearningCourseService(
             l.Module.Course.FinalAssessmentId
         }).SingleAsync(ct);
         var owner = await Manage(userId, lesson.CourseId, ct) == LearningAccessResult.Allowed;
-        var navigation = (await queries.OutlineAsync(lesson.CourseId, owner, ct)).SelectMany(m => m.Lessons).ToList();
+        var modules = await queries.OutlineAsync(lesson.CourseId, owner, ct);
+        if (!owner) modules = await courseProgress.CompletedOutlineAsync(userId, lesson.CourseId, modules, ct);
+        var navigation = modules.SelectMany(m => m.Lessons).ToList();
         var position = navigation.FindIndex(l => l.Id == id);
         var progress = owner ? null : (await courseProgress.GetAsync(userId, [lesson.CourseId], ct)).GetValueOrDefault(lesson.CourseId);
         var completed = !owner && await db.LessonProgressEntries.AnyAsync(p => p.LessonId == id && p.IsCompleted &&
@@ -86,7 +88,8 @@ public sealed class StudentLearningCourseService(
             Progress = progress,
             FinalAssessmentId = module.FinalAssessmentId,
             Previous = position > 0 ? navigation[position - 1] : null,
-            Next = position >= 0 && position + 1 < navigation.Count ? navigation[position + 1] : null
+            Next = position >= 0 && position + 1 < navigation.Count ? navigation[position + 1] : null,
+            CourseModules = modules
         });
     }
 

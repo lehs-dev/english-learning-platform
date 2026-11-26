@@ -4,7 +4,12 @@
     ViewData["ActiveSection"] = "courses";
     ViewData["FocusMode"] = true;
     ViewData["PageClass"] = "practice-taking-page";
-    var hasPassage = Model.Questions.Any(q => !string.IsNullOrWhiteSpace(q.Passage));
+    var passages = Model.Questions
+        .Select(q => q.Passage)
+        .Where(p => !string.IsNullOrWhiteSpace(p))
+        .Distinct()
+        .ToList();
+    var hasPassage = passages.Count > 0;
     var isMistakeReview = Model.ReviewStamp is not null;
 }
 @section Breadcrumbs {
@@ -55,7 +60,7 @@
         </div>
     </header>
 
-    <form method="post" asp-action="@(isMistakeReview ? "CheckReview" : "Submit")" asp-route-id="@Model.Id" class="exam-form-grid @(hasPassage ? "practice-reading-grid" : "practice-single-grid")" data-practice-form>
+    <form method="post" asp-action="@(isMistakeReview ? "CheckReview" : "Submit")" asp-route-id="@Model.Id" class="exam-form-grid practice-study4-grid" data-practice-form>
         @if (isMistakeReview)
         {
             <input type="hidden" name="ReviewStamp" value="@Model.ReviewStamp" />
@@ -65,30 +70,37 @@
             <input type="hidden" name="SessionId" value="@Model.SessionId" />
         }
 
-        @if (hasPassage)
-        {
-            <details class="practice-passages" id="practice-passages" tabindex="-1" open>
-                <summary>
-                    <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                    Bài đọc / Ngữ cảnh
-                </summary>
-                @foreach (var passage in Model.Questions.Where(q => !string.IsNullOrWhiteSpace(q.Passage)).Select(q => q.Passage).Distinct())
-                {
-                    <div class="exam-stimulus-box preserve">@passage</div>
-                }
-                @if (Model.Questions.Count > 0)
-                {
-                    <a class="practice-skip-to-question" href="#practice-question-1">Đến câu hỏi ↓</a>
-                }
-            </details>
-        }
-
-        <!-- Questions Column -->
+        <!-- LEFT: Passages + All Questions Expanded (Study4 style) -->
         <div class="exam-questions-column">
+            @if (hasPassage)
+            {
+                <details class="practice-passages" id="practice-passages" tabindex="-1" open>
+                    <summary>
+                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                        Bài đọc / Ngữ cảnh @(passages.Count > 1 ? $"({passages.Count} đoạn)" : "")
+                    </summary>
+                    @for (var pIdx = 0; pIdx < passages.Count; pIdx++)
+                    {
+                        <div class="exam-stimulus-box preserve" data-passage-box="@pIdx">
+                            @if (passages.Count > 1)
+                            {
+                                <div class="stimulus-label">Đoạn @(pIdx + 1)</div>
+                            }
+                            @passages[pIdx]
+                        </div>
+                    }
+                    @if (Model.Questions.Count > 0)
+                    {
+                        <a class="practice-skip-to-question" href="#practice-question-1">Đến câu hỏi ↓</a>
+                    }
+                </details>
+            }
+
             @for (var index = 0; index < Model.Questions.Count; index++)
             {
                 var question = Model.Questions[index];
-                <fieldset class="exam-question-card @(index == 0 ? "is-active-question" : "")" id="practice-question-@(index + 1)" tabindex="-1" aria-label="Câu @(index + 1)" data-practice-question data-question-index="@index">
+                var passageIndex = !string.IsNullOrWhiteSpace(question.Passage) ? passages.IndexOf(question.Passage!) : -1;
+                <fieldset class="exam-question-card @(index == 0 ? "is-active-question" : "")" id="practice-question-@(index + 1)" tabindex="-1" aria-label="Câu @(index + 1)" data-practice-question data-question-index="@index" data-question-passage="@passageIndex">
                     <input type="hidden" name="Answers[@index].PracticeQuestionId" value="@question.Id" />
                     
                     <div class="exam-question-header">
@@ -127,28 +139,49 @@
             }
         </div>
 
-        <div class="practice-bottom-bar" role="group" aria-label="Bảng điều khiển làm bài">
-            <div class="practice-palette-strip" role="group" aria-label="Danh sách câu hỏi" hidden>
-                @for (var index = 0; index < Model.Questions.Count; index++)
-                {
-                    <button class="practice-palette-btn @(index == 0 ? "is-current" : "")" type="button" data-practice-link="@(index + 1)" aria-label="Đến câu @(index + 1)">
-                        @(index + 1)
+        <!-- RIGHT: Sticky Question Palette & Submit (Study4 style) -->
+        <aside class="exam-sidebar-column" aria-label="Bảng câu hỏi và nộp bài">
+            <div class="exam-sticky-console">
+                <div class="exam-actions-card">
+                    <button class="button exam-submit-btn" type="submit" data-practice-submit aria-label="@(isMistakeReview ? "Chấm lượt ôn" : "Nộp bài & Xem giải thích")">
+                        @if (isMistakeReview)
+                        {
+                            <span>Chấm lượt ôn</span>
+                        }
+                        else
+                        {
+                            <span>Nộp bài<span class="practice-submit-description"> &amp; Xem giải thích</span></span>
+                        }
                     </button>
-                }
+                    <p class="exam-timer-note practice-sidebar-note" data-practice-sidebar-status>Làm toàn bộ câu hỏi ở bên trái rồi bấm nộp bài.</p>
+                </div>
+
+                <nav class="exam-palette-card" aria-label="Danh sách câu hỏi">
+                    <div class="exam-palette-header">
+                        <h3>Danh sách câu hỏi</h3>
+                        <p class="exam-timer-note" data-practice-palette-progress>0/@Model.Questions.Count đã làm</p>
+                    </div>
+                    <div class="exam-palette-grid practice-palette-grid">
+                        @for (var index = 0; index < Model.Questions.Count; index++)
+                        {
+                            <button class="exam-palette-btn practice-palette-btn @(index == 0 ? "is-current" : "")" type="button" data-practice-link="@(index + 1)" aria-label="Đến câu @(index + 1)">
+                                @(index + 1)
+                            </button>
+                        }
+                    </div>
+                    <div class="exam-palette-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot is-answered"></span>
+                            <span>Đã làm</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot"></span>
+                            <span>Chưa làm</span>
+                        </div>
+                    </div>
+                </nav>
             </div>
-            <button class="button secondary practice-nav-btn" type="button" data-practice-prev aria-label="Câu trước" hidden disabled>Câu trước</button>
-            <button class="button secondary practice-nav-btn" type="button" data-practice-next aria-label="Câu tiếp theo" hidden disabled>Tiếp theo</button>
-            <button class="button exam-submit-btn" type="submit" data-practice-submit aria-label="@(isMistakeReview ? "Chấm lượt ôn" : "Nộp bài & Xem giải thích")">
-                @if (isMistakeReview)
-                {
-                    <span>Chấm lượt ôn</span>
-                }
-                else
-                {
-                    <span>Nộp bài<span class="practice-submit-description"> &amp; Xem giải thích</span></span>
-                }
-            </button>
-        </div>
+        </aside>
     </form>
 </div>
 

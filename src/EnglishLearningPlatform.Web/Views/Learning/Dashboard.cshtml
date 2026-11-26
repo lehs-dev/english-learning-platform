@@ -6,7 +6,7 @@
 @inject TimeProvider Clock
 
 @{
-    ViewData["Title"] = "Hôm nay";
+    ViewData["Title"] = "Trang chủ";
     ViewData["ActiveSection"] = "dashboard";
     ViewData["PageClass"] = "student-today-page";
 
@@ -62,7 +62,7 @@
                 <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clock")"></use></svg>
                 @shortDate
             </time>
-            <h1 class="today-title">Hôm nay</h1>
+            <h1 class="today-title">Trang chủ</h1>
         </div>
         @if (gamification is { } summary)
         {
@@ -71,10 +71,6 @@
                 @summary.CurrentStreak ngày
             </a>
         }
-        <a class="today-header-link" asp-controller="Learning" asp-action="Progress">
-            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#chart-bars")"></use></svg>
-            Tiến độ học tập
-        </a>
     </header>
 
     <div class="dashboard-columns-grid">
@@ -118,37 +114,13 @@
                     }
                     else
                     {
-                        <a asp-controller="Courses" asp-action="Index" class="today-hero-button">
+                        <a asp-action="Index" asp-fragment="discover-courses" class="today-hero-button">
                             Khám phá khóa học <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                         </a>
                     }
                 </div>
                 <img class="hero-promo-art" src="~/images/study-desk-cover.webp" asp-append-version="true" alt="" width="1200" height="800" fetchpriority="high" />
             </section>
-
-            <nav class="today-activity-links" aria-label="Hoạt động học tập">
-                <a class="today-shortcut" asp-controller="Practice" asp-action="Index">
-                    <span class="today-icon-tile">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#target")"></use></svg>
-                    </span>
-                    <span>Luyện tập</span>
-                    <svg class="icon today-link-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                </a>
-                <a class="today-shortcut" asp-controller="Assessment" asp-action="Index">
-                    <span class="today-icon-tile today-icon-tile--teal">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#clipboard-check")"></use></svg>
-                    </span>
-                    <span>Bài kiểm tra</span>
-                    <svg class="icon today-link-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                </a>
-                <a class="today-shortcut" asp-controller="Flashcards" asp-action="Index">
-                    <span class="today-icon-tile today-icon-tile--warm">
-                        <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#folder")"></use></svg>
-                    </span>
-                    <span>Ôn từ vựng</span>
-                    <svg class="icon today-link-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
-                </a>
-            </nav>
 
             <partial name="_TodayCoursework" model="Model.Coursework" />
 
@@ -459,71 +431,6 @@
                         </div>
                     }
                 </div>
-            </section>
-
-            <section class="today-rail-card" id="dashboard-results" aria-labelledby="today-results-title">
-                <header class="today-rail-heading">
-                    <h2 id="today-results-title">Kết quả cao nhất</h2>
-                    <a asp-action="Progress" asp-route-tab="assessments">Tất cả</a>
-                </header>
-                @if (Model.Results.Count > 0)
-                {
-                    <ul class="today-plain-list">
-                        @foreach (var result in Model.Results.Take(2))
-                        {
-                            <li class="today-result" data-representative-attempt="@result.AttemptId">
-                                <div>
-                                    <a asp-controller="Assessment" asp-action="Result" asp-route-id="@result.AttemptId">@result.Title</a>
-                                    <time datetime="@result.FinalizedAtUtc.ToString("O")">@result.FinalizedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</time>
-                                    @if (result.Skills.Count > 0)
-                                    {
-                                        <div class="today-result-skills" aria-label="Điểm theo kỹ năng">
-                                            @foreach (var skill in result.Skills)
-                                            {
-                                                <span class="today-tag @(skill.IsWeak ? "today-tag--warm" : "")"><partial name="_UiText" model="skill.Skill" />: @skill.Score.ToString("0.##")%</span>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                                <strong>@result.OverallScore.ToString("0.##")%</strong>
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p class="today-muted">Bạn chưa có kết quả đánh giá.</p>
-                    <a asp-controller="Assessment" asp-action="Index" class="today-text-action">Làm bài kiểm tra đầu vào <svg class="icon ui-arrow" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg></a>
-                }
-            </section>
-
-            <section class="today-rail-card" id="dashboard-practice-results" aria-labelledby="dashboard-practice-results-title">
-                <header class="today-rail-heading">
-                    <h2 id="dashboard-practice-results-title">Luyện tập gần đây</h2>
-                    @if (Model.PracticeResults.Count > 0)
-                    {
-                        <a asp-controller="Practice" asp-action="Index">Xem tất cả (@Model.PracticeResults.Count)</a>
-                    }
-                </header>
-                @if (Model.PracticeResults.Count > 0)
-                {
-                    <ul class="today-plain-list">
-                        @foreach (var practice in Model.PracticeResults.Take(2))
-                        {
-                            <li class="today-result">
-                                <div>
-                                    <a asp-controller="Practice" asp-action="Result" asp-route-id="@practice.PracticeId">@practice.Title</a>
-                                    <time datetime="@practice.SubmittedAtUtc.ToString("O")">@practice.SubmittedAtUtc.ToOffset(TimeSpan.FromHours(7)).ToString("dd/MM/yyyy")</time>
-                                </div>
-                                <strong>@practice.Score.ToString("0.##")%</strong>
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p class="today-muted">Bạn chưa nộp bài luyện tập nào.</p>
-                }
             </section>
         </aside>
     </div>

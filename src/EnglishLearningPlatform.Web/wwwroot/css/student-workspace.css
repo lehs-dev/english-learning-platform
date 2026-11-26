@@ -53,7 +53,13 @@ body.student-workspace-v2 {
     letter-spacing: .09em;
 }
 
-.student-sidebar .studio-nav-group { gap: 5px; }
+.student-sidebar .studio-nav-group { gap: 4px; }
+.student-sidebar .studio-nav-group.student-nav-secondary {
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--workspace-line);
+}
+.student-sidebar .student-nav-secondary .workspace-caption { margin-bottom: 4px; }
 
 .student-sidebar .studio-nav-link {
     min-height: 46px;

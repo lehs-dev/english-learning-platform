@@ -400,3 +400,240 @@
     .activity-scene.assessment-taking .exam-palette-legend { margin-top: .4rem; padding-top: .4rem; }
     .activity-scene.assessment-taking .exam-intro-card { padding: .7rem; margin: 0; }
 }
+
+/* Assessment library filters & grouped exam stimulus */
+.activity-filter-panel {
+    display: grid;
+    gap: .8rem;
+    padding: clamp(.9rem, 2vw, 1.25rem);
+}
+
+.activity-filter-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem 1rem;
+    justify-content: space-between;
+}
+
+.activity-search-field {
+    position: relative;
+    flex: 1 1 16rem;
+    min-width: 0;
+}
+
+.activity-search-field .icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 17px;
+    height: 17px;
+    color: var(--activity-muted);
+    pointer-events: none;
+}
+
+.activity-search-field input {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 14px 9px 38px;
+    border: 1px solid var(--activity-border);
+    border-radius: 10px;
+    background: #f8fafd;
+    color: var(--activity-ink);
+    font-size: .92rem;
+}
+
+.activity-search-field input:focus {
+    outline: 2px solid var(--activity-primary);
+    outline-offset: 1px;
+    background: #fff;
+}
+
+.activity-filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+.activity-filter-group {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: .5rem .9rem;
+}
+
+.activity-filter-label {
+    font-size: .78rem;
+    font-weight: 800;
+    color: var(--activity-muted);
+    min-width: 6.5rem;
+}
+
+@media (max-width: 640px) {
+    .activity-filter-group {
+        grid-template-columns: minmax(0, 1fr);
+        gap: .35rem;
+    }
+}
+
+.activity-pill {
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid var(--activity-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--activity-muted);
+    font-size: .82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.activity-pill:hover {
+    border-color: #9cb3f0;
+    color: var(--activity-primary-dark);
+    background: #f6f8ff;
+}
+
+.activity-pill.is-active {
+    background: var(--activity-soft);
+    border-color: var(--activity-primary);
+    color: var(--activity-primary-dark);
+}
+
+.activity-card-heading .activity-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: .38rem;
+}
+
+.activity-card-heading .activity-meta .icon {
+    width: 14px;
+    height: 14px;
+}
+
+.exam-q-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .45rem;
+}
+
+.exam-stimulus-group {
+    display: grid;
+    gap: 1rem;
+    padding: clamp(.9rem, 2.2vw, 1.35rem);
+    border: 1px solid #d5e0f2;
+    border-radius: 20px;
+    background: #f8faff;
+}
+
+.exam-group-stimulus {
+    display: grid;
+    gap: .75rem;
+}
+
+.exam-group-stimulus .exam-stimulus-box {
+    background: #fff;
+    border: 1px solid var(--activity-border);
+    border-radius: 14px;
+}
+
+.exam-question-cluster {
+    display: grid;
+    gap: 1rem;
+}
+
+.exam-palette-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+.exam-palette-filters {
+    display: inline-flex;
+    gap: 4px;
+    padding: 2px;
+    border: 1px solid var(--activity-border);
+    border-radius: 8px;
+    background: #f4f7fc;
+}
+
+.exam-palette-filter {
+    padding: 3px 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--activity-muted);
+    font-size: .74rem;
+    font-weight: 700;
+}
+
+.exam-palette-filter.is-active {
+    background: #fff;
+    color: var(--activity-primary-dark);
+    box-shadow: 0 1px 3px rgb(16 35 71 / 8%);
+}
+
+.exam-palette-btn.is-current {
+    border-color: var(--activity-primary);
+    box-shadow: 0 0 0 2px rgb(52 87 213 / 22%);
+}
+
+.assessment-skill-bars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: .85rem 1.25rem;
+    margin-block: 1rem 1.25rem;
+    padding: 1rem;
+    border: 1px solid var(--activity-border);
+    border-radius: 14px;
+    background: #f8faff;
+}
+
+.assessment-skill-bar-item {
+    display: grid;
+    gap: .4rem;
+}
+
+.assessment-skill-bar-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .5rem;
+    font-size: .88rem;
+}
+
+.assessment-skill-score {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.assessment-skill-score.is-strong { color: #0f766e; }
+.assessment-skill-score.is-weak { color: #b45309; }
+
+.assessment-skill-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #e1e8f5;
+    overflow: hidden;
+}
+
+.assessment-skill-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: #0f766e;
+}
+
+.assessment-skill-fill.is-weak {
+    background: #d97706;
+}
+
+.practice-passages .exam-stimulus-box.is-active-passage {
+    background: #fff;
+    border: 1px solid var(--activity-primary);
+    box-shadow: 0 4px 14px rgb(52 87 213 / 10%);
+}

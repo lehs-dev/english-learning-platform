@@ -3,10 +3,11 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
     const questions = [...form.querySelectorAll('[data-practice-question]')];
     const links = [...form.querySelectorAll('[data-practice-link]')];
     const progress = document.querySelector('[data-practice-progress]');
+    const paletteProgress = form.querySelector('[data-practice-palette-progress]');
     const bar = document.querySelector('[data-practice-bar]');
     const prevBtn = form.querySelector('[data-practice-prev]');
     const nextBtn = form.querySelector('[data-practice-next]');
-    const palette = form.querySelector('.practice-palette-strip');
+    const palette = form.querySelector('.practice-palette-grid');
     const skipToQuestion = form.querySelector('.practice-skip-to-question');
     const submitBtn = form.querySelector('[data-practice-submit]');
     const confirmDialog = document.querySelector('[data-practice-confirm-dialog]');
@@ -59,6 +60,16 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
 
         const currentQuestion = questions[index];
         const currentLink = links[index];
+        if (passage) {
+            const pKey = currentQuestion.dataset.questionPassage;
+            passage.querySelectorAll('[data-passage-box]').forEach(box => {
+                const match = box.dataset.passageBox === pKey;
+                box.classList.toggle('is-active-passage', match);
+                if (match && box.parentElement === passage) {
+                    box.scrollIntoView({ block: 'nearest' });
+                }
+            });
+        }
         if (skipToQuestion) skipToQuestion.href = `#${currentQuestion.id}`;
         if (palette && currentLink) {
             const { left, right } = currentLink.getBoundingClientRect();
@@ -67,8 +78,7 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
         }
         if (focusQuestion) {
             currentQuestion.focus({ preventScroll: true });
-            const top = currentQuestion.getBoundingClientRect().top;
-            if (top < 24 || top > window.innerHeight / 2) currentQuestion.scrollIntoView({ block: 'start' });
+            currentQuestion.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
@@ -98,6 +108,9 @@ document.querySelectorAll('[data-practice-form]').forEach(form => {
         });
         if (progress) {
             progress.textContent = `${answered}/${questions.length} câu đã trả lời`;
+        }
+        if (paletteProgress) {
+            paletteProgress.textContent = `${answered}/${questions.length} đã làm`;
         }
         if (bar && questions.length > 0) {
             const pct = Math.round((answered / questions.length) * 100);

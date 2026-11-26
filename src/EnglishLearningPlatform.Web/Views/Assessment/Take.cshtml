@@ -4,7 +4,7 @@
 @model AssessmentTakePage
 @{
     ViewData["Title"] = Model.Sheet?.Title ?? Model.Overview!.Title;
-    ViewData["ActiveSection"] = "progress";
+    ViewData["ActiveSection"] = "assessment";
     ViewData["FocusMode"] = Model.Sheet is not null;
     var overview = Model.Overview;
 }
@@ -96,91 +96,142 @@
                     </div>
                 }
 
-                @for (var i = 0; i < sheet.Questions.Count; i++)
+                @for (var i = 0; i < sheet.Questions.Count;)
                 {
-                    var question = sheet.Questions[i];
-                    @* tabindex=-1 giúp liên kết số câu đưa focus đến đúng câu, không thêm Tab thừa. *@
-                    <fieldset class="exam-question-card" id="question-@(i + 1)" tabindex="-1" aria-label="Câu @(i + 1)" data-question>
-                        <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
-                        
-                        <div class="exam-question-header">
-                            <span class="activity-tag exam-q-badge">Câu @(i + 1)</span>
-                            <span class="exam-q-points">@question.Points.ToString("0.##") điểm</span>
-                        </div>
-
-                        @if (!string.IsNullOrWhiteSpace(question.StimulusContent))
+                    var lead = sheet.Questions[i];
+                    var hasSharedStimulus = !string.IsNullOrWhiteSpace(lead.StimulusContent) || lead.AudioUrl is not null;
+                    var groupEnd = i + 1;
+                    if (hasSharedStimulus)
+                    {
+                        while (groupEnd < sheet.Questions.Count &&
+                               string.Equals(sheet.Questions[groupEnd].StimulusContent, lead.StimulusContent, StringComparison.Ordinal) &&
+                               string.Equals(sheet.Questions[groupEnd].AudioUrl, lead.AudioUrl, StringComparison.Ordinal))
                         {
-                            <div class="exam-stimulus-box">
-                                <div class="stimulus-label">
-                                    <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                                    <span>Bài đọc / Ngữ cảnh:</span>
+                            groupEnd++;
+                        }
+                    }
+                    var isSharedGroup = hasSharedStimulus && (groupEnd - i) > 1;
+                    <div class="@(isSharedGroup ? "exam-stimulus-group" : "exam-question-cluster")">
+                        @if (isSharedGroup)
+                        {
+                            <div class="exam-group-stimulus">
+                                <div class="exam-group-stimulus-bar">
+                                    <span class="activity-tag">Ngữ cảnh chung · Câu @(i + 1)–@groupEnd</span>
                                 </div>
-                                <div class="preserve">@question.StimulusContent</div>
-                            </div>
-                        }
-
-                        <div class="exam-question-content preserve">@question.Content</div>
-
-                        @if (question.AudioUrl is not null)
-                        {
-                            <div class="exam-audio-box">
-                                <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
-                                <partial name="_ExternalStimulusAudioNotice" model="question.AudioUrl" />
-                                <p class="exam-timer-note">Nếu âm thanh không phát, kiểm tra kết nối rồi thử lại.</p>
-                            </div>
-                        }
-
-                        @if (question.QuestionType == QuestionType.MultipleChoice)
-                        {
-                            <div class="exam-options-list" role="radiogroup" aria-label="Đáp án câu @(i + 1)">
-                                @for (var optIdx = 0; optIdx < question.Options.Count; optIdx++)
+                                @if (!string.IsNullOrWhiteSpace(lead.StimulusContent))
                                 {
-                                    var option = question.Options[optIdx];
-                                    var optionLetter = (char)('A' + optIdx);
-                                    var isChecked = question.SelectedOptionId == option.Id;
-                                    <label class="exam-option-card @(isChecked ? "is-selected" : "")" for="option-@option.Id">
-                                        <input type="radio" id="option-@option.Id" class="exam-option-radio" name="Answers[@i].SelectedOptionId" value="@option.Id" checked="@isChecked" />
-                                        <span class="exam-option-badge">@optionLetter</span>
-                                        <span class="exam-option-text preserve">@option.Content</span>
-                                    </label>
+                                    <div class="exam-stimulus-box">
+                                        <div class="stimulus-label">
+                                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                                            <span>Bài đọc / Ngữ cảnh:</span>
+                                        </div>
+                                        <div class="preserve">@lead.StimulusContent</div>
+                                    </div>
+                                }
+                                @if (lead.AudioUrl is not null)
+                                {
+                                    <div class="exam-audio-box">
+                                        <audio controls preload="none" src="@lead.AudioUrl" aria-label="Âm thanh nhóm câu @(i + 1) đến @groupEnd">Trình duyệt chưa hỗ trợ âm thanh.</audio>
+                                        <partial name="_ExternalStimulusAudioNotice" model="lead.AudioUrl" />
+                                        <p class="exam-timer-note">Nếu âm thanh không phát, kiểm tra kết nối rồi thử lại.</p>
+                                    </div>
                                 }
                             </div>
                         }
-                        else if (question.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
-                        {
-                            <label for="assessment-text-@i">@(question.QuestionType == QuestionType.Dictation ? "Gõ lại nội dung bạn nghe được" : "Câu trả lời của bạn")</label>
-                            <input type="text" id="assessment-text-@i" name="Answers[@i].TextAnswer"
-                                   value="@question.TextAnswer" maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off" class="form-control" data-assessment-text />
-                        }
-                        else if (question.StructuredPrompt is { } prompt)
-                        {
-                            <partial name="_StructuredQuestion" model='new StructuredQuestionInputModel($"assessment-{i}", $"Answers[{i}].StructuredAnswerJson", question.QuestionType, prompt, question.StructuredAnswerJson)' />
-                        }
 
-                        <div class="exam-question-footer">
-                            @* Chỉ đổi vị trí trong trang; không gửi form hay tạo Attempt mới. *@
-                            <nav class="exam-question-navigation" aria-label="Điều hướng từ câu @(i + 1)">
-                                @if (i > 0)
+                        @for (; i < groupEnd; i++)
+                        {
+                            var question = sheet.Questions[i];
+                            @* tabindex=-1 giúp liên kết số câu đưa focus đến đúng câu, không thêm Tab thừa. *@
+                            <fieldset class="exam-question-card" id="question-@(i + 1)" tabindex="-1" aria-label="Câu @(i + 1)" data-question>
+                                <input type="hidden" name="Answers[@i].AssessmentQuestionId" value="@question.AssessmentQuestionId" />
+
+                                <div class="exam-question-header">
+                                    <div class="exam-q-meta">
+                                        <span class="activity-tag exam-q-badge">Câu @(i + 1) / @sheet.Questions.Count</span>
+                                        @if (question.PrimarySkill is EnglishSkill skill)
+                                        {
+                                            <span class="activity-tag neutral exam-q-skill"><partial name="_UiText" model="skill" /></span>
+                                        }
+                                    </div>
+                                    <span class="exam-q-points">@question.Points.ToString("0.##") điểm</span>
+                                </div>
+
+                                @if (!isSharedGroup && !string.IsNullOrWhiteSpace(question.StimulusContent))
                                 {
-                                    <a class="button secondary" href="#question-@i">Câu trước</a>
+                                    <div class="exam-stimulus-box">
+                                        <div class="stimulus-label">
+                                            <svg class="icon" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                                            <span>Bài đọc / Ngữ cảnh:</span>
+                                        </div>
+                                        <div class="preserve">@question.StimulusContent</div>
+                                    </div>
                                 }
-                                @if (i < sheet.Questions.Count - 1)
+
+                                <div class="exam-question-content preserve">@question.Content</div>
+
+                                @if (!isSharedGroup && question.AudioUrl is not null)
                                 {
-                                    <a class="button secondary" href="#question-@(i + 2)">Câu tiếp</a>
+                                    <div class="exam-audio-box">
+                                        <audio controls preload="none" src="@question.AudioUrl" aria-label="Âm thanh câu @(i + 1)">Trình duyệt chưa hỗ trợ âm thanh.</audio>
+                                        <partial name="_ExternalStimulusAudioNotice" model="question.AudioUrl" />
+                                        <p class="exam-timer-note">Nếu âm thanh không phát, kiểm tra kết nối rồi thử lại.</p>
+                                    </div>
                                 }
-                            </nav>
-                            @if (question.QuestionType == QuestionType.MultipleChoice)
-                            {
-                                <label class="exam-clear-selection" for="clear-q-@(i + 1)">
-                                    <input type="radio" id="clear-q-@(i + 1)" class="exam-option-radio visually-hidden" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" />
-                                    <span class="exam-clear-text">
-                                        <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#rotate-ccw")"></use></svg>
-                                        <span>Bỏ chọn đáp án</span>
-                                    </span>
-                                </label>
-                            }
-                        </div>
-                    </fieldset>
+
+                                @if (question.QuestionType == QuestionType.MultipleChoice)
+                                {
+                                    <div class="exam-options-list" role="radiogroup" aria-label="Đáp án câu @(i + 1)">
+                                        @for (var optIdx = 0; optIdx < question.Options.Count; optIdx++)
+                                        {
+                                            var option = question.Options[optIdx];
+                                            var optionLetter = (char)('A' + optIdx);
+                                            var isChecked = question.SelectedOptionId == option.Id;
+                                            <label class="exam-option-card @(isChecked ? "is-selected" : "")" for="option-@option.Id">
+                                                <input type="radio" id="option-@option.Id" class="exam-option-radio" name="Answers[@i].SelectedOptionId" value="@option.Id" checked="@isChecked" />
+                                                <span class="exam-option-badge">@optionLetter</span>
+                                                <span class="exam-option-text preserve">@option.Content</span>
+                                            </label>
+                                        }
+                                    </div>
+                                }
+                                else if (question.QuestionType is QuestionType.FillBlank or QuestionType.Dictation)
+                                {
+                                    <label for="assessment-text-@i">@(question.QuestionType == QuestionType.Dictation ? "Gõ lại nội dung bạn nghe được" : "Câu trả lời của bạn")</label>
+                                    <input type="text" id="assessment-text-@i" name="Answers[@i].TextAnswer"
+                                           value="@question.TextAnswer" maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off" class="form-control" data-assessment-text />
+                                }
+                                else if (question.StructuredPrompt is { } prompt)
+                                {
+                                    <partial name="_StructuredQuestion" model='new StructuredQuestionInputModel($"assessment-{i}", $"Answers[{i}].StructuredAnswerJson", question.QuestionType, prompt, question.StructuredAnswerJson)' />
+                                }
+
+                                <div class="exam-question-footer">
+                                    @* Chỉ đổi vị trí trong trang; không gửi form hay tạo Attempt mới. *@
+                                    <nav class="exam-question-navigation" aria-label="Điều hướng từ câu @(i + 1)">
+                                        @if (i > 0)
+                                        {
+                                            <a class="button secondary" href="#question-@i">Câu trước</a>
+                                        }
+                                        @if (i < sheet.Questions.Count - 1)
+                                        {
+                                            <a class="button secondary" href="#question-@(i + 2)">Câu tiếp</a>
+                                        }
+                                    </nav>
+                                    @if (question.QuestionType == QuestionType.MultipleChoice)
+                                    {
+                                        <label class="exam-clear-selection" for="clear-q-@(i + 1)">
+                                            <input type="radio" id="clear-q-@(i + 1)" class="exam-option-radio visually-hidden" name="Answers[@i].SelectedOptionId" value="" checked="@(!question.SelectedOptionId.HasValue)" />
+                                            <span class="exam-clear-text">
+                                                <svg class="icon" aria-hidden="true" style="width: 14px; height: 14px;"><use href="@Url.Content("~/images/icons.svg#rotate-ccw")"></use></svg>
+                                                <span>Bỏ chọn đáp án</span>
+                                            </span>
+                                        </label>
+                                    }
+                                </div>
+                            </fieldset>
+                        }
+                    </div>
                 }
             </div>
 
@@ -202,7 +253,13 @@
                     <!-- Question Palette Card -->
                     <nav class="exam-palette-card" aria-label="Danh sách câu hỏi">
                         <div class="exam-palette-header">
-                            <h3>Danh sách câu hỏi</h3>
+                            <div class="exam-palette-title-row">
+                                <h3>Danh sách câu hỏi</h3>
+                                <div class="exam-palette-filters" role="group" aria-label="Lọc câu hỏi">
+                                    <button type="button" class="exam-palette-filter is-active" data-palette-filter="all" aria-pressed="true">Tất cả</button>
+                                    <button type="button" class="exam-palette-filter" data-palette-filter="unanswered" aria-pressed="false">Chưa làm</button>
+                                </div>
+                            </div>
                             <p class="exam-timer-note" data-answer-progress role="status">@sheet.Questions.Count(q => q.HasAnswer)/@sheet.Questions.Count câu đã trả lời</p>
                         </div>
                         <div class="exam-palette-grid">

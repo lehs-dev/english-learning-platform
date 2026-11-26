@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using EnglishLearningPlatform.Application.Assessment;
 using EnglishLearningPlatform.Application.Learning;
 using EnglishLearningPlatform.Application.Practice;
@@ -19,6 +20,8 @@ namespace EnglishLearningPlatform.IntegrationTests;
 
 public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory) : IClassFixture<IntegrationTestFactory>
 {
+    private const string AssessmentProgressPath = "/Learning/Progress?tab=assessments";
+
     [Fact]
     public async Task CourseDiscussion_IsPrivateAndReplaysDoNotDuplicateMessages()
     {
@@ -342,18 +345,14 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.All(db.ChangeTracker.Entries(), entry => Assert.Equal(EntityState.Unchanged, entry.State));
         Assert.Null(db.Database.CurrentTransaction);
 
-        // Dashboard giữ lượt đại diện; Profile dùng cùng lịch sử với trang Đánh giá năng lực.
+        // Tiến độ hiển thị lượt đại diện; hồ sơ vẫn giữ lịch sử từng lượt.
         using var client = await ClientAsync(data.Student);
-        foreach (string path in new[] { "/Learning/Dashboard" })
-        {
-            string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
-            Assert.Contains($"data-representative-attempt=\"{chosen.Id}\"", html);
-            Assert.Contains($"/Assessment/Result/{chosen.Id}", html);
-            Assert.DoesNotContain($"data-representative-attempt=\"{pending.Id}\"", html);
-            Assert.DoesNotContain($"data-representative-attempt=\"{incomplete.Id}\"", html);
-            Assert.Matches(@"Đọc hiểu\s*: 33[,.]33%", html);
-            Assert.DoesNotMatch(@"Đọc hiểu\s*: 100%", html);
-        }
+        string progressHtml = WebUtility.HtmlDecode(await client.GetStringAsync(AssessmentProgressPath));
+        Assert.Contains($"/Assessment/Result/{chosen.Id}", progressHtml);
+        Assert.DoesNotContain($"/Assessment/Result/{pending.Id}", progressHtml);
+        Assert.DoesNotContain($"/Assessment/Result/{incomplete.Id}", progressHtml);
+        Assert.Matches(@"Đọc hiểu\s*:\s*33[,.]3%", progressHtml);
+        Assert.DoesNotMatch(@"Đọc hiểu\s*:\s*100%", progressHtml);
         var profileHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Profile"));
         Assert.Contains($"data-assessment-attempt=\"{chosen.Id}\"", profileHtml);
         Assert.Contains($"data-assessment-attempt=\"{pending.Id}\"", profileHtml);
@@ -371,7 +370,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
     }
 
     [Fact]
-    public async Task Dashboard_KeepsHighest85WhileProfileShowsEachAssessmentAttempt()
+    public async Task AssessmentProgress_KeepsHighest85WhileProfileShowsEachAssessmentAttempt()
     {
         var data = await SeedAsync();
         using var scope = factory.Services.CreateScope();
@@ -409,7 +408,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         await db.SaveChangesAsync();
 
         var attempts = scope.ServiceProvider.GetRequiredService<IAttemptService>();
-        // Có 3 bài đã chấm để bắt lỗi Profile vô tình chỉ hiện 2 bài giống preview Dashboard.
+        // Thêm hai đề để kiểm tra hồ sơ giữ toàn bộ lượt và Tiến độ giữ một lượt cho mỗi đề.
         var extraAttemptIds = new List<Guid>();
         for (int index = 0; index < 2; index++)
         {
@@ -474,7 +473,7 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
             .Select(s => s.Score).SingleAsync());
 
         using var client = await ClientAsync(data.Student);
-        foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
+        foreach (string path in new[] { "/Learning/Dashboard", AssessmentProgressPath, "/Profile" })
         {
             using var response = await client.GetAsync(path);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -490,27 +489,32 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
                     Assert.Contains($"/Assessment/Result/{extraId}", html);
                 Assert.Contains(">0</td>", html); // Vẫn hiển thị các bài đã chấm thật sự đạt 0.
             }
-            else
+            else if (path == AssessmentProgressPath)
             {
-                Assert.Contains($"data-representative-attempt=\"{ids[1]}\"", html);
-                Assert.DoesNotContain($"data-representative-attempt=\"{ids[2]}\"", html);
-                Assert.Matches(@">85%<", html);
-                Assert.Matches(@"Đọc hiểu\s*: 100%", html);
-                Assert.Matches(@"Nghe hiểu\s*: 50%", html);
-                Assert.Contains("Từ vựng", html);
-                Assert.Contains("Ngữ pháp", html);
-                Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(html, "data-representative-attempt=").Count);
+                var rows = Regex.Matches(html, """(?s)<tr role="row">.*?</tr>""")
+                    .Where(row => row.Value.Contains("class=\"result-score-badge\""))
+                    .ToArray();
+                Assert.Equal(3, rows.Length);
+                var bestRow = Assert.Single(rows, row => row.Value.Contains($"/Assessment/Result/{ids[1]}")).Value;
+                Assert.DoesNotContain($"/Assessment/Result/{ids[0]}", html);
+                Assert.DoesNotContain($"/Assessment/Result/{ids[2]}", html);
+                Assert.Contains(">85/100<", bestRow);
+                Assert.Matches(@"Đọc hiểu\s*:\s*100%", bestRow);
+                Assert.Matches(@"Nghe hiểu\s*:\s*50%", bestRow);
+                Assert.Contains("Từ vựng", bestRow);
+                Assert.Contains("Ngữ pháp", bestRow);
             }
             Assert.DoesNotContain("PRIVATE_PRACTICE_EXPLANATION", html);
 
             // Chỉ xuất HTML dữ liệu giả khi được yêu cầu để kiểm tra responsive, không lưu cookie/mật khẩu.
             string? exportDirectory = Environment.GetEnvironmentVariable("ELP_R4_UI_EXPORT");
-            if (!string.IsNullOrWhiteSpace(exportDirectory))
+            if (!string.IsNullOrWhiteSpace(exportDirectory) && path != AssessmentProgressPath)
             {
                 Directory.CreateDirectory(exportDirectory);
                 string safeHtml = System.Text.RegularExpressions.Regex.Replace(responseHtml,
                     "(name=\"__RequestVerificationToken\"[^>]*value=\")[^\"]*", "$1REDACTED");
-                await File.WriteAllTextAsync(Path.Combine(exportDirectory, path == "/Profile" ? "profile.html" : "dashboard.html"), safeHtml);
+                string fileName = path == "/Profile" ? "profile.html" : "dashboard.html";
+                await File.WriteAllTextAsync(Path.Combine(exportDirectory, fileName), safeHtml);
             }
         }
 
@@ -528,9 +532,10 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
 
         var other = await IdentityTestHelpers.CreateUserAsync(factory, AppRoles.Student);
         using var outsider = await ClientAsync(other);
-        foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
+        foreach (string path in new[] { "/Learning/Dashboard", AssessmentProgressPath, "/Profile" })
         {
-            string html = await outsider.GetStringAsync($"{path}?studentId={data.Student.Id}");
+            string separator = path.Contains('?') ? "&" : "?";
+            string html = await outsider.GetStringAsync($"{path}{separator}studentId={data.Student.Id}");
             Assert.DoesNotContain(ids[1].ToString(), html);
         }
     }
@@ -660,12 +665,16 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         Assert.Empty((await learning.GetRepresentativeResultsAsync(data.Student.Id)).Value!);
         Assert.Equal(LearningAccessResult.Forbidden, (await learning.GetRepresentativeResultsAsync(data.Teacher.Id)).Access);
         using var client = await ClientAsync(data.Student);
-        foreach (string path in new[] { "/Learning/Dashboard", "/Profile" })
+        foreach (var (path, expectedText) in new[]
+        {
+            ("/Learning/Dashboard", "Làm bài đánh giá năng lực để biết kỹ năng cần ưu tiên."),
+            (AssessmentProgressPath, "Chưa có kết quả bài kiểm tra"),
+            ("/Profile", "Đang làm")
+        })
         {
             string html = WebUtility.HtmlDecode(await client.GetStringAsync(path));
-            Assert.Contains(path == "/Profile" ? "Đang làm" : "Bạn chưa có kết quả đánh giá.", html);
-            Assert.DoesNotContain("data-representative-attempt=", html);
-            Assert.DoesNotContain($"/Assessment/Result/{activeAttempt.Id}", html);
+            Assert.Contains(expectedText, html);
+            Assert.DoesNotContain("/Assessment/Result/", html);
         }
         using var outsider = await ClientAsync(other);
         string profile = await outsider.GetStringAsync($"/Profile?studentId={data.Student.Id}");
@@ -796,10 +805,11 @@ public sealed class LearningDashboardFeatureTests(IntegrationTestFactory factory
         string dashboardHtml = WebUtility.HtmlDecode(await client.GetStringAsync("/Learning/Dashboard"));
         Assert.Equal(7, System.Text.RegularExpressions.Regex.Matches(dashboardHtml, "data-calendar-day=").Count);
         Assert.Equal(7, System.Text.RegularExpressions.Regex.Matches(dashboardHtml, "data-calendar-panel=").Count);
-        Assert.Contains("Luyện tập gần đây", dashboardHtml);
-        Assert.Contains(data.Practice.Title, dashboardHtml);
-        Assert.Contains("Xem tất cả (1)", dashboardHtml);
-        Assert.Contains($"href=\"/Practice/Result/{data.Practice.Id}\"", dashboardHtml);
+        var calendar = Regex.Match(dashboardHtml, """(?s)<section\b[^>]*\bid="calendar-widget"[^>]*>.*?</section>""");
+        Assert.True(calendar.Success);
+        Assert.Contains(data.Practice.Title, calendar.Value);
+        Assert.Contains($"href=\"/Practice/Result/{data.Practice.Id}\"", calendar.Value);
+        Assert.Contains($"href=\"/Assessment/Result/{gradedAttempt.Id}\"", calendar.Value);
         // Dashboard không còn thẻ bài viết mẫu không có dữ liệu thật.
         Assert.DoesNotContain("Mastering Vocabulary", dashboardHtml);
         Assert.DoesNotContain("Embarking on English", dashboardHtml);

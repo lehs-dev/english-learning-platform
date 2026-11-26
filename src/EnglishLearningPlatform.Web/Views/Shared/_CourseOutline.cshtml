@@ -37,55 +37,50 @@
         {
             <p class="preserve outline-description">@module.Description</p>
         }
-        @if (Model.CanLearn)
-        {
-            <a class="outline-module-link" asp-controller="Learning" asp-action="Module" asp-route-id="@module.Id">Xem trang chương <span aria-hidden="true">→</span></a>
-        }
         <ul class="outline-lessons">
             @foreach (var lesson in module.Lessons)
             {
-                <li>
-                    @if (lesson.IsCompleted)
+                <li data-lesson-completed="@(lesson.IsCompleted ? "true" : "false")" class="@(Model.CanLearn ? "is-clickable-lesson" : null)">
+                    @if (Model.CanLearn)
                     {
-                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #DEF7EC; color: #03543F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
-                        </div>
-                    }
-                    else
-                    {
-                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #F1F4FA; color: var(--v2-text-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg class="icon icon-sm" aria-hidden="true" style="width: 15px; height: 15px;"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
-                        </div>
-                    }
-                    <div class="outline-lesson-copy" style="flex: 1;">
-                        @if (Model.CanLearn)
-                        {
-                            <a asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">@lesson.Title</a>
-                        }
-                        else
-                        {
-                            <span style="font-weight: 600; font-size: 14px; color: var(--v2-text-muted);">@lesson.Title</span>
-                        }
-                        <small class="muted">
-                            @if (Model.IsOwner)
+                        <a class="outline-lesson-row-link" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">
+                            @if (lesson.IsCompleted)
                             {
-                                <partial name="_UiText" model="lesson.Status" />
-                            }
-                            else if (Model.Progress is not null)
-                            {
-                                @(lesson.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành")
+                                <span class="outline-lesson-badge is-done" aria-hidden="true">
+                                    <svg class="icon icon-sm"><use href="@Url.Content("~/images/icons.svg#check-circle")"></use></svg>
+                                </span>
                             }
                             else
                             {
-                                <text>Tham gia khóa học để xem bài</text>
+                                <span class="outline-lesson-badge" aria-hidden="true">
+                                    <svg class="icon icon-sm"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                                </span>
                             }
-                        </small>
-                    </div>
-                    @if (Model.CanLearn)
-                    {
-                        <a class="button secondary outline-lesson-action" asp-controller="Learning" asp-action="Lesson" asp-route-id="@lesson.Id">
-                            @(lesson.IsCompleted ? "Xem lại" : "Học bài")
+                            <span class="outline-lesson-copy">
+                                <span class="outline-lesson-title">@lesson.Title</span>
+                                <small class="muted">
+                                    @if (Model.IsOwner)
+                                    {
+                                        <partial name="_UiText" model="lesson.Status" />
+                                    }
+                                    else if (Model.Progress is not null)
+                                    {
+                                        @(lesson.IsCompleted ? "Đã hoàn thành" : "Chưa hoàn thành")
+                                    }
+                                </small>
+                            </span>
+                            <svg class="icon outline-lesson-chevron" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
                         </a>
+                    }
+                    else
+                    {
+                        <div class="outline-lesson-badge" aria-hidden="true">
+                            <svg class="icon icon-sm"><use href="@Url.Content("~/images/icons.svg#book")"></use></svg>
+                        </div>
+                        <div class="outline-lesson-copy">
+                            <span class="outline-lesson-locked">@lesson.Title</span>
+                            <small class="muted">Tham gia khóa học để xem bài</small>
+                        </div>
                     }
                 </li>
             }

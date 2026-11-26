@@ -8,7 +8,7 @@
 }
 
 <div class="course-details-container">
-    <div style="margin-bottom: 20px;">
+    <div class="course-details-back">
         <a class="button secondary exam-back-btn" asp-action="Index">
             <svg class="icon icon-back" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#arrow-right")"></use></svg>
             <span>Danh mục khóa học</span>
@@ -20,21 +20,21 @@
     <div class="course-detail-grid">
         <div class="course-detail-information">
             <header class="course-detail-heading">
-                <div class="course-tags" style="margin-bottom: 10px;">
-                    <span class="v2-pill-tag" style="background: var(--v2-pastel-periwinkle); color: var(--v2-dark);">
+                <div class="course-tags course-detail-badges">
+                    <span class="v2-pill-tag course-tag-level">
                         <partial name="_UiText" model="Model.Course.Level" />
                     </span>
                     @foreach (var skill in Model.Course.Skills)
                     {
-                        <span class="v2-pill-tag" style="background: #FAF9FE; color: var(--v2-text-secondary);">
+                        <span class="v2-pill-tag course-tag-skill">
                             <partial name="_UiText" model="skill" />
                         </span>
                     }
                 </div>
                 <h1>@Model.Course.Title</h1>
                 <p class="preserve">@Model.Course.Description</p>
-                <div class="course-detail-teacher" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13.5px; color: var(--v2-text-muted);">
-                    <svg class="icon icon-sm" aria-hidden="true" style="width: 16px; height: 16px;"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
+                <div class="course-detail-teacher">
+                    <svg class="icon icon-sm" aria-hidden="true"><use href="@Url.Content("~/images/icons.svg#user")"></use></svg>
                     <span>Giảng viên hướng dẫn: <strong>@Model.Course.Teacher</strong></span>
                 </div>
             </header>
@@ -48,24 +48,24 @@
                 @if (!string.IsNullOrWhiteSpace(Model.Course.Objectives))
                 {
                     <section class="card-v2 course-detail-objectives-card">
-                        <div class="course-detail-tags" style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-                            <span class="v2-pill-tag" style="background: var(--v2-pastel-mint); color: #03543F;">Mục tiêu</span>
-                            <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--v2-dark);">Bạn sẽ học được gì?</h2>
+                        <div class="course-detail-tags course-detail-objectives-head">
+                            <span class="v2-pill-tag course-tag-objective">Mục tiêu</span>
+                            <h2>Bạn sẽ học được gì?</h2>
                         </div>
-                        <div class="preserve" style="color: var(--v2-text-secondary); line-height: 1.7; font-size: 14.5px;">
+                        <div class="preserve course-detail-objectives-copy">
                             @Model.Course.Objectives
                         </div>
                     </section>
                 }
 
                 <section class="course-detail-syllabus" aria-labelledby="outline-title">
-                    <div class="section-heading" style="margin-bottom: 18px;">
+                    <div class="section-heading course-detail-syllabus-head">
                         <div>
-                            <div class="course-detail-tags" style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <div class="course-detail-tags course-detail-syllabus-tags">
                                 <span class="v2-pill-tag">Giáo trình</span>
-                                <span class="v2-pill-tag" style="background: #FAF9FE; color: var(--v2-text-muted);">@Model.Course.ModuleCount chương · @Model.Course.LessonCount bài học</span>
+                                <span class="v2-pill-tag course-tag-skill">@Model.Course.ModuleCount chương · @Model.Course.LessonCount bài học</span>
                             </div>
-                            <h2 id="outline-title" style="margin: 0; font-size: 22px; font-weight: 800; color: var(--v2-dark);">Nội dung chi tiết</h2>
+                            <h2 id="outline-title">Nội dung chi tiết</h2>
                         </div>
                     </div>
                     <partial name="_CourseOutline" model="Model" />

@@ -167,6 +167,7 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
                     .Select(q => new
                     {
                         q.Id, q.QuestionId, q.Question.Content, q.Points, q.Question.QuestionType,
+                        q.Question.PrimarySkill,
                         q.Question.StructuredDefinitionJson,
                         StimulusContent = q.Question.Stimulus != null && q.Question.Stimulus.StimulusType == StimulusType.Passage
                             ? q.Question.Stimulus.ContentText : null,
@@ -191,6 +192,7 @@ public sealed class AssessmentQueryService(AppDbContext db, TimeProvider timePro
             question.StimulusContent, question.Answer?.SelectedOptionId, question.Options)
             {
                 QuestionType = question.QuestionType,
+                PrimarySkill = question.PrimarySkill,
                 TextAnswer = question.Answer?.TextAnswer,
                 StructuredAnswerJson = question.Answer?.StructuredAnswerJson,
                 // The persisted definition contains the key. Only its shuffled public choices go to the client.
