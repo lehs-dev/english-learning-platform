@@ -328,7 +328,8 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
         string takingPath = start.Headers.Location!.ToString();
         for (int refresh = 0; refresh < 2; refresh++)
         {
-            await AssertSharedMediaAsync(studentClient, takingPath, type, media, 5);
+            await AssertSharedMediaAsync(studentClient, takingPath, type, media, expectedCount: 1,
+                groupedQuestionCount: questionIds.Count);
             await AssertSharedMediaAsync(studentClient, $"/Practice/Take/{practice.Id}", type, media, type == StimulusType.Passage ? 1 : 2);
         }
         Assert.Equal(1, await db.Attempts.CountAsync(a => a.AssessmentId == draft.Id));
@@ -541,11 +542,20 @@ public sealed class StimulusCreationTests(IntegrationTestFactory factory) : ICla
     // Kiểm tra HTML Razor thật và số câu dùng chung ngữ liệu.
     // Không tải audio từ Internet; khả năng phát của URL thực tế được kiểm tra trên web.
     private static async Task AssertSharedMediaAsync(
-        HttpClient client, string path, StimulusType type, string media, int expectedCount)
+        HttpClient client, string path, StimulusType type, string media, int expectedCount,
+        int? groupedQuestionCount = null)
     {
         using var response = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         string html = await response.Content.ReadAsStringAsync();
+        if (groupedQuestionCount is int count)
+        {
+            Assert.Single(Regex.Matches(html, """<div class="exam-stimulus-group">"""));
+            Assert.Contains($"Ngữ cảnh chung · Câu 1–{count}", WebUtility.HtmlDecode(html));
+            Assert.Equal(count, Regex.Matches(html, """<fieldset\b[^>]*\bdata-question(?=[\s=>])""").Count);
+            for (int index = 0; index < count; index++)
+                Assert.Contains($"name=\"Answers[{index}].AssessmentQuestionId\"", html);
+        }
         var players = Regex.Matches(html, "<audio\\b[^>]*\\bsrc=\"([^\"]*)\"");
         if (type == StimulusType.Audio)
         {
